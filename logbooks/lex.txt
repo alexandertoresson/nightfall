@@ -1,0 +1,5 @@
+060920
+Lade till simpel support för att ladda en höjdkarta
+
+060925
+Arbetade vidare på terrängmotorn, började på normalberäkningen

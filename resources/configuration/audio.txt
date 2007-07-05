@@ -1,0 +1,54 @@
+#
+# List of music
+#
+# Please do not attempt to edit this list if you 
+# are not aware of what you are doing. Misinterpret
+# configuration file will most likely result in
+# incoherent behaviour.
+#
+
+# As what is written above, changing these two variables
+# is very unwise. The application will refuse to start up
+# if not all files defined in the audio list below are found!
+music directory			resources/music/%s
+sound directory			resources/sound/%s
+
+# 44100 (CD-quality) recommended. Set to half 22050 if
+# you do experience a significant performance loss.
+audio rate				44100
+
+# 1 = Mono
+# 2 = Stereo (recommended!)
+audio setup				2
+
+# This is the real channels. Unrealistic values
+# will result in segment failure. Zero will halt
+# all audio to take place. Negative values will be 
+# neglected. So keep the numbers reasonable.
+audio channels			16
+
+# Bytes used per output sample. Default, and recommended
+# value is 4096 bytes.
+audio chunksize			4096
+
+# Description ----------------------- Value
+# Default . . . . . . . . . . . . . . .	0
+# Unsigned 8-bit  . . . . . . . . . . . 1
+# Signed   8-bit  . . . . . . . . . . . 2
+# Unsigned 16-bit little-endian	. . . . 3
+# Signed   16-bit little-endian . . . . 4
+# Unsigned 16-bit big-endian  . . . . . 5
+# Signed   16-bit big-endian  . . . . . 6
+# Unsigned 16-bit system byteorder  . . 7
+# Signed   16-bit system byteorder  . . 8
+#
+# If an invalid value is provided, the default
+# format will be used. But please do keep the
+# numbers straight!
+#
+audio format			0
+
+# Lists the different default music for
+# different game states.
+create audio list		yes
+audio list			resources/configuration/audioList.txt

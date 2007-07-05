@@ -1,0 +1,46 @@
+#RTS V1.0 utf8
+
+DEF MainBuilding Unit
+{
+	maxHealth 10000
+	maxPower 0
+	minAttack 0
+	maxAttack 0
+	heightOnMap 7
+	widthOnMap 7
+	hasAI 1
+	isMobile 0
+	
+	canAttack 0
+
+	sightRange 22.0
+	movementSpeed 0.0
+	movementType Building
+	attackSpeed 0.0
+	size 7.0
+	height 2.0
+	buildTime 180.0
+	buildCost 500
+	researchTime 360.0
+	researchCost 1000
+
+	lightRange 17.0
+
+	powerUsage 2.0
+	lightPowerUsage 3.0
+	buildPowerUsage 1.0
+	
+	Model "resources/models/mainBuilding.wrl#MainBuilding"
+	symbol "resources/textures/mainbuilding.png"
+	
+	canBuild ["resources/unittypes/builder.unit#Builder",
+	          "resources/unittypes/explorer.unit#Explorer"]
+	
+	canResearch ["resources/unittypes/mainBuilding.unit#MainBuilding",
+		     "resources/unittypes/tankFactory.unit#TankFactory",
+		     "resources/unittypes/mediumLightTower.unit#MediumLightTower",
+		     "resources/unittypes/largeLightTower.unit#LargeLightTower",
+		     "resources/unittypes/surfaceGeothermal.unit#SurfaceGeothermal",
+		     "resources/unittypes/deepGeothermal.unit#DeepGeothermal"]
+
+}

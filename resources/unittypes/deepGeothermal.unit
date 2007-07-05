@@ -1,0 +1,33 @@
+#RTS V1.0 utf8
+
+DEF DeepGeothermal Unit
+{
+	maxHealth 4000
+	maxPower 0
+	minAttack 0
+	maxAttack 0
+	heightOnMap 4
+	widthOnMap 4
+	hasAI 0
+	isMobile 0
+	
+	canAttack 0
+
+	sightRange 12.0
+	movementSpeed 0.0
+	movementType Building
+	attackSpeed 0.0
+	size 4.0
+	height 2.0
+	buildTime 90.0
+	buildCost 400
+	researchTime 180.0
+	researchCost 800
+
+	powerIncrement 10.0
+	powerType TwentyFourSeven
+	powerUsage 2.0
+	
+	Model "resources/models/cube3.wrl#OB_Cube"
+
+}

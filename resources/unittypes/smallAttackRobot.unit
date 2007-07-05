@@ -1,0 +1,46 @@
+#RTS V1.0 utf8
+
+DEF SmallAttackRobot Unit
+{
+	maxHealth 200
+	maxPower 100
+	minAttack 10
+	maxAttack 20
+	heightOnMap 1
+	widthOnMap 1
+	hasAI 1
+	isResearched 1
+	isMobile 1
+	
+	canAttack 1
+	canAttackWhileMoving 1
+	attackMaxRange 5.0
+	attackMinRange 0.0
+	attackAccuracy 80.0
+
+	sightRange 7.0
+	movementSpeed 4.0
+	movementType Vehicle
+	attackSpeed 2.0
+	size 1.0
+	height 1.0
+	buildTime 20.0
+	buildCost 100
+	researchTime 40.0
+	researchCost 200
+	
+	powerUsage 1.0
+	movePowerUsage 0.5
+	attackPowerUsage 1.0
+	
+	Model "resources/models/smallattackrobot.wrl#SmallAttackRobot"
+	
+	ProjectileType
+	{
+		Model "resources/models/missile.wrl#Missile"
+		areaOfEffect 1.0
+		startPos 1.0 0.0 0.0
+		speed 1.0
+		size 0.1
+	}
+}

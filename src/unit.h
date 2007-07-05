@@ -1,0 +1,434 @@
+#ifndef __UNIT_H_PRE__
+#define __UNIT_H_PRE__
+
+#ifdef DEBUG_DEP
+#warning "unit.h-pre"
+#endif
+
+#include <map>
+#include <string>
+#include <deque>
+
+using namespace std;
+
+namespace Game
+{
+	namespace Dimension
+	{
+		struct Unit;
+		struct ActionData;
+		struct UnitType;
+		struct Model;
+		struct ProjectileType;
+		struct Projectile;
+		struct MorphAnim;
+		struct TransformAnim;
+		struct TransData;
+		struct Animation;
+
+		int GetTraversalTime(Unit *unit, int x, int y, int dx, int dy);
+		bool MoveUnit(Unit* unit);
+		bool SquareIsGoal(Unit *unit, int x, int y, bool use_internal = false);
+		
+		bool SquareIsWalkable(Unit *unit, int x, int y, int flags);
+		bool SquaresAreWalkable(Unit *unit, int x, int y, int flags);
+		bool SquareIsWalkable(Unit *unit, int x, int y);
+		bool SquaresAreWalkable(Unit *unit, int x, int y);
+		
+		bool SquareIsWalkable_AllKnowing(Unit *unit, int x, int y);
+		bool SquaresAreWalkable_AllKnowing(Unit *unit, int x, int y);
+		bool SquareIsWalkable_AllKnowing(UnitType *type, int x, int y);
+		bool SquaresAreWalkable_AllKnowing(UnitType *type, int x, int y);
+		
+		struct TransformData;
+		struct TransformAnim;
+		struct Animation;
+		extern map<string, UnitType*> unitTypeMap;
+	}
+}
+
+#define __UNIT_H_PRE_END__
+
+#include "dimension.h"
+#include "vector3d.h"
+#include "aipathfinding.h"
+#include "aibase.h"
+#include "game.h"
+#include "terrain.h"
+#include "audio.h"
+
+#endif
+
+#ifdef __AIBASE_H_PRE_END__
+#ifdef __AIPATHFINDING_H_PRE_END__
+#ifdef __DIMENSION_H_END__
+#ifdef __VECTOR3D_H_END__
+#ifdef __GAME_H_END__
+#ifdef __TERRAIN_H_END__
+#ifdef __AUDIO_H_END__
+
+#ifndef __UNIT_H__
+#define __UNIT_H__
+
+#ifdef DEBUG_DEP
+#warning "unit.h"
+#endif
+
+namespace Game
+{
+	namespace Dimension
+	{
+		
+		extern int PositionSearch_NumStepsTaken;
+		extern Unit** unitByID;
+		extern Uint32* frameRemovedAt;
+		
+		enum MovementType
+		{
+			MOVEMENT_HUMAN,
+			MOVEMENT_VEHICLE,
+			MOVEMENT_TANK,
+			MOVEMENT_BUILDING,
+			MOVEMENT_AIRBORNE,
+			MOVEMENT_SEA
+		};
+
+		enum RangeType
+		{
+			RANGE_ATTACK,
+			RANGE_SIGHT
+		};
+
+		const int SIW_DEFAULT = 0,
+		          SIW_ALLKNOWING = 1,
+		          SIW_IGNORE_MOVING = 2,
+		          SIW_IGNORE_OWN_MOBILE_UNITS = 4;
+
+		struct Model
+		{
+			int tri_count;
+			int pointCount;
+			int texPointCount;
+			float* vertices;
+			float* normals;
+			float* texCoords;
+			int* tris;
+			int* tex_tris;
+			GLuint texture;
+			GLfloat *Material_Ambient;
+			GLfloat *Material_Diffuse;
+			GLfloat *Material_Specular;
+			GLfloat *Material_Shininess;
+			GLfloat *Material_Emissive;
+		};
+
+		struct MorphAnim
+		{
+			Model** models;            // models used for the keyframes
+			float*  keyFramePositions; // position in time space of the keyframes
+			int     numKeyFrames;
+			float   length;            // total length of the animation
+			float   lengthVariation;
+			Model*  tempModel;        // model to store temporary interpolated vertices, normals, texCoords, and material parameter
+		};
+
+		struct TransformData
+		{
+			Utilities::Vector3D pretrans;
+			Utilities::Vector3D rot;
+			Utilities::Vector3D aftertrans;
+			Utilities::Vector3D scale;
+		};
+
+		struct TransformAnim
+		{
+			MorphAnim* morphAnim;
+			TransformData** transDatas;  // transformation data used
+			float*  keyFramePositions; // position in time space of the keyframes
+			int     numKeyFrames;
+			float   length;            // total length of the animation
+			float   lengthVariation;
+			TransformAnim** children;
+			int     numChildren;
+		};
+
+		struct Animation
+		{
+			TransformAnim** transAnim;
+			int num_parts;
+		};
+
+		union CurAnim
+		{
+			Model* model;
+			TransformData* transdata;
+		};
+
+		enum AnimType
+		{
+			ANIM_TRANSFORM,
+			ANIM_MORPH
+		};
+
+		enum PowerType
+		{
+			POWERTYPE_DAYLIGHT,
+			POWERTYPE_TWENTYFOURSEVEN
+		};
+
+		enum LightState
+		{
+			LIGHT_OFF,
+			LIGHT_AUTO,
+			LIGHT_ON
+		};
+
+		struct SingleAnimData
+		{
+
+			float   animPos; // positions into the different morphing and transforming animations for the UnitType.
+			CurAnim curFrames[4]; // current frames being interpolated between
+			int     nextFrameIndex;
+			float   curFrameLength; // length of current frame
+			SingleAnimData()
+			{
+				animPos = 0;
+				for (int i = 0; i < 4; i++)
+					curFrames[i].model = NULL;
+				nextFrameIndex = 0;
+				curFrameLength = 0;
+			}
+		};
+
+		struct UnitAnimData
+		{
+			SingleAnimData** sAnimData[2];
+			float transitionPos;
+			float transitionLength;
+			Animation* anim[2];
+			bool isTransition;
+
+			UnitAnimData()
+			{
+				transitionPos = 0;
+				transitionLength = 0;
+				isTransition = false;
+				anim[0] = NULL;
+				anim[1] = NULL;
+			}
+		};
+
+		struct ActionData
+		{
+			Position goal_pos;
+			Unit* goal_unit;
+			AI::UnitAction action;
+			void* arg;
+		};
+
+		struct UnitType
+		{
+			char*       name;
+			Model*      model;
+			Animation*  animations[AI::ACTION_NUM];    // one per action, NULL if an animation doesn't exist for that action
+			int         maxHealth;
+			int         maxPower;
+			int         minAttack;     // in hitpoints
+			int         maxAttack;
+			bool        canAttack;
+			bool        canAttackWhileMoving;
+			float       attackAccuracy;  // accuracy of attack (0 - 100)
+			float       attackMinRange;  // the minimum range of the unit's attack
+			float       attackMaxRange;  // the maximum range of the unit's attack
+			float       sightRange;      // how far the unit can see
+			float       lightRange;      // how far the unit spreads light
+			bool        isMobile;        // whether the unit is moveable
+			PowerType   powerType;       // defines how long the unit generates light.
+			double       powerIncrement;  // the power generation quantity per second per unit.
+			double       powerUsage;      // the power the unit uses per second
+			double       lightPowerUsage; // the power the light uses per second
+			double       attackPowerUsage;// the power an attack uses
+			double       buildPowerUsage; // the power building uses per second
+			double       movePowerUsage;  // the power moving uses per second
+			float       movementSpeed;   // in squares per second
+			float       attackSpeed;     // in times per second
+			vector<UnitType*> canBuild;  // vector of what the unit can build, if anything at all
+			vector<UnitType*> canResearch;// vector of what the unit can research, if anything at all
+			bool        hasAI;           // whether the unit has an AI
+			bool*       isResearched;    // whether the unit is researched, for each player
+			Unit**      isBeingResearchedBy;
+			bool        hurtByLight;     // whether the unit is hurt by light
+			float       size;            // size of unit -- how to scale it
+			int         heightOnMap;     // this width and height only affect how much space the unit takes on the map.
+			int         widthOnMap;
+			float       height;          // this affects the actual height of the unit on screen (before being scaled by this->size)
+			                             // and thus where the health meter should be placed
+			float       buildTime;       // seconds to build
+			float       researchTime;    // seconds to research
+			int         buildCost;       // cost to build
+			int         researchCost;    // cost to research
+			ProjectileType*     projectileType; // set to NULL to make the unit have normal, non-ranged attacks.
+			MovementType movementType;   // Type of movement the unit has
+			int         index;           // index of the unit in vUnitTypes
+			GLuint	    Symbol;	     // Build symbol or Unit Symbol
+			Audio::AudioFXInfo* actionSounds[Audio::SFX_ACT_COUNT];
+		};
+
+		struct ProjectileType
+		{
+			Model*              model;
+			float               size;
+			float               areaOfEffect;
+			Utilities::Vector3D startPos;
+			float               speed;
+		};
+
+		struct Projectile
+		{
+			ProjectileType*     type;
+			Utilities::Vector3D pos;
+			Utilities::Vector3D direction;
+			Utilities::Vector3D goalPos;
+			Unit*               goalUnit;
+		};
+
+		struct Unit
+		{
+			float               health;
+			float               power;
+			UnitType*           type;
+			Player*             owner;
+			Position            pos;
+			Position*           lastSeenPositions;
+			Position            curAssociatedSquare;
+			float               rotation;  // how rotated the model is
+			UnitAnimData        animData;
+			AI::UnitAction      action;
+			deque<ActionData*> actionQueue;
+			AI::MovementData*   pMovementData;
+			AI::UnitAIData*     aiUnitData;
+			vector<Projectile*> projectiles;
+			Uint32              lastAttack;    // frame of the last attack done by the unit
+			Uint32              lastAttacked;    // frame of the last attack done at the unit
+			Uint32              lastCommand;
+			float               completeness;
+			float               action_completeness;
+			bool                isCompleted;
+			bool                isDisplayed;
+			bool                isMoving;
+			bool                isLighted;   // the unit has squares added that are marked as lighted
+			bool                hasSeen;     // the unit has squares added that are marked as seen
+			LightState          lightState;
+			Position*           rallypoint;
+			Uint16               id;
+			Audio::SoundListNode* soundNodes[Audio::SFX_ACT_COUNT];
+		};
+
+		extern vector<Unit*> unitsSelected;
+		extern vector<Unit*> unitGroups[10];
+		extern GLfloat unitMaterialAmbient[2][2][4];
+		extern GLfloat unitMaterialDiffuse[2][2][4];
+		extern GLfloat unitMaterialSpecular[2][2][4];
+		extern GLfloat unitMaterialEmission[2][2][4];
+		extern GLfloat unitMaterialShininess[2][2];
+		extern GLfloat unitBuildingMaximumAltitude;
+
+		void PlayActionSound(Unit* unit, Audio::SoundNodeAction action);
+		void PlayRepeatingActionSound(Unit* unit, Audio::SoundNodeAction action);
+		void StopRepeatingActionSound(Unit* unit, Audio::SoundNodeAction action);
+
+		bool IsUnitSelected(Unit* unit, string action);
+		void SetUnitCoordSpace(Unit* unit, bool ignoreCompleteness = false);
+		void SetParticleCoordSpace(float x, float y, float z, float scale = 1.0f);
+		bool DoesHitUnit(Unit* unit, int clickx, int clicky, float& distance);
+		Utilities::Vector3D GetUnitWindowPos(Unit* unit);
+		void SetBillBoardCoordSystem(Unit* unit);
+		void GetUnitUpperLeftCorner(Unit* unit, int& lx, int& uy);
+		
+		bool IsWithinRangeForBuilding(Unit* unit);
+		void Build(Unit* unit);
+		void Research(Unit* unit);
+		void CancelBuild(Dimension::Unit* pUnit);
+		void CancelResearch(Dimension::Unit* pUnit);
+		float CalcUnitDamage(Unit* unit);
+		bool CanAttack(Unit* attacker);
+		bool Attack(Unit* target, float damage);
+		void InitiateAttack(Unit* attacker, Unit* target);
+		void HandleProjectiles(Unit* pUnit);
+		bool CanReach(Unit* attacker, Unit* target);
+		void ChangePath(Unit* pUnit, float goal_x, float goal_y, AI::UnitAction action, Unit* target, void* arg);
+		
+		bool SquareIsWalkable(UnitType *type, Player *player, int x, int y, int flags);
+		bool SquaresAreWalkable(UnitType *type, Player *player, int x, int y, int flags);
+		bool SquareIsWalkable(UnitType *type, Player *player, int x, int y);
+		bool SquaresAreWalkable(UnitType *type, Player *player, int x, int y);
+
+		bool SquareIsLighted(Player *player, int x, int y);
+		bool SquareIsVisible(Player *player, int x, int y);
+		bool SquaresAreLighted(UnitType *type, Player *player, int x, int y);
+		bool SquaresAreLightedAround(UnitType *type, Player *player, int x, int y);
+		
+		bool GetNearestSuitableAndLightedPosition(UnitType* type, Player* player, int& x, int& y);
+		bool GetSuitablePositionForLightTower(UnitType* type, Player* player, int& x, int& y);
+		
+		Unit* GetNearestUnitInRange(Unit* unit, RangeType rangeType, PlayerState state);
+		float GetLightAmountOnUnit(Unit* unit);
+		bool UnitIsVisible(Unit *unit, Player*);
+		bool UnitIsVisible(Unit *unit, Player *player);
+		Unit* GetUnitClicked(int clickx, int clicky, int map_x, int map_y);
+		Unit* CreateUnit(UnitType* type, Player* owner, float x, float y);
+		void DeleteUnit(Unit* unit);
+		Unit* CreateUnitNoDisplay(UnitType* type, Player* owner);
+		bool DisplayUnit(Unit* unit, float x, float y);
+		void UpdateSeenSquares(Unit* unit, int x, int y, int operation);
+		void UpdateLightedSquares(Unit* unit, int x, int y, int operation);
+		void SetLightState(Unit* unit, LightState lightState);
+		void NotEnoughPowerForLight(Unit* unit);
+		void EnoughPowerForLight(Unit* unit);
+		
+		double GetIncomeAtNoon(Player* player);
+		double GetIncomeAtNight(Player* player);
+		double GetNightLength();
+		double GetDayLength();
+		double GetPower(Player* player);
+		double GetMoney(Player* player);
+		void SellPower(Player* player, double amount);
+		double GetPowerAtDawn(Player* player);
+		double GetPowerAtDusk(Player* player);
+
+		void InitUnits(void);
+		void RenderUnits(void);
+		void RenderBuildOutline(UnitType* type, int start_x, int start_y);
+
+		TransformData* CreateTransformData(Utilities::Vector3D pretrans, Utilities::Vector3D rot, Utilities::Vector3D aftertrans, Utilities::Vector3D scale);
+		Animation* CreateAnimation(TransformAnim* transAnim);
+		TransformAnim* CreateTransAnim(MorphAnim* morphAnim, TransformAnim** children, int numChildren, float length, int numKeyFrames, ...);
+		MorphAnim* CreateMorphAnim(float length, int numKeyFrames, ...);
+
+		Projectile* CreateProjectile(ProjectileType* type, Utilities::Vector3D start, Unit* goal);
+		
+		Projectile* CreateProjectile(ProjectileType* type, Utilities::Vector3D start, Utilities::Vector3D goal);
+
+		void InitUnits();
+		void DeleteUnit(Unit* unit);
+
+		void RenderUnits();
+		void RenderHealthBars();
+		
+	}
+}
+
+#ifdef DEBUG_DEP
+#warning "unit.h-end"
+#endif
+
+#define __UNIT_H_END__
+
+#endif
+#endif
+#endif
+#endif
+#endif
+#endif
+#endif
+#endif

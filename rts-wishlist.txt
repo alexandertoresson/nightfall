@@ -1,0 +1,30 @@
+Komplett upplevelse och möjliga features
+
+Användargränssnitt
+* chat
+* information som visas på skärmen, dvs statuslista i GameInput som fadar bort eftersom tiden går
+* gruppera valda enheter
+* klickar du på en valda enheter-listan så ska den enheten väljas
+* indirekt markering, dvs du ska inte behöva markera hela enheten för att välja den
+* fixa färgändring på healthbaren (dvs så att den blir mer röd t ex)
+* visa gruppering i sidan av spelfönstret
+* visa paths som har satts i kö på 3d spelkartan
+* avbryta byggning, research
+* visa vad allt kostar
+* rotering, zoom av kameran med hjälp av musrörelse.
+* front person kameravy på en unit.
+* fixa billboarding för healthbaren, rotering mot kameraplanet, ej sfärbillboarding som nu
+* implementera en graf över projekterat energi behov
+* riktig konsol med luainterface
+* fixa tidsuppdatering av miniatyren
+
+Spellogik:
+* (detta är frågan om det går med vårt system, men det är mycket användbart) göra så att enheter inte kan bli instängda, dvs att de kan gå ut. Genom att använda visuella vägar.
+* simulera projektilers rörelse och vid träff i marken, kontrollera enheter som finns på rutorna som projektilen ger skada på och ge skada därefter.
+
+Optimeringar:
+* VBOa alla modeller
+
+Grafik relaterat
+* lägga till effekter för byggnad, rök, lite slumpmässiga träd (kanske simulera vind senare)
+* lägga på detaljtextur på terrängen

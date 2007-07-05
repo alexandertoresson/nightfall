@@ -1,0 +1,100 @@
+AC_INIT([rts], [0.1], [alexander.toresson@gmail.com, bloopz@gmail.com, zanathel@gmail.com])
+AM_INIT_AUTOMAKE([rts], [0.1])
+AC_PROG_CXX
+AC_PROG_INSTALL
+AC_PROG_CC
+AC_HEADER_STDC
+
+AC_CHECK_LIB(GL,glVertex3f,[],[AC_MSG_ERROR("OpenGL library could not be found!")])
+AC_CHECK_LIB(GLU,gluLookAt,[],[AC_MSG_ERROR("GLU library could not be found!")])
+if @<:@ -z `pkg-config --version` @:>@; then
+	echo "pkg-config could not be found, falling back to sdl-config and lua-config... "
+	echo -n "checking for SDL... "
+	if @<:@ -z `sdl-config --version|grep ^1.2` @:>@; then
+		AC_MSG_ERROR("SDL library could not be found!")
+	else
+		echo "SDL 1.2.x found!"
+		SDL_CFLAGS=`sdl-config --cflags`
+		SDL_LIBS=`sdl-config --libs`
+	fi
+	echo -n "checking for LUA 5.0.x... "
+	if @<:@ -z "`lua-config50 --libs --include`" @:>@; then
+		AC_MSG_ERROR("LUA library 5.0.x or 5.1.x could not be found!")
+	else
+		echo "LUA 5.0.x found!"
+		LUA_CFLAGS=`lua-config50 --include`
+		LUA_LIBS=`lua-config50 --libs --extralibs`
+	fi
+else
+	PKG_CHECK_MODULES(SDL, sdl >= 1.2.0,,
+	[
+		echo -n "SDL could not be found using pkg-config, falling back to sdl-config... "
+		if @<:@ -z "`sdl-config --version|grep ^1.2`" @:>@; then
+			AC_MSG_ERROR("SDL library could not be found!")
+		else
+			echo "SDL found!"
+			SDL_CFLAGS=`sdl-config --cflags`
+			SDL_LIBS=`sdl-config --libs`
+		fi
+	])
+	PKG_CHECK_MODULES(LUA, lua5.1 >= 5.1.0,,
+	[
+		echo -n "LUA 5.1.x not found, checking for LUA 5.0.x... "
+		PKG_CHECK_MODULES(LUA, lua50 >= 5.0.0,,
+		[
+		echo -n "LUA could not be found using pkg-config, falling back to lua-config50... "
+		if @<:@ -z "`lua-config50 --libs --include`" @:>@; then
+			AC_MSG_ERROR("LUA library 5.0.x or 5.1.x could not be found!")
+		else
+			echo "LUA 5.0.x found!"
+			LUA_CFLAGS=`lua-config50 --include`
+			LUA_LIBS=`lua-config50 --libs --extralibs`
+		fi
+		])
+	])
+fi
+
+AC_CHECK_LIB(SDL_mixer,Mix_LoadMUS,[],[AC_MSG_ERROR("SDL_mixer library could not be found!")])
+AC_CHECK_LIB(SDL_image,IMG_Load,[],[AC_MSG_ERROR("SDL_image library could not be found!")])
+AC_CHECK_LIB(SDL_ttf,TTF_OpenFont,[],[AC_MSG_ERROR("SDL_ttf library could not be found!")])
+AC_CHECK_LIB(SDL_net,SDLNet_Init,[],[AC_MSG_ERROR("SDL_net library could not be found!")])
+
+LIBS="$LUA_LIBS $SDL_LIBS $LIBS"
+
+LD="ld"
+
+dnl **************************************
+dnl *** Check for linker optimizations ***
+dnl **************************************
+AC_MSG_CHECKING([whether $LD accepts -O1])
+case `$LD -O1 -v 2>&1 </dev/null` in
+*GNU* | *'with BFD'*)
+  LDFLAGS="$LDFLAGS -Wl,-O1"
+  AC_MSG_RESULT([yes])
+  ;;
+*)
+  AC_MSG_RESULT([no])
+  ;;
+esac
+
+dnl **************************************
+dnl *** Check for linker optimizations ***
+dnl **************************************
+AC_MSG_CHECKING([whether $LD accepts --as-needed])
+case `$LD -O1 -v 2>&1 </dev/null` in
+*GNU* | *'with BFD'*)
+  LDFLAGS="$LDFLAGS -Wl,--as-needed"
+  AC_MSG_RESULT([yes])
+  ;;
+*)
+  AC_MSG_RESULT([no])
+  ;;
+esac
+
+dnl *****************************
+dnl *** Generate output files ***
+dnl *****************************
+AC_OUTPUT([
+Makefile
+src/Makefile
+])

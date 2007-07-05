@@ -1,0 +1,74 @@
+* CalculateChange() antar att m_currentHour == m_curEnvCond->hourBegin.
+  Detta är dock inte sant första gången funktionen anropas och m_currentHour
+  råkar skilja sig från m_curEnvCond->hourBegin (detta _kommer_ med stor
+  sannolikhet att hända om man inte använder SetCurrentHour() till att
+  sätta m_currentHour till rätt värde).
+
+* När SetCurrentHour() anropas kontrolleras aldrig vilken environmental condition
+  som denna ändring av tiden skulle leda till. Detta händer redan nu, och
+  orsakar att dag blir natt och natt blir dag och att första 'dagen' blir
+  för lång.
+
+* 'Interpoleringen' blir felaktig om m_currentHour != m_curEnvCond->hourBegin
+  då CalculateChange() anropas, eftersom den då ändå kommer att börja på
+  t.ex. m_curEnvCond->ambient även om den skulle ha börjat en bit in i
+  övergången. Dock kommer övergången att gå snabbare, så att övergången är
+  färdig vid m_curEnvCond->hourEnd ändå.
+
+* 'Interpoleringen' hoppar framåt i steg då man lika väl kan hålla reda
+  exakt hur långt det har gått sen senaste hourBegin för att beräkna en
+  exakt interpoleringsfaktor och använda den till att interpolera ljus,
+  skybox och fog.
+
+* Start och början på environmental conditions och nuvarande interpolering mellan
+  dem är inte kompatibla. Med nuvarande setup så är det 100% dag (enligt
+  interpoleringen) då dagen börjar, 50% dag då halva dagen har gått, och 0% dag
+  då natten börjar. Mitt i natten är det sen 50% dag och 50% natt.
+  Istället så får 'keyframesen' för när det ska vara 100% dag och 100% natt
+  flyttas till att vara mitt på dagen respektive mitt i natten.
+
+* Det kalkyleras hur mycket roteringen av skyboxen ska ändras (m_rotationPerFrame) 
+  per 'environment-frame' men ändå ändras roteringen med m_rotationPerFrame per
+  uppritad frame, inte environment-frame. Samma fel begås med m_curAlpha.
+  Därmed beror tiden som en övergång tar och hur lång tid ett varv tar
+  på hur många fps man har i spelet.
+
+* RenderFog() har både problemen som ljussättningsövergångarna och
+  skyboxövergångarna har. Samtidigt.
+
+* Varför begränsa början och slutet av environmental conditions till att vara i
+  hela timmar?
+
+* Varför är timmar 1-baserade?
+  Vad innebär det att timmen tex är 1?
+   case 00:00 - 00:59: Ja, varför inte timme 0 då?
+   case 01:00 - 01:59: Vad är timme 24 då? 00:00 - 00:59? :S
+
+* I RotateWorld() när difftime(now, previousTick) >= m_hourLength tas det inte
+  hänsyn till att det kan ha gått lite tid in på nästa timme redan, utan hur
+  lång tid det har gått in på nästa timme antas vara 0.
+
+* Olika timers (sdl vs cstdlib) används för att hålla reda på hur långt in på
+  en timme det har gått och hur långt interpoleringen för ljus, skybox och fog
+  har gått. Detta kan leda till 'roliga' effekter om de två timersarna går ur sync.
+
+* Det behövs en funktion som returnerar det exakta klockslaget i timmar som flyttal.
+
+* När ValidateConditions() kollar att varje hourEnd matchar nästa hourBegin,
+  sker inte detta för sista hourEnd och första hourBegin.
+
+* Att det minst måste finnas två environmental conditions verkar vara en
+  artificiell begränsning.
+
+* Vad är m_skyBoxOpacity som sätts i SetFPS() men aldrig används någon
+  annanstans?
+
+* isNight, isTwilight och... isDayOrDusk? Hmm?
+
+* Varför använder du unsigned ints i alla fall där du bara behöver spara positiva
+  heltal men inte behöver den extra rangen som unsigned ints har? Detta ger inte
+  några fördelar öht, utan orsakar bara problem. Ett exempel i din kod är
+  fabs((float)m_currentHour - (float)m_nextEnvCond->hourBegin).
+
+* Hur mycket av det här vill du att jag ska fixa eller vill du sköta det
+  själv? :)

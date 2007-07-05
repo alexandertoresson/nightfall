@@ -1,0 +1,54 @@
+#RTS V1.0 utf8
+
+DEF Builder Unit
+{
+	maxHealth 100
+	maxPower 100
+	minAttack 4
+	maxAttack 6
+	heightOnMap 1
+	widthOnMap 1
+	hasAI 1
+	isResearched 1
+	isMobile 1
+
+	canAttack 1
+	canAttackWhileMoving 0
+	attackMaxRange 1.2
+	attackMinRange 0.0
+	attackAccuracy 80.0
+
+	sightRange 6.0
+	movementSpeed 6.0
+	movementType Human
+	attackSpeed 1.0
+	size 1.0
+	height 0.00
+	buildTime 10.0
+	buildCost 75
+	researchTime 20.0
+	researchCost 150
+
+	powerUsage 1.0
+	movePowerUsage 0.5
+	attackPowerUsage 0.5
+	buildPowerUsage 2.0
+	
+	Model "resources/models/builder.wrl#Builder"
+	symbol "resources/textures/builder.png"
+
+#	sound [ "action=move,strength=10.0,sound=unitTest,index=0" ]
+
+	canBuild ["resources/unittypes/mainBuilding.unit#MainBuilding",
+	          "resources/unittypes/barracks.unit#Barracks",
+		  "resources/unittypes/tankFactory.unit#TankFactory",
+		  "resources/unittypes/smallLightTower.unit#SmallLightTower",
+		  "resources/unittypes/mediumLightTower.unit#MediumLightTower",
+		  "resources/unittypes/largeLightTower.unit#LargeLightTower",
+		  "resources/unittypes/defenseTower.unit#DefenseTower",
+		  "resources/unittypes/surfaceGeothermal.unit#SurfaceGeothermal",
+		  "resources/unittypes/deepGeothermal.unit#DeepGeothermal",
+		  "resources/unittypes/solarPanel.unit#SolarPanel"]
+
+
+}

@@ -1,0 +1,45 @@
+#RTS V1.0 utf8
+
+DEF LargeTank Unit
+{
+	maxHealth 1200
+	maxPower 100
+	minAttack 120
+	maxAttack 240
+	heightOnMap 4
+	widthOnMap 4
+	hasAI 1
+	isMobile 1
+	
+	canAttack 1
+	canAttackWhileMoving 0
+	attackMaxRange 15.0
+	attackMinRange 0.0
+	attackAccuracy 80.0
+
+	sightRange 17.0
+	movementSpeed 1.5
+	movementType Tank
+	attackSpeed 1.0
+	size 4.0
+	height 1.0
+	buildTime 90.0
+	buildCost 800
+	researchTime 180.0
+	researchCost 1600
+
+	powerUsage 6.0
+	movePowerUsage 4.0
+	attackPowerUsage 4.0
+
+	Model "resources/models/largetank.wrl#LargeTank"
+
+	ProjectileType
+	{
+		Model "resources/models/missile.wrl#Missile"
+		areaOfEffect 3.0
+		startPos 1.0 0.0 0.0
+		speed 1.0
+		size 0.4
+	}
+}

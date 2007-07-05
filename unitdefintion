@@ -1,0 +1,43 @@
+DEF [Namn] Unit
+{
+	maxHealth [int]
+	maxPower [int]
+	minAttack [int]
+	maxAttack [int]
+	heightOnMap [int]
+	widthOnMap [int]
+	hasAI [bool]
+	isMobile [bool]
+	
+	attackRange [float]
+	movementSpeed [float]
+	attackSpeed [float]
+	size [float]
+	height [float]
+	buildTime [float]
+	
+	MovementType [MovementType Enum]
+
+	ProjectileType
+	{
+		Model [Name]
+		areaOfEffect [float]
+		startPos [float]
+		speed [float]
+		size [float]
+	}
+
+	canBuild ["[UnitName]", ...]
+	
+	Model [Name] //No animation
+
+	Animation
+	{
+		Action [ID]
+		{
+			Length [float]
+			Models ["[ModelName]", ...]
+			Time [[float], [float], [float], ...]
+		}
+	}
+}

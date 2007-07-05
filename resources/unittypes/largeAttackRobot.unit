@@ -1,0 +1,45 @@
+#RTS V1.0 utf8
+
+DEF LargeAttackRobot Unit
+{
+	maxHealth 400
+	maxPower 100
+	minAttack 20
+	maxAttack 40
+	heightOnMap 2
+	widthOnMap 2
+	hasAI 1
+	isMobile 1
+	
+	canAttack 1
+	canAttackWhileMoving 1
+	attackMaxRange 7.5
+	attackMinRange 0.0
+	attackAccuracy 80.0
+
+	sightRange 9.5
+	movementSpeed 3.0
+	movementType Vehicle
+	attackSpeed 2.0
+	size 1.75
+	height 1.0
+	buildTime 40.0
+	buildCost 200
+	researchTime 80.0
+	researchCost 400
+	
+	powerUsage 2.0
+	movePowerUsage 1.0
+	attackPowerUsage 2.0
+	
+	Model "resources/models/largeattackrobot.wrl#LargeAttackRobot"
+
+	ProjectileType
+	{
+		Model "resources/models/missile.wrl#Missile"
+		areaOfEffect 2.0
+		startPos 1.0 0.0 0.0
+		speed 1.0
+		size 0.2
+	}
+}

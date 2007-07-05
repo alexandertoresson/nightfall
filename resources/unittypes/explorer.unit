@@ -1,0 +1,34 @@
+#RTS V1.0 utf8
+
+DEF Explorer Unit
+{
+	maxHealth 50
+	maxPower 100
+	minAttack 2
+	maxAttack 4
+	heightOnMap 1
+	widthOnMap 1
+	hasAI 1
+	isResearched 1
+	isMobile 1
+	
+	canAttack 0
+
+	sightRange 6.0
+	attackRange 1.5
+	movementSpeed 12.0
+	movementType Human
+
+	attackSpeed 1.0
+	size 1.0
+	height 1.0
+	buildTime 10.0
+	buildCost 50
+	researchTime 20.0
+	researchCost 100
+
+	powerUsage 1.0
+	
+	Model "resources/models/explorer.wrl#Explorer"
+
+}

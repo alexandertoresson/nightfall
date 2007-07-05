@@ -1,0 +1,36 @@
+#RTS V1.0 utf8
+
+DEF TankFactory Unit
+{
+	maxHealth 7500
+	maxPower 0
+	minAttack 0
+	maxAttack 0
+	heightOnMap 5
+	widthOnMap 5
+	hasAI 1
+	isMobile 0
+	
+	canAttack 0
+
+	sightRange 10.0
+	attackRange 0.0
+	movementSpeed 0.0
+	movementType Building
+	attackSpeed 0.0
+	size 4.0
+	height 2.0
+	buildTime 120.0
+	buildCost 250
+	researchTime 240.0
+	researchCost 500
+
+	powerUsage 4.0
+	
+	Model "resources/models/cube3.wrl#OB_Cube"
+	canBuild ["resources/unittypes/smallTank.unit#SmallTank",
+	          "resources/unittypes/largeTank.unit#LargeTank"]
+	canResearch ["resources/unittypes/smallTank.unit#SmallTank",
+	             "resources/unittypes/largeTank.unit#LargeTank"]
+
+}

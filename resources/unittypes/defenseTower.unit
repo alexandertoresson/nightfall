@@ -1,0 +1,36 @@
+#RTS V1.0 utf8
+
+DEF DefenseTower Unit
+{
+	maxHealth 1000
+	maxPower 0
+	minAttack 20
+	maxAttack 40
+	heightOnMap 2
+	widthOnMap 2
+	hasAI 1
+	isResearched 1
+	isMobile 0
+	
+	canAttack 1
+	canAttackWhileMoving 0
+	attackMaxRange 15.0
+	attackMinRange 0.0
+	attackAccuracy 80.0
+
+	sightRange 17.0
+	movementSpeed 0.0
+	movementType Building
+	attackSpeed 2.0
+	size 2.0
+	height 2.0
+	buildTime 30.0
+	buildCost 100
+	researchTime 60.0
+	researchCost 200
+
+	powerUsage 1.0
+	
+	Model "resources/models/mainBuilding.wrl#MainBuilding"
+
+}

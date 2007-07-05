@@ -1,0 +1,38 @@
+* Framtid
+	- Dag/natt
+	- Ljuskällor skyddar ens enheter på natten (torn, speciell enhet)
+	- Farligt på natten (ljusskygga farliga djur)
+	- Kraftverk:
+		* Solpaneler
+			- funkar bara på dagen
+		* Jordvärme
+			- funkar alltid
+			- två versioner:
+				* en som bara kan byggas på sprickor i jordskorpan
+				* en som kan byggas var som helst
+
+	- Pengar:
+		* fås av att sälja energi
+		* behövs för att bygga byggnader och enheter
+
+	- Byggnader:
+		* Huvudbyggnad (bygger byggare och utforskare)
+		* Litet ljustorn
+		* Stort ljustorn (r)
+		* Större ljustorn (r)
+		* Barrack (bygger liten attackrobot, stor attackrobot (r) och ljuskällegubbe (r))
+		* Tanksbyggnad (bygger liten tank och stor tank (r))
+		* Solpanel
+		* Ytnära jordvärme (r)
+		* Generell jordvärme (r)
+		* Basförsvar
+		* (Flyghamn (r))
+		* (Hamn (r))
+
+	- Enhetsstil:
+		* Gotiskt
+		* spetsigt
+		* framtid
+
+	- Statiska objekt:
+		* Träd (helst flera olika)

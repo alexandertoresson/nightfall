@@ -1,0 +1,25 @@
+#
+# Structured Instructions file
+# Creates state-modified music and sound-lists to use
+# in game. This file has been calibrated by the 
+# development team, in order to give the optimal
+# experience in game. Thus any changes that you may
+# do to this document, will affect the game.
+#
+
+# DEMO DEMO DEMO DEMO DEMO DEMO DEMO
+#list	[music list tag]
+#type	[repeat / once]
+#audio	[music / sound]
+#add	sample.01.mp3
+#add	sample.02.mp3
+#add	sample.03.mp3
+#save
+# DEMO DEMO DEMO DEMO DEMO DEMO DEMO
+
+list	menu
+type	repeat
+audio	music
+add	theme.ogg
+save
+

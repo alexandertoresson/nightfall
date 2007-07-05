@@ -1,0 +1,45 @@
+#RTS V1.0 utf8
+
+DEF SmallTank Unit
+{
+	maxHealth 600
+	maxPower 100
+	minAttack 60
+	maxAttack 120
+	heightOnMap 3
+	widthOnMap 3
+	hasAI 1
+	isMobile 1
+	
+	canAttack 1
+	canAttackWhileMoving 0
+	attackMaxRange 10.0
+	attackMinRange 0.0
+	attackAccuracy 80.0
+
+	sightRange 12.0
+	movementSpeed 2.5
+	movementType Tank
+	attackSpeed 1.0
+	size 3.0
+	height 1.0
+	buildTime 60.0
+	buildCost 300
+	researchTime 120.0
+	researchCost 600
+
+	powerUsage 4.0
+	movePowerUsage 2.0
+	attackPowerUsage 3.0
+	
+	Model "resources/models/smalltank.wrl#SmallTank"
+
+	ProjectileType
+	{
+		Model "resources/models/missile.wrl#Missile"
+		areaOfEffect 1.0
+		startPos 1.0 0.0 0.0
+		speed 1.0
+		size 0.3
+	}
+}
