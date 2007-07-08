@@ -9,6 +9,9 @@ namespace Game
 {
 	namespace Rules
 	{
+
+		extern char* CurrentLevel;
+
 		extern float time_since_last_frame;
 		extern float time_passed_since_last_water_pass;
 

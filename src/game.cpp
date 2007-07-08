@@ -29,6 +29,9 @@ namespace Game
 {
 	namespace Rules
 	{
+
+		char* CurrentLevel = "default";
+
 		GameWindow* GameWindow::pInstance = NULL;
 
 		GameWindow* GameWindow::Instance()
@@ -500,7 +503,11 @@ namespace Game
 			pLoading->Increment(increment);
 			
 			////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-			pVM->DoFile("resources/levels/default_players.lua");
+			char* level_script = new char[strlen(CurrentLevel) + 28];
+			sprintf(level_script, "resources/levels/%s_level.lua", CurrentLevel);
+			pVM->DoFile(level_script);
+			pVM->SetFunction("SetPlayers");
+			pVM->CallFunction(0);
 			
 			////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 			Dimension::InitUnits();
@@ -522,7 +529,8 @@ namespace Game
 			pLoading->Increment(increment);
 			
 			////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-			pVM->DoFile("resources/levels/default_level.lua");
+			pVM->SetFunction("InitLevel");
+			pVM->CallFunction(0);
 			pLoading->Increment(increment);
 			
 			////////////////////////////////////////////////////////////////////////////////////////////////////////////////
