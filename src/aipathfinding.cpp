@@ -1,26 +1,38 @@
 /*
  *
- * This implementation is regarded as crude.
- *
- * We simply didn't have enough time to implement an
- * algorithm that divide the map in to separate walkable 
- * sections, which is a necessary complement to a working
- * implementation of the A-star algorithm.
- *
- * The following algorithm is derived from the original
- * A-star implementation, but does not quite work the same.
- *
- * All adjacent nodes are pushed into a heap-sorted open list
- * if walkable. Unlike the "original" A-algorithm previous instances
- * of the same nodes is persistent - they cannot be deleted. Instead,
- * the current node is deallocated. This makes the path generation some
- * what unstable, and does not, unlike the A-algorithm, ensure
- * success.
+ * This is a highly optimized implementation of the A* algorithm.
+ * A disadvantage with this implementation is that it may use quite
+ * much memory.
  *
  * The algorithm ends when goal is reached, when the unit is close
- * enough to the goal (to execute given orders) OR (important, important!)
- * when all adjacent nodes have been omitted!!! Meaning: when all adjacent
- * nodes are already present in the open and closed list.
+ * enough to the goal (to execute given orders) or when the goal is
+ * determined to be unreachable.
+ *
+ * As A* is quite slow (even though this implementation is very
+ * optimized) some special techniques are used to prevent many
+ * situations when it would not find any road to the goal. If A*
+ * finds itself in that situation, it searches the full map.
+ * Firstly, maps of so-called 'area codes' are used, one map per
+ * movement type a unit can have. If two positions in the map have
+ * the same area code, you can go from one of the squares to the
+ * other, otherwise not. Also, if the target square is currently
+ * blocked it is impossible to reach the other square (at least
+ * when action is ACTION_GOTO).
+ *
+ * When it thinks that it is impossible to reach the target square, 
+ * a special flood fill algorithm is used to find the nearest square
+ * of the target square that you can actually go to from the
+ * start square, and when that is determined, the path finding is
+ * used normally to search from the start square to the nearest
+ * reachable square from the target.
+ *
+ * Also, if it originally determines that it can probably reach the
+ * target square, but it after 2000 iterations hasn't found the
+ * target yet, it will try a flood fill to determine whether it can
+ * reach the target and perhaps revise its target square, and then
+ * run the path finding again. And the second time it will run the
+ * path finding until it is done no matter if it finds a target square
+ * within 2000 iterations or not.
  *
  */
 
@@ -31,6 +43,8 @@
 #include "ainode.h"
 #include "unit.h"
 #include "networking.h"
+#define BINARY_HEAP_DATATYPE int
+#include "binaryheap.h"
 
 namespace Game
 {
@@ -46,9 +60,100 @@ namespace Game
 		static SDL_mutex*  gpmxPathfinding;
 		static Node*       gStack[STACK_ELEMENTS];
 		static int         gStackSize = 0;
-		
+			
+		int                lowestH;
+		int                lowestDistance;
+		int                nearestNode;
+		binary_heap_t*     heap;
+		int                firstScanlineIndex;
+		int                lastScanlineIndex;
+		int                numScanlines;
+		int                nextFreeScanline;
+		bool               calculateNearestReachable;
+		bool               setAreaCodes;
+		FloodfillState     floodfillState;
+
+		unsigned short**   nodeTypes;
+		int**              nodeNums;
+		int***             areaMaps;
+		int                areaMapIndex;
+		int                areaCode;
+
+		unsigned short NODE_TYPE_OPEN = 1, NODE_TYPE_CLOSED = 2, NODE_TYPE_BLOCKED = 3;
+
+		struct node
+		{
+			int x, y;
+			int f, g, h;
+			int parent;
+		};
+
+		struct node *nodes;
+
+		int *scores;
+		int *positions;
+
+		int *openList, openListSize, nextFreeNode;
+
+
+		struct scanline
+		{
+			int start_x, end_x;
+			int y;
+		};
+
+		struct scanline *scanlines;
+		int scanlineArraySize;
+
+		int *scanlineQueue;
+		int scanlineQueueSize;
+
+		int width, height;
+
+#define FLOODFILL_FLAG_CALCULATE_NEAREST 1
+#define FLOODFILL_FLAG_SET_AREA_CODE 2
+
+		PathState InitFloodfill(Dimension::Unit* unit, int start_x, int start_y, int flags);
+		PathState FloodfillStep(Dimension::Unit* unit, MovementData* md, int target_x, int target_y);
+
+		bool IsWalkable_MType(int areaMapIndex, int x, int y)
+		{
+			return Game::Dimension::MovementTypeCanWalkOnSquare((Game::Dimension::MovementType) areaMapIndex, x, y);
+		}
+
+		void InitAreaCodes()
+		{
+			int x, y, i;
+			for (i = 0; i < Game::Dimension::MOVEMENT_TYPES_NUM; i++)
+			{
+				areaCode = 1;
+				for (y = 0; y < height; y++)
+				{
+					for (x = 0; x < width; x++)
+					{
+						if (IsWalkable_MType(i, x, y) && areaMaps[i][y][x] == 0)
+						{
+							areaMapIndex = i;
+							if (InitFloodfill(NULL, x, y, FLOODFILL_FLAG_SET_AREA_CODE) == PATHSTATE_OK)
+							{
+								while (FloodfillStep(NULL, NULL, 0, 0) == PATHSTATE_OK)
+								{
+									
+								}
+							}
+							areaCode++;
+						}
+					}
+				}
+				printf("Area codes: %d\n", areaCode-1);
+			}
+		}
+
 		void InitPathfindingThreading(void)
 		{
+			int y;
+			width = Game::Dimension::pWorld->width;
+			height = Game::Dimension::pWorld->width;
 			if (pPathfindingThread != NULL)
 			{
 				return;
@@ -61,6 +166,38 @@ namespace Game
 			tdata->pMutex = gpmxPathfinding;
 			tdata->pUnit = NULL;
 			pPathfindingThread = SDL_CreateThread(Game::AI::_ThreadMethod, (void*)tdata);
+
+			nodeTypes = (unsigned short**) malloc(height * sizeof(unsigned short*));
+			nodeNums = (int**) malloc(height * sizeof(int*));
+			for (y = 0; y < height; y++)
+			{
+				nodeTypes[y] = (unsigned short*) calloc(width, sizeof(unsigned short));
+				nodeNums[y] = (int*) calloc(width, sizeof(int));
+			}
+			areaMaps = (int***) malloc(Game::Dimension::MOVEMENT_TYPES_NUM * sizeof(int**));
+			for (int i = 0; i < Game::Dimension::MOVEMENT_TYPES_NUM; i++)
+			{
+				areaMaps[i] = (int**) malloc(height * sizeof(int*));
+				for (y = 0; y < height; y++)
+				{
+					areaMaps[i][y] = (int*) calloc(width, sizeof(int));
+				}
+			}
+			nodes = (struct node*) malloc(width*height * sizeof(struct node));
+			scores = (int*) malloc(width*height * sizeof(int));
+			positions = (int*) malloc(width*height * sizeof(int));
+			openList = (int*) malloc(width*height * sizeof(int));
+			openListSize = width * height;
+
+			scanlines = (struct scanline*) malloc(1024 * sizeof(struct scanline));
+			scanlineArraySize = 1024;
+			
+			scanlineQueue = (int*) malloc((width + height) * sizeof(int));
+			scanlineQueueSize = width + height;
+
+			InitAreaCodes();
+
+			heap = binary_heap_create(scores, openList, positions);
 		}
 		
 		void QuitPathfindingThreading(void)
@@ -120,10 +257,6 @@ namespace Game
 			p->pChild = NULL;
 			p->pParent = NULL;
 			
-			p->g = 0;
-			p->f = 0;
-			p->h = 0;
-
 			p->x = x;
 			p->y = y;
 						
@@ -167,6 +300,7 @@ namespace Game
 			md->_popFromQueue = false;
 			md->_start = NULL;
 			md->_goal = NULL;
+			md->_changedGoal = NULL;
 			md->_action.goal.pos.x = 0;
 			md->_action.goal.pos.y = 0;
 			md->_action.goal.unit = NULL;
@@ -179,7 +313,7 @@ namespace Game
 #endif
 		}
 		
-		IPResult InitPathfinding(Dimension::Unit* pUnit, float start_x, float start_y, float goal_x, float goal_y, AI::UnitAction action, Dimension::Unit* target, void* args)
+		IPResult CommandPathfinding(Dimension::Unit* pUnit, float start_x, float start_y, float goal_x, float goal_y, AI::UnitAction action, Dimension::Unit* target, void* args)
 		{
 			assert(pUnit != NULL);
 
@@ -225,6 +359,7 @@ namespace Game
 			       
 				md->_start = AllocNode((int)start_x, (int)start_y);
 				md->_goal  = AllocNode((int)goal_x, (int)goal_y);
+				md->_changedGoal  = AllocNode((int)goal_x, (int)goal_y);
 				md->calcState = CALCSTATE_WORKING;
 				md->changedGoal = false;
 #ifdef DEBUG_AI_PATHFINDING
@@ -297,6 +432,7 @@ namespace Game
 			
 			md->_start = NULL;
 			md->_goal = NULL;
+			md->_changedGoal = NULL;
 			
 			md->_action.goal.pos.x = 0;
 			md->_action.goal.pos.y = 0;
@@ -358,102 +494,25 @@ namespace Game
 			assert(tdata->pUnit->pMovementData != NULL);
 			
 			MovementData* data = tdata->pUnit->pMovementData;
-			AINodeListIter node;
 			
-			bool start_deallocated;
 			if (data->_start->pChild != NULL)
 			{
-				node = tdata->openList.begin();
-				while (node != tdata->openList.end())
-				{
-					if (*node == data->_start)
-					{
-						tdata->openList.erase(node);
-						break;
-					}
-					node++;
-				}
-
-				make_heap(tdata->openList.begin(), tdata->openList.end(), PathfindingHeapCmp());
-
-				node = tdata->closedList.begin();
-				while (node != tdata->closedList.end())
-				{
-					if (*node == data->_start)
-					{
-						tdata->closedList.erase(node);
-						break;
-					}
-					node++;
-				}
-
 				DeallocPathfindingNodes(tdata->pUnit, DPN_BACK);
-				start_deallocated = true;
 			}
 			else
 			{
 				DeallocNode(data->_goal);
 
-				start_deallocated = false;
-			}
-
-			node = tdata->openList.begin();
-			while (node != tdata->openList.end())
-			{
-				if (!start_deallocated)
-				{
-					if (*node == data->_start)
-						start_deallocated = true;
-				}
-
-				DeallocNode(*node);
-				node++;
-			}
-			
-			node = tdata->closedList.begin();
-			while(node != tdata->closedList.end())
-			{
-				if (!start_deallocated)
-				{
-					if (*node == data->_start)
-						start_deallocated = true;
-				}
-
-				DeallocNode(*node);
-				node++;
-			}
-			
-			tdata->openList.clear();
-			tdata->closedList.clear();
-
-			if (!start_deallocated)
 				DeallocNode(data->_start);
+				
+				DeallocNode(data->_changedGoal);
+			}
 
 			data->_start = NULL;
 			data->_goal  = NULL;
+			data->_changedGoal  = NULL;
 			
 			data->changedGoal = false;
-		}
-
-		void DeallocUnusedNodes(ThreadData*& tdata)
-		{
-			assert(tdata != NULL);
-
-			AINodeListIter node;
-			for (node = tdata->openList.begin(); node != tdata->openList.end(); node++)
-			{
-				if ((*node)->pChild == NULL)
-					DeallocNode(*node);
-			}
-
-			for (node = tdata->closedList.begin(); node != tdata->closedList.end(); node++)
-			{
-				if ((*node)->pChild == NULL)
-					DeallocNode(*node);
-			}
-			
-			tdata->openList.clear();
-			tdata->closedList.clear();
 		}
 
 		void DeallocPathfindingNodes(Dimension::Unit*& unit, DPNArg target)
@@ -475,6 +534,9 @@ namespace Game
 				case DPN_BACK:
 					goal = &md->_goal;
 					start = &md->_start;
+
+					DeallocNode(md->_changedGoal);
+					md->_changedGoal = NULL;
 					break;
 				default:
 					assert(false && "Wrong DPN arguments!");
@@ -515,301 +577,528 @@ namespace Game
 			*goal  = NULL;	
 		}
 		
-		inline void CalculateCost(Node* p, Dimension::Unit* pUnit = NULL)
+		bool IsWalkable(Dimension::Unit* unit, int x, int y)
 		{
-			assert (p->pParent != NULL);
-			
-			p->g = Dimension::GetTraversalTime(pUnit, p->pParent->x, p->pParent->y, p->x - p->pParent->x, p->y - p->pParent->y);
+			return Dimension::SquaresAreWalkable(unit, x, y, Dimension::SIW_IGNORE_MOVING);
 		}
 
-		inline void CalculateDistance(Node* p, Node* goal)
+		PathState InitFloodfill(Dimension::Unit* unit, int start_x, int start_y, int flags)
 		{
-			assert(goal != NULL);
+			int x, y;
 
-			p->h = 10 * (abs(p->x - goal->x) + abs(p->y  - goal->y));
-		}
-
-		inline void CalculateScore(Node* p, Node* goal, Dimension::Unit* pUnit = NULL)
-		{
-			CalculateCost(p, pUnit);
-			CalculateDistance(p, goal);
-			p->f = p->g + p->h;
-		}
-
-		void AddAdjecentNodes(Dimension::Unit* unit, Node* node, AINodeList* list)
-		{
-			Node* adj_node = NULL;
-
-			for (int y = -1; y <= 1; y++)
+			if (calculateNearestReachable)
 			{
-				for (int x = -1; x <= 1; x++)
+				if (!IsWalkable(unit, start_x, start_y))
 				{
-					if (!x && !y)
-						continue;
-					
-					if (!Dimension::SquaresAreWalkable(unit, node->x + x, node->y + y, Dimension::SIW_IGNORE_MOVING))
-						continue;
-
-					adj_node = AllocNode(node->x + x, node->y + y);
-					adj_node->pParent = node;
-					list->push_back(adj_node);
+					return PATHSTATE_ERROR;
 				}
 			}
+			else
+			{
+				if (!IsWalkable_MType(areaMapIndex, start_x, start_y))
+				{
+					return PATHSTATE_ERROR;
+				}
+			}
+
+			calculateNearestReachable = flags & FLOODFILL_FLAG_CALCULATE_NEAREST;
+			setAreaCodes = flags & FLOODFILL_FLAG_SET_AREA_CODE;
+
+			firstScanlineIndex = 0;
+			lastScanlineIndex = 0;
+			numScanlines = 0;
+			lowestDistance = 100000000;
+
+			NODE_TYPE_OPEN += 3;
+			NODE_TYPE_CLOSED += 3;
+			NODE_TYPE_BLOCKED += 3;
+			if (NODE_TYPE_OPEN == 0 || NODE_TYPE_CLOSED == 0 || NODE_TYPE_BLOCKED == 0)
+			{
+				for (y = 0; y < height; y++)
+				{
+					memset(nodeTypes[y], 0, width * sizeof(unsigned short));
+					memset(nodeNums[y], 0, width * sizeof(int));
+				}
+				NODE_TYPE_OPEN = 1;
+				NODE_TYPE_CLOSED = 2;
+				NODE_TYPE_BLOCKED = 3;
+			}
+
+			if (calculateNearestReachable)
+			{
+				scanlines[0].y = start_y;
+
+				for (x = start_x-1; ; x--)
+				{
+					if (!IsWalkable(unit, x, start_y))
+					{
+						break;
+					}
+				}
+				scanlines[0].start_x = x+1;
+
+				if (x >= 0)
+				{
+					nodeTypes[start_y][x] = NODE_TYPE_BLOCKED;
+				}
+
+				nodeTypes[start_y][x+1] = NODE_TYPE_CLOSED;
+				nodeNums[start_y][x+1] = 0;
+
+				for (x = start_x+1; ; x++)
+				{
+					if (!IsWalkable(unit, x, start_y))
+					{
+						break;
+					}
+				}
+			}
+			else
+			{
+				scanlines[0].y = start_y;
+
+				for (x = start_x-1; ; x--)
+				{
+					if (!IsWalkable_MType(areaMapIndex, x, start_y))
+					{
+						break;
+					}
+				}
+				scanlines[0].start_x = x+1;
+
+				if (x >= 0)
+				{
+					nodeTypes[start_y][x] = NODE_TYPE_BLOCKED;
+				}
+
+				nodeTypes[start_y][x+1] = NODE_TYPE_CLOSED;
+				nodeNums[start_y][x+1] = 0;
+
+				for (x = start_x+1; ; x++)
+				{
+					if (!IsWalkable_MType(areaMapIndex, x, start_y))
+					{
+						break;
+					}
+				}
+			}
+			scanlines[0].end_x = x-1;
+				
+			if (x < width)
+			{
+				nodeTypes[start_y][x] = NODE_TYPE_BLOCKED;
+			}
+
+			numScanlines = 1;
+
+			nextFreeScanline = 1;
+
+			scanlineQueue[0] = 0;
+
+			return PATHSTATE_OK;
+		}
+
+		PathState FloodfillStep(Dimension::Unit* unit, MovementData* md, int target_x, int target_y)
+		{
+			int first_node;
+			int start_x, end_x;
+			int new_y;
+			int new_start_x, new_end_x;
+			int new_x;
+			unsigned short *scanline_types;
+			int *scanline_nums;
+			int loop_start_y, loop_end_y;
+			int loop_start_x, loop_end_x;
+			int x, y;
+
+			if (numScanlines == 0)
+			{
+				return PATHSTATE_GOAL;
+			}
+
+			first_node = scanlineQueue[firstScanlineIndex];
+
+			start_x = scanlines[first_node].start_x;
+			end_x = scanlines[first_node].end_x;
+			y = scanlines[first_node].y;
+
+			if (setAreaCodes)
+			{
+				for (x = start_x; x <= end_x; x++)
+				{
+					areaMaps[areaMapIndex][y][x] = areaCode;
+				}
+			}
+
+			if (calculateNearestReachable)
+			{
+				int new_distance;
+				int t_x;
+				if (target_x >= start_x && target_x <= end_x)
+				{
+					new_distance = target_y - y;
+					new_distance *= new_distance;
+					t_x = target_x;
+				}
+				else if (target_x < start_x)
+				{
+					new_distance = (target_y - y) * (target_y - y) + (target_x - start_x) * (target_x - start_x);
+					t_x = start_x;
+				}
+				else /* if (*target_x < start_x) */
+				{
+					new_distance = (target_y - y) * (target_y - y) + (target_x - end_x) * (target_x - end_x);
+					t_x = end_x;
+				}
+				if (new_distance < lowestDistance)
+				{
+					lowestDistance = new_distance;
+					md->_changedGoal->x = t_x;
+					md->_changedGoal->y = y;
+					if (new_distance == 0)
+					{
+						return PATHSTATE_GOAL;
+					}
+				}
+			}
+
+			firstScanlineIndex++;
+			numScanlines--;
+			
+			if (firstScanlineIndex == scanlineQueueSize)
+			{
+				firstScanlineIndex = 0;
+			}
+
+			loop_start_y = y-1 >= 0 ? y-1 : 1;
+			loop_end_y = y+1 < height ? y+1 : y-1;
+			
+			loop_start_x = start_x-1 >= 0 ? start_x-1 : 0;
+			loop_end_x = end_x+1 < width ? end_x+1 : end_x;
+
+			for (new_y = loop_start_y; new_y <= loop_end_y; new_y+=2)
+			{
+				scanline_types = nodeTypes[new_y];
+				scanline_nums = nodeNums[new_y];
+				for (x = loop_start_x; x <= loop_end_x; x++)
+				{
+					if (scanline_types[x] == NODE_TYPE_CLOSED)
+					{
+						x = scanlines[scanline_nums[x]].end_x+1;
+					}
+					else if (scanline_types[x] != NODE_TYPE_BLOCKED)
+					{
+						if ((calculateNearestReachable && IsWalkable(unit, x, new_y)) || (setAreaCodes && IsWalkable_MType(areaMapIndex, x, new_y)))
+						{
+							int new_scanline;
+							if (setAreaCodes)
+							{
+								for (new_x = x-1; ; new_x--)
+								{
+									if (scanline_types[x] == NODE_TYPE_BLOCKED || !IsWalkable_MType(areaMapIndex, new_x, new_y))
+									{
+										break;
+									}
+								}
+							}
+							else
+							{
+								for (new_x = x-1; ; new_x--)
+								{
+									if (scanline_types[x] == NODE_TYPE_BLOCKED || !IsWalkable(unit, new_x, new_y))
+									{
+										break;
+									}
+								}
+							}
+							new_start_x = new_x+1;
+						
+							if (new_x >= 0)
+							{
+								scanline_types[new_x] = NODE_TYPE_BLOCKED;
+							}
+
+							if (scanline_types[new_start_x] != NODE_TYPE_CLOSED)
+							{
+								if (setAreaCodes)
+								{
+									for (new_x = x+1; ; new_x++)
+									{
+										if (scanline_types[x] == NODE_TYPE_BLOCKED || !IsWalkable_MType(areaMapIndex, new_x, new_y))
+										{
+											break;
+										}
+									}
+								}
+								else
+								{
+									for (new_x = x+1; ; new_x++)
+									{
+										if (scanline_types[x] == NODE_TYPE_BLOCKED || !IsWalkable(unit, new_x, new_y))
+										{
+											break;
+										}
+									}
+								}
+								new_end_x = new_x-1;
+							
+								if (new_x < width)
+								{
+									scanline_types[new_x] = NODE_TYPE_BLOCKED;
+								}
+
+								new_scanline = nextFreeScanline++;
+
+								if (new_scanline >= scanlineArraySize)
+								{
+									scanlineArraySize = scanlineArraySize * 2;
+									scanlines = (struct scanline*) realloc(scanlines, scanlineArraySize * sizeof(struct scanline));
+								}
+
+								scanlines[new_scanline].start_x = new_start_x;
+								scanlines[new_scanline].end_x = new_end_x;
+								scanlines[new_scanline].y = new_y;
+
+								x = new_x;
+								
+								lastScanlineIndex++;
+								numScanlines++;
+								
+								if (lastScanlineIndex == scanlineQueueSize)
+								{
+									lastScanlineIndex = 0;
+								}
+								else if (lastScanlineIndex == firstScanlineIndex && numScanlines != 1)
+								{
+									printf("FATAL - end of circular buffer reached start\n");
+								}
+
+								scanlineQueue[lastScanlineIndex] = new_scanline;
+				
+								if (scanline_types[new_start_x] == NODE_TYPE_CLOSED)
+								{
+									printf("FATAL - traversed same scanline twice!\n");
+								}
+				
+								scanline_types[new_start_x] = NODE_TYPE_CLOSED;
+								scanline_nums[new_start_x] = new_scanline;
+								
+								if (new_start_x > start_x)
+								{
+									nodeTypes[y][new_start_x-1] = NODE_TYPE_CLOSED;
+									nodeNums[y][new_start_x-1] = first_node;
+								}
+							}
+							else
+							{
+								x = scanlines[scanline_nums[new_start_x]].end_x+1;
+							}
+						}
+						else
+						{
+							scanline_types[x] = NODE_TYPE_BLOCKED;
+						}
+					}
+				}
+			}
+			return PATHSTATE_OK;
+		}
+
+		int num_steps = 0;
+
+		PathState InitPathfinding(ThreadData*& tdata)
+		{
+			Dimension::Unit* unit  = tdata->pUnit;
+			MovementData* md       = unit->pMovementData;
+
+			int start_x = md->_start->x, start_y = md->_start->y;
+			int target_x = md->_goal->x, target_y = md->_goal->y;
+
+			int y;
+
+			num_steps = 0;
+
+			lowestH = 1<<30;
+			nearestNode = -1;
+
+			if (!IsWalkable(unit, start_x, start_y))
+			{
+				return PATHSTATE_ERROR;
+			}
+
+			NODE_TYPE_OPEN += 3;
+			NODE_TYPE_CLOSED += 3;
+			NODE_TYPE_BLOCKED += 3;
+			if (NODE_TYPE_OPEN == 0 || NODE_TYPE_CLOSED == 0 || NODE_TYPE_BLOCKED == 0)
+			{
+				for (y = 0; y < height; y++)
+				{
+					memset(nodeTypes[y], 0, width * sizeof(unsigned short));
+					memset(nodeNums[y], 0, width * sizeof(int));
+				}
+				NODE_TYPE_OPEN = 1;
+				NODE_TYPE_CLOSED = 2;
+				NODE_TYPE_BLOCKED = 3;
+			}
+
+			nodes[0].x = start_x;
+			nodes[0].y = start_y;
+			nodes[0].g = 0;
+			nodes[0].h = (abs(start_y-target_y) + abs(start_x-target_x)) * 10;
+			nodes[0].f = 0;
+			nodes[0].parent = -1;
+			nodeNums[start_y][start_x] = 0;
+			nodeTypes[start_y][start_x] = NODE_TYPE_OPEN;
+			nextFreeNode = 1;
+			binary_heap_pop_all(heap); // To be sure the heap is empty...
+			binary_heap_push_item(heap, 0, 0);
+			return PATHSTATE_OK;
 		}
 
 		PathState PathfindingStep(ThreadData*& tdata)
 		{
-			// For simplicity...
-			AINodeList* openList   = &tdata->openList;
-			AINodeList* closedList = &tdata->closedList;
 			Dimension::Unit* unit  = tdata->pUnit;
 			MovementData* md       = unit->pMovementData;
-
-			// Make sure the open-list is -not- empty
-			if (openList->empty())
-				return PATHSTATE_ERROR;
-
-			// Pop the best (= lowest f) node
-//			std::cout << "HEAP POP BEGIN" << std::endl;
-			Node* pCurNode = openList->front();
-			pop_heap(openList->begin(), openList->end(), PathfindingHeapCmp());
-			openList->pop_back();
-//			std::cout << "END" << std::endl;
-
-			bool reachedGoal = false;
+			int target_x = md->_changedGoal->x, target_y = md->_changedGoal->y;
+			int x, y;
 			
-			if (md->changedGoal)
+			int first_node;
+			int node_x, node_y;
+			unsigned short *scanline_types;
+			int *scanline_nums;
+			first_node = binary_heap_pop_item(heap, -1);
+
+			num_steps++;
+
+			if (first_node == -1)
 			{
-				if (pCurNode == md->_goal) // << if changed goal, pointers are the same
-					reachedGoal = true; 
-			}
-			else
-			{
-				if (SquareIsGoal(unit, pCurNode->x, pCurNode->y, true))
-					reachedGoal = true;
-				else
-				{
-					if (md->_action.goal.unit == NULL && md->_action.action == AI::ACTION_ATTACK)
-					{
-						md->action.action = AI::ACTION_GOTO;
-					}
-				}
-			}
-			
-			if (reachedGoal)
-			{
-				if (!md->changedGoal && md->_start != md->_goal)
-				{
-					// Note: if original goal wasn't walkable (or unreachable for some 
-					// reason) the nearest calculated node is used.		
-					DeallocNode(md->_goal);
-				}
-
-				md->_goal = pCurNode;
-				
-				if (*pCurNode != *md->_start)
-				{
-					// Link each node to each other.
-					Node* pChildNode = md->_goal;
-					Node* pParentNode = md->_goal->pParent;
-
-					int count = 0;
-					while (*pChildNode != *md->_start)
-					{
-						assert(pChildNode != NULL);
-						
-						if (pParentNode == NULL) // << warning: this check is -not- nice! It's evil.
-						{
-							return PATHSTATE_ERROR;
-						}
-
-						pParentNode->pChild = pChildNode;
-
-						pChildNode = pParentNode;
-						pParentNode = pParentNode->pParent;
-
-						count++;
-						AI::pathnodes++;
-					}
-				}
-
-				// Done! Let's deallocate the resources
-				// we don't need to trace the path
-				DeallocUnusedNodes(tdata);
-				
-				AI::paths++;
+	/*			printf("Did not reach target\n"); */
+				md->_goal->x = nodes[nearestNode].x;
+				md->_goal->y = nodes[nearestNode].y;
 				return PATHSTATE_GOAL;
 			}
 
-			// Obviously not goal... let us continue our search!
-			else
+			if (lowestH > nodes[first_node].h)
 			{
-				AINodeList adjNodes;
-				AddAdjecentNodes(unit, pCurNode, &adjNodes);
-				
-				unsigned int length = (unsigned int)adjNodes.size();
-				unsigned int omittedNodes = 0;
-
-				for (AINodeListIter node = adjNodes.begin(); node != adjNodes.end(); node++)
-				{	
-					AINodeListIter nodeCmpOpen;
-					AINodeListIter nodeCmpClosed;
-					for (nodeCmpOpen = openList->begin(); nodeCmpOpen != openList->end(); nodeCmpOpen++)
-					{
-						if (*(*nodeCmpOpen) == *(*node))
-							break;
-					}
-					if (nodeCmpOpen != openList->end())
-					{
-						//if ((*nodeCmpOpen)->g <= (*node)->g)
-						//{
-							DeallocNode((*node));
-							omittedNodes++;
-							continue;
-						//}
-					}
-
-					for (nodeCmpClosed = closedList->begin(); nodeCmpClosed != closedList->end(); nodeCmpClosed++)
-					{
-						if (*(*nodeCmpClosed) == *(*node))
-							break;
-					}
-					if (nodeCmpClosed != closedList->end())
-					{
-						//if ((*nodeCmpClosed)->g <= (*node)->g)
-						//{
-							DeallocNode((*node));
-							omittedNodes++;
-							continue;
-						//}
-					}
-
-					CalculateScore(*node, md->_goal, unit);
-
-//					std::cout << "HEAP PUSH BEGIN" << std::endl;
-					openList->push_back((*node));
-					push_heap(openList->begin(), openList->end(), PathfindingHeapCmp());
-//					std::cout << "END" << std::endl;
-				}
-				
-				if (omittedNodes == length)
-					return PATHSTATE_IMPOSSIBLE;
-					
-				closedList->push_back(pCurNode);
+				lowestH = nodes[first_node].h;
+				nearestNode = first_node;
 			}
 
+			node_x = nodes[first_node].x;
+			node_y = nodes[first_node].y;
+			nodeTypes[node_y][node_x] = NODE_TYPE_CLOSED;
+
+			if ((node_x == target_x && node_y == target_y) || SquareIsGoal(unit, node_x, node_y, true))
+			{
+	/*			printf("Reached target\n"); */
+				binary_heap_pop_all(heap);
+				return PATHSTATE_GOAL;
+			}
+
+			for (y = -1; y <= 1; y++)
+			{
+				int new_y = node_y+y;
+				if (new_y >= 0 && new_y < height)
+				{
+					scanline_types = nodeTypes[new_y];
+					scanline_nums = nodeNums[new_y];
+					for (x = -1; x <= 1; x++)
+					{
+						int new_x = node_x+x;
+						if ((y || x) && new_x >= 0 && new_x < width)
+						{
+							int node_type = scanline_types[new_x];
+							if (node_type != NODE_TYPE_CLOSED)
+							{
+								int node_num;
+								if (node_type == NODE_TYPE_OPEN)
+								{
+									int new_g = nodes[first_node].g;
+									new_g += Dimension::GetTraversalTime(unit, node_x, node_y, x, y);
+
+									node_num = scanline_nums[new_x];
+									if (new_g < nodes[node_num].g)
+									{
+										if (node_num == first_node)
+										{
+											printf("Ouch\n");
+										}
+										nodes[node_num].g = new_g;
+										nodes[node_num].f = nodes[node_num].h + new_g;
+										nodes[node_num].parent = first_node;
+										binary_heap_lower_item_score(heap, node_num, nodes[node_num].f);
+									}
+									else
+									{
+										continue;
+									}
+								}
+								else
+								{
+									if (IsWalkable(unit, new_x, new_y))
+									{
+										int new_g = nodes[first_node].g;
+										new_g += Dimension::GetTraversalTime(unit, node_x, node_y, x, y);
+
+										node_num = scanline_nums[new_x] = nextFreeNode++;
+										if (node_num == first_node)
+										{
+											printf("Ouch\n");
+										}
+										nodes[node_num].x = new_x;
+										nodes[node_num].y = new_y;
+										nodes[node_num].g = new_g;
+										nodes[node_num].h = (abs(new_y-target_y) + abs(new_x-target_x)) * 10;
+										nodes[node_num].f = nodes[node_num].h + new_g;
+										nodes[node_num].parent = first_node;
+										scanline_types[new_x] = NODE_TYPE_OPEN;
+										binary_heap_push_item(heap, node_num, nodes[node_num].f);
+									}
+									else
+									{
+										scanline_types[new_x] = NODE_TYPE_CLOSED;
+									}
+								}
+							}
+						}
+					}
+				}
+			}
 			return PATHSTATE_OK;
 		}
-		
-		
-		int GetNearestNode(ThreadData*& tdata, PathState& state, int& calcCount)
+
+		void BuildNodeLinkedList(ThreadData*& tdata)
 		{
-			MovementData* md = tdata->pUnit->pMovementData;
-		
-			if (tdata->openList.empty() ||
-			    tdata->openList.front() == md->_start)
+			Dimension::Unit* unit  = tdata->pUnit;
+			MovementData* md       = unit->pMovementData;
+			Node *prev_node = NULL, *first_node = NULL, *new_node = NULL;
+			int cur_node = nearestNode;
+			while (cur_node != -1)
 			{
-				state = PATHSTATE_ERROR;
-				return ERROR_GENERAL;
+				new_node = AllocNode(nodes[cur_node].x, nodes[cur_node].y);
+				new_node->pChild = prev_node;
+				if (prev_node)
+				{
+					prev_node->pParent = new_node;
+				}
+				if (!first_node)
+				{
+					first_node = new_node;
+				}
+				cur_node = nodes[cur_node].parent;
+				prev_node = new_node;
 			}
-			
-			Node* pCurNode = tdata->openList.front();
-			
-			int lowestIndex = 0;
-			int index = 0;		
-			{
-				float lowestH = pCurNode->h;
-				while (true) 
-				{
-					if (lowestH >= pCurNode->h && pCurNode != md->_start)
-					{
-						lowestH = pCurNode->h;
-						lowestIndex = index;
-					}
-				
-					// Skip start position (because its H-value is zero)
-					if (pCurNode->pParent != NULL)
-					{
-						if (*pCurNode->pParent != *md->_start)
-						{
-							index++;
-							pCurNode = pCurNode->pParent;
-							continue;
-						}
-					}
-				
-					break;
-				}
-			}
-			
-			pCurNode = tdata->openList.front();
-			index = 0;
-			while (true)
-			{
-				for (unsigned int i = 0; i < tdata->openList.size(); i++)
-				{
-					if (tdata->openList.at(i) == pCurNode)
-					{
-						tdata->openList.erase(tdata->openList.begin() + i);
-						i--;
-					}
-				}
-				
-				for (unsigned int i = 0; i < tdata->closedList.size(); i++)
-				{
-					if (tdata->closedList.at(i) == pCurNode)
-					{
-						tdata->closedList.erase(tdata->closedList.begin() + i);
-						i--;
-					}
-				}
-
-				if (index == lowestIndex)
-				{
-					DeallocNode(md->_goal);
-					md->_goal = pCurNode;
-					md->changedGoal = true;
-					tdata->openList.insert(tdata->openList.begin(), pCurNode);
-
-					do
-					{
-//						std::cout << "MAKING HEAP IN GetNearestNode!" << std::endl;
-						make_heap(tdata->openList.begin(), tdata->openList.end(), PathfindingHeapCmp());
-//						std::cout << "END" << std::endl;
-						if (*tdata->openList.front() != *pCurNode)
-						{
-							pCurNode->f -= 0.25f;
-							continue;
-						}
-
-						break;
-					} while (true);
-					
-					calcCount = 0;
-					break;
-				}
-				
-				Node* pTemp = pCurNode;
-				pCurNode = pCurNode->pParent;							
-				DeallocNode(pTemp);
-					
-				if (pCurNode->pParent == NULL)
-				{
-					state = PATHSTATE_ERROR;
-					return ERROR_GENERAL;
-				}
-				
-				index ++;
-			}
-			return SUCCESS;
+			md->_goal = first_node;
+			md->_start = new_node;
 		}
-
+		
 		inline void ParsePopQueueReason(ThreadData*& tdata, MovementData* md)
 		{
 			switch (md->_reason)
 			{
 				case POP_NEW_GOAL:
 				{
+					printf("new_goal\n");
 					int start_x = (int)md->_start->x, 
 					    start_y = (int)md->_start->y;
 
@@ -824,6 +1113,7 @@ namespace Game
 					
 					md->_start = AllocNode(start_x, start_y);
 					md->_goal  = AllocNode((int)*x, (int)*y);
+					md->_changedGoal  = AllocNode((int)*x, (int)*y);
 					
 					gCalcQueue.push(tdata->pUnit);
 
@@ -832,6 +1122,7 @@ namespace Game
 
 				case POP_DELETED:
 				{
+					printf("deleted\n");
 					DeallocPathfinding(tdata);
 					delete md;
 					delete tdata->pUnit;
@@ -841,6 +1132,7 @@ namespace Game
 
 				default:
 				{
+					printf("default\n");
 					DeallocPathfinding(tdata);
 					md->_currentState = INTTHRSTATE_NONE;
 					md->calcState = CALCSTATE_FAILURE;
@@ -872,18 +1164,16 @@ namespace Game
 					gCalcQueue.pop();
 
 					tdata->pUnit->pMovementData->_currentState = INTTHRSTATE_PROCESSING;
+					floodfillState = FLOODFILLSTATE_NONE;
 				}
 			}
 
 			unit = tdata->pUnit;
 			md   = tdata->pUnit->pMovementData;
 
-//			SDL_UnlockMutex(tdata->pMutex);
-
 			if (md->_popFromQueue)
 			{
-//				SDL_LockMutex(tdata->pMutex);
-				
+				printf("begin\n");
 				ParsePopQueueReason(tdata, md);
 				tdata->pUnit = NULL;
 				
@@ -893,8 +1183,6 @@ namespace Game
 			
 			if (md->_goal == NULL)
 			{
-//				SDL_LockMutex(tdata->pMutex);
-
 				md->_currentState = INTTHRSTATE_NONE;
 				tdata->pUnit = NULL;
 				
@@ -902,92 +1190,133 @@ namespace Game
 				return SUCCESS;
 			}
 
-			if (md->calcState != CALCSTATE_AWAITING_NEXT_FRAME)
-			{
-				if (tdata->openList.size() > 0)
-				{
-					for (size_t i = 0; i < tdata->openList.size(); i++)
-						DeallocNode(tdata->openList.at(i));
-					tdata->openList.clear();
-				}
-				
-				if (tdata->closedList.size() > 0)
-				{
-					for (size_t i = 0; i < tdata->closedList.size(); i++)
-						DeallocNode(tdata->closedList.at(i));
-					tdata->closedList.clear();
-				}
-
-//				std::cout << "MAKE HEAP IN INITIAL" << std::endl;
-				make_heap(tdata->openList.begin(), tdata->openList.end(), PathfindingHeapCmp());
-//				std::cout << "END" << std::endl;
-
-				tdata->openList.push_back( md->_start );
-				
-//				std::cout << "PUSH HEAP IN OPENLIST" << std::endl;
-				push_heap(tdata->openList.begin(), tdata->openList.end(), PathfindingHeapCmp());
-//				std::cout << "END" << std::endl;
-			}
-
 			int steps = 0;
 			bool quit = false; // <<< bad solution? See below...
+			bool done = false;
 			PathState state = PATHSTATE_OK;
 
-			do
+			while (!done)
 			{
-				calcCount ++;
-				steps ++;
-				
-//				SDL_LockMutex(tdata->pMutex);
 
-				if (calcCount > MAXIMUM_PATH_CALCULATIONS || 
-					state == PATHSTATE_IMPOSSIBLE)
+				if (floodfillState < FLOODFILLSTATE_SKIPPED)
 				{
-					if (GetNearestNode(tdata, state, calcCount) == ERROR_GENERAL)
+					if (floodfillState == FLOODFILLSTATE_NONE)
 					{
-						quit = true; // << is used here, in order to prevent... (below)
-						break;
+						int m_type = unit->type->movementType;
+						if (IsWalkable(unit, md->_goal->x, md->_goal->y) && areaMaps[m_type][md->_start->y][md->_start->x] == areaMaps[m_type][md->_goal->y][md->_goal->x])
+						{
+							floodfillState = FLOODFILLSTATE_SKIPPED; // Skip it for now
+							InitPathfinding(tdata);
+						}
+						else
+						{
+							floodfillState = FLOODFILLSTATE_PROCESSING;
+							if (InitFloodfill(unit, md->_start->x, md->_start->y, FLOODFILL_FLAG_CALCULATE_NEAREST) == PATHSTATE_ERROR)
+							{
+								floodfillState = FLOODFILLSTATE_DONE;
+								InitPathfinding(tdata);
+							}
+						}
 					}
-					
-					state = PATHSTATE_OK;
-				}			
-				
-				state = PathfindingStep(tdata);
-				
-				SDL_UnlockMutex(tdata->pMutex);
+					if (floodfillState == FLOODFILLSTATE_PROCESSING)
+					{
+						do
+						{
+							calcCount++;
+							steps++;
+						
+							if (FloodfillStep(unit, md, md->_goal->x, md->_goal->y) == PATHSTATE_GOAL)
+							{
+								floodfillState = FLOODFILLSTATE_DONE;
+								InitPathfinding(tdata);
+								break;
+							}
+						
+							SDL_UnlockMutex(tdata->pMutex);
 
-				if (md->_popFromQueue)
-				{
-					SDL_LockMutex(tdata->pMutex);
-					
-					ParsePopQueueReason(tdata, md);
-					tdata->pUnit = NULL;
-					
-					SDL_UnlockMutex(tdata->pMutex);
-					return SUCCESS;
+							if (steps > MAXIMUM_CALCULATIONS_PER_FRAME)
+							{
+								SDL_LockMutex(tdata->pMutex);
+								
+								md->calcState = CALCSTATE_AWAITING_NEXT_FRAME;
+								
+								SDL_UnlockMutex(tdata->pMutex);
+								return SUCCESS;
+							}
+							else
+							{
+								SDL_LockMutex(tdata->pMutex);
+							}
+						} while (1);
+					}
 				}
 
-				if (steps > MAXIMUM_CALCULATIONS_PER_FRAME && state != PATHSTATE_GOAL)
+				if (floodfillState >= FLOODFILLSTATE_SKIPPED)
 				{
-					SDL_LockMutex(tdata->pMutex);
-					
-					md->calcState = CALCSTATE_AWAITING_NEXT_FRAME;
-					
-					SDL_UnlockMutex(tdata->pMutex);
-					return SUCCESS;
-				}
-				else  if (state == PATHSTATE_OK || state == PATHSTATE_IMPOSSIBLE)
-				{
-					SDL_LockMutex(tdata->pMutex);
-					continue;
-				}
-				else
-				{
-					break;
-				}
-			
-			} while (1);
 
+					do
+					{
+						calcCount ++;
+						steps ++;
+						
+						if (calcCount > MAXIMUM_PATH_CALCULATIONS || 
+							state == PATHSTATE_IMPOSSIBLE)
+						{
+							done = true;
+							quit = true; // << is used here, in order to prevent... (below)
+							break;
+						}
+
+						if (calcCount == RECALC_FLOODFILL_LIMIT && floodfillState == FLOODFILLSTATE_SKIPPED)
+						{
+							if (InitFloodfill(unit, md->_start->x, md->_start->y, FLOODFILL_FLAG_CALCULATE_NEAREST) != PATHSTATE_ERROR)
+							{
+								floodfillState = FLOODFILLSTATE_PROCESSING;
+								break;
+							}
+						}
+
+						state = PathfindingStep(tdata);
+						
+						SDL_UnlockMutex(tdata->pMutex);
+
+						if (md->_popFromQueue)
+						{
+							printf("middle\n");
+							SDL_LockMutex(tdata->pMutex);
+							
+							ParsePopQueueReason(tdata, md);
+							tdata->pUnit = NULL;
+							
+							SDL_UnlockMutex(tdata->pMutex);
+							return SUCCESS;
+						}
+
+						if (steps > MAXIMUM_CALCULATIONS_PER_FRAME && state != PATHSTATE_GOAL)
+						{
+							SDL_LockMutex(tdata->pMutex);
+							
+							md->calcState = CALCSTATE_AWAITING_NEXT_FRAME;
+							
+							SDL_UnlockMutex(tdata->pMutex);
+							return SUCCESS;
+						}
+						else  if (state == PATHSTATE_OK || state == PATHSTATE_IMPOSSIBLE)
+						{
+							SDL_LockMutex(tdata->pMutex);
+							continue;
+						}
+						else
+						{
+//							cout << num_steps << " steps" << endl;
+							done = true;
+							quit = true;
+							break;
+						}
+					
+					} while (1);
+				}
+			}
 
 			if (!quit)
 				SDL_LockMutex(tdata->pMutex); // << ... mutex from locking when quitting the loop
@@ -999,6 +1328,7 @@ namespace Game
 			int ret = ERROR_GENERAL;
 			if (md->_popFromQueue)
 			{
+				printf("end\n");
 				ParsePopQueueReason(tdata, md);
 				ret = SUCCESS;
 			}
@@ -1006,6 +1336,7 @@ namespace Game
 			{
 				if (state == PATHSTATE_GOAL)
 				{
+					BuildNodeLinkedList(tdata);
 					md->calcState = CALCSTATE_REACHED_GOAL;
 					ret = SUCCESS;
 				}

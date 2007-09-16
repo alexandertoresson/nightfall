@@ -1151,7 +1151,7 @@ namespace  Utilities
 										//Find floats, iterate until ] is found
 										while(tokensIterator != tokens.end())
 										{
-											if(GetTokenType(tokensIterator,tokens) == Point);
+											if(GetTokenType(tokensIterator,tokens) == Point)
 												break;
 											tokensIterator++;
 										}

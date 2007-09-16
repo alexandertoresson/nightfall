@@ -1455,7 +1455,7 @@ namespace UnitLuaInterface
 	int LGetUnitTypeName(LuaVM* pVM)
 	{
 		UnitType* pUnitType = (UnitType*) lua_touserdata(pVM, 1);
-		char* name = "";
+		char* name = (char*) "";
 		if (pUnitType)
 			name = pUnitType->name;
 

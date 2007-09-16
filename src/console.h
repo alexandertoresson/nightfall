@@ -51,6 +51,7 @@ class Console
 		friend Console& operator<< (Console& c, double);
 		friend Console& operator<< (Console& c, char);
 		friend Console& operator<< (Console& c, char*);
+		friend Console& operator<< (Console& c, const char*);
 		friend Console& operator<< (Console& c, const void*);
 		friend Console& operator<< (Console& c, std::string);
 		

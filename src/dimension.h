@@ -85,6 +85,12 @@ namespace Game
 			float y;
 		};
 		
+		struct IntPosition
+		{
+			int x;
+			int y;
+		};
+
 		struct Player
 		{
 			char              name[16];

@@ -592,7 +592,7 @@ namespace Game
 			return true; // return false if it fails to start the network...
 		}
 
-		void SendSignalPacket(char *id, int node)
+		void SendSignalPacket(const char *id, int node)
 		{
 			Packet *packet = new Packet();
 			packet->id[0] = id[0];

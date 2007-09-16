@@ -35,9 +35,10 @@ namespace Game
 //#define DEBUG_AI_PATHFINDING
 #define USE_MULTITHREADED_CALCULATIONS
 #define MAXIMUM_PATH_CALCULATIONS 2e16
+#define RECALC_FLOODFILL_LIMIT 2000
 
 #ifdef USE_MULTIFRAMED_CALCULATIONS
-	#define MAXIMUM_CALCULATIONS_PER_FRAME 50
+	#define MAXIMUM_CALCULATIONS_PER_FRAME 4000
 #endif
 
 #include <vector>
@@ -101,14 +102,12 @@ namespace Game
 			INTTHRSTATE_PROCESSING
 		};
 
-		class PathfindingHeapCmp
+		enum FloodfillState
 		{
-			public:
-
-				bool operator() (const Node* n1, const Node* n2) const
-				{
-					return n1->f > n2->f;
-				}
+			FLOODFILLSTATE_NONE = 0,
+			FLOODFILLSTATE_PROCESSING,
+			FLOODFILLSTATE_SKIPPED,
+			FLOODFILLSTATE_DONE
 		};
 
 		typedef std::vector< Node* > AINodeList;
@@ -148,9 +147,9 @@ namespace Game
 			
 			Node*        _start;
 			Node*        _goal;
+			Node*        _changedGoal;
 			ActionData   _action;
 			
-
 #ifdef DEBUG_AI_PATHFINDING
 			unsigned int _cycles;
 #endif
@@ -160,9 +159,6 @@ namespace Game
 		{
 			SDL_mutex*        pMutex;
 			Dimension::Unit*  pUnit;
-			
-			AINodeList        openList;
-			AINodeList        closedList;
 		};
 		
 		//
@@ -191,7 +187,7 @@ namespace Game
 		//            target - target unit. default NULL
 		//            args   - unit action arguments. default NULL
 		//
-		IPResult InitPathfinding(Dimension::Unit* pUnit, float start_x, float start_y, float goal_x, float goal_y, AI::UnitAction action = AI::ACTION_GOTO, Dimension::Unit* target = NULL, void* args = NULL);
+		IPResult CommandPathfinding(Dimension::Unit* pUnit, float start_x, float start_y, float goal_x, float goal_y, AI::UnitAction action = AI::ACTION_GOTO, Dimension::Unit* target = NULL, void* args = NULL);
 		
 		//
 		// Get the internal path state, PATHSTATE_*
@@ -219,12 +215,6 @@ namespace Game
 		//
 		int PerformPathfinding(ThreadData*);
 
-		//
-		// Internal function: clear open and closed lists from nodes, and
-		//                    remove internal path-calculation results.
-		//
-		void DeallocPathfinding(ThreadData*&);
-		
 		//
 		// Public pathfinding deallocation function.
 		// May be provided with DPNArg: DPN_FRONT or DPN_BACK where

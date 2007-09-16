@@ -361,7 +361,7 @@ namespace Game
 			}
 			else
 			{
-				AddPlayer("GAIA", PLAYER_TYPE_GAIA, "resources/textures/player_gaia.png");
+				AddPlayer((char*) "GAIA", PLAYER_TYPE_GAIA, (char*) "resources/textures/player_gaia.png");
 			}
 			
 			PlayerType next_type;
@@ -381,7 +381,7 @@ namespace Game
 				if (next_type == PLAYER_TYPE_HUMAN)
 				{
 					human = p;
-					next_type = PLAYER_TYPE_HUMAN;
+					next_type = PLAYER_TYPE_AI;
 				}
 				
 				color++;

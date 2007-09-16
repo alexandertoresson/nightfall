@@ -111,7 +111,7 @@ int main(int argc, char** argv)
 		loading->SetMessage("Loading World");
 		loading->Update();
 
-		if (configInterprt.GetValue("camera rotation speed") != "")
+		if (strlen(configInterprt.GetValue("camera rotation speed")) > 0)
 		{
 			float value = atof(configInterprt.GetValue("camera rotation speed"));
 
@@ -119,7 +119,7 @@ int main(int argc, char** argv)
 				Game::Dimension::cameraRotationSpeed = value;
 		}
 
-		if (configInterprt.GetValue("camera fly speed") != "")
+		if (strlen(configInterprt.GetValue("camera fly speed")) > 0)
 		{
 			float value = atof(configInterprt.GetValue("camera fly speed"));
 
@@ -127,7 +127,7 @@ int main(int argc, char** argv)
 				Game::Dimension::cameraFlySpeed = value;
 		}
 
-		if (configInterprt.GetValue("camera zoom speed") != "")
+		if (strlen(configInterprt.GetValue("camera zoom speed")) > 0)
 		{
 			float value = atof(configInterprt.GetValue("camera zoom speed"));
 

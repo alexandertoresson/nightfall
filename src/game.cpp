@@ -30,7 +30,7 @@ namespace Game
 	namespace Rules
 	{
 
-		char* CurrentLevel = "default";
+		const char* CurrentLevel = "default";
 
 		GameWindow* GameWindow::pInstance = NULL;
 
@@ -450,15 +450,15 @@ namespace Game
 		
 		void GameWindow::NewGame()
 		{
-#ifdef USE_MULTITHREADED_CALCULATIONS
-			Game::AI::InitPathfindingThreading();
-#endif
 			pLoading = new Window::GUI::LoadWindow(1.0f); //90% Game, 10% GUI
 			pLoading->SetMessage("Loading...");
 			pLoading->Update();
 
 			InitGame();
 			
+#ifdef USE_MULTITHREADED_CALCULATIONS
+			Game::AI::InitPathfindingThreading();
+#endif
 			/*
 			SDL_Surface* img = Utilities::LoadImage("resources/textures/terrain2.png");
 			Dimension::terraintexture = Utilities::CreateGLTexture(img);
@@ -854,8 +854,8 @@ namespace Game
 			if (build_x != -1 && build_y != -1 && build_type)
 			{
 				Dimension::RenderBuildOutline(build_type, build_x, build_y);
-			}	
-			
+			}
+
 		}
 
 		bool GameWindow::PaintAll()

@@ -565,8 +565,8 @@ namespace Game
 						}
 						case SDLK_TAB:
 						{
-							console << "This feature has been disabled." << Console::nl;
-							break;
+/*							console << "This feature has been disabled." << Console::nl;
+							break; */
 
 							// switch player view
 							unsigned int num = Dimension::currentPlayerView->index + 1;

@@ -199,6 +199,13 @@ Console& operator << (Console& c, char* values)
 	return c;
 }
 
+Console& operator << (Console& c, const char* values)
+{
+	console.Write(values);
+
+	return c;
+}
+
 Console& operator << (Console& c, const void* ptr)
 {
 	char adress[32];

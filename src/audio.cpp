@@ -180,7 +180,7 @@ namespace Audio
 
 		// Get the audio format
 		int format = Utilities::StringToInt(musicConfig.GetValue("audio format"));
-		char* formatType;
+		const char* formatType;
 		if (format == 0 || format < 0 || format > 8)
 		{
 			format = MIX_DEFAULT_FORMAT;

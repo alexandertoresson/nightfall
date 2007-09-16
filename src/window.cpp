@@ -141,7 +141,7 @@ namespace Window
 			SDL_GL_DEPTH_SIZE
 		};
 		
-		char* descriptions[] = {
+		const char* descriptions[] = {
 			"Red Comp size:  . . . %d\n",
 			"Blue Comp size: . . . %d\n",
 			"Green Comp size:  . . %d\n",

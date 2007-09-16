@@ -32,12 +32,12 @@ namespace Game
 		
 		bool SquareIsWalkable(Unit *unit, int x, int y, int flags);
 		bool SquaresAreWalkable(Unit *unit, int x, int y, int flags);
-		bool SquareIsWalkable(Unit *unit, int x, int y);
+		inline bool SquareIsWalkable(Unit *unit, int x, int y);
 		bool SquaresAreWalkable(Unit *unit, int x, int y);
 		
-		bool SquareIsWalkable_AllKnowing(Unit *unit, int x, int y);
-		bool SquaresAreWalkable_AllKnowing(Unit *unit, int x, int y);
-		bool SquareIsWalkable_AllKnowing(UnitType *type, int x, int y);
+		inline bool SquareIsWalkable_AllKnowing(Unit *unit, int x, int y);
+		inline bool SquaresAreWalkable_AllKnowing(Unit *unit, int x, int y);
+		inline bool SquareIsWalkable_AllKnowing(UnitType *type, int x, int y);
 		bool SquaresAreWalkable_AllKnowing(UnitType *type, int x, int y);
 		
 		struct TransformData;
@@ -85,12 +85,13 @@ namespace Game
 		
 		enum MovementType
 		{
-			MOVEMENT_HUMAN,
+			MOVEMENT_HUMAN = 0,
 			MOVEMENT_VEHICLE,
 			MOVEMENT_TANK,
 			MOVEMENT_BUILDING,
 			MOVEMENT_AIRBORNE,
-			MOVEMENT_SEA
+			MOVEMENT_SEA,
+			MOVEMENT_TYPES_NUM
 		};
 
 		enum RangeType
@@ -299,8 +300,8 @@ namespace Game
 			UnitType*           type;
 			Player*             owner;
 			Position            pos;
-			Position*           lastSeenPositions;
-			Position            curAssociatedSquare;
+			IntPosition*        lastSeenPositions;
+			IntPosition         curAssociatedSquare;
 			float               rotation;  // how rotated the model is
 			UnitAnimData        animData;
 			AI::UnitAction      action;
@@ -358,13 +359,17 @@ namespace Game
 		bool CanReach(Unit* attacker, Unit* target);
 		void ChangePath(Unit* pUnit, float goal_x, float goal_y, AI::UnitAction action, Unit* target, void* arg);
 		
-		bool SquareIsWalkable(UnitType *type, Player *player, int x, int y, int flags);
+		bool MovementTypeCanWalkOnSquare(MovementType mType, int x, int y);
+		inline bool MovementTypeCanWalkOnSquare_UnGuarded(MovementType mType, int x, int y);
+
+		inline bool SquareIsWalkable(UnitType *type, Player *player, int x, int y, int flags);
 		bool SquaresAreWalkable(UnitType *type, Player *player, int x, int y, int flags);
-		bool SquareIsWalkable(UnitType *type, Player *player, int x, int y);
+		inline bool SquareIsWalkable(UnitType *type, Player *player, int x, int y);
 		bool SquaresAreWalkable(UnitType *type, Player *player, int x, int y);
 
 		bool SquareIsLighted(Player *player, int x, int y);
 		bool SquareIsVisible(Player *player, int x, int y);
+		inline bool SquareIsVisible_UnGuarded(Player *player, int x, int y);
 		bool SquaresAreLighted(UnitType *type, Player *player, int x, int y);
 		bool SquaresAreLightedAround(UnitType *type, Player *player, int x, int y);
 		
