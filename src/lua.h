@@ -17,15 +17,17 @@
 #endif
 
 extern "C" {
+/*
 #if defined(__APPLE__) || defined(MACOSX)
-	#include <lua/lua.h>
-	#include <lua/lualib.h>
-	#include <lua/lauxlib.h>
-#else
 	#include <lua.h>
 	#include <lualib.h>
 	#include <lauxlib.h>
-#endif
+#else
+*/
+	#include <lua.h>
+	#include <lualib.h>
+	#include <lauxlib.h>
+//#endif
 }
 
 #ifndef luaL_dofile
