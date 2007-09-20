@@ -28,6 +28,6 @@ DEF Grue Unit
 	movePowerUsage 0.0
 	attackPowerUsage 0.0
 	
-	Model "resources/models/monster.wrl#Monster"
+	Model "models/monster.wrl#Monster"
 	
 }

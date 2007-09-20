@@ -20,6 +20,7 @@
 #include "unitinterface.h"
 #include "gui.h"
 #include "networking.h"
+#include "paths.h"
 
 #if USE_FONT == 1
 #include "font.h"
@@ -29,7 +30,7 @@
 #include "audio.h"
 #endif
 #define USE_LUA
-#include "lua.h"
+#include "luawrapper.h"
 
 void ParseArguments(int argc, char** argv, char*& worldMap);
 void KillAll(void);
@@ -40,9 +41,11 @@ int main(int argc, char** argv)
 	//RedirectIOToConsole();
 #endif
 
+	Utilities::InitPaths(argv[0]);
+
 	char *worldMap = NULL;
 	ParseArguments(argc, argv, worldMap);
-	
+
 	int errCode = Window::Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO);
 	
 	if (errCode != SUCCESS)
@@ -66,7 +69,7 @@ int main(int argc, char** argv)
 	Window::OnClose(KillAll);
 
 	{
-		Utilities::ConfigurationFile configInterprt("resources/configuration/config.txt");
+		Utilities::ConfigurationFile configInterprt("config.txt");
 		errCode = Window::OpenDynamic(&configInterprt);	
 
 		if (errCode != SUCCESS)
@@ -105,8 +108,17 @@ int main(int argc, char** argv)
 		loading->Increment(1.0f);
 		loading->SetMessage("Initializing Lua");
 		loading->Update();
+		
 		Utilities::Scripting::StartVM();
+		
 		UnitLuaInterface::Init();
+		
+		Utilities::Scripting::LuaVirtualMachine* pVM = Utilities::Scripting::LuaVirtualMachine::Instance();
+
+		pVM->DoFile("scripts/ai_human.lua");
+		pVM->DoFile("scripts/ai_gaia.lua");
+		pVM->DoFile("scripts/ai_ai.lua");
+
 		loading->Increment(1.0f);
 		loading->SetMessage("Loading World");
 		loading->Update();

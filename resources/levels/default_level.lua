@@ -1,5 +1,5 @@
 function SetPlayers()
-	InitPlayers(4)
+	InitPlayers(2)
 end
 
 function InitLevel()
@@ -11,7 +11,9 @@ function InitLevel()
 
 	---------------------------------------------------
 
-	LoadHeightmap("das_bana.pgm")
+	if not LoadHeightmap("das_bana.pgm") then
+		return false
+	end
 	SetMaximumBuildingAltitude(-0.0005)
 
 	---------------------------------------------------
@@ -104,17 +106,19 @@ function InitLevel()
 	CreateUnit(GetUnitTypeFromString("SolarPanel"),   cur_player, 216.5,  235.5, 0)
 	CreateUnit(GetUnitTypeFromString("SolarPanel"),   cur_player, 230.5,  228.5, 0)
 
-	cur_player = GetPlayerByIndex(3)
-	CreateUnit(GetUnitTypeFromString("MainBuilding"), cur_player, 223.5,  47.5, 0)
-	CreateUnit(GetUnitTypeFromString("Builder"),      cur_player, 222.5,  54.5, 0)
-	CreateUnit(GetUnitTypeFromString("SolarPanel"),   cur_player, 215.5,  55.5, 0)
-	CreateUnit(GetUnitTypeFromString("SolarPanel"),   cur_player, 214.5,  44.5, 0)
-
-	cur_player = GetPlayerByIndex(4)
-	CreateUnit(GetUnitTypeFromString("MainBuilding"), cur_player, 34.5,  224.5, 0)
-	CreateUnit(GetUnitTypeFromString("Builder"),      cur_player, 40.5,  223.5, 0)
-	CreateUnit(GetUnitTypeFromString("SolarPanel"),   cur_player, 42.5,  229.5, 0)
-	CreateUnit(GetUnitTypeFromString("SolarPanel"),   cur_player, 28.5,  222.5, 0)
+--	cur_player = GetPlayerByIndex(3)
+--	CreateUnit(GetUnitTypeFromString("MainBuilding"), cur_player, 223.5,  47.5, 0)
+--	CreateUnit(GetUnitTypeFromString("Builder"),      cur_player, 222.5,  54.5, 0)
+--	CreateUnit(GetUnitTypeFromString("SolarPanel"),   cur_player, 215.5,  55.5, 0)
+--	CreateUnit(GetUnitTypeFromString("SolarPanel"),   cur_player, 214.5,  44.5, 0)
+--
+--	cur_player = GetPlayerByIndex(4)
+--	CreateUnit(GetUnitTypeFromString("MainBuilding"), cur_player, 34.5,  224.5, 0)
+--	CreateUnit(GetUnitTypeFromString("Builder"),      cur_player, 40.5,  223.5, 0)
+--	CreateUnit(GetUnitTypeFromString("SolarPanel"),   cur_player, 42.5,  229.5, 0)
+--	CreateUnit(GetUnitTypeFromString("SolarPanel"),   cur_player, 28.5,  222.5, 0)
 
 	FocusCameraOnCoord(39, 40, 20, 140)
+
+	return true
 end

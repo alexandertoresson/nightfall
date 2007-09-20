@@ -1,6 +1,7 @@
 #include "textures.h"
 
 #include "networking.h"
+#include "paths.h"
 
 namespace Utilities
 {	
@@ -17,7 +18,7 @@ namespace Utilities
 
 	// Loads a texture, returns a handle/memory location
 	// to it that might be passed as the second argument to glBindTexture()
-	int LoadGLTexture(char* filename)
+	int LoadGLTexture(std::string file)
 	{
 		if (Game::Networking::isDedicatedServer)
 			return 0;
@@ -25,12 +26,19 @@ namespace Utilities
 
 		if (cur_texture >= num_textures)
 		{
-			console << Console::err << "Error: Attempted to load more textures that was allocated space for" << Console::nl;
+			console << Console::err << "Error: Attempted to load more textures than was allocated space for" << Console::nl;
+			return 0;
+		}
+
+		std::string filename = GetDataFile(file);
+
+		if (!filename.length())
+		{
 			return 0;
 		}
 
 		// Load the texture using SDL_Image
-		TextureImage[0] = IMG_Load(filename);
+		TextureImage[0] = IMG_Load(filename.c_str());
 		if (TextureImage[0])
 		{
 			glBindTexture(GL_TEXTURE_2D, texture[cur_texture]);

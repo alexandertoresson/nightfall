@@ -361,7 +361,7 @@ namespace Game
 			}
 			else
 			{
-				AddPlayer((char*) "GAIA", PLAYER_TYPE_GAIA, (char*) "resources/textures/player_gaia.png");
+				AddPlayer((char*) "GAIA", PLAYER_TYPE_GAIA, (char*) "textures/player_gaia.png");
 			}
 			
 			PlayerType next_type;
@@ -375,7 +375,7 @@ namespace Game
 			{
 				char texture[32];
 				char player[16];
-				sprintf(texture, "resources/textures/player_%d.png", color);
+				sprintf(texture, "textures/player_%d.png", color);
 				sprintf(player, "player_%d", players_initialized + i);
 				Player* p = AddPlayer(player, next_type, texture);
 				if (next_type == PLAYER_TYPE_HUMAN)
@@ -401,15 +401,6 @@ namespace Game
 			currentPlayerView = human;
 			SetCurrentPlayer(human);
 		
-			/*
-			Player* player1, *player2, *gaia;
-
-			// create default players
-			gaia = AddPlayer("GAIA", PLAYER_TYPE_GAIA, "resources/textures/player_gaia.png");
-			player1 = AddPlayer("Luser", PLAYER_TYPE_HUMAN, "resources/textures/player_human.png");
-			player2 = AddPlayer("M4D_SkIlLz", PLAYER_TYPE_AI, "resources/textures/player_ai.png");
-			SetPlayerState(1, 2, PLAYER_STATE_ENEMY);
-			*/
 		}
 		
 		Player* GetCurrentPlayer()

@@ -30,7 +30,7 @@ namespace Game
 	namespace Rules
 	{
 
-		const char* CurrentLevel = "default";
+		std::string CurrentLevel = "default";
 
 		GameWindow* GameWindow::pInstance = NULL;
 
@@ -147,7 +147,7 @@ namespace Game
 			NetworkCreate *networkCreate = new NetworkCreate();
 
 			if (Game::Networking::isDedicatedServer)
-				nextState = NETWORKCREATE_DEDICATED;
+				nextState = NETWORKCREATE;
 
 			while(nextState != QUIT)
 			{
@@ -163,8 +163,14 @@ namespace Game
 					case NEWGAME:
 					{
 						mainWindow = GameWindow::Instance();
-						mainWindow->NewGame();
-						nextState = GAME;
+						if (mainWindow->NewGame() == SUCCESS)
+						{
+							nextState = GAME;
+						}
+						else
+						{
+							nextState = QUIT;
+						}
 						break;
 					}
 					case ENDGAME:
@@ -200,21 +206,34 @@ namespace Game
 					case NETWORKCREATE:
 					{
 						mainWindow = GameWindow::Instance();
-						mainWindow->NewGame();
-						Networking::StartNetwork(Networking::SERVER);
-						nextState = (SwitchState)networkCreate->RunLoop();
-						if(nextState == MENU)
-							mainWindow->EndGame();
+						if (mainWindow->NewGame() == SUCCESS)
+						{
+							Networking::StartNetwork(Networking::SERVER);
+							nextState = (SwitchState)networkCreate->RunLoop();
+							if(nextState == MENU)
+								mainWindow->EndGame();
+						}
+						else
+						{
+							nextState = QUIT;
+						}
 						break;
 					}
 					case NETWORKJOIN:
 					{
 						mainWindow = GameWindow::Instance();
-						mainWindow->NewGame();
-						Networking::StartNetwork(Networking::CLIENT);
-						nextState = (SwitchState)networkJoin->RunLoop();
-						if(nextState == MENU)
-							mainWindow->EndGame();
+						if (mainWindow->NewGame() == SUCCESS)
+						{
+							mainWindow->NewGame();
+							Networking::StartNetwork(Networking::CLIENT);
+							nextState = (SwitchState)networkJoin->RunLoop();
+							if(nextState == MENU)
+								mainWindow->EndGame();
+						}
+						else
+						{
+							nextState = QUIT;
+						}
 						break;
 					}
 					default:
@@ -448,19 +467,24 @@ namespace Game
 				DestroyGUI();
 		}
 		
-		void GameWindow::NewGame()
+		int GameWindow::NewGame()
 		{
 			pLoading = new Window::GUI::LoadWindow(1.0f); //90% Game, 10% GUI
 			pLoading->SetMessage("Loading...");
 			pLoading->Update();
 
-			InitGame();
+			if (InitGame() != SUCCESS)
+			{
+				cout << "Failed to start game, see errors above to find out why." << endl;
+				gameRunning = false;
+				return ERROR_GENERAL;
+			}
 			
 #ifdef USE_MULTITHREADED_CALCULATIONS
 			Game::AI::InitPathfindingThreading();
 #endif
 			/*
-			SDL_Surface* img = Utilities::LoadImage("resources/textures/terrain2.png");
+			SDL_Surface* img = Utilities::LoadImage("textures/terrain2.png");
 			Dimension::terraintexture = Utilities::CreateGLTexture(img);
 			
 			InitGUI(img);
@@ -470,6 +494,7 @@ namespace Game
 
 			delete pLoading;
 			gameRunning = true;
+			return SUCCESS;
 		}
 
 		void GameWindow::EndGame()
@@ -503,11 +528,16 @@ namespace Game
 			pLoading->Increment(increment);
 			
 			////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-			char* level_script = new char[strlen(CurrentLevel) + 28];
-			sprintf(level_script, "resources/levels/%s_level.lua", CurrentLevel);
-			pVM->DoFile(level_script);
+			std::string level_script = "levels/" + CurrentLevel + "_level.lua";
+			if (pVM->DoFile(level_script) != SUCCESS)
+			{
+				return ERROR_GENERAL;
+			}
 			pVM->SetFunction("SetPlayers");
-			pVM->CallFunction(0);
+			if (pVM->CallFunction(0) != SUCCESS)
+			{
+				return ERROR_GENERAL;
+			}
 			
 			////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 			Dimension::InitUnits();
@@ -530,7 +560,10 @@ namespace Game
 			
 			////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 			pVM->SetFunction("InitLevel");
-			pVM->CallFunction(0);
+			if (pVM->CallFunction(0, 1) != SUCCESS)
+			{
+				return ERROR_GENERAL;
+			}
 			pLoading->Increment(increment);
 			
 			////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -572,132 +605,12 @@ namespace Game
 			//  Really Nice Perspective Calculations 
 			glHint( GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST );
 
-/*
- 			// Enable ambient light for Light 1
- 			glLightfv(GL_LIGHT1, GL_AMBIENT,  Dimension::lightAmbient);
- 
- 			// Enable diffuse light for Light 1
- 			glLightfv(GL_LIGHT1, GL_DIFFUSE,  Dimension::lightDiffuse);
- 
- 			// Set the position of Light 1
- 			glLightfv(GL_LIGHT1, GL_POSITION, Dimension::sunPosition);
-*/
-			
 			glEnable(GL_ALPHA);
 			glEnable(GL_BLEND);
 			glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-/*
- 			// Enable Light 1
- 			glEnable(GL_LIGHT1);
- 
- 			// Enable lighting
- 			glEnable(GL_LIGHTING);
-*/
 			return SUCCESS;
 			
-			
-			/*
-			Dimension::LoadWorld("resources/maps/heightmap.pgm");
-
-			SDL_Surface* img = Utilities::LoadImage("resources/textures/terrain2.png");
-			Dimension::terraintexture = Utilities::CreateGLTexture(img);
-			
-			InitGUI(img);
-			
-			SDL_FreeSurface(img);
-			*/
-			
-			/*
-			{
-				Dimension::Environment::FourthDimension* pDimension = Dimension::Environment::FourthDimension::Instance();
-				
-//				pDimension->AllocSkyboxContainer(2);
-				if (!pDimension->LoadSkyboxes())
-					exit(ENVIRONMENT_SKYBOX_LOAD_FAILED);
-
-				pDimension->InitSkyBox(30, 9);
-				int day   = pDimension->GetSkybox("day01"); //pDimension->LoadSkyBox("resources/textures/day01.png");
-				int night = pDimension->GetSkybox("night01"); //pDimension->LoadSkyBox("resources/textures/night01.PNG");
-
-				if (day == -1 || night == -1)
-					exit(ENVIRONMENT_SKYBOX_REFERENCE_NOT_FOUND);
-
-				pDimension->SetHourLength(3.0f);
-				pDimension->SetDayLength(24);
-
-				Dimension::Environment::EnvironmentalCondition* envDay = new Dimension::Environment::EnvironmentalCondition;
-				envDay->hourBegin = 6;
-				envDay->hourEnd = 18;
-				envDay->isDay = true;
-				envDay->musicListTag = "musicDay";
-				envDay->skybox = day;
-				
-				envDay->sunPos[0] = 1024.0f; 
-				envDay->sunPos[1] = 1024.0f; 
-				envDay->sunPos[2] = 1024.0f; 
-				envDay->sunPos[3] = 1.0f;
-				
-				envDay->diffuse[0] = 1.0f;
-				envDay->diffuse[1] = 1.0f;
-				envDay->diffuse[2] = 1.0f;
-				envDay->diffuse[3] = 1.0f;
-
-				envDay->ambient[0] = 1.0f;
-				envDay->ambient[1] = 1.0f;
-				envDay->ambient[2] = 1.0f;
-				envDay->ambient[3] = 1.0f;
-
-				envDay->fogBegin = 12.0f;
-				envDay->fogEnd = 14.0f;
-				envDay->fogIntensity = 0.15f;
-				envDay->fogColor[0] = -1.0f;
-				envDay->fogColor[1] = -1.0f;
-				envDay->fogColor[2] = -1.0f;
-				envDay->fogColor[3] = -1.0f;
-  
-				Dimension::Environment::EnvironmentalCondition* envNight = new Dimension::Environment::EnvironmentalCondition;
-				envNight->hourBegin = 18;
-				envNight->hourEnd = 6;
-				envNight->isNight = true;
-				envNight->musicListTag = "musicNight";
-				envNight->skybox = night;
-
-				envNight->sunPos[0] = 1024.0f; 
-				envNight->sunPos[1] = 1024.0f; 
-				envNight->sunPos[2] = 1024.0f; 
-				envNight->sunPos[3] = 1.0f;
-				
-				envNight->diffuse[0] = 0.2f;
-				envNight->diffuse[1] = 0.2f;
-				envNight->diffuse[2] = 0.2f;
-				envNight->diffuse[3] = 1.0f;
-
-				envNight->ambient[0] = 0.2f;
-				envNight->ambient[1] = 0.2f;
-				envNight->ambient[2] = 0.2f;
-				envNight->ambient[3] = 1.0f;
-
-				envNight->fogBegin = 8.5f;
-				envNight->fogEnd = 12.5f;
-				envNight->fogIntensity = 0.4f;
-				envNight->fogColor[0] = -1.0f;
-				envNight->fogColor[1] = -1.0f;
-				envNight->fogColor[2] = -1.0f;
-				envNight->fogColor[3] = -1.0f;
-				
-				pDimension->AddCondition(envDay);
-				pDimension->AddCondition(envNight);
-
-				if (!pDimension->ValidateConditions())
-				{
-					cout << "Failed to initialize conditions, exiting..." << endl;
-					exit(ENVIRONMENT_INVALID_CONDITIONS);
-				}
-				
-				pDimension->SetCurrentHour(6);
-			}
-			*/
 		}
 
 		bool GameWindow::ProcessEvents()

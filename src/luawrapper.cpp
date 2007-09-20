@@ -1,9 +1,10 @@
-#include "lua.h"
+#include "luawrapper.h"
 
 #include "errors.h"
 #include "unit.h"
 #include "dimension.h"
 #include "aibase.h"
+#include "paths.h"
 #include <cassert>
 
 namespace Utilities
@@ -100,9 +101,6 @@ namespace Utilities
 
 			luaL_openlibs(m_pVM);
 			InitializeEnums(m_pVM);
-			DoFile("resources/scripts/ai_human.lua");
-			DoFile("resources/scripts/ai_gaia.lua");
-			DoFile("resources/scripts/ai_ai.lua");
 		}
 
 		LuaVirtualMachine::~LuaVirtualMachine(void)
@@ -111,24 +109,30 @@ namespace Utilities
 				lua_close(m_pVM);
 		}
 
-		void LuaVirtualMachine::RegisterFunction(const char* alias, int (*fptr)(LuaVM*))
+		void LuaVirtualMachine::RegisterFunction(std::string alias, int (*fptr)(LuaVM*))
 		{
 			if (m_pVM == NULL)
 				return;
 #ifdef LUA_DEBUG
 			std::cout << "[Lua VM] Registering function " << alias << std::endl;
 #endif
-			lua_register(m_pVM, alias, fptr);
+			lua_register(m_pVM, alias.c_str(), fptr);
 		}
 
-		int LuaVirtualMachine::DoFile(const char* file) const
+		int LuaVirtualMachine::DoFile(std::string file) const
 		{
 			if (m_pVM == NULL)
-				return ERROR_GENERAL;		
+				return ERROR_GENERAL;
+			std::string filepath = Utilities::GetDataFile(file);
+
+			if (!filepath.length())
+			{
+				std::cout << "Could not locate LUA script " << file << "!" << endl;
+			}
 		
-			int result = luaL_dofile(m_pVM, file);
+			int result = luaL_dofile(m_pVM, filepath.c_str());
 #ifdef LUA_DEBUG
-			std::cout << "Executing " << file << ". ";
+			std::cout << "Executing " << filepath << ". ";
 			if (result)
 				std::cout << "Error: " << lua_tostring(m_pVM, -1) << std::endl;
 			else
@@ -137,24 +141,28 @@ namespace Utilities
 			return result;
 		}
 
-		void LuaVirtualMachine::SetFunction(const char* luaFunction)
+		void LuaVirtualMachine::SetFunction(std::string luaFunction)
 		{
-			lua_getglobal(m_pVM, luaFunction);
+			lua_getglobal(m_pVM,  luaFunction.c_str());
 			curFunction = luaFunction;
 		}
 
-		int LuaVirtualMachine::CallFunction(unsigned int arguments)
+		int LuaVirtualMachine::CallFunction(unsigned int arguments, unsigned int rets)
 		{
 			const void *func = lua_topointer(m_pVM, -(1 + arguments));
 			if (callErrs[func] < LUA_FUNCTION_FAIL_LIMIT)
 			{
-				if (lua_pcall(m_pVM, arguments, 0, 0) != 0)
+				if (lua_pcall(m_pVM, arguments, rets, 0) != 0)
 				{
 					std::cerr << "[Lua VM] Error on call to " << curFunction << ": " << lua_tostring(m_pVM, -1) << std::endl;
 					callErrs[func]++;
 					if (callErrs[func] == LUA_FUNCTION_FAIL_LIMIT)
 					{
 						std::cout << "Lua function " << curFunction << "() exceeded the number of allowed errors; disabling it." << std::endl;
+					}
+					if (rets)
+					{
+						lua_pop(m_pVM, rets);
 					}
 					return ERROR_GENERAL;
 				}
@@ -164,8 +172,21 @@ namespace Utilities
 				lua_pop(m_pVM, 1 + arguments);
 				return ERROR_GENERAL;
 			}
+			
+			bool ret = SUCCESS;
 
-			return SUCCESS;
+			if (lua_isboolean(m_pVM, 1))
+			{
+				if (!lua_toboolean(m_pVM, 1))
+				{
+					ret = ERROR_GENERAL;
+				}
+			}
+			if (rets)
+			{
+				lua_pop(m_pVM, rets);
+			}
+			return ret;
 		}
 
 		LuaVM* const LuaVirtualMachine::GetVM() const

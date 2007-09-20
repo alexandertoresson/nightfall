@@ -28,6 +28,6 @@ DEF DeepGeothermal Unit
 	powerType TwentyFourSeven
 	powerUsage 2.0
 	
-	Model "resources/models/cube3.wrl#OB_Cube"
+	Model "models/cube3.wrl#OB_Cube"
 
 }

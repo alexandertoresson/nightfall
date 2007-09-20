@@ -2,6 +2,7 @@
 
 #include "sdlheader.h"
 #include "networking.h"
+#include "paths.h"
 
 using namespace Window;
 
@@ -325,11 +326,16 @@ namespace Utilities
 		if (mFile[0] == 0)
 			return WINDOW_ERROR_NO_CONFIG_FILE;
 	
-		std::ifstream file(mFile);
-		
-		if (file.good() == false)
+		std::ifstream file;
+		std::string filename = GetConfigFile(mFile);
+
+		if (!filename.length())
+		{
 			return WINDOW_ERROR_CANNOT_FIND_CONFIGFILE;
+		}
 		
+		file.open(filename.c_str());
+
 		std::string buffer;
 		std::string command;
 		std::string value;
@@ -741,7 +747,16 @@ namespace Utilities
 	
 	SDL_Surface *LoadImage(std::string path)
 	{
-		SDL_Surface *image = IMG_Load(path.c_str());
+		std::string filename = GetDataFile(path);
+
+		if (!filename.length())
+		{
+			cout << "Failed to load texture '" << path << "' -- Not found!" << endl;
+			return NULL;
+		}
+
+		SDL_Surface *image = IMG_Load(filename.c_str());
+
 		if(!image) 
 		{
 			cout << "Failed to load texture '" << path << "' SDL Reports: " << IMG_GetError() << endl;
@@ -755,15 +770,25 @@ namespace Utilities
 	{
 		if (Game::Networking::isDedicatedServer)
 			return 0;
-		SDL_Surface *image = IMG_Load(path.c_str());
+		
+		std::string filename = GetDataFile(path);
+
+		if (!filename.length())
+		{
+			cout << "Failed to load texture '" << path << "' -- Not found!" << endl;
+			return 0;
+		}
+
+		SDL_Surface *image = IMG_Load(filename.c_str());
+
 		if(!image) 
 		{
-			cout << "Failed to load texture '" << path << "' SDL Reports: " << IMG_GetError() << endl;
+			cout << "Failed to load texture '" << filename << "' SDL Reports: " << IMG_GetError() << endl;
 			return 0;
 		}
 		else
 		{
-			console << "Texture: " << (char*) path.c_str() << Console::nl;
+			console << "Texture: " << filename << Console::nl;
 			GLuint texture = CreateGLTexture(image);
 			SDL_FreeSurface(image);
 			

@@ -2,6 +2,7 @@
 
 #include "dimension.h"
 #include "console.h"
+#include "paths.h"
 
 namespace Game
 {
@@ -531,11 +532,19 @@ namespace Game
 				this->sphere_face_count = (detail - 1) * (hdetail - 1);
 			}
 			
-			bool FourthDimension::LoadSkyboxes(const char* config_file)
+			bool FourthDimension::LoadSkyboxes(std::string config_file)
 			{
-				std::ifstream     file(config_file, std::fstream::in);
+				std::string filename = Utilities::GetConfigFile(config_file);
+				std::ifstream     file;
 				std::string       buffer;
 				
+				if (!filename.length())
+				{
+					return false;
+				}
+
+				file.open(filename.c_str());
+
 				if (!file.is_open())
 					return false;
 				
@@ -577,16 +586,16 @@ namespace Game
 					}
 					
 					std::ostringstream orig_file;
-					orig_file << "resources/textures/";
+					orig_file << "textures/";
 					orig_file << buffer;
 					
-					if (!Utilities::FileExists(orig_file.str()))
+					if (!Utilities::FileExists(Utilities::GetDataFile(orig_file.str())))
 					{
 						console << Console::err << "[SKYBOX] " << orig_file.str() << " is missing!" << Console::nl;
 						return false;
 					}
 					
-					int ret = LoadSkyBox((char*)orig_file.str().c_str());
+					int ret = LoadSkyBox(orig_file.str());
 					if (ret > -1)
 					{
 						unsigned pos = buffer.find_last_of('.');
@@ -611,7 +620,7 @@ namespace Game
 				return true;
 			}
 			
-			int FourthDimension::GetSkybox(std::string tag)
+			int FourthDimension::GetSkybox(const char* tag)
 			{
 				std::map<std::string, int>::const_iterator it = m_skyboxesGLContainer.find(tag);
 				if (it == m_skyboxesGLContainer.end())
@@ -620,7 +629,7 @@ namespace Game
 				return (*it).second;
 			}
 
-			int FourthDimension::LoadSkyBox(char* path)
+			int FourthDimension::LoadSkyBox(std::string path)
 			{
 				SkyBox* box = new SkyBox;
 				console << "[ENV] Skybox: loading texture '" << path << "..." << Console::nl;

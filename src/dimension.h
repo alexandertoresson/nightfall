@@ -145,9 +145,6 @@ namespace Game
 		// Ladda unittype ur textfil
 		UnitType*  LoadUnitType(const char* file);
 
-		// Ladda världen ur binär/textfil
-		int     LoadWorld(const char* file);
-		
 		void InitPlayers(unsigned players_to_init = 2);
 		
 		// Deallokerar modellen Model*

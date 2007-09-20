@@ -30,17 +30,17 @@ DEF MainBuilding Unit
 	lightPowerUsage 3.0
 	buildPowerUsage 1.0
 	
-	Model "resources/models/mainBuilding.wrl#MainBuilding"
-	symbol "resources/textures/mainbuilding.png"
+	Model "models/mainBuilding.wrl#MainBuilding"
+	symbol "textures/mainbuilding.png"
 	
-	canBuild ["resources/unittypes/builder.unit#Builder",
-	          "resources/unittypes/explorer.unit#Explorer"]
+	canBuild ["unittypes/builder.unit#Builder",
+	          "unittypes/explorer.unit#Explorer"]
 	
-	canResearch ["resources/unittypes/mainBuilding.unit#MainBuilding",
-		     "resources/unittypes/tankFactory.unit#TankFactory",
-		     "resources/unittypes/mediumLightTower.unit#MediumLightTower",
-		     "resources/unittypes/largeLightTower.unit#LargeLightTower",
-		     "resources/unittypes/surfaceGeothermal.unit#SurfaceGeothermal",
-		     "resources/unittypes/deepGeothermal.unit#DeepGeothermal"]
+	canResearch ["unittypes/mainBuilding.unit#MainBuilding",
+		     "unittypes/tankFactory.unit#TankFactory",
+		     "unittypes/mediumLightTower.unit#MediumLightTower",
+		     "unittypes/largeLightTower.unit#LargeLightTower",
+		     "unittypes/surfaceGeothermal.unit#SurfaceGeothermal",
+		     "unittypes/deepGeothermal.unit#DeepGeothermal"]
 
 }

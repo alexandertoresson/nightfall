@@ -46,11 +46,12 @@ am_rts_OBJECTS = main.$(OBJEXT) window.$(OBJEXT) game.$(OBJEXT) \
 	utilities.$(OBJEXT) model.$(OBJEXT) audio.$(OBJEXT) \
 	terrain.$(OBJEXT) aibase.$(OBJEXT) dimension.$(OBJEXT) \
 	font.$(OBJEXT) unit.$(OBJEXT) aipathfinding.$(OBJEXT) \
-	vector3d.$(OBJEXT) lua.$(OBJEXT) unitinterface.$(OBJEXT) \
-	gui.$(OBJEXT) environment.$(OBJEXT) console.$(OBJEXT) \
-	linkedlist.$(OBJEXT) textures.$(OBJEXT) effect.$(OBJEXT) \
-	camera.$(OBJEXT) gamegui.$(OBJEXT) randomgenerator.$(OBJEXT) \
-	networking.$(OBJEXT) filesystem.$(OBJEXT)
+	vector3d.$(OBJEXT) luawrapper.$(OBJEXT) \
+	unitinterface.$(OBJEXT) gui.$(OBJEXT) environment.$(OBJEXT) \
+	console.$(OBJEXT) linkedlist.$(OBJEXT) textures.$(OBJEXT) \
+	effect.$(OBJEXT) camera.$(OBJEXT) gamegui.$(OBJEXT) \
+	randomgenerator.$(OBJEXT) networking.$(OBJEXT) \
+	filesystem.$(OBJEXT) paths.$(OBJEXT)
 rts_OBJECTS = $(am_rts_OBJECTS)
 rts_LDADD = $(LDADD)
 DEFAULT_INCLUDES = -I.@am__isrc@
@@ -161,9 +162,10 @@ top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
 AM_CXXFLAGS = ${LUA_CFLAGS} ${SDL_CFLAGS} -Wall -Werror -Wextra -Wno-unused-parameter -Wpointer-arith -Wcast-align -Wconversion -pedantic -ansi -std=c++98
 rts_SOURCES = main.cpp window.cpp game.cpp utilities.cpp model.cpp audio.cpp terrain.cpp \
-	      aibase.cpp dimension.cpp font.cpp unit.cpp aipathfinding.cpp vector3d.cpp lua.cpp \
+	      aibase.cpp dimension.cpp font.cpp unit.cpp aipathfinding.cpp vector3d.cpp luawrapper.cpp \
 	      unitinterface.cpp gui.cpp environment.cpp console.cpp linkedlist.cpp textures.cpp \
-	      effect.cpp camera.cpp gamegui.cpp randomgenerator.cpp networking.cpp filesystem.cpp
+	      effect.cpp camera.cpp gamegui.cpp randomgenerator.cpp networking.cpp filesystem.cpp \
+	      paths.cpp
 
 all: all-am
 
@@ -245,10 +247,11 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/gamegui.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/gui.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/linkedlist.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/lua.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/luawrapper.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/main.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/model.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/networking.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/paths.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/randomgenerator.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/terrain.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/textures.Po@am__quote@

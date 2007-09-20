@@ -33,11 +33,11 @@ DEF SmallAttackRobot Unit
 	movePowerUsage 0.5
 	attackPowerUsage 1.0
 	
-	Model "resources/models/smallattackrobot.wrl#SmallAttackRobot"
+	Model "models/smallattackrobot.wrl#SmallAttackRobot"
 	
 	ProjectileType
 	{
-		Model "resources/models/missile.wrl#Missile"
+		Model "models/missile.wrl#Missile"
 		areaOfEffect 1.0
 		startPos 1.0 0.0 0.0
 		speed 1.0

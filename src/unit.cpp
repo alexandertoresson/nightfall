@@ -1,7 +1,7 @@
 #include "unit.h"
 
 #include "aipathfinding.h"
-#include "lua.h"
+#include "luawrapper.h"
 #include "effect.h"
 #include "networking.h"
 #include "textures.h"
@@ -2248,7 +2248,10 @@ namespace Game
 			Model* model = type->model;
 			Utilities::Vector3D near_plane, far_plane, tp1, tp2, tp3, hit_pos;
 			int index, index_v;
-//			float unit_y; << unused!
+
+			if (!model)
+				return false;
+
 			glPushMatrix();
 
 				SetUnitCoordSpace(unit);
@@ -2683,37 +2686,37 @@ namespace Game
 			}
 			nextID = 0;
 			
-			LoadUnitType("resources/unittypes/mainBuilding.unit");
-			LoadUnitType("resources/unittypes/tankFactory.unit");
-			LoadUnitType("resources/unittypes/barracks.unit");
+			LoadUnitType("unittypes/mainBuilding.unit");
+			LoadUnitType("unittypes/tankFactory.unit");
+			LoadUnitType("unittypes/barracks.unit");
 			
-			LoadUnitType("resources/unittypes/solarPanel.unit");
-			LoadUnitType("resources/unittypes/surfaceGeothermal.unit");
-			LoadUnitType("resources/unittypes/deepGeothermal.unit");
+			LoadUnitType("unittypes/solarPanel.unit");
+			LoadUnitType("unittypes/surfaceGeothermal.unit");
+			LoadUnitType("unittypes/deepGeothermal.unit");
 			
-			LoadUnitType("resources/unittypes/smallLightTower.unit");
-			LoadUnitType("resources/unittypes/mediumLightTower.unit");
-			LoadUnitType("resources/unittypes/largeLightTower.unit");
+			LoadUnitType("unittypes/smallLightTower.unit");
+			LoadUnitType("unittypes/mediumLightTower.unit");
+			LoadUnitType("unittypes/largeLightTower.unit");
 			
-			LoadUnitType("resources/unittypes/defenseTower.unit");
+			LoadUnitType("unittypes/defenseTower.unit");
 			
-			LoadUnitType("resources/unittypes/builder.unit#Builder");
+			LoadUnitType("unittypes/builder.unit#Builder");
 			
-			LoadUnitType("resources/unittypes/explorer.unit");
-			LoadUnitType("resources/unittypes/portableLightSource.unit");
+			LoadUnitType("unittypes/explorer.unit");
+			LoadUnitType("unittypes/portableLightSource.unit");
 
-			LoadUnitType("resources/unittypes/smallAttackRobot.unit");
-			LoadUnitType("resources/unittypes/largeAttackRobot.unit");
+			LoadUnitType("unittypes/smallAttackRobot.unit");
+			LoadUnitType("unittypes/largeAttackRobot.unit");
 
-			LoadUnitType("resources/unittypes/smallTank.unit");
-			LoadUnitType("resources/unittypes/largeTank.unit");
+			LoadUnitType("unittypes/smallTank.unit");
+			LoadUnitType("unittypes/largeTank.unit");
 			
-			LoadUnitType("resources/unittypes/monster.unit");
+			LoadUnitType("unittypes/monster.unit");
 		
 //			Utilities::Scripting::LuaVirtualMachine* const pVM = Utilities::Scripting::LuaVirtualMachine::Instance();
-// 			pVM->DoFile("resources/scripts/level_default.lua");
+// 			pVM->DoFile("scripts/level_default.lua");
 
-			genericTexture = Utilities::LoadGLTexture((char*) "resources/models/textures/generic.png");
+			genericTexture = Utilities::LoadGLTexture((char*) "models/textures/generic.png");
 
 			a_seed = 23467;
 			r_seed = 23467;
@@ -2893,7 +2896,7 @@ namespace Game
 
 			glBegin(GL_TRIANGLES);
 
-				if (model->texCoords)
+				if (model && model->texCoords)
 				{
 					RenderTrianglesTextured(model->tri_count, model->tris, model->tex_tris, model->normals, model->vertices, model->texCoords);
 				}
@@ -3191,12 +3194,14 @@ namespace Game
 						SetUnitCoordSpace(unit);
 
 	//					unit->animData.anim[0] =
-						
-						for (int i = 0; i < type->animations[unit->action]->num_parts; i++)
+						if (type->animations[unit->action])
 						{
-	//						animations[0] = unit->animData.anim[0]->transAnim;
-	//						animations[1] = unit->animData.anim[1]->transAnim;
-							RenderTransAnim(unit, type->animations[unit->action]->transAnim[i], animNum);
+							for (int i = 0; i < type->animations[unit->action]->num_parts; i++)
+							{
+		//						animations[0] = unit->animData.anim[0]->transAnim;
+		//						animations[1] = unit->animData.anim[1]->transAnim;
+								RenderTransAnim(unit, type->animations[unit->action]->transAnim[i], animNum);
+							}
 						}
 				
 					glPopMatrix();

@@ -5,12 +5,14 @@
 #warning "game.h-pre"
 #endif
 
+#include <string>
+
 namespace Game
 {
 	namespace Rules
 	{
 
-		extern const char* CurrentLevel;
+		extern std::string CurrentLevel;
 
 		extern float time_since_last_frame;
 		extern float time_passed_since_last_water_pass;
@@ -140,7 +142,7 @@ namespace Game
 				static GameWindow* Instance();
 				static void Destroy();
 				static bool IsNull();
-				void NewGame();
+				int NewGame();
 				void EndGame();
 				
 				int InitGUI(SDL_Surface* img);
@@ -172,7 +174,7 @@ namespace Game
 
 #define __GAME_H_END__
 
-#include "lua.h" // << needed for loading missions.
+#include "luawrapper.h" // << needed for loading missions.
 
 #endif
 

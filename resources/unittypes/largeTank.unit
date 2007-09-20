@@ -32,11 +32,11 @@ DEF LargeTank Unit
 	movePowerUsage 4.0
 	attackPowerUsage 4.0
 
-	Model "resources/models/largetank.wrl#LargeTank"
+	Model "models/largetank.wrl#LargeTank"
 
 	ProjectileType
 	{
-		Model "resources/models/missile.wrl#Missile"
+		Model "models/missile.wrl#Missile"
 		areaOfEffect 3.0
 		startPos 1.0 0.0 0.0
 		speed 1.0

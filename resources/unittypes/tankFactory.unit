@@ -27,10 +27,10 @@ DEF TankFactory Unit
 
 	powerUsage 4.0
 	
-	Model "resources/models/cube3.wrl#OB_Cube"
-	canBuild ["resources/unittypes/smallTank.unit#SmallTank",
-	          "resources/unittypes/largeTank.unit#LargeTank"]
-	canResearch ["resources/unittypes/smallTank.unit#SmallTank",
-	             "resources/unittypes/largeTank.unit#LargeTank"]
+	Model "models/cube3.wrl#OB_Cube"
+	canBuild ["unittypes/smallTank.unit#SmallTank",
+	          "unittypes/largeTank.unit#LargeTank"]
+	canResearch ["unittypes/smallTank.unit#SmallTank",
+	             "unittypes/largeTank.unit#LargeTank"]
 
 }

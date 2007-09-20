@@ -1,4 +1,4 @@
-require "resources/scripts/ai_generic"
+loadfile(GetLUAScript("ai_generic.lua"))()
 
 function PerformAI_Unit_Human(Unit)
 	PerformAI_Unit_Generic(Unit)

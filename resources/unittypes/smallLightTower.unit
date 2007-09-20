@@ -29,8 +29,8 @@ DEF SmallLightTower Unit
 	powerUsage 1.0
 	lightPowerUsage 2.0
 
-	symbol "resources/textures/lighttower_small.png"
+	symbol "textures/lighttower_small.png"
 	
-	Model "resources/models/lighttower_small.wrl#lighttower_small"
+	Model "models/lighttower_small.wrl#lighttower_small"
 
 }

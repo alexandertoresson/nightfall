@@ -4,6 +4,7 @@
 #include "utilities.h"
 #include "errors.h"
 #include "dimension.h"
+#include "paths.h"
 #include <iostream>
 #include <fstream>
 #include <stack>
@@ -768,9 +769,15 @@ namespace  Utilities
 		console << "Loading file '" << mFile << "'..." << Console::nl;
 #endif
 		// Load the file
-		ifstream file(mFile.c_str());
+		ifstream file;
 		string buffer;
 		string line;
+		string filename = Utilities::GetDataFile(mFile);
+
+		if (!filename.length())
+			return MODEL_ERROR_FILE_NOT_FOUND;
+
+		file.open(filename.c_str());
 				
 		if(file.good() == false)
 			return MODEL_ERROR_FILE_NOT_FOUND;
@@ -2579,6 +2586,11 @@ namespace  Utilities
 				SET_UNITTYPE_VALUE(researchCost)
 				SET_UNITTYPE_VALUE(lightRange)
 				
+				for (int i = 0; i < AI::ACTION_NUM; i++)
+				{
+					pUnitType->animations[i] = NULL;
+				}
+
 				pUnitType->isResearched = new bool[Dimension::pWorld->vPlayers.size()];
 				pUnitType->isBeingResearchedBy = new Dimension::Unit*[Dimension::pWorld->vPlayers.size()];
 				for (unsigned int i = 0; i < Dimension::pWorld->vPlayers.size(); i++)

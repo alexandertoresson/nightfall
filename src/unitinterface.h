@@ -7,7 +7,7 @@
 
 #define __UNITINTERFACE_H_PRE_END__
 
-#include "lua.h"
+#include "luawrapper.h"
 #include "unit.h"
 #include "networking.h"
 
@@ -17,7 +17,7 @@
 
 #ifdef __UNIT_H_END__
 
-#ifdef __LUA_H_END__
+#ifdef __LUAWRAPPER_H_END__
 
 #ifndef __UNITINTERFACE_H__
 #define __UNITINTERFACE_H__

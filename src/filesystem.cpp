@@ -117,6 +117,22 @@ namespace Utilities
 		
 		return true;
 	}
+
+	bool CanOpenForWriting(std::string file)
+	{
+		std::ofstream test(file.c_str());
+		
+		if (!test.good())
+		{
+			test.close();
+		
+			return false;
+		}
+		
+		test.close();
+		
+		return true;
+	}
 	
 	void DeallocateFSData(FSData* ptr)
 	{
@@ -148,6 +164,27 @@ namespace Utilities
 		return ctime(&t);
 #else
 		return "";
+#endif
+	}
+
+	std::string GetDirectoryInPath(std::string path)
+	{
+		for (int i = path.size()-1; i >= 0; i--)
+		{
+			if (path[i] == '/' || path[i] == '\\')
+			{
+				return path.substr(0, i+1);
+			}
+		}
+		return "";
+	}
+
+	void CreateDirectory(std::string directory)
+	{
+#ifdef WIN32
+		system(("MKDIR " + directory).c_str());
+#else
+		system(("mkdir -p " + directory).c_str());
 #endif
 	}
 }

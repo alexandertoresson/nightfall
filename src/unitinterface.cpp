@@ -5,6 +5,7 @@
 #include "aipathfinding.h"
 #include "environment.h"
 #include "networking.h"
+#include "paths.h"
 
 namespace UnitLuaInterface
 {
@@ -1482,11 +1483,8 @@ namespace UnitLuaInterface
 			LUA_FAILURE("LLoadHeightmap: First argument not string")
 		}
 	
-		std::stringstream ss("");
-		ss << "resources/maps/";
-		ss << lua_tostring(pVM, 1);
-		
-		int ret = Game::Dimension::LoadWorld(ss.str().c_str());
+		std::string filename = "maps/" + (std::string) lua_tostring(pVM, 1);
+		int ret = Game::Dimension::LoadWorld(filename);
 		if (ret == SUCCESS)
 		{
 			LUA_SUCCESS
@@ -1494,7 +1492,7 @@ namespace UnitLuaInterface
 		else
 		{
 			if (ret == FILE_DOES_NOT_EXIST)
-				std::cout << ss.str().c_str() << " doesn't exist!!!!" << std::endl;
+				std::cout << filename << " doesn't exist!!!!" << std::endl;
 			LUA_FAILURE("LLoadHeightmap: Error during world load")
 		}
 		
@@ -1563,7 +1561,7 @@ namespace UnitLuaInterface
 		}
 	
 		std::stringstream ss("");
-		ss << "resources/textures/";
+		ss << "textures/";
 		ss << lua_tostring(pVM, 1);
 		
 		SDL_Surface* img = Utilities::LoadImage(ss.str().c_str());
@@ -2513,7 +2511,7 @@ namespace UnitLuaInterface
 
 		if (!lua_isnumber(pVM, 1))
 		{
-			LUA_FAILURE("LZoomCamera: First argumetn no number")
+			LUA_FAILURE("LZoomCamera: First argument no number")
 		}
 
 		GLfloat zoom = (GLfloat)lua_tonumber(pVM, 1);
@@ -2521,6 +2519,66 @@ namespace UnitLuaInterface
 		Game::Rules::GameWindow::Instance()->GetCamera()->Zoom(zoom);
 
 		LUA_SUCCESS
+	}
+
+	int LGetLUAScript(LuaVM* pVM)
+	{
+		const char* filename = lua_tostring(pVM, 1);
+		if (!filename)
+		{
+			LUA_FAILURE("LGetLUAScript: Invalid String")
+		}
+		std::string filepath = Utilities::GetDataFile("scripts/" + (std::string) filename);
+
+		if (!filepath.length())
+		{
+			LUA_FAILURE("LGetLUAScript: Script not found")
+		}
+
+		lua_pushstring(pVM, filepath.c_str());
+		return 1;
+	}
+
+	int LGetDataFile(LuaVM* pVM)
+	{
+		const char* filename = lua_tostring(pVM, 1);
+		std::string filepath = Utilities::GetDataFile(filename);
+
+		if (!filepath.length())
+		{
+			LUA_FAILURE("LGetDataFile: File not found")
+		}
+
+		lua_pushstring(pVM, filepath.c_str());
+		return 1;
+	}
+
+	int LGetConfigFile(LuaVM* pVM)
+	{
+		const char* filename = lua_tostring(pVM, 1);
+		std::string filepath = Utilities::GetConfigFile(filename);
+
+		if (!filepath.length())
+		{
+			LUA_FAILURE("LGetConfigFile: File not found")
+		}
+
+		lua_pushstring(pVM, filepath.c_str());
+		return 1;
+	}
+
+	int LGetWritableConfigFile(LuaVM* pVM)
+	{
+		const char* filename = lua_tostring(pVM, 1);
+		std::string filepath = Utilities::GetWritableConfigFile(filename);
+
+		if (!filepath.length())
+		{
+			LUA_FAILURE("LGetWritableConfigFile: Could not find a directory to write in")
+		}
+
+		lua_pushstring(pVM, filepath.c_str());
+		return 1;
 	}
 
 	void Init(void)
@@ -2672,5 +2730,10 @@ namespace UnitLuaInterface
 		pVM->RegisterFunction("FocusCameraOnCoord", LFocusCameraOnCoord);
 		pVM->RegisterFunction("RotateCamera", LRotateCamera);
 		pVM->RegisterFunction("ZoomCamera", LZoomCamera);
+
+		pVM->RegisterFunction("GetLUAScript", LGetLUAScript);
+		pVM->RegisterFunction("GetDataFile", LGetDataFile);
+		pVM->RegisterFunction("GetConfigFile", LGetConfigFile);
+		pVM->RegisterFunction("GetWritableConfigFile", LGetWritableConfigFile);
 	}
 }

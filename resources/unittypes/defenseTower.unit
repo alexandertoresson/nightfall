@@ -31,6 +31,6 @@ DEF DefenseTower Unit
 
 	powerUsage 1.0
 	
-	Model "resources/models/mainBuilding.wrl#MainBuilding"
+	Model "models/mainBuilding.wrl#MainBuilding"
 
 }

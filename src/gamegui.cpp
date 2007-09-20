@@ -42,7 +42,7 @@ namespace Game
 
 			pMainPanel = new Window::GUI::Panel();
 			SetPanel(pMainPanel);
-			pMainPanel->SetTexture(Utilities::LoadTexture("resources/textures/nightfall.png"));
+			pMainPanel->SetTexture(Utilities::LoadTexture("textures/nightfall.png"));
 
 			pMainPanel->SetConstraintPercent(pMainPanel->Add(pStart), 0.1f, 0.1f, 0.8f, 0.1f);
 			pMainPanel->SetConstraintPercent(pMainPanel->Add(pCredits), 0.1f, 0.2f, 0.8f, 0.1f);
@@ -870,9 +870,9 @@ namespace Game
 			bgColor[2] = 0.7f;
 			bgColor[3] = 0.6f;
 
-			textures[0] = Utilities::LoadTexture("resources/textures/gui/gui_top_tile.png");
-			textures[1] = Utilities::LoadTexture("resources/textures/gui/gui_top_left.png");
-			textures[2] = Utilities::LoadTexture("resources/textures/gui/gui_top_right.png");
+			textures[0] = Utilities::LoadTexture("textures/gui/gui_top_tile.png");
+			textures[1] = Utilities::LoadTexture("textures/gui/gui_top_left.png");
+			textures[2] = Utilities::LoadTexture("textures/gui/gui_top_right.png");
 		}
 
 		void GameTopBar::PaintBackground()
@@ -1146,12 +1146,12 @@ namespace Game
 
 		void GamePlayBar::init()
 		{
-			GLuint nopic = Utilities::LoadTexture("resources/textures/nopic.png");
-			texturesTop[0] = Utilities::LoadTexture("resources/textures/gui/gui_player_intersect.png");
-			texturesTop[1] = Utilities::LoadTexture("resources/textures/gui/gui_player_tile_x.png");
-			texturesTop[2] = Utilities::LoadTexture("resources/textures/gui/gui_player_tile_y.png");
+			GLuint nopic = Utilities::LoadTexture("textures/nopic.png");
+			texturesTop[0] = Utilities::LoadTexture("textures/gui/gui_player_intersect.png");
+			texturesTop[1] = Utilities::LoadTexture("textures/gui/gui_player_tile_x.png");
+			texturesTop[2] = Utilities::LoadTexture("textures/gui/gui_player_tile_y.png");
 
-			textureBack = Utilities::LoadTexture("resources/textures/gui/gui_player_unitbar.png");
+			textureBack = Utilities::LoadTexture("textures/gui/gui_player_unitbar.png");
 
 			pSelected = new UnitSelected(pGame, this, nopic);
 			pActions = new UnitActions(nopic, pGame);
@@ -1207,7 +1207,7 @@ namespace Game
 			Stop->AttachHandler(&ActionSelected);
 			Stop->SetTag((void*)intern);
 			Stop->SetTooltip("Stop");
-			Stop->SetPicture(Utilities::LoadTexture("resources/textures/symbol_stop.png"));
+			Stop->SetPicture(Utilities::LoadTexture("textures/symbol_stop.png"));
 
 			intern = new UnitActions::InternalHandler();
 			intern->parent = this;
@@ -1216,7 +1216,7 @@ namespace Game
 			Build->AttachHandler(&ActionSelected);
 			Build->SetTag((void*)intern);
 			Build->SetTooltip("Build");
-			Build->SetPicture(Utilities::LoadTexture("resources/textures/symbol_build.png"));
+			Build->SetPicture(Utilities::LoadTexture("textures/symbol_build.png"));
 
 			this->nopic = nopic;
 			this->pGame = ref;

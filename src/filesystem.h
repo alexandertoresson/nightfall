@@ -44,6 +44,9 @@ namespace Utilities
 	
 	int  ListFilesInDirectory(std::string directory, FSDataList*);
 	bool FileExists(std::string file);
+	bool CanOpenForWriting(std::string file);
+	std::string GetDirectoryInPath(std::string path);
+	void CreateDirectory(std::string directory);
 	
 	void DeallocateFSData(FSData*);
 	void DeallocateFSDataList(FSDataList*);

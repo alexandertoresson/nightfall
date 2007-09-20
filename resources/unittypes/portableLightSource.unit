@@ -30,6 +30,6 @@ DEF PortableLightSource Unit
 	lightPowerUsage 4.0
 	movePowerUsage 0.5
 	
-	Model "resources/models/tank_mega.wrl#Tank_Mega"
+	Model "models/tank_mega.wrl#Tank_Mega"
 
 }

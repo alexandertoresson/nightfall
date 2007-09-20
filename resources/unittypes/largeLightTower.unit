@@ -28,8 +28,8 @@ DEF LargeLightTower Unit
 	powerUsage 2.5
 	lightPowerUsage 4.5
 
-	symbol "resources/textures/lighttower_biggest.png"
+	symbol "textures/lighttower_biggest.png"
 
-	Model "resources/models/lighttower_biggest.wrl#lighttower_biggest"
+	Model "models/lighttower_biggest.wrl#lighttower_biggest"
 
 }

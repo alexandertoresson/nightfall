@@ -21,11 +21,11 @@ namespace Game
 			this->particleEffect = new EffectType[this->systemCount];
 			this->particleStats = new ParticleStats[this->systemCount];
 
-			blurpic = Utilities::LoadTexture("resources/textures/blur.png");
-			ExplosionPics.blob = Utilities::LoadTexture("resources/textures/blob.png");
-			ExplosionPics.blob2 = Utilities::LoadTexture("resources/textures/blob2.png");
-			ExplosionPics.splinter = Utilities::LoadTexture("resources/textures/dots.png");
-			ExplosionPics.center = Utilities::LoadTexture("resources/textures/cloud.png");
+			blurpic = Utilities::LoadTexture("textures/blur.png");
+			ExplosionPics.blob = Utilities::LoadTexture("textures/blob.png");
+			ExplosionPics.blob2 = Utilities::LoadTexture("textures/blob2.png");
+			ExplosionPics.splinter = Utilities::LoadTexture("textures/dots.png");
+			ExplosionPics.center = Utilities::LoadTexture("textures/cloud.png");
 
 			for(int i = 0; i < this->systemCount; i++)
 			{

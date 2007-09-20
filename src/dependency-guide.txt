@@ -61,8 +61,6 @@ Example: foo.h
 
 			#define __FOO_H_END__  // signal that the main section of foo.h has been fully included
 
-			#include "quux.h"  // foo.cpp happened to need quux.h, but foo.h, then you'll place the inclusion down here.
-
 		#endif
 
 	#endif
@@ -74,14 +72,14 @@ When to include the pre section and when to not
 
 When you need a pointer to a class or a struct defined in another .h file, you
 only need to depend on the pre section in the .h file. However, if you need to
-create 'static' non-pointer instanced of a class or a struct, you need to
+create 'static' non-pointer instances of a class or a struct, you need to
 depend on the main section/full file.
 
 Common Actions
 --------------
 
 A: The .cpp file needs a .h file, but the .h itself doesn't need it.
-S: Include the .h file at the end of the .h, but before the #endif's.
+S: Include the .h file in .cpp source file.
 
 A: The main section of the .h needs pointers of structs/classes from another .h.
 S: Include the latter .h at the end of the pre section of the former .h, and

@@ -3,6 +3,7 @@
 #include "utilities.h"
 #include "errors.h"
 #include "game.h"
+#include "paths.h"
 #include <sstream>
 
 using namespace std;
@@ -49,9 +50,17 @@ namespace Window
 			return (float)height * resolution;
 		}
 
-		int FontCache::LoadFont(string path)
+		int FontCache::LoadFont(string filename)
 		{
-			cout << "Loading font file \"" << path.c_str() << "\"" << endl;
+			std::string path = Utilities::GetDataFile(filename);
+
+			if (!path.length())
+			{
+				cout << "Could not find font \"" << filename << "\"!" << endl;
+				return FONT_ERROR_FILE_LOAD;
+			}
+
+			cout << "Loading font file \"" << path << "\"" << endl;
 			//10 pt at 640 x 480, relative font calculation
 			float factor = (float)Window::windowHeight / 480.0f;
 			int pt = (int)floor((factor * 14.0f) + 0.5f) + 1;

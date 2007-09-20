@@ -9,7 +9,7 @@ namespace Utilities
 
 	// Loads a texture, returns a handle/memory location
 	// to it that might be passed as the second argument to glBindTexture()
-	int LoadGLTexture(char* filename);
+	int LoadGLTexture(std::string file);
 }
 #endif
 

@@ -28,8 +28,8 @@ DEF MediumLightTower Unit
 	powerUsage 2.0
 	lightPowerUsage 3.0
 	
-	symbol "resources/textures/lighttower_bigger.png"
+	symbol "textures/lighttower_bigger.png"
 
-	Model "resources/models/lighttower_bigger.wrl#lighttower_bigger"
+	Model "models/lighttower_bigger.wrl#lighttower_bigger"
 
 }

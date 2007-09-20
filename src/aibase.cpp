@@ -14,7 +14,7 @@
 #include "ainode.h"
 #include "unit.h"
 #include "aipathfinding.h"
-#include "lua.h"
+#include "luawrapper.h"
 #include "networking.h"
 #include "environment.h"
 

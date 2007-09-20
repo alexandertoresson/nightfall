@@ -29,6 +29,6 @@ DEF Explorer Unit
 
 	powerUsage 1.0
 	
-	Model "resources/models/explorer.wrl#Explorer"
+	Model "models/explorer.wrl#Explorer"
 
 }

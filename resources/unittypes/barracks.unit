@@ -28,12 +28,12 @@ DEF Barracks Unit
 
 	powerUsage 2.0
 	
-	Model "resources/models/cube3.wrl#OB_Cube"
-	canBuild ["resources/unittypes/smallAttackRobot.unit#SmallAttackRobot",
-	          "resources/unittypes/largeAttackRobot.unit#LargeAttackRobot",
-		  "resources/unittypes/portableLightSource.unit#PortableLightSource"]
+	Model "models/cube3.wrl#OB_Cube"
+	canBuild ["unittypes/smallAttackRobot.unit#SmallAttackRobot",
+	          "unittypes/largeAttackRobot.unit#LargeAttackRobot",
+		  "unittypes/portableLightSource.unit#PortableLightSource"]
 	
-	canResearch ["resources/unittypes/largeAttackRobot.unit#LargeAttackRobot",
-		     "resources/unittypes/portableLightSource.unit#PortableLightSource"]
+	canResearch ["unittypes/largeAttackRobot.unit#LargeAttackRobot",
+		     "unittypes/portableLightSource.unit#PortableLightSource"]
 
 }

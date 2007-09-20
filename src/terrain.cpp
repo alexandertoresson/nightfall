@@ -3,6 +3,7 @@
 #include "unit.h"
 #include "game.h"
 #include "networking.h"
+#include "paths.h"
 #include <iostream>
 #include <fstream>
 #include <cmath>
@@ -828,14 +829,21 @@ namespace Game
 			return atoi(buffer);
 		}
 		
-		int LoadWorld(const char* filepath)
+		int LoadWorld(std::string filename)
 		{
 			int width = 0, height = 0, temp;
+			std::string filepath = Utilities::GetDataFile(filename);
 			std::ifstream file;
+
+			if (!filepath.length())
+			{
+				cout << "Could not find heightmap " << filename << "!!" <<  endl;
+				return ERROR_GENERAL;
+			}
 
 			cout << "Loading heightmap from " << filepath << "..." <<  endl;
 
-			file.open(filepath);
+			file.open(filepath.c_str());
 			
 			if (file.bad())
 				return FILE_DOES_NOT_EXIST;

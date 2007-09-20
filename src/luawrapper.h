@@ -1,34 +1,51 @@
-#ifndef __LUA_H_PRE__
-#define __LUA_H_PRE__
+#ifndef __LUAWRAPPER_H_PRE__
+#define __LUAWRAPPER_H_PRE__
 
 #ifdef DEBUG_DEP
-#warning "lua.h-pre"
-#endif
-
-#define __LUA_H_PRE_END__
-
-#endif
-
-#ifndef __LUA_H__
-#define __LUA_H__
-
-#ifdef DEBUG_DEP
-#warning "lua.h"
+#warning "luawrapper.h-pre"
 #endif
 
 extern "C" {
-/*
-#if defined(__APPLE__) || defined(MACOSX)
+/*#if defined(__APPLE__) || defined(MACOSX)
 	#include <lua.h>
 	#include <lualib.h>
 	#include <lauxlib.h>
-#else
-*/
+#else*/
 	#include <lua.h>
 	#include <lualib.h>
 	#include <lauxlib.h>
 //#endif
 }
+
+#define LUA_DEBUG
+#define LUA_FUNCTION
+#define LuaVM                  lua_State
+#define LuaNumResults          int
+
+#define LUA_FUNCTION_FAIL_LIMIT 15
+
+namespace Utilities
+{
+	namespace Scripting
+	{
+		class LuaVirtualMachine;
+
+		void StartVM(void);
+		void StopVM(void);
+		LuaVM* GetVM(void);
+	}
+}
+
+#define __LUAWRAPPER_H_PRE_END__
+
+#endif
+
+#ifndef __LUAWRAPPER_H__
+#define __LUAWRAPPER_H__
+
+#ifdef DEBUG_DEP
+#warning "luawrapper.h"
+#endif
 
 #ifndef luaL_dofile
 // no luaL_dofile => lua 5.0
@@ -56,13 +73,6 @@ extern "C" {
 #include <iostream>
 #include <map>
 
-#define LUA_DEBUG
-#define LUA_FUNCTION
-#define LuaVM                  lua_State
-#define LuaNumResults          int
-
-#define LUA_FUNCTION_FAIL_LIMIT 15
-
 namespace Utilities
 {
 	namespace Scripting
@@ -73,7 +83,7 @@ namespace Utilities
 				static LuaVirtualMachine* m_pInstance;
 				LuaVM* m_pVM;
 				std::map<const void*, int> callErrs;
-				const char* curFunction;
+				std::string curFunction;
 
 			public:
 				static LuaVirtualMachine* Instance(void);
@@ -82,25 +92,22 @@ namespace Utilities
 				LuaVirtualMachine(void);
 				~LuaVirtualMachine(void);
 
-				void RegisterFunction(const char* alias, int (*fptr)(LuaVM*));
+				void RegisterFunction(std::string alias, int (*fptr)(LuaVM*));
 
-				int DoFile(const char* file) const;
-				void SetFunction(const char*);
-				int CallFunction(unsigned int arguments);
+				int DoFile(std::string file) const;
+				void SetFunction(std::string);
+				int CallFunction(unsigned int arguments, unsigned int rets = 0);
 				LuaVM* const GetVM(void) const;
 		};
 
-		void StartVM(void);
-		void StopVM(void);
-		LuaVM* GetVM(void);
 	}
 }
 
 #ifdef DEBUG_DEP
-#warning "lua.h-end"
+#warning "luawrapper.h-end"
 #endif
 
-#define __LUA_H_END__
+#define __LUAWRAPPER_H_END__
 
 #endif
 

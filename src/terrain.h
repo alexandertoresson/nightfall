@@ -8,6 +8,7 @@
 #endif
 
 #include "sdlheader.h"
+#include <string>
 
 namespace Game
 {
@@ -51,10 +52,10 @@ namespace Game
 
 		void InitFog();
 
-		// Ladda v‰rlden ur bin‰r/textfil
-		int LoadWorld(const char* file);
+		// Ladda världen ur bin'r/textfil
+		int LoadWorld(std::string filename);
 
-		// St‰nger ned v‰rlden
+		// Stänger ned världen
 		void UnloadWorld(void);
 		void UnloadTerrain();
 		

@@ -34,21 +34,21 @@ DEF Builder Unit
 	attackPowerUsage 0.5
 	buildPowerUsage 2.0
 	
-	Model "resources/models/builder.wrl#Builder"
-	symbol "resources/textures/builder.png"
+	Model "models/builder.wrl#Builder"
+	symbol "textures/builder.png"
 
 #	sound [ "action=move,strength=10.0,sound=unitTest,index=0" ]
 
-	canBuild ["resources/unittypes/mainBuilding.unit#MainBuilding",
-	          "resources/unittypes/barracks.unit#Barracks",
-		  "resources/unittypes/tankFactory.unit#TankFactory",
-		  "resources/unittypes/smallLightTower.unit#SmallLightTower",
-		  "resources/unittypes/mediumLightTower.unit#MediumLightTower",
-		  "resources/unittypes/largeLightTower.unit#LargeLightTower",
-		  "resources/unittypes/defenseTower.unit#DefenseTower",
-		  "resources/unittypes/surfaceGeothermal.unit#SurfaceGeothermal",
-		  "resources/unittypes/deepGeothermal.unit#DeepGeothermal",
-		  "resources/unittypes/solarPanel.unit#SolarPanel"]
+	canBuild ["unittypes/mainBuilding.unit#MainBuilding",
+	          "unittypes/barracks.unit#Barracks",
+		  "unittypes/tankFactory.unit#TankFactory",
+		  "unittypes/smallLightTower.unit#SmallLightTower",
+		  "unittypes/mediumLightTower.unit#MediumLightTower",
+		  "unittypes/largeLightTower.unit#LargeLightTower",
+		  "unittypes/defenseTower.unit#DefenseTower",
+		  "unittypes/surfaceGeothermal.unit#SurfaceGeothermal",
+		  "unittypes/deepGeothermal.unit#DeepGeothermal",
+		  "unittypes/solarPanel.unit#SolarPanel"]
 
 
 }

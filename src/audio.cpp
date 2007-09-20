@@ -14,8 +14,8 @@ namespace Audio
 {
 	SDL_Thread*  pAudioThread;  // Thread monitoring the playlist.
 	AudioStates* pAudioStates;  // Hashtable that holds all sound and music. The music is accessed through std::string keys.
-	ThreadInfo*  pAudioThreadInfo;
-	bool         soundIsEnabled = true;
+	ThreadInfo*  pAudioThreadInfo = NULL;
+	bool         soundIsEnabled = false;
 	Utilities::LinkedList<SoundNode*>* pNodesList;
 
 	int Kill()
@@ -130,14 +130,12 @@ namespace Audio
 		if (musicDirectory[0] == 0)
 		{
 			console << Console::err << "Invalid directory input for music." << Console::nl;
-			soundIsEnabled = false;
 			return AUDIO_ERROR_INVALID_CONFIGURATION;
 		}
 
 		if (soundDirectory[0] == 0)
 		{
 			console << Console::err << "Invalid directory input for music." << Console::nl;
-			soundIsEnabled = false;
 			return AUDIO_ERROR_INVALID_CONFIGURATION;
 		}
 
@@ -152,7 +150,6 @@ namespace Audio
 		if (rate <= 0)
 		{
 			console << Console::err <<  "Invalid bitrate" << Console::nl;
-			soundIsEnabled = false;
 			return AUDIO_ERROR_INVALID_CONFIGURATION;
 		}
 
@@ -160,21 +157,18 @@ namespace Audio
 			channels >= 1000 /* some number to prevent fools from crashing the application */)
 		{
 			console << Console::err << "Invalid amount of channels" << Console::nl;
-			soundIsEnabled = false;
 			return AUDIO_ERROR_INVALID_CONFIGURATION;
 		}
 
 		if (setup <= 0 || setup > 2)
 		{
 			console << Console::err << "Invalid setup. 1 = mono, 2 = stereo" << Console::nl;
-			soundIsEnabled = false;
 			return AUDIO_ERROR_INVALID_CONFIGURATION;
 		}
 
 		if (chunksize <= 0)
 		{
 			console << Console::err << "Invalid chunksize" << Console::nl;
-			soundIsEnabled = false;
 			return AUDIO_ERROR_INVALID_CONFIGURATION;
 		}
 
@@ -228,7 +222,6 @@ namespace Audio
 		if (Mix_OpenAudio(rate, format, setup, chunksize) < 0)
 		{
 			console << Console::err << "Audio Error: " << Mix_GetError() << Console::nl;
-			soundIsEnabled = false;
 			return ERROR_GENERAL;
 		}
 
@@ -262,7 +255,6 @@ namespace Audio
 			if (audioListFile[0] == 0)
 			{
 				console << Console::err << "Audio list not defined" << Console::nl;
-				soundIsEnabled = false;
 				return AUDIO_ERROR_INVALID_AUDIO_LIST;
 			}
 
@@ -274,7 +266,6 @@ namespace Audio
 
 			if ((error = audioList.Parse()) != SUCCESS)
 			{
-				soundIsEnabled = false;
 				return error;
 			}
 
@@ -302,7 +293,6 @@ namespace Audio
 						{
 							delete pList;
 							DeallocList();
-							soundIsEnabled = false;
 							return AUDIO_ERROR_LIST_INCORRECT_FORMAT;
 						}
 						else if (pList->type == AUDIO_MUSIC && buffer.size() > 0)
@@ -339,7 +329,6 @@ namespace Audio
 							else
 							{
 								delete pList;
-								soundIsEnabled = false;
 								return ERROR_GENERAL;
 							}
 						}
@@ -408,7 +397,6 @@ namespace Audio
 					{
 						delete pList;
 						DeallocList();
-						soundIsEnabled = false;
 						return AUDIO_ERROR_LIST_MISSING_TAG;
 					}
 
@@ -439,7 +427,6 @@ namespace Audio
 					if (pList == NULL)
 					{
 						DeallocList();
-						soundIsEnabled = false;
 						return AUDIO_ERROR_LIST_CORRECT_TAG_WRONG_PLACE;
 					}
 
@@ -456,7 +443,6 @@ namespace Audio
 					if (pList == NULL)
 					{
 						DeallocList();
-						soundIsEnabled = false;
 						return AUDIO_ERROR_LIST_CORRECT_TAG_WRONG_PLACE;
 					}
 
@@ -464,7 +450,6 @@ namespace Audio
 					{
 						delete pList;
 						DeallocList();
-						soundIsEnabled = false;
 						return AUDIO_ERROR_LIST_INVALID_FILE;
 					}
 
@@ -806,6 +791,8 @@ namespace Audio
 			console << Console::err << "Failed to create audio-thread. Error: " << SDL_GetError() << Console::nl;
 			return false;
 		}
+
+		soundIsEnabled = true;
 
 		return true;
 	}

@@ -29,8 +29,8 @@ DEF SolarPanel Unit
 	powerType DayLight
 	powerUsage 0.0
 
-	symbol "resources/textures/sunpanel.png"
+	symbol "textures/sunpanel.png"
 
-	Model "resources/models/sunpanel.wrl#sunpanel"
+	Model "models/sunpanel.wrl#sunpanel"
 
 }

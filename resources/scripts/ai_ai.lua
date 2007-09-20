@@ -1,4 +1,4 @@
-require "resources/scripts/ai_generic"
+loadfile(GetLUAScript("ai_generic.lua"))()
 
 NeedBuilder = false
 UnitAIHasBeenPerformed = true

@@ -237,9 +237,9 @@ namespace Game
 
 					void ApplyLight(void);
 					void AllocSkyboxContainer(const int);
-					bool LoadSkyboxes(const char* = "resources/configuration/skyboxes.txt");
-					int GetSkybox(std::string tag);
-					int LoadSkyBox(char* path);
+					bool LoadSkyboxes(std::string config_file = "skyboxes.txt");
+					int GetSkybox(const char* tag);
+					int LoadSkyBox(std::string path);
 					void InitSkyBox(int detail, int hdetail);
 					void RenderSkyBox();
 
