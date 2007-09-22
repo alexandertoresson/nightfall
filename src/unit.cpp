@@ -1232,7 +1232,7 @@ namespace Game
 					{
 						max_radius = proj->type->areaOfEffect * 0.125f;
 
-						if (proj->homing)
+						if (proj->homing && proj->goalUnit != NULL)
 							proj->goalPos = GetTerrainCoord(proj->goalUnit->pos.x, proj->goalUnit->pos.y);
 
 						for (it = pWorld->vUnits.begin(); it != pWorld->vUnits.end(); it++)
