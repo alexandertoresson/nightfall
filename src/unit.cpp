@@ -1219,7 +1219,10 @@ namespace Game
 
 		void HandleProjectiles(Unit* pUnit)
 		{
-			Projectile *proj;
+			Projectile *proj = NULL;
+			float max_radius = 0;
+			vector<Unit*>::iterator it;
+
 			if (pUnit->projectiles.size())
 			{
 				for (unsigned index = 0; index < pUnit->projectiles.size(); )
@@ -1227,10 +1230,31 @@ namespace Game
 					proj = pUnit->projectiles.at(index);
 					if (proj->pos.distance(proj->goalPos) < proj->type->speed * (1.0 / AI::aiFps))
 					{
-						if (Attack(proj->goalUnit, CalcUnitDamage(pUnit)))
+						max_radius = proj->type->areaOfEffect * 0.125f;
+
+						if (proj->homing)
+							proj->goalPos = GetTerrainCoord(proj->goalUnit->pos.x, proj->goalUnit->pos.y);
+
+						for (it = pWorld->vUnits.begin(); it != pWorld->vUnits.end(); it++)
 						{
-							AI::CompleteAction(pUnit);
+							Unit* target = *it;
+							if (target == pUnit)
+								continue;
+
+							Utilities::Vector3D unit_pos = GetTerrainCoord(target->pos.x, target->pos.y);
+							if (proj->goalPos.distance(unit_pos) <= max_radius)
+							{
+								if (Attack(target, CalcUnitDamage(pUnit)))
+								{
+									if (target == proj->goalUnit)
+										AI::CompleteAction(pUnit);
+								}
+							}
 						}
+
+						Position proj_pos = GetPosition(&proj->pos);
+						FX::pParticleSystems->InitEffect(proj_pos.x, proj_pos.y, 0.0f, max_radius * 4, FX::PARTICLE_SPHERICAL_EXPLOSION);
+						
 						pUnit->projectiles.erase(pUnit->projectiles.begin()+index);
 					}
 					else
@@ -2384,7 +2408,7 @@ namespace Game
 				unit->lastSeenPositions[i].y = -1000;
 			}
 
-			AI::InitMovementData(unit);
+ 			AI::InitMovementData(unit);
 
 			return unit;
 		}

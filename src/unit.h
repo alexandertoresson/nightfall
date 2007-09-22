@@ -283,6 +283,7 @@ namespace Game
 			float               areaOfEffect;
 			Utilities::Vector3D startPos;
 			float               speed;
+			bool                homing;
 		};
 
 		struct Projectile
