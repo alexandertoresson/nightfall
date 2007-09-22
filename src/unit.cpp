@@ -1232,7 +1232,7 @@ namespace Game
 					{
 						max_radius = proj->type->areaOfEffect * 0.125f;
 
-						if (proj->homing && proj->goalUnit != NULL)
+						if (proj->type->homing && proj->goalUnit != NULL)
 							proj->goalPos = GetTerrainCoord(proj->goalUnit->pos.x, proj->goalUnit->pos.y);
 
 						for (it = pWorld->vUnits.begin(); it != pWorld->vUnits.end(); it++)
@@ -1246,7 +1246,7 @@ namespace Game
 							{
 								if (Attack(target, CalcUnitDamage(pUnit)))
 								{
-									if (target == proj->goalUnit)
+									if (target == proj->goalUnit || proj->goalUnit == NULL)
 										AI::CompleteAction(pUnit);
 								}
 							}
@@ -2501,13 +2501,19 @@ namespace Game
 					
 					SDL_UnlockMutex(AI::GetMutex());
 				}
-				for (j = 0; j < curUnit->projectiles.size(); j++)
+
+				for (vector<Projectile*>::iterator it = curUnit->projectiles.begin(); it != curUnit->projectiles.end(); it++)
 				{
-					if (curUnit->projectiles.at(j)->goalUnit == unit)
+					if ((*it)->goalUnit == unit)
 					{
-						curUnit->projectiles.erase(curUnit->projectiles.begin() + j);
-						j--;
+						(*it)->goalUnit = NULL;
 					}
+
+					//if (curUnit->projectiles.at(j)->goalUnit == unit)
+					//{
+						//curUnit->projectiles.erase(curUnit->projectiles.begin() + j);
+						//j--;
+					//}
 				}
 			}
 			
