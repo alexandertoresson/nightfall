@@ -2784,6 +2784,7 @@ else \
 		GET_INT_FIELD_OPTIONAL(pUnitType->maxHealth, "maxHealth", 0)
 		GET_INT_FIELD_OPTIONAL(pUnitType->maxPower, "maxPower", 0)
 		GET_INT_FIELD_OPTIONAL(pUnitType->minAttack, "minAttack", 0)
+		GET_INT_FIELD_OPTIONAL(pUnitType->maxAttack, "maxAttack", 0)
 		GET_INT_FIELD_OPTIONAL(pUnitType->maxPower, "maxPower", 0)
 		GET_INT_FIELD_OPTIONAL(pUnitType->heightOnMap, "heightOnMap", 0)
 		GET_INT_FIELD_OPTIONAL(pUnitType->widthOnMap, "widthOnMap", 0)

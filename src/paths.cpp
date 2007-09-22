@@ -146,7 +146,7 @@ namespace Utilities
 						return "";
 				}
 		}
-	#else
+	#elif defined(__unix__)
 		switch (type)
 		{
 			case PATHTYPE_CONFIG:
@@ -183,6 +183,30 @@ namespace Utilities
 				}
 			default:
 				return "";
+		}
+	#else
+		switch (type)
+		{
+			case PATHTYPE_CONFIG:
+				switch (num)
+				{
+					case 0:
+						return "resources/configuration/";
+					case 1:
+						return path_from_argv0 + "resources/configuration/";
+					default:
+						return "";
+				}
+			case PATHTYPE_DATA:
+				switch (num)
+				{
+					case 0:
+						return "resources/";
+					case 1:
+						return path_from_argv0 + "resources/";
+					default:
+						return "";
+				}
 		}
 	#endif
 	}
