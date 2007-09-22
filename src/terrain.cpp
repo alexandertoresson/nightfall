@@ -1280,6 +1280,11 @@ namespace Game
 			return Utilities::Vector3D((x / 8) - terrainOffsetX, GetTerrainHeight(x, y), (y / 8) - terrainOffsetY);
 		}
 
+		Dimension::Position GetPosition(Utilities::Vector3D* v)
+		{
+			return Dimension::Position(8.0f * (v->x + terrainOffsetX), 8.0f * (v->z + terrainOffsetY));
+		}
+
 		bool BigSquareIsRendered(int x, int y)
 		{
 			x >>= 5;

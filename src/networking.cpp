@@ -2868,10 +2868,10 @@ namespace Game
 				Dimension::Unit* unit = *it;
 				checksum ^= unit->id;
 				sstr << unit->id << " ";
-				checksum ^= (Uint32) floor(unit->curAssociatedSquare.x);
-				sstr << (Uint32) floor(unit->curAssociatedSquare.x) << " ";
-				checksum ^= ((Uint32) floor(unit->curAssociatedSquare.y))<<8;
-				sstr << (Uint32) floor(unit->curAssociatedSquare.y) << " ";
+				checksum ^= (Uint32) floor((float)unit->curAssociatedSquare.x);
+				sstr << (Uint32) floor((float)unit->curAssociatedSquare.x) << " ";
+				checksum ^= ((Uint32) floor((float)unit->curAssociatedSquare.y))<<8;
+				sstr << (Uint32) floor((float)unit->curAssociatedSquare.y) << " ";
 				checksum ^= ((Uint32) floor(unit->health))<<16;
 				sstr << (Uint32) floor(unit->health) << " ";
 				checksum ^= ((Uint32) floor(unit->power))<<24;
@@ -2888,13 +2888,13 @@ namespace Game
 				int bits = 0;
 				for (unsigned i = 0; i < Dimension::pWorld->vPlayers.size(); i++)
 				{
-					checksum ^= ((Uint32) floor(unit->lastSeenPositions[i].x))<<bits;
-					sstr << (Uint32) floor(unit->lastSeenPositions[i].x) << " ";
+					checksum ^= ((Uint32) floor((float)unit->lastSeenPositions[i].x))<<bits;
+					sstr << (Uint32) floor((float)unit->lastSeenPositions[i].x) << " ";
 					bits += 9;
 					if (bits >= 32)
 						bits -= 32;
-					checksum ^= ((Uint32) floor(unit->lastSeenPositions[i].y))<<bits;
-					sstr << (Uint32) floor(unit->lastSeenPositions[i].y) << " ";
+					checksum ^= ((Uint32) floor((float)unit->lastSeenPositions[i].y))<<bits;
+					sstr << (Uint32) floor((float)unit->lastSeenPositions[i].y) << " ";
 					bits += 6;
 					if (bits >= 32)
 						bits -= 32;

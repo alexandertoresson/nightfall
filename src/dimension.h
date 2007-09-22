@@ -83,6 +83,17 @@ namespace Game
 		{
 			float x;
 			float y;
+			
+			Position()
+			{
+				x = y = 0;
+			}
+
+			Position(float nx, float ny)
+			{
+				x = nx;
+				y = ny;
+			}
 		};
 		
 		struct IntPosition
