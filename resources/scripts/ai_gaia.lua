@@ -5,7 +5,9 @@ CreationTimes = {}
 LastCommands = {}
 
 function PerformAI_Unit_Gaia(Unit)
-	if GetUnitIsHurtByLight(Unit) then
+
+	if GetUnitType(Unit) == GetUnitTypeFromString("Grue") then
+
 		if GetTime() >= 6.0 and GetTime() <= 18.0 then
 			Attack(Unit, 0.3 * GetUnitMaxHealth(Unit))
 		else 
@@ -13,9 +15,6 @@ function PerformAI_Unit_Gaia(Unit)
 				Attack(Unit, GetUnitLightAmount(Unit) * 0.3 * GetUnitMaxHealth(Unit))
 			end
 		end
-	end
-
-	if GetUnitType(Unit) == GetUnitTypeFromString("Grue") then
 
 		if (math.random() < 1/100) then
 			Attack(Unit, 1.0 * GetUnitMaxHealth(Unit) + 1)

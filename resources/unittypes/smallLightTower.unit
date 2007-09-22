@@ -1,36 +1,27 @@
-#RTS V1.0 utf8
+local ut = {}
+ut.id = "SmallLightTower"
+ut.name = "Small Light Tower"
+ut.maxHealth = 2000
+ut.heightOnMap = 1
+ut.widthOnMap = 1
+ut.isResearched = true
 
-DEF SmallLightTower Unit
-{
-	maxHealth 2000
-	maxPower 0
-	minAttack 0
-	maxAttack 0
-	heightOnMap 1
-	widthOnMap 1
-	hasAI 0
-	isMobile 0
-	isResearched 1
+ut.sightRange = 15.0
+ut.movementType = MovementType.Building
+ut.size = 1.0
+ut.height = 5.0
+ut.buildTime = 20.0
+ut.buildCost = 50
+ut.researchTime = 60.0
+ut.researchCost = 100
+
+ut.lightRange = 10.0
+
+ut.powerUsage = 1.0
+ut.lightPowerUsage = 2.0
+
+ut.symbol = "textures/lighttower_small.png"
 	
-	canAttack 0
+ut.model = "models/lighttower_small.wrl#lighttower_small"
 
-	sightRange 15.0
-	movementType Building
-	attackSpeed 0.0
-	size 1.0
-	height 5.0
-	buildTime 20.0
-	buildCost 50
-	researchTime 60.0
-	researchCost 100
-
-	lightRange 10.0
-
-	powerUsage 1.0
-	lightPowerUsage 2.0
-
-	symbol "textures/lighttower_small.png"
-	
-	Model "models/lighttower_small.wrl#lighttower_small"
-
-}
+CreateUnitType(ut)

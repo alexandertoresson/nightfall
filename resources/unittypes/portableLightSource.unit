@@ -1,35 +1,32 @@
-#RTS V1.0 utf8
+local ut = {}
+ut.id = "PortableLightSource"
+ut.name = "Portable Light Source"
+ut.maxHealth = 400
+ut.maxPower = 100
+ut.minAttack = 1
+ut.maxAttack = 2
+ut.heightOnMap = 1
+ut.widthOnMap = 1
+ut.hasAI = true
+ut.isMobile = true
 
-DEF PortableLightSource Unit
-{
-	maxHealth 400
-	maxPower 100
-	minAttack 1
-	maxAttack 2
-	heightOnMap 1
-	widthOnMap 1
-	hasAI 1
-	isMobile 1
+ut.sightRange = 15.0
+ut.movementSpeed = 1.0
+ut.movementType = MovementType.Human
+ut.attackSpeed = 1.0
+ut.size = 1.0
+ut.height = 1.0
+ut.buildTime = 60.0
+ut.buildCost = 200
+ut.researchTime = 120.0
+ut.researchCost = 400
+
+ut.lightRange = 10.0
+
+ut.powerUsage = 1.0
+ut.lightPowerUsage = 4.0
+ut.movePowerUsage = 0.5
 	
-	canAttack 0
+ut.model = "models/tank_mega.wrl#Tank_Mega"
 
-	sightRange 15.0
-	movementSpeed 1.0
-	movementType Human
-	attackSpeed 1.0
-	size 1.0
-	height 1.0
-	buildTime 60.0
-	buildCost 200
-	researchTime 120.0
-	researchCost 400
-
-	lightRange 10.0
-
-	powerUsage 1.0
-	lightPowerUsage 4.0
-	movePowerUsage 0.5
-	
-	Model "models/tank_mega.wrl#Tank_Mega"
-
-}
+CreateUnitType(ut)

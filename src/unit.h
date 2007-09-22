@@ -229,7 +229,8 @@ namespace Game
 
 		struct UnitType
 		{
-			char*       name;
+			const char* name;
+			const char* id;
 			Model*      model;
 			Animation*  animations[AI::ACTION_NUM];    // one per action, NULL if an animation doesn't exist for that action
 			int         maxHealth;
@@ -257,8 +258,8 @@ namespace Game
 			vector<UnitType*> canResearch;// vector of what the unit can research, if anything at all
 			bool        hasAI;           // whether the unit has an AI
 			bool*       isResearched;    // whether the unit is researched, for each player
+			bool        hurtByLight;
 			Unit**      isBeingResearchedBy;
-			bool        hurtByLight;     // whether the unit is hurt by light
 			float       size;            // size of unit -- how to scale it
 			int         heightOnMap;     // this width and height only affect how much space the unit takes on the map.
 			int         widthOnMap;

@@ -6,6 +6,8 @@
 #include "environment.h"
 #include "networking.h"
 #include "paths.h"
+#include "dimension.h"
+#include "aibase.h"
 
 namespace UnitLuaInterface
 {
@@ -641,7 +643,7 @@ namespace UnitLuaInterface
 #define LUA_FAILURE(x) \
 	{ \
 		lua_pushboolean(pVM, 0); \
-		std::cout << "[LUA] Failure: " #x << std::endl; \
+		std::cout << "[LUA] Failure: " x << std::endl; \
 		return 1; \
 	}
 
@@ -1456,9 +1458,9 @@ namespace UnitLuaInterface
 	int LGetUnitTypeName(LuaVM* pVM)
 	{
 		UnitType* pUnitType = (UnitType*) lua_touserdata(pVM, 1);
-		char* name = (char*) "";
+		const char* name = "";
 		if (pUnitType)
-			name = pUnitType->name;
+			name = pUnitType->id;
 
 		lua_pushstring(pVM, name);
 		return 1;
@@ -2581,6 +2583,410 @@ namespace UnitLuaInterface
 		return 1;
 	}
 
+	int LLoadUnitType(LuaVM* pVM)
+	{
+		const char* filename = lua_tostring(pVM, 1);
+	
+		if (!filename)
+			LUA_FAILURE("LLoadUnitType: Invalid unittype filename - null pointer")
+
+		Utilities::Scripting::LuaVirtualMachine* const pVM_object = Utilities::Scripting::LuaVirtualMachine::Instance();
+
+		if (pVM_object->DoFile(filename))
+		{
+			LUA_FAILURE("LLoadUnitType: Error loading unittype LUA script " << filename)
+		}
+
+		LUA_SUCCESS
+	}
+
+	int LUnloadAllUnitTypes(LuaVM* pVM)
+	{
+		UnloadAllUnitTypes();
+		LUA_SUCCESS
+	}
+
+	int LUnloadUnitType(LuaVM* pVM)
+	{
+		const char *sz_name = lua_tostring(pVM, 1);
+
+		if (!sz_name)
+			LUA_FAILURE("LUnloadUnitType: Invalid unittype string - null pointer")
+
+		const string name = sz_name;
+
+		UnitType* pUnitType = unitTypeMap[name];
+	
+		if (!pUnitType)
+			LUA_FAILURE("LUnloadUnitType: No such unittype found: " << name)
+		
+		UnloadUnitType(pUnitType);
+		LUA_SUCCESS
+	}
+
+#define	GET_INT_FIELD(dest, field) \
+lua_getfield(pVM, -1, field); \
+if (!lua_isnumber(pVM, -1)) \
+{ \
+	lua_pop(pVM, 1); \
+	LUA_FAILURE("LCreateUnitType: Required field \"" field  "\" not found in unit description or is not a number") \
+} \
+dest = lua_tointeger(pVM, -1); \
+lua_pop(pVM, 1);
+
+#define	GET_INT_FIELD_OPTIONAL(dest, field, def) \
+lua_getfield(pVM, -1, field); \
+if (!lua_isnumber(pVM, -1)) \
+{ \
+	dest = def; \
+	lua_pop(pVM, 1); \
+} \
+else \
+{ \
+	dest = lua_tointeger(pVM, -1); \
+	lua_pop(pVM, 1); \
+}
+
+#define	GET_ENUM_FIELD_OPTIONAL(dest, field, def, type) \
+lua_getfield(pVM, -1, field); \
+if (!lua_isnumber(pVM, -1)) \
+{ \
+	dest = def; \
+	lua_pop(pVM, 1); \
+} \
+else \
+{ \
+	dest = (type) lua_tointeger(pVM, -1); \
+	lua_pop(pVM, 1); \
+}
+
+#define	GET_BOOL_FIELD(dest, field) \
+lua_getfield(pVM, -1, field); \
+if (!lua_isboolean(pVM, -1)) \
+{ \
+	lua_pop(pVM, 1); \
+	LUA_FAILURE("LCreateUnitType: Required field \"" field  "\" not found in unit description or is not a boolean") \
+} \
+dest = lua_toboolean(pVM, -1); \
+lua_pop(pVM, 1);
+
+#define	GET_BOOL_FIELD_OPTIONAL(dest, field, def) \
+lua_getfield(pVM, -1, field); \
+if (!lua_isboolean(pVM, -1)) \
+{ \
+	dest = def; \
+	lua_pop(pVM, 1); \
+} \
+else \
+{ \
+	dest = lua_toboolean(pVM, -1); \
+	lua_pop(pVM, 1); \
+}
+
+#define	GET_FLOAT_FIELD(dest, field) \
+lua_getfield(pVM, -1, field); \
+if (!lua_isnumber(pVM, -1)) \
+{ \
+	lua_pop(pVM, 1); \
+	LUA_FAILURE("LCreateUnitType: Required field \"" field  "\" not found in unit description or is not a number") \
+} \
+dest = lua_tonumber(pVM, -1); \
+lua_pop(pVM, 1);
+
+#define	GET_FLOAT_FIELD_OPTIONAL(dest, field, def) \
+lua_getfield(pVM, -1, field); \
+if (!lua_isnumber(pVM, -1)) \
+{ \
+	dest = def; \
+	lua_pop(pVM, 1); \
+} \
+else \
+{ \
+	dest = lua_tonumber(pVM, -1); \
+	lua_pop(pVM, 1); \
+}
+
+#define	GET_STRING_FIELD(dest, field) \
+lua_getfield(pVM, -1, field); \
+if (!lua_isstring(pVM, -1)) \
+{ \
+	lua_pop(pVM, 1); \
+	LUA_FAILURE("LCreateUnitType: Required field \"" field  "\" not found in unit description or is not a string") \
+} \
+dest = lua_tostring(pVM, -1); \
+lua_pop(pVM, 1);
+
+#define	GET_STRING_FIELD_OPTIONAL(dest, field, def) \
+lua_getfield(pVM, -1, field); \
+if (!lua_isstring(pVM, -1)) \
+{ \
+	dest = def; \
+	lua_pop(pVM, 1); \
+} \
+else \
+{ \
+	dest = lua_tostring(pVM, -1); \
+	lua_pop(pVM, 1); \
+}
+
+	struct TempUnitTypeData
+	{
+		vector<const char*> canBuild;
+		vector<const char*> canResearch;
+	};
+
+	vector<TempUnitTypeData*> temputdatas;
+
+	void InterpretStringTableField(LuaVM* pVM, const char *field, vector<const char*>& datadump)
+	{
+		lua_getfield(pVM, 1, field);
+		if (lua_istable(pVM, 2))
+		{
+			int i = 1;
+			int num = 0;
+			while (1)
+			{
+				lua_pushinteger(pVM, i++);
+				lua_gettable(pVM, 2);
+				if (lua_isnil(pVM, 3) || !lua_isstring(pVM, 3))
+				{
+					lua_pop(pVM, 1);
+					break;
+				}
+				lua_pop(pVM, 1);
+				num++;
+			}
+			for (i = 1; i <= num; i++)
+			{
+				lua_pushinteger(pVM, i);
+				lua_gettable(pVM, 2);
+				datadump.push_back(lua_tostring(pVM, 3));
+				lua_pop(pVM, 1);
+			}
+		}
+		lua_pop(pVM, 1);
+	}
+
+	int LCreateUnitType(LuaVM* pVM)
+	{
+		UnitType *pUnitType;
+		TempUnitTypeData *temputdata;
+		const char* model;
+		if (!lua_istable(pVM, 1))
+			LUA_FAILURE("LCreateUnitType: Invalid argument, must be a table")
+
+		pUnitType = new UnitType;
+		temputdata = new TempUnitTypeData;
+
+		GET_STRING_FIELD(pUnitType->id, "id")
+		GET_STRING_FIELD_OPTIONAL(pUnitType->name, "name", pUnitType->id)
+
+		GET_INT_FIELD_OPTIONAL(pUnitType->maxHealth, "maxHealth", 0)
+		GET_INT_FIELD_OPTIONAL(pUnitType->maxPower, "maxPower", 0)
+		GET_INT_FIELD_OPTIONAL(pUnitType->minAttack, "minAttack", 0)
+		GET_INT_FIELD_OPTIONAL(pUnitType->maxPower, "maxPower", 0)
+		GET_INT_FIELD_OPTIONAL(pUnitType->heightOnMap, "heightOnMap", 0)
+		GET_INT_FIELD_OPTIONAL(pUnitType->widthOnMap, "widthOnMap", 0)
+		GET_INT_FIELD_OPTIONAL(pUnitType->buildCost, "buildCost", 0)
+		GET_INT_FIELD_OPTIONAL(pUnitType->researchCost, "researchCost", 0)
+
+		GET_ENUM_FIELD_OPTIONAL(pUnitType->powerType, "powerType", POWERTYPE_TWENTYFOURSEVEN, PowerType)
+		GET_ENUM_FIELD_OPTIONAL(pUnitType->movementType, "movementType", MOVEMENT_VEHICLE, MovementType)
+
+		GET_BOOL_FIELD_OPTIONAL(pUnitType->canAttack, "canAttack", false)
+		GET_BOOL_FIELD_OPTIONAL(pUnitType->canAttackWhileMoving, "canAttackWhileMoving", false)
+		GET_BOOL_FIELD_OPTIONAL(pUnitType->isMobile, "isMobile", false)
+		GET_BOOL_FIELD_OPTIONAL(pUnitType->hasAI, "hasAI", false)
+
+		GET_FLOAT_FIELD_OPTIONAL(pUnitType->attackAccuracy, "attackAccuracy", 0.0)
+		GET_FLOAT_FIELD_OPTIONAL(pUnitType->attackMinRange, "attackMinRange", 0.0)
+		GET_FLOAT_FIELD_OPTIONAL(pUnitType->attackMaxRange, "attackMaxRange", 0.0)
+		GET_FLOAT_FIELD_OPTIONAL(pUnitType->sightRange, "sightRange", 0.0)
+		GET_FLOAT_FIELD_OPTIONAL(pUnitType->lightRange, "lightRange", 0.0)
+		GET_FLOAT_FIELD_OPTIONAL(pUnitType->powerIncrement, "powerIncrement", 0.0)
+		GET_FLOAT_FIELD_OPTIONAL(pUnitType->powerUsage, "powerUsage", 0.0)
+		GET_FLOAT_FIELD_OPTIONAL(pUnitType->lightPowerUsage, "lightPowerUsage", 0.0)
+		GET_FLOAT_FIELD_OPTIONAL(pUnitType->attackPowerUsage, "attackPowerUsage", 0.0)
+		GET_FLOAT_FIELD_OPTIONAL(pUnitType->movePowerUsage, "movePowerUsage", 0.0)
+		GET_FLOAT_FIELD_OPTIONAL(pUnitType->movementSpeed, "movementSpeed", 0.0)
+		GET_FLOAT_FIELD_OPTIONAL(pUnitType->attackSpeed, "attackSpeed", 0.0)
+		GET_FLOAT_FIELD_OPTIONAL(pUnitType->size, "size", 0.0)
+		GET_FLOAT_FIELD_OPTIONAL(pUnitType->height, "height", 0.0)
+		GET_FLOAT_FIELD_OPTIONAL(pUnitType->buildTime, "buildTime", 0.0)
+		GET_FLOAT_FIELD_OPTIONAL(pUnitType->researchTime, "researchTime", 0.0)
+
+		bool isResearched = false;
+
+		lua_getfield(pVM, 1, "isResearched");
+		if (lua_isboolean(pVM, 2))
+		{
+			isResearched = lua_toboolean(pVM, 2);
+		}
+		lua_pop(pVM, 1);
+
+		pUnitType->isResearched = new bool[Game::Dimension::pWorld->vPlayers.size()];
+		pUnitType->isBeingResearchedBy = new Game::Dimension::Unit*[Game::Dimension::pWorld->vPlayers.size()];
+		for (unsigned int i = 0; i < Game::Dimension::pWorld->vPlayers.size(); i++)
+		{
+			pUnitType->isResearched[i] = isResearched;
+			pUnitType->isBeingResearchedBy[i] = NULL;
+		}
+
+		for (int i = 0; i < Audio::SFX_ACT_COUNT; i++)
+			pUnitType->actionSounds[i] = NULL;
+
+		lua_getfield(pVM, 1, "symbol");
+		if (lua_isstring(pVM, 2))
+		{
+			const char* symbol = lua_tostring(pVM, 2);
+			pUnitType->Symbol = LoadTexture(symbol);
+		}
+		else
+		{
+			pUnitType->Symbol = 0;
+		}
+		lua_pop(pVM, 1);
+
+		lua_getfield(pVM, 1, "model");
+		if (!lua_isstring(pVM, 2))
+		{
+			lua_pop(pVM, 1);
+			LUA_FAILURE("LCreateUnitType: Required field \"model\" not found in unit description or is not a string")
+		}
+		model = lua_tostring(pVM, 2);
+		lua_pop(pVM, 1);
+
+		pUnitType->model = LoadModel(model);
+					
+		if(pUnitType->model == NULL)
+		{
+			LUA_FAILURE("LCreateUnitType: Model could not be found or loaded")
+		}
+		else
+		{
+			for (int i = 0; i < Game::AI::ACTION_NUM; i++)
+			{
+				pUnitType->animations[i] = CreateAnimation(CreateTransAnim(CreateMorphAnim(1.0, 1, model, 0.0), NULL, 0, 1.0, 1, CreateTransformData(Utilities::Vector3D(0.0, 0.0, 0.0), Utilities::Vector3D(0.0, 0.0, 0.0), Utilities::Vector3D(0.0, 0.0, 0.0), Utilities::Vector3D(1.0, 1.0, 1.0)), 0.0));
+			}
+		}
+
+		InterpretStringTableField(pVM, "canBuild", temputdata->canBuild);
+		InterpretStringTableField(pVM, "canResearch", temputdata->canResearch);
+
+		for (unsigned i = 0; i < temputdatas.size(); i++)
+		{
+			for (unsigned j = 0; j < temputdatas[i]->canBuild.size(); j++)
+			{
+				if (strcmp(pUnitType->id, temputdatas[i]->canBuild[j]) == 0)
+				{
+					pWorld->vUnitTypes[i]->canBuild.push_back(pUnitType);
+				}
+			}
+			for (unsigned j = 0; j < temputdatas[i]->canResearch.size(); j++)
+			{
+				if (strcmp(pUnitType->id, temputdatas[i]->canResearch[j]) == 0)
+				{
+					pWorld->vUnitTypes[i]->canResearch.push_back(pUnitType);
+				}
+			}
+		}
+
+		pWorld->vUnitTypes.push_back(pUnitType);
+		temputdatas.push_back(temputdata);
+
+		unitTypeMap[pUnitType->id] = pUnitType;
+
+		for (unsigned j = 0; j < temputdata->canBuild.size(); j++)
+		{
+			if (unitTypeMap[temputdata->canBuild[j]])
+			{
+				pUnitType->canBuild.push_back(unitTypeMap[temputdata->canBuild[j]]);
+			}
+		}
+			
+		for (unsigned j = 0; j < temputdata->canResearch.size(); j++)
+		{
+			if (unitTypeMap[temputdata->canResearch[j]])
+			{
+				pUnitType->canResearch.push_back(unitTypeMap[temputdata->canResearch[j]]);
+			}
+		}
+
+		lua_getfield(pVM, 1, "projectileType");
+		if (lua_istable(pVM, 2))
+		{
+			pUnitType->projectileType = new ProjectileType;
+		
+			lua_getfield(pVM, -1, "model");
+			if (!lua_isstring(pVM, -1))
+			{
+				lua_pop(pVM, 1);
+				LUA_FAILURE("LCreateUnitType: Required field \"model\" not found in projectiletype table or is not a string")
+			}
+			pUnitType->projectileType->model = LoadModel(lua_tostring(pVM, -1));
+			lua_pop(pVM, 1);
+
+			GET_FLOAT_FIELD_OPTIONAL(pUnitType->projectileType->size, "size", 0.0)
+			GET_FLOAT_FIELD_OPTIONAL(pUnitType->projectileType->speed, "speed", 0.0)
+			GET_FLOAT_FIELD_OPTIONAL(pUnitType->projectileType->speed, "areaOfEffect", 0.0)
+			
+			lua_getfield(pVM, -1, "startPos");
+			if (lua_isstring(pVM, -1))
+			{
+				lua_pushinteger(pVM, 1);
+				lua_gettable(pVM, -2);
+				if (lua_isnumber(pVM, -1))
+				{
+					pUnitType->projectileType->startPos.x = lua_tointeger(pVM, -1);
+				}
+				lua_pop(pVM, 1);
+				
+				lua_pushinteger(pVM, 2);
+				lua_gettable(pVM, -2);
+				if (lua_isnumber(pVM, -1))
+				{
+					pUnitType->projectileType->startPos.y = lua_tointeger(pVM, -1);
+				}
+				lua_pop(pVM, 1);
+				
+				lua_pushinteger(pVM, 3);
+				lua_gettable(pVM, -2);
+				if (lua_isnumber(pVM, -1))
+				{
+					pUnitType->projectileType->startPos.z = lua_tointeger(pVM, -1);
+				}
+				lua_pop(pVM, 1);
+			}
+			lua_pop(pVM, 1);
+
+		}
+		else
+		{
+			pUnitType->projectileType = NULL;
+		}
+		lua_pop(pVM, 1);
+
+		lua_pushlightuserdata(pVM, pUnitType);
+		lua_setfield(pVM, 1, "pointer");
+
+		lua_pushvalue(pVM, 1); // Create a copy of the unittype table
+		lua_setglobal(pVM, pUnitType->id); // Set it as a new global
+
+		lua_getglobal(pVM, "UnitTypes");
+		if (lua_isnil(pVM, 2))
+		{
+			lua_pop(pVM, 1);
+			lua_newtable(pVM);
+			lua_setglobal(pVM, "UnitTypes");
+		}
+
+		lua_pushvalue(pVM, 1); // Create a copy of the unittype table
+		lua_setfield(pVM, 2, pUnitType->id);
+		lua_pop(pVM, 1);
+
+		LUA_SUCCESS
+	}
+
 	void Init(void)
 	{
 		Scripting::LuaVirtualMachine* const pVM = Scripting::LuaVirtualMachine::Instance();
@@ -2735,5 +3141,11 @@ namespace UnitLuaInterface
 		pVM->RegisterFunction("GetDataFile", LGetDataFile);
 		pVM->RegisterFunction("GetConfigFile", LGetConfigFile);
 		pVM->RegisterFunction("GetWritableConfigFile", LGetWritableConfigFile);
+		
+		pVM->RegisterFunction("LoadUnitType", LLoadUnitType);
+		pVM->RegisterFunction("UnloadUnitType", LUnloadUnitType);
+		pVM->RegisterFunction("UnloadAllUnitTypes", LUnloadAllUnitTypes);
+		
+		pVM->RegisterFunction("CreateUnitType", LCreateUnitType);
 	}
 }

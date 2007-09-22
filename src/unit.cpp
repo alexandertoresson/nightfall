@@ -482,10 +482,10 @@ namespace Game
 		
 		bool IsSuitableForBuilding(UnitType* type, Player* player, int build_x, int build_y)
 		{
-			return (IsSuitableForBuilding(type, LoadUnitType("#LargeTank"), player, build_x, build_y) && 
-			        IsSuitableForBuilding(type, LoadUnitType("#SmallTank"), player, build_x, build_y) &&
-			        IsSuitableForBuilding(type, LoadUnitType("#LargeAttackRobot"), player, build_x, build_y) &&
-			        IsSuitableForBuilding(type, LoadUnitType("#SmallAttackRobot"), player, build_x, build_y));
+			return (IsSuitableForBuilding(type, unitTypeMap["LargeTank"], player, build_x, build_y) && 
+			        IsSuitableForBuilding(type, unitTypeMap["SmallTank"], player, build_x, build_y) &&
+			        IsSuitableForBuilding(type, unitTypeMap["LargeAttackRobot"], player, build_x, build_y) &&
+			        IsSuitableForBuilding(type, unitTypeMap["SmallAttackRobot"], player, build_x, build_y));
 		}
 
 		int PositionSearch_NumStepsTaken = 0;
@@ -580,7 +580,7 @@ namespace Game
 			int num_steps = 1;
 			Dimension::Environment::FourthDimension* pDimension = Dimension::Environment::FourthDimension::Instance();
 			double curTime = pDimension->GetCurrentHour();
-			if (curTime > 6.0 && curTime < 9.0 && strcmp(type->name, "SmallLightTower") == 0)
+			if (curTime > 6.0 && curTime < 9.0 && strcmp(type->id, "SmallLightTower") == 0)
 			{
 				if (IsSuitableForBuilding(type, player, x, y) && SquaresAreWalkable(type, player, x, y) && PercentLightedAtPosition(type, x, y) < 0.66)
 				{
@@ -961,7 +961,7 @@ namespace Game
 										{
 											int goto_x, goto_y;
 											NearestSquareFromBuildingPlace(pppElements[y][x], build_type, (int)unit->pMovementData->action.goal.pos.x, (int)unit->pMovementData->action.goal.pos.y, goto_x, goto_y);
-	//										cout << "command " << pppElements[y][x]->type->name << endl;
+	//										cout << "command " << pppElements[y][x]->type->id << endl;
 											CommandUnit(pppElements[y][x], goto_x+0.5, goto_y+0.5, AI::ACTION_GOTO, unit->pMovementData->action.arg, true, true);
 										}
 									}
@@ -2686,36 +2686,6 @@ namespace Game
 			}
 			nextID = 0;
 			
-			LoadUnitType("unittypes/mainBuilding.unit");
-			LoadUnitType("unittypes/tankFactory.unit");
-			LoadUnitType("unittypes/barracks.unit");
-			
-			LoadUnitType("unittypes/solarPanel.unit");
-			LoadUnitType("unittypes/surfaceGeothermal.unit");
-			LoadUnitType("unittypes/deepGeothermal.unit");
-			
-			LoadUnitType("unittypes/smallLightTower.unit");
-			LoadUnitType("unittypes/mediumLightTower.unit");
-			LoadUnitType("unittypes/largeLightTower.unit");
-			
-			LoadUnitType("unittypes/defenseTower.unit");
-			
-			LoadUnitType("unittypes/builder.unit#Builder");
-			
-			LoadUnitType("unittypes/explorer.unit");
-			LoadUnitType("unittypes/portableLightSource.unit");
-
-			LoadUnitType("unittypes/smallAttackRobot.unit");
-			LoadUnitType("unittypes/largeAttackRobot.unit");
-
-			LoadUnitType("unittypes/smallTank.unit");
-			LoadUnitType("unittypes/largeTank.unit");
-			
-			LoadUnitType("unittypes/monster.unit");
-		
-//			Utilities::Scripting::LuaVirtualMachine* const pVM = Utilities::Scripting::LuaVirtualMachine::Instance();
-// 			pVM->DoFile("scripts/level_default.lua");
-
 			genericTexture = Utilities::LoadGLTexture((char*) "models/textures/generic.png");
 
 			a_seed = 23467;

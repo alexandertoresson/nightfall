@@ -332,6 +332,23 @@ namespace Game
 			return NULL;
 		}
 
+		void UnloadUnitType(UnitType* pUnitType)
+		{
+			int index = pUnitType->index;
+			pWorld->vUnitTypes.erase(pWorld->vUnitTypes.begin() + index);
+			unitTypeMap.erase(unitTypeMap.find(pUnitType->name));
+			for (unsigned i = index; i < pWorld->vUnitTypes.size(); i++)
+			{
+				pWorld->vUnitTypes.at(i)->index = i;
+			}
+		}
+
+		void UnloadAllUnitTypes()
+		{
+			pWorld->vUnitTypes.clear();
+			unitTypeMap.clear();
+		}
+
 		void InitPlayers(unsigned players_to_init)
 		{
 			Player* human = NULL;

@@ -1,35 +1,26 @@
-#RTS V1.0 utf8
+local ut = {}
+ut.id = "LargeLightTower"
+ut.name = "Large Light Tower"
+ut.maxHealth = 6000
+ut.heightOnMap = 4
+ut.widthOnMap = 4
 
-DEF LargeLightTower Unit
-{
-	maxHealth 6000
-	maxPower 0
-	minAttack 0
-	maxAttack 0
-	heightOnMap 4
-	widthOnMap 4
-	hasAI 0
-	isMobile 0
-	
-	canAttack 0
+ut.sightRange = 25.0
+ut.movementType = MovementType.Building
+ut.size = 4.0
+ut.height = 5.0
+ut.buildTime = 90.0
+ut.buildCost = 200
+ut.researchTime = 180.0
+ut.researchCost = 600
 
-	sightRange 25.0
-	movementType Building
-	attackSpeed 0.0
-	size 4.0
-	height 5.0
-	buildTime 90.0
-	buildCost 200
-	researchTime 180.0
-	researchCost 600
+ut.lightRange = 20.0
 
-	lightRange 20.0
+ut.powerUsage = 2.5
+ut.lightPowerUsage = 4.5
 
-	powerUsage 2.5
-	lightPowerUsage 4.5
+ut.symbol = "textures/lighttower_biggest.png"
 
-	symbol "textures/lighttower_biggest.png"
+ut.model = "models/lighttower_biggest.wrl#lighttower_biggest"
 
-	Model "models/lighttower_biggest.wrl#lighttower_biggest"
-
-}
+CreateUnitType(ut)

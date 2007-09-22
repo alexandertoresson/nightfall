@@ -1,33 +1,27 @@
-#RTS V1.0 utf8
+local ut = {}
+ut.id = "Grue"
+ut.maxHealth = 1000
+ut.maxPower = 100
+ut.minAttack = 150
+ut.maxAttack = 250
+ut.heightOnMap = 1
+ut.widthOnMap = 1
+ut.hasAI = true
+ut.isMobile = true
+ut.hurtByLight = true
+	
+ut.canAttack = true
+ut.attackMaxRange = 1.2
+ut.attackMinRange = 0.0
+ut.attackAccuracy = 80.0
 
-DEF Grue Unit
-{
-	maxHealth 1000
-	maxPower 100
-	minAttack 150
-	maxAttack 250
-	heightOnMap 1
-	widthOnMap 1
-	hasAI 1
-	isMobile 1
-	hurtByLight 1
+ut.sightRange = 15.0
+ut.movementSpeed = 12.0
+ut.movementType = MovementType.Human
+ut.attackSpeed = 1.0
+ut.size = 1.0
+ut.height = 1.0
 	
-	canAttack 1
-	attackMaxRange 1.2
-	attackMinRange 0.0
-	attackAccuracy 80.0
-
-	sightRange 15.0
-	movementSpeed 12.0
-	movementType Human
-	attackSpeed 1.0
-	size 1.0
-	height 1.0
+ut.model = "models/monster.wrl#Monster"
 	
-	powerUsage 0.0
-	movePowerUsage 0.0
-	attackPowerUsage 0.0
-	
-	Model "models/monster.wrl#Monster"
-	
-}
+CreateUnitType(ut)

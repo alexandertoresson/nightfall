@@ -1,33 +1,23 @@
-#RTS V1.0 utf8
+local ut = {}
+ut.id = "DeepGeothermal"
+ut.name = "Deep Geothermal"
+ut.maxHealth = 4000
+ut.heightOnMap = 4
+ut.widthOnMap = 4
 
-DEF DeepGeothermal Unit
-{
-	maxHealth 4000
-	maxPower 0
-	minAttack 0
-	maxAttack 0
-	heightOnMap 4
-	widthOnMap 4
-	hasAI 0
-	isMobile 0
+ut.sightRange = 12.0
+ut.movementType = MovementType.Building
+ut.size = 4.0
+ut.height = 2.0
+ut.buildTime = 90.0
+ut.buildCost = 400
+ut.researchTime = 180.0
+ut.researchCost = 800
+
+ut.powerIncrement = 10.0
+ut.powerType = PowerType.TwentyFourSeven
+ut.powerUsage = 2.0
 	
-	canAttack 0
+ut.model = "models/cube3.wrl#OB_Cube"
 
-	sightRange 12.0
-	movementSpeed 0.0
-	movementType Building
-	attackSpeed 0.0
-	size 4.0
-	height 2.0
-	buildTime 90.0
-	buildCost 400
-	researchTime 180.0
-	researchCost 800
-
-	powerIncrement 10.0
-	powerType TwentyFourSeven
-	powerUsage 2.0
-	
-	Model "models/cube3.wrl#OB_Cube"
-
-}
+CreateUnitType(ut)

@@ -533,6 +533,11 @@ namespace Game
 			{
 				return ERROR_GENERAL;
 			}
+			std::string generic_level_script = "scripts/init_level.lua";
+			if (pVM->DoFile(generic_level_script) != SUCCESS)
+			{
+				return ERROR_GENERAL;
+			}
 			pVM->SetFunction("SetPlayers");
 			if (pVM->CallFunction(0) != SUCCESS)
 			{

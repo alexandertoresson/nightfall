@@ -1,34 +1,30 @@
-#RTS V1.0 utf8
+local ut = {}
+ut.id = "Explorer"
+ut.maxHealth = 50
+ut.maxPower = 100
+ut.minAttack = 2
+ut.maxAttack = 4
+ut.heightOnMap = 1
+ut.widthOnMap = 1
+ut.hasAI = true
+ut.isResearched = true
+ut.isMobile = true
 
-DEF Explorer Unit
-{
-	maxHealth 50
-	maxPower 100
-	minAttack 2
-	maxAttack 4
-	heightOnMap 1
-	widthOnMap 1
-	hasAI 1
-	isResearched 1
-	isMobile 1
+ut.sightRange = 6.0
+ut.attackRange = 1.5
+ut.movementSpeed = 12.0
+ut.movementType = MovementType.Human
+
+ut.attackSpeed = 1.0
+ut.size = 1.0
+ut.height = 1.0
+ut.buildTime = 10.0
+ut.buildCost = 50
+ut.researchTime = 20.0
+ut.researchCost = 100
+
+ut.powerUsage = 1.0
 	
-	canAttack 0
+ut.model = "models/explorer.wrl#Explorer"
 
-	sightRange 6.0
-	attackRange 1.5
-	movementSpeed 12.0
-	movementType Human
-
-	attackSpeed 1.0
-	size 1.0
-	height 1.0
-	buildTime 10.0
-	buildCost 50
-	researchTime 20.0
-	researchCost 100
-
-	powerUsage 1.0
-	
-	Model "models/explorer.wrl#Explorer"
-
-}
+CreateUnitType(ut)

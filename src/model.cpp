@@ -2968,6 +2968,7 @@ namespace  Utilities
 		map<string, Game::Dimension::UnitType*>::iterator UnitIter = UnitsData.find(id); 
 		if(UnitIter != UnitsData.end())
 		{
+			unitTypeMap[id] = (*UnitIter).second;
 			return (*UnitIter).second;
 		}
 		else
@@ -2977,7 +2978,7 @@ namespace  Utilities
 	vector<Game::Dimension::UnitType*> ModelParser::GetBuildUnits(void)
 	{
 		vector<Game::Dimension::UnitType*> units;
-		for(vector<Game::Dimension::UnitType*>::iterator iter = UnitsIndex.begin(); iter != UnitsIndex.end(); iter++)
+		for(vector<Game::Dimension::UnitType*>::iterator iter = pWorld->vUnitTypes.begin(); iter != pWorld->vUnitTypes.end(); iter++)
 		{
 			Game::Dimension::UnitType *unit = (*iter);
 			if(unit->canBuild.size() != 0)

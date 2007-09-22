@@ -1,45 +1,42 @@
-#RTS V1.0 utf8
-
-DEF LargeTank Unit
-{
-	maxHealth 1200
-	maxPower 100
-	minAttack 120
-	maxAttack 240
-	heightOnMap 4
-	widthOnMap 4
-	hasAI 1
-	isMobile 1
+local ut = {}
+ut.id = "LargeTank"
+ut.name = "Large Tank"
+ut.maxHealth = 1200
+ut.maxPower = 100
+ut.minAttack = 120
+ut.maxAttack = 240
+ut.heightOnMap = 4
+ut.widthOnMap = 4
+ut.hasAI = true
+ut.isMobile = true
 	
-	canAttack 1
-	canAttackWhileMoving 0
-	attackMaxRange 15.0
-	attackMinRange 0.0
-	attackAccuracy 80.0
+ut.canAttack = true
+ut.attackMaxRange = 15.0
+ut.attackAccuracy = 80.0
 
-	sightRange 17.0
-	movementSpeed 1.5
-	movementType Tank
-	attackSpeed 1.0
-	size 4.0
-	height 1.0
-	buildTime 90.0
-	buildCost 800
-	researchTime 180.0
-	researchCost 1600
+ut.sightRange = 17.0
+ut.movementSpeed = 1.5
+ut.movementType = MovementType.Tank
+ut.attackSpeed = 1.0
+ut.size = 4.0
+ut.height = 1.0
+ut.buildTime = 90.0
+ut.buildCost = 800
+ut.researchTime = 180.0
+ut.researchCost = 1600
 
-	powerUsage 6.0
-	movePowerUsage 4.0
-	attackPowerUsage 4.0
+ut.powerUsage = 6.0
+ut.movePowerUsage = 4.0
+ut.attackPowerUsage = 4.0
 
-	Model "models/largetank.wrl#LargeTank"
+ut.model = "models/largetank.wrl#LargeTank"
 
-	ProjectileType
+ut.projectileType =
 	{
-		Model "models/missile.wrl#Missile"
-		areaOfEffect 3.0
-		startPos 1.0 0.0 0.0
-		speed 1.0
-		size 0.4
+		model = "models/missile.wrl#Missile",
+		areaOfEffect = 3.0,
+		startPos = {1.0, 0.0, 0.0},
+		speed = 1.0,
+		size = 0.4
 	}
-}
+CreateUnitType(ut)

@@ -1,36 +1,25 @@
-#RTS V1.0 utf8
+local ut = {}
+ut.id = "SolarPanel"
+ut.name = "Solar Panel"
+ut.maxHealth = 1500
+ut.heightOnMap = 3
+ut.widthOnMap = 3
+ut.isResearched = true
 
-DEF SolarPanel Unit
-{
-	maxHealth 1500
-	maxPower 0
-	minAttack 0
-	maxAttack 0
-	heightOnMap 3
-	widthOnMap 3
-	hasAI 0
-	isResearched 1
-	isMobile 0
-	
-	canAttack 0
+ut.sightRange = 5.0
+ut.movementType = MovementType.Building
+ut.size = 3.0
+ut.height = 1.0
+ut.buildTime = 30.0
+ut.buildCost = 100
+ut.researchTime = 60.0
+ut.researchCost = 200
 
-	sightRange 5.0
-	movementSpeed 0.0
-	movementType Building
-	attackSpeed 0.0
-	size 3.0
-	height 1.0
-	buildTime 30.0
-	buildCost 100
-	researchTime 60.0
-	researchCost 200
+ut.powerIncrement = 8.0
+ut.powerType = PowerType.DayLight
 
-	powerIncrement 8.0
-	powerType DayLight
-	powerUsage 0.0
+ut.symbol = "textures/sunpanel.png"
 
-	symbol "textures/sunpanel.png"
+ut.model = "models/sunpanel.wrl#sunpanel"
 
-	Model "models/sunpanel.wrl#sunpanel"
-
-}
+CreateUnitType(ut)

@@ -1,36 +1,26 @@
-#RTS V1.0 utf8
+local ut = {}
+ut.id = "TankFactory"
+ut.name = "Tank Factory"
+ut.maxHealth = 7500
+ut.heightOnMap = 5
+ut.widthOnMap = 5
+ut.hasAI = true
 
-DEF TankFactory Unit
-{
-	maxHealth 7500
-	maxPower 0
-	minAttack 0
-	maxAttack 0
-	heightOnMap 5
-	widthOnMap 5
-	hasAI 1
-	isMobile 0
+ut.sightRange = 10.0
+ut.movementType = MovementType.Building
+ut.size = 4.0
+ut.height = 2.0
+ut.buildTime = 120.0
+ut.buildCost = 250
+ut.researchTime = 240.0
+ut.researchCost = 500
+
+ut.powerUsage = 4.0
 	
-	canAttack 0
+ut.model = "models/cube3.wrl#OB_Cube"
+ut.canBuild = {"SmallTank",
+	          "LargeTank"}
+ut.canResearch = {"SmallTank",
+	             "LargeTank"}
 
-	sightRange 10.0
-	attackRange 0.0
-	movementSpeed 0.0
-	movementType Building
-	attackSpeed 0.0
-	size 4.0
-	height 2.0
-	buildTime 120.0
-	buildCost 250
-	researchTime 240.0
-	researchCost 500
-
-	powerUsage 4.0
-	
-	Model "models/cube3.wrl#OB_Cube"
-	canBuild ["unittypes/smallTank.unit#SmallTank",
-	          "unittypes/largeTank.unit#LargeTank"]
-	canResearch ["unittypes/smallTank.unit#SmallTank",
-	             "unittypes/largeTank.unit#LargeTank"]
-
-}
+CreateUnitType(ut)

@@ -1,35 +1,26 @@
-#RTS V1.0 utf8
+local ut = {}
+ut.id = "MediumLightTower"
+ut.name = "Medium Light Tower"
+ut.maxHealth = 4000
+ut.heightOnMap = 3
+ut.widthOnMap = 3
 
-DEF MediumLightTower Unit
-{
-	maxHealth 4000
-	maxPower 0
-	minAttack 0
-	maxAttack 0
-	heightOnMap 3
-	widthOnMap 3
-	hasAI 0
-	isMobile 0
+ut.sightRange = 20.0
+ut.movementType = MovementType.Building
+ut.size = 2.0
+ut.height = 5.0
+ut.buildTime = 60.0
+ut.buildCost = 100
+ut.researchTime = 180.0
+ut.researchCost = 200
+
+ut.lightRange = 15.0
 	
-	canAttack 0
-
-	sightRange 20.0
-	movementType Building
-	attackSpeed 0.0
-	size 2.0
-	height 5.0
-	buildTime 60.0
-	buildCost 100
-	researchTime 180.0
-	researchCost 200
-
-	lightRange 15.0
+ut.powerUsage = 2.0
+ut.lightPowerUsage = 3.0
 	
-	powerUsage 2.0
-	lightPowerUsage 3.0
-	
-	symbol "textures/lighttower_bigger.png"
+ut.symbol = "textures/lighttower_bigger.png"
 
-	Model "models/lighttower_bigger.wrl#lighttower_bigger"
+ut.model = "models/lighttower_bigger.wrl#lighttower_bigger"
 
-}
+CreateUnitType(ut)

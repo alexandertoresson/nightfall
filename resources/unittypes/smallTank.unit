@@ -1,45 +1,43 @@
-#RTS V1.0 utf8
-
-DEF SmallTank Unit
-{
-	maxHealth 600
-	maxPower 100
-	minAttack 60
-	maxAttack 120
-	heightOnMap 3
-	widthOnMap 3
-	hasAI 1
-	isMobile 1
+local ut = {}
+ut.id = "SmallTank"
+ut.name = "Small Tank"
+ut.maxHealth = 600
+ut.maxPower = 100
+ut.minAttack = 60
+ut.maxAttack = 120
+ut.heightOnMap = 3
+ut.widthOnMap = 3
+ut.hasAI = true
+ut.isMobile = true
 	
-	canAttack 1
-	canAttackWhileMoving 0
-	attackMaxRange 10.0
-	attackMinRange 0.0
-	attackAccuracy 80.0
+ut.canAttack = true
+ut.attackMaxRange = 10.0
+ut.attackMinRange = 0.0
+ut.attackAccuracy = 80.0
 
-	sightRange 12.0
-	movementSpeed 2.5
-	movementType Tank
-	attackSpeed 1.0
-	size 3.0
-	height 1.0
-	buildTime 60.0
-	buildCost 300
-	researchTime 120.0
-	researchCost 600
+ut.sightRange = 12.0
+ut.movementSpeed = 2.5
+ut.movementType = MovementType.Tank
+ut.attackSpeed = 1.0
+ut.size = 3.0
+ut.height = 1.0
+ut.buildTime = 60.0
+ut.buildCost = 300
+ut.researchTime = 120.0
+ut.researchCost = 600
 
-	powerUsage 4.0
-	movePowerUsage 2.0
-	attackPowerUsage 3.0
+ut.powerUsage = 4.0
+ut.movePowerUsage = 2.0
+ut.attackPowerUsage = 3.0
 	
-	Model "models/smalltank.wrl#SmallTank"
+ut.model = "models/smalltank.wrl#SmallTank"
 
-	ProjectileType
+ut.projectileType =
 	{
-		Model "models/missile.wrl#Missile"
-		areaOfEffect 1.0
-		startPos 1.0 0.0 0.0
-		speed 1.0
-		size 0.3
+		model = "models/missile.wrl#Missile",
+		areaOfEffect = 1.0,
+		startPos = {1.0, 0.0, 0.0},
+		speed = 1.0,
+		size = 0.3
 	}
-}
+CreateUnitType(ut)

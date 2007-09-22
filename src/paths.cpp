@@ -21,6 +21,10 @@ namespace Utilities
 				path_from_argv0 = path_from_argv0.substr(0, path_from_argv0.size()-4);
 			}
 		}
+		if (path_from_argv0 == "" || path_from_argv0 == "./" || path_from_argv0 == ".\\")
+		{
+			path_from_argv0 = "../";
+		}
 
 #if !defined(WIN32) && !defined(MAC)
 		const char* data_paths = getenv("XDG_DATA_DIRS");

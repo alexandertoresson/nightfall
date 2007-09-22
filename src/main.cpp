@@ -113,12 +113,6 @@ int main(int argc, char** argv)
 		
 		UnitLuaInterface::Init();
 		
-		Utilities::Scripting::LuaVirtualMachine* pVM = Utilities::Scripting::LuaVirtualMachine::Instance();
-
-		pVM->DoFile("scripts/ai_human.lua");
-		pVM->DoFile("scripts/ai_gaia.lua");
-		pVM->DoFile("scripts/ai_ai.lua");
-
 		loading->Increment(1.0f);
 		loading->SetMessage("Loading World");
 		loading->Update();

@@ -32,6 +32,8 @@ namespace Game
 		const int PLAYER_STATE_ALLY = 1,
 		          PLAYER_STATE_NEUTRAL = 2,
 		          PLAYER_STATE_ENEMY = 4;
+		
+		void UnloadAllUnitTypes();
 	}
 }
 
@@ -163,6 +165,8 @@ namespace Game
 		
 		Player* GetCurrentPlayer();
 		void SetCurrentPlayer(Player*);
+		
+		void UnloadUnitType(UnitType* pUnitType);
 	}
 }
 

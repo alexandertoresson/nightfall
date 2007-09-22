@@ -1,33 +1,23 @@
-#RTS V1.0 utf8
+local ut = {}
+ut.id = "SurfaceGeothermal"
+ut.name = "Surface Geothermal"
+ut.maxHealth = 2000
+ut.heightOnMap = 3
+ut.widthOnMap = 3
 
-DEF SurfaceGeothermal Unit
-{
-	maxHealth 2000
-	maxPower 0
-	minAttack 0
-	maxAttack 0
-	heightOnMap 3
-	widthOnMap 3
-	hasAI 0
-	isMobile 0
+ut.sightRange = 10.0
+ut.movementType = MovementType.Building
+ut.size = 3.0
+ut.height = 2.0
+ut.buildTime = 60.0
+ut.buildCost = 200
+ut.researchTime = 120.0
+ut.researchCost = 400
 	
-	canAttack 0
+ut.powerIncrement = 5.0
+ut.powerType = PowerType.TwentyFourSeven 
+ut.powerUsage = 1.0
+	
+ut.model = "models/cube3.wrl#OB_Cube"
 
-	sightRange 10.0
-	movementSpeed 0.0
-	movementType Building
-	attackSpeed 0.0
-	size 3.0
-	height 2.0
-	buildTime 60.0
-	buildCost 200
-	researchTime 120.0
-	researchCost 400
-	
-	powerIncrement 5.0
-	powerType TwentyFourSeven 
-	powerUsage 1.0
-	
-	Model "models/cube3.wrl#OB_Cube"
-
-}
+CreateUnitType(ut)

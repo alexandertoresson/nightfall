@@ -60,6 +60,11 @@ namespace Utilities
 			SetEnum(L, "Enemy", Game::Dimension::PLAYER_STATE_ENEMY);
 			lua_setglobal(L, "PlayerState");
 			
+			lua_newtable(L);
+			SetEnum(L, "DayLight", Game::Dimension::POWERTYPE_DAYLIGHT);
+			SetEnum(L, "TwentyFourSeven", Game::Dimension::POWERTYPE_TWENTYFOURSEVEN);
+			lua_setglobal(L, "PowerType");
+			
 			char newline[] = {Console::nl, 0};
 			lua_newtable(L);
 			lua_pushstring(L, "Newline");
@@ -122,7 +127,7 @@ namespace Utilities
 		int LuaVirtualMachine::DoFile(std::string file) const
 		{
 			if (m_pVM == NULL)
-				return ERROR_GENERAL;
+				return 1;
 			std::string filepath = Utilities::GetDataFile(file);
 
 			if (!filepath.length())

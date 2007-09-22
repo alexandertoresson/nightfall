@@ -1,46 +1,44 @@
-#RTS V1.0 utf8
+local ut = {}
+ut.id = "SmallAttackRobot"
+ut.name = "Small Attack Robot"
+ut.maxHealth = 200
+ut.maxPower = 100
+ut.minAttack = 10
+ut.maxAttack = 20
+ut.heightOnMap = 1
+ut.widthOnMap = 1
+ut.hasAI = true
+ut.isResearched = true
+ut.isMobile = true
+	
+ut.canAttack = true
+ut.canAttackWhileMoving = true
+ut.attackMaxRange = 5.0
+ut.attackMinRange = 0.0
+ut.attackAccuracy = 80.0
 
-DEF SmallAttackRobot Unit
-{
-	maxHealth 200
-	maxPower 100
-	minAttack 10
-	maxAttack 20
-	heightOnMap 1
-	widthOnMap 1
-	hasAI 1
-	isResearched 1
-	isMobile 1
+ut.sightRange = 7.0
+ut.movementSpeed = 4.0
+ut.movementType = MovementType.Vehicle
+ut.attackSpeed = 2.0
+ut.size = 1.0
+ut.height = 1.0
+ut.buildTime = 20.0
+ut.buildCost = 100
+ut.researchTime = 40.0
+ut.researchCost = 200
 	
-	canAttack 1
-	canAttackWhileMoving 1
-	attackMaxRange 5.0
-	attackMinRange 0.0
-	attackAccuracy 80.0
-
-	sightRange 7.0
-	movementSpeed 4.0
-	movementType Vehicle
-	attackSpeed 2.0
-	size 1.0
-	height 1.0
-	buildTime 20.0
-	buildCost 100
-	researchTime 40.0
-	researchCost 200
+ut.powerUsage = 1.0
+ut.movePowerUsage = 0.5
+ut.attackPowerUsage = 1.0
 	
-	powerUsage 1.0
-	movePowerUsage 0.5
-	attackPowerUsage 1.0
+ut.model = "models/smallattackrobot.wrl#SmallAttackRobot"
 	
-	Model "models/smallattackrobot.wrl#SmallAttackRobot"
-	
-	ProjectileType
-	{
-		Model "models/missile.wrl#Missile"
-		areaOfEffect 1.0
-		startPos 1.0 0.0 0.0
-		speed 1.0
-		size 0.1
-	}
-}
+ut.projectileType = { 
+                      model = "models/missile.wrl#Missile",
+                      areaOfEffect = 1.0,
+                      startPos = {1.0, 0.0, 0.0},
+                      speed = 1.0,
+                      size = 0.1
+		    }
+CreateUnitType(ut)

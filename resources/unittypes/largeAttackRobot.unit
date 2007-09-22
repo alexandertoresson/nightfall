@@ -1,45 +1,43 @@
-#RTS V1.0 utf8
-
-DEF LargeAttackRobot Unit
-{
-	maxHealth 400
-	maxPower 100
-	minAttack 20
-	maxAttack 40
-	heightOnMap 2
-	widthOnMap 2
-	hasAI 1
-	isMobile 1
+local ut = {}
+ut.id = "LargeAttackRobot"
+ut.name = "Large Attack Robot"
+ut.maxHealth = 400
+ut.maxPower = 100
+ut.minAttack = 20
+ut.maxAttack = 40
+ut.heightOnMap = 2
+ut.widthOnMap = 2
+ut.hasAI = true
+ut.isMobile = true
 	
-	canAttack 1
-	canAttackWhileMoving 1
-	attackMaxRange 7.5
-	attackMinRange 0.0
-	attackAccuracy 80.0
+ut.canAttack = true
+ut.canAttackWhileMoving = true
+ut.attackMaxRange = 7.5
+ut.attackAccuracy = 80.0
 
-	sightRange 9.5
-	movementSpeed 3.0
-	movementType Vehicle
-	attackSpeed 2.0
-	size 1.75
-	height 1.0
-	buildTime 40.0
-	buildCost 200
-	researchTime 80.0
-	researchCost 400
+ut.sightRange = 9.5
+ut.movementSpeed = 3.0
+ut.movementType = MovementType.Vehicle
+ut.attackSpeed = 2.0
+ut.size = 1.75
+ut.height = 1.0
+ut.buildTime = 40.0
+ut.buildCost = 200
+ut.researchTime = 80.0
+ut.researchCost = 400
 	
-	powerUsage 2.0
-	movePowerUsage 1.0
-	attackPowerUsage 2.0
+ut.powerUsage = 2.0
+ut.movePowerUsage = 1.0
+ut.attackPowerUsage = 2.0
 	
-	Model "models/largeattackrobot.wrl#LargeAttackRobot"
+ut.model = "models/largeattackrobot.wrl#LargeAttackRobot"
 
-	ProjectileType
+ut.projectileType =
 	{
-		Model "models/missile.wrl#Missile"
-		areaOfEffect 2.0
-		startPos 1.0 0.0 0.0
-		speed 1.0
-		size 0.2
+		model = "models/missile.wrl#Missile",
+		areaOfEffect = 2.0,
+		startPos = {1.0, 0.0, 0.0},
+		speed = 1.0,
+		size = 0.2
 	}
-}
+CreateUnitType(ut)
