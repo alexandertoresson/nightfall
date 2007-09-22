@@ -2928,7 +2928,7 @@ else \
 
 			GET_FLOAT_FIELD_OPTIONAL(pUnitType->projectileType->size, "size", 0.0)
 			GET_FLOAT_FIELD_OPTIONAL(pUnitType->projectileType->speed, "speed", 0.0)
-			GET_FLOAT_FIELD_OPTIONAL(pUnitType->projectileType->speed, "areaOfEffect", 0.0)
+			GET_FLOAT_FIELD_OPTIONAL(pUnitType->projectileType->areaOfEffect, "areaOfEffect", 0.0)
 			
 			lua_getfield(pVM, -1, "startPos");
 			if (lua_isstring(pVM, -1))
