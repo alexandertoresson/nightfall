@@ -270,7 +270,7 @@ namespace Game
 			int map_x = 0;
 			int map_y = 0;
 			Dimension::GetApproximateMapPosOfClick((*event).button.x, (*event).button.y, map_x, map_y);
-			std::cout << "MapX: " << map_x << " MapY: " << map_y << std::endl;
+			console << "(" << map_x << ", " << map_y << ")" << Console::nl;
 		}
 
 		void GameInput::AddSelectedUnit(Dimension::Unit* unit)
