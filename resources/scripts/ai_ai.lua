@@ -1,6 +1,5 @@
 loadfile(GetLUAScript("ai_generic.lua"))()
 
-NeedBuilder = false
 UnitAIHasBeenPerformed = true
 --Tested = ""
 
@@ -12,6 +11,7 @@ TempNightIncomeChanges = 0
 TempNoonIncomeChanges = 0
 TempMoneyReserved = 0
 Need = {}
+NeedForPower = {}
 
 LastChecked = {}
 
@@ -53,14 +53,14 @@ end
 
 function ShouldBuild(Player, UnitType)
 	if IsResearched(Player, UnitType) then
-		if UnitType == GetUnitTypeFromString("SolarPanel") or UnitType == GetUnitTypeFromString("SurfaceGeothermal") or UnitType == GetUnitTypeFromString("DeepGeothermal") then
+		if NeedForPower[UnitType] then
 			return true
 		end
 		if (GetPowerAtDawnCached(Player) - GetUnitTypeBuildCost(UnitType) - TempMoneyReserved > 500) then
 			if GetIncomeAtNightCached(Player) + GetUnitTypeIncomeAtNight(UnitType) + TempNightIncomeChanges >= 0 then
 				return true
 			else
-				return (GetIncomeAtNoonCached(Player) + TempNoonIncomeChanges + GetUnitTypeIncomeAtNoon(UnitType)) / -(GetIncomeAtNightCached(Player) + TempNightIncomeChanges + GetUnitTypeIncomeAtNight(UnitType)) > 1.9
+				return (GetIncomeAtNoonCached(Player) + TempNoonIncomeChanges + GetUnitTypeIncomeAtNoon(UnitType)) / -(GetIncomeAtNightCached(Player) + TempNightIncomeChanges + GetUnitTypeIncomeAtNight(UnitType)) > 1.3
 			end
 		else
 			return false
@@ -179,12 +179,18 @@ end
 function PerformAI_Player_AI(Player)
 	if UnitAIHasBeenPerformed then
 		for i = 1,table_maxn(BuildList) do
-			if not Need[BuildList[i].UnitType] then
-				BuildList[i].Weight = BuildList[i].Weight * (GetNumBuilt(BuildList[i].UnitType) + 1)
+			if NeedForPower[BuildList[i].UnitType] then
+				BuildList[i].NewWeight = BuildList[i].Weight
+			elseif Need[BuildList[i].UnitType] then
+				BuildList[i].NewWeight = BuildList[i].Weight * math.sqrt(GetNumBuilt(BuildList[i].UnitType) + 1)
+			else
+				BuildList[i].NewWeight = BuildList[i].Weight * (GetNumBuilt(BuildList[i].UnitType) + 1)
 			end
 		end
 		
-		table.sort(BuildList, function(a,b) return a.Weight<b.Weight end)
+		NeedForPower = {}
+
+		table.sort(BuildList, function(a,b) return a.NewWeight<b.NewWeight end)
 
 		for i = 1,table_maxn(BuildList) do
 			UnitType = BuildList[i].UnitType
@@ -216,6 +222,7 @@ function PerformAI_Player_AI(Player)
 --					Output(GetUnitTypeName(UnitType))
 --					Output("\n")
 --					Output("Reserved: " .. TempMoneyReserved .. " " .. TempNoonIncomeChanges .. " " .. TempNightIncomeChanges .. "\n")
+--					Output("General: " .. GetPowerAtDawnCached(Player) .. " " .. PowerQuote(Player) .. "\n")
 					for j = i+1,table_maxn(BuildList) do
 						if GetUnitTypeIsMobile(GetUnitType(BuildList[j].Builder)) then
 							table.insert(DoingNothing, BuildList[j].Builder)
@@ -243,9 +250,15 @@ function PerformAI_Player_AI(Player)
 				if GetUnitTypeIsMobile(GetUnitType(Builder)) then
 					table.insert(DoingNothing, Builder)
 				end
-				Need[GetUnitTypeFromString("SmallLightTower")] = true
-				Need[GetUnitTypeFromString("MediumLightTower")] = true
-				Need[GetUnitTypeFromString("LargeLightTower")] = true
+				if UnitType == GetUnitTypeFromString("SolarPanel") or UnitType == GetUnitTypeFromString("DeepGeothermal") or UnitType == GetUnitTypeFromString("SurfaceGeothermal") then
+					NeedForPower[GetUnitTypeFromString("SmallLightTower")] = true
+					NeedForPower[GetUnitTypeFromString("MediumLightTower")] = true
+					NeedForPower[GetUnitTypeFromString("LargeLightTower")] = true
+				else
+					Need[GetUnitTypeFromString("SmallLightTower")] = true
+					Need[GetUnitTypeFromString("MediumLightTower")] = true
+					Need[GetUnitTypeFromString("LargeLightTower")] = true
+				end
 			end
 		end
 
@@ -263,7 +276,6 @@ function PerformAI_Player_AI(Player)
 			end
 		end
 
-		NoChange = true
 		if ToBuild[1] == nil then
 --				Output("Replace\n")
 			AppendToBuildList(GetUnitTypeFromString("Builder"))
@@ -280,17 +292,14 @@ function PerformAI_Player_AI(Player)
 			AppendToBuildList(GetUnitTypeFromString("Barracks"))
 			AppendToBuildList(GetUnitTypeFromString("TankFactory"))
 			AppendToBuildList(GetUnitTypeFromString("MainBuilding"))
-			NoChange = false
+			AppendToBuildList(GetUnitTypeFromString("DefenseTower"))
 		end
-		if GetPowerAtDawnCached(Player) - TempMoneyReserved < 1000 or PowerQuote(Player) < 2.00 or NeedPower then
+		if GetPowerAtDawnCached(Player) - TempMoneyReserved < 1000 or PowerQuote(Player) < 2.00 then
 --			Output("Lowpower\n")
-			Need[GetUnitTypeFromString("SolarPanel")] = true
-			Need[GetUnitTypeFromString("DeepGeothermal")] = true
-			Need[GetUnitTypeFromString("SurfaceGeothermal")] = true
-			NoChange = false
-			NeedPower = false
+			NeedForPower[GetUnitTypeFromString("SolarPanel")] = true
+			NeedForPower[GetUnitTypeFromString("DeepGeothermal")] = true
+			NeedForPower[GetUnitTypeFromString("SurfaceGeothermal")] = true
 		end
-		NeedBuilder = true
 		UnitAIHasBeenPerformed = false
 --		Tested = ""
 --		if NoChange then

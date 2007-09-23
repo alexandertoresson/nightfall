@@ -2014,15 +2014,18 @@ namespace Game
 #ifdef CHECKSUM_DEBUG
 								Networking::checksum_output << "START PATH GOAL " << AI::currentFrame << ": " << pUnit->id << " " << curnode->x << " " << curnode->y << endl;
 #endif
-								pUnit->pMovementData->pCurGoalNode = curnode->pChild;
 								break;
 							}
 							curnode = curnode->pChild;
 						}
 
-						if (!pUnit->pMovementData->pCurGoalNode)
+						if (!curnode)
 						{
 							recalc_path = true;
+						}
+						else
+						{
+							pUnit->pMovementData->pCurGoalNode = curnode->pChild;
 						}
 					}
 

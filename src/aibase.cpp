@@ -361,7 +361,7 @@ namespace Game
 					pUnit->isMoving = false;
 				}
 
-				if (pUnit->type->hasAI)
+				if (pUnit->type->hasAI) // _I_ has an AI!
 				{
 
 					PerformSimpleAI(pUnit);

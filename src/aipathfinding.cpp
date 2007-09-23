@@ -46,6 +46,10 @@
 #define BINARY_HEAP_DATATYPE int
 #include "binaryheap.h"
 
+#define MAXIMUM_PATH_CALCULATIONS 2e16
+#define RECALC_TRACE_LIMIT 1000
+#define RECALC_FLOODFILL_LIMIT 4000
+
 namespace Game
 {
 	namespace AI
@@ -71,7 +75,7 @@ namespace Game
 		int                nextFreeScanline;
 		bool               calculateNearestReachable;
 		bool               setAreaCodes;
-		FloodfillState     floodfillState;
+		PreprocessState    preprocessState;
 
 		unsigned short**   nodeTypes;
 		int**              nodeNums;
@@ -577,9 +581,195 @@ namespace Game
 			*goal  = NULL;	
 		}
 		
-		bool IsWalkable(Dimension::Unit* unit, int x, int y)
+		inline bool IsWalkable(Dimension::Unit* unit, int x, int y)
 		{
 			return Dimension::SquaresAreWalkable(unit, x, y, Dimension::SIW_IGNORE_MOVING);
+		}
+
+		inline int SameAreaAndWalkable(Dimension::Unit* unit, int start_x, int start_y, int cur_x, int cur_y)
+		{
+			if (cur_x > 0 && cur_y > 0 && cur_x < width && cur_y < height)
+			{
+				if (nodeTypes[cur_y][cur_x] == NODE_TYPE_OPEN)
+				{
+					return 1;
+				}
+				if (nodeTypes[cur_y][cur_x] == NODE_TYPE_CLOSED)
+				{
+					return 0;
+				}
+				if (areaMaps[unit->type->movementType][cur_y][cur_x] == areaMaps[unit->type->movementType][start_y][start_x])
+				{
+					if (IsWalkable(unit, cur_x, cur_y))
+					{
+						nodeTypes[cur_y][cur_x] = NODE_TYPE_OPEN;
+						return 1;
+					}
+				}
+				nodeTypes[cur_y][cur_x] = NODE_TYPE_CLOSED;
+			}
+			return 0;
+		}
+
+		int traceCurX, traceCurY;
+		int traceStartX, traceStartY;
+		int traceStage;
+		int traceLastDir, traceFirstDir;
+
+		int traceDirs[8][2] = {{-1,  0},
+		                       {-1, -1},
+		                       { 0, -1},
+		                       { 1, -1},
+		                       { 1,  0},
+		                       { 1,  1},
+		                       { 0,  1},
+		                       {-1,  1}};
+
+		bool InitTrace(Dimension::Unit* unit, int start_x, int start_y, int target_x, int target_y)
+		{
+			int y;
+			traceCurX = target_x;
+			traceCurY = target_y;
+
+			NODE_TYPE_OPEN += 3;
+			NODE_TYPE_CLOSED += 3;
+			NODE_TYPE_BLOCKED += 3;
+			if (NODE_TYPE_OPEN == 0 || NODE_TYPE_CLOSED == 0 || NODE_TYPE_BLOCKED == 0)
+			{
+				for (y = 0; y < height; y++)
+				{
+					memset(nodeTypes[y], 0, width * sizeof(unsigned short));
+					memset(nodeNums[y], 0, width * sizeof(int));
+				}
+				NODE_TYPE_OPEN = 1;
+				NODE_TYPE_CLOSED = 2;
+				NODE_TYPE_BLOCKED = 3;
+			}
+
+			if (SameAreaAndWalkable(unit, start_x, start_y, traceCurX, traceCurY))
+			{
+				return PATHSTATE_ERROR;
+			}
+
+			traceStage = 0;
+			lowestDistance = 100000000;
+
+			return PATHSTATE_OK;
+		}
+
+		int TraceStep(Dimension::Unit* unit, MovementData* md, int start_x, int start_y, int target_x, int target_y)
+		{
+			int new_distance;
+			int i, j = 0;
+			int old_x, old_y;
+
+			if (traceStage == 0)
+			{
+				for ( ; j < 10; j++)
+				{
+					old_x = traceCurX;
+
+					if (start_x < traceCurX)
+						traceCurX--;
+					
+					if (start_x > traceCurX)
+						traceCurX++;
+
+					old_y = traceCurY;
+					
+					if (start_y < traceCurY)
+						traceCurY--;
+					
+					if (start_y > traceCurY)
+						traceCurY++;
+
+					if (SameAreaAndWalkable(unit, start_x, start_y, traceCurX, traceCurY))
+					{
+						if (SameAreaAndWalkable(unit, start_x, start_y, traceCurX, old_y))
+						{
+							traceCurY = old_y;
+						}
+
+						for (i = 0; i < 8; i++)
+						{
+							if (traceDirs[i][0] == traceCurX - old_x && traceDirs[i][1] == traceCurY - old_y)
+							{
+								traceFirstDir = i;
+								break;
+							}
+						}
+
+						for (i = 0; i < 8; i++)
+						{
+							int dir = (traceFirstDir-i)&7;
+							if (SameAreaAndWalkable(unit, start_x, start_y, traceCurX-traceDirs[dir][0], traceCurY-traceDirs[dir][1]))
+							{
+								traceFirstDir = traceLastDir = dir;
+
+								break;
+							}
+						}
+
+						traceStartX = traceCurX;
+						traceStartY = traceCurY;
+
+						traceStage = 1;
+
+						break;
+
+					}
+					if (start_x == traceCurX && start_y == traceCurY)
+					{
+						return PATHSTATE_GOAL;
+					}
+				}
+
+			}
+
+			if (traceStage == 1)
+			{
+
+				for ( ; j < 10; j++)
+				{
+					int new_dir = -1;
+					int first_dir_to_check = ((traceLastDir&6)-1)&7;
+					int num_dirs_to_check = 6+(traceLastDir&1);
+					new_distance = (target_y - traceCurY) * (target_y - traceCurY) + (target_x - traceCurX) * (target_x - traceCurX);
+					if (new_distance < lowestDistance)
+					{
+						lowestDistance = new_distance;
+						md->_changedGoal->x = traceCurX;
+						md->_changedGoal->y = traceCurY;
+						if (new_distance == 0)
+						{
+							return PATHSTATE_GOAL;
+						}
+					}
+			//		printf("%d, %d\n", traceCurX, traceCurY);
+					for (i = 0; i < num_dirs_to_check; i++)
+					{
+						int dir = (first_dir_to_check+i)&7;
+						if (SameAreaAndWalkable(unit, start_x, start_y, traceCurX+traceDirs[dir][0], traceCurY+traceDirs[dir][1]))
+						{
+							traceCurX += traceDirs[dir][0];
+							traceCurY += traceDirs[dir][1];
+							new_dir = dir;
+							break;
+						}
+					}
+					if (new_dir == -1)
+					{
+						return PATHSTATE_GOAL;
+					}
+					traceLastDir = new_dir;
+					if (traceStartX == traceCurX && traceStartY == traceCurY && traceLastDir == traceFirstDir)
+					{
+						return PATHSTATE_GOAL;
+					}
+				}
+			}
+
+			return PATHSTATE_OK;
 		}
 
 		PathState InitFloodfill(Dimension::Unit* unit, int start_x, int start_y, int flags)
@@ -871,6 +1061,9 @@ namespace Game
 								else if (lastScanlineIndex == firstScanlineIndex && numScanlines != 1)
 								{
 									printf("FATAL - end of circular buffer reached start\n");
+									md->_changedGoal->x = target_x;
+									md->_changedGoal->y = target_y;
+									return PATHSTATE_GOAL;
 								}
 
 								scanlineQueue[lastScanlineIndex] = new_scanline;
@@ -878,6 +1071,9 @@ namespace Game
 								if (scanline_types[new_start_x] == NODE_TYPE_CLOSED)
 								{
 									printf("FATAL - traversed same scanline twice!\n");
+									md->_changedGoal->x = target_x;
+									md->_changedGoal->y = target_y;
+									return PATHSTATE_GOAL;
 								}
 				
 								scanline_types[new_start_x] = NODE_TYPE_CLOSED;
@@ -891,7 +1087,18 @@ namespace Game
 							}
 							else
 							{
-								x = scanlines[scanline_nums[new_start_x]].end_x+1;
+								new_x = scanlines[scanline_nums[new_start_x]].end_x+1;
+								if (new_x <= x)
+								{
+									printf("FATAL - Infinite loop detected in floodfill routine!\n");
+									md->_changedGoal->x = target_x;
+									md->_changedGoal->y = target_y;
+									return PATHSTATE_GOAL;
+								}
+								else
+								{
+									x = new_x;
+								}
 							}
 						}
 						else
@@ -1098,7 +1305,7 @@ namespace Game
 			{
 				case POP_NEW_GOAL:
 				{
-					printf("new_goal\n");
+//					printf("new_goal\n");
 					int start_x = (int)md->_start->x, 
 					    start_y = (int)md->_start->y;
 
@@ -1122,7 +1329,7 @@ namespace Game
 
 				case POP_DELETED:
 				{
-					printf("deleted\n");
+//					printf("deleted\n");
 					DeallocPathfinding(tdata);
 					delete md;
 					delete tdata->pUnit;
@@ -1132,7 +1339,7 @@ namespace Game
 
 				default:
 				{
-					printf("default\n");
+//					printf("default\n");
 					DeallocPathfinding(tdata);
 					md->_currentState = INTTHRSTATE_NONE;
 					md->calcState = CALCSTATE_FAILURE;
@@ -1145,6 +1352,8 @@ namespace Game
 		int PerformPathfinding(ThreadData* tdata)
 		{
 			static int calcCount = 0;
+			static int fsteps = 0, psteps = 0;
+			static int tsteps = 0;
 
 			SDL_LockMutex(tdata->pMutex);
 
@@ -1164,7 +1373,7 @@ namespace Game
 					gCalcQueue.pop();
 
 					tdata->pUnit->pMovementData->_currentState = INTTHRSTATE_PROCESSING;
-					floodfillState = FLOODFILLSTATE_NONE;
+					preprocessState = PREPROCESSSTATE_NONE;
 				}
 			}
 
@@ -1173,7 +1382,7 @@ namespace Game
 
 			if (md->_popFromQueue)
 			{
-				printf("begin\n");
+//				printf("begin\n");
 				ParsePopQueueReason(tdata, md);
 				tdata->pUnit = NULL;
 				
@@ -1198,36 +1407,73 @@ namespace Game
 			while (!done)
 			{
 
-				if (floodfillState < FLOODFILLSTATE_SKIPPED)
+				if (preprocessState < PREPROCESSSTATE_SKIPPED_TRACE)
 				{
-					if (floodfillState == FLOODFILLSTATE_NONE)
+					if (preprocessState == PREPROCESSSTATE_NONE)
 					{
 						int m_type = unit->type->movementType;
 						if (IsWalkable(unit, md->_goal->x, md->_goal->y) && areaMaps[m_type][md->_start->y][md->_start->x] == areaMaps[m_type][md->_goal->y][md->_goal->x])
 						{
-							floodfillState = FLOODFILLSTATE_SKIPPED; // Skip it for now
+							preprocessState = PREPROCESSSTATE_SKIPPED_TRACE; // Skip it for now
 							InitPathfinding(tdata);
 						}
 						else
 						{
-							floodfillState = FLOODFILLSTATE_PROCESSING;
-							if (InitFloodfill(unit, md->_start->x, md->_start->y, FLOODFILL_FLAG_CALCULATE_NEAREST) == PATHSTATE_ERROR)
+							preprocessState = PREPROCESSSTATE_PROCESSING_TRACE;
+							if (InitTrace(unit, md->_start->x, md->_start->y, md->_goal->x, md->_goal->y) == PATHSTATE_ERROR)
 							{
-								floodfillState = FLOODFILLSTATE_DONE;
-								InitPathfinding(tdata);
+								preprocessState = PREPROCESSSTATE_PROCESSING_FLOOD;
+								if (InitFloodfill(unit, md->_start->x, md->_start->y, FLOODFILL_FLAG_CALCULATE_NEAREST) == PATHSTATE_ERROR)
+								{
+									preprocessState = PREPROCESSSTATE_SKIPPED_FLOOD;
+									InitPathfinding(tdata);
+								}
 							}
 						}
 					}
-					if (floodfillState == FLOODFILLSTATE_PROCESSING)
+					if (preprocessState == PREPROCESSSTATE_PROCESSING_TRACE)
 					{
 						do
 						{
 							calcCount++;
 							steps++;
+							tsteps++;
+						
+							if (TraceStep(unit, md, md->_start->x, md->_start->x, md->_goal->x, md->_goal->y) == PATHSTATE_GOAL)
+							{
+								preprocessState = PREPROCESSSTATE_SKIPPED_FLOOD;
+								InitPathfinding(tdata);
+								break;
+							}
+						
+							SDL_UnlockMutex(tdata->pMutex);
+
+							if (steps > MAXIMUM_CALCULATIONS_PER_FRAME)
+							{
+								SDL_LockMutex(tdata->pMutex);
+								
+								md->calcState = CALCSTATE_AWAITING_NEXT_FRAME;
+								
+								SDL_UnlockMutex(tdata->pMutex);
+								return SUCCESS;
+							}
+							else
+							{
+								SDL_LockMutex(tdata->pMutex);
+							}
+						} while (1);
+					}
+					if (preprocessState == PREPROCESSSTATE_PROCESSING_FLOOD)
+					{
+						do
+						{
+							calcCount++;
+							steps++;
+							fsteps++;
 						
 							if (FloodfillStep(unit, md, md->_goal->x, md->_goal->y) == PATHSTATE_GOAL)
 							{
-								floodfillState = FLOODFILLSTATE_DONE;
+								preprocessState = PREPROCESSSTATE_DONE;
 								InitPathfinding(tdata);
 								break;
 							}
@@ -1251,13 +1497,14 @@ namespace Game
 					}
 				}
 
-				if (floodfillState >= FLOODFILLSTATE_SKIPPED)
+				if (preprocessState >= PREPROCESSSTATE_SKIPPED_TRACE)
 				{
 
 					do
 					{
 						calcCount ++;
 						steps ++;
+						psteps++;
 						
 						if (calcCount > MAXIMUM_PATH_CALCULATIONS || 
 							state == PATHSTATE_IMPOSSIBLE)
@@ -1267,12 +1514,29 @@ namespace Game
 							break;
 						}
 
-						if (calcCount == RECALC_FLOODFILL_LIMIT && floodfillState == FLOODFILLSTATE_SKIPPED)
+						if (calcCount >= RECALC_TRACE_LIMIT && preprocessState == PREPROCESSSTATE_SKIPPED_TRACE)
+						{
+							if (InitTrace(unit, md->_start->x, md->_start->y, md->_goal->x, md->_goal->y) != PATHSTATE_ERROR)
+							{
+								preprocessState = PREPROCESSSTATE_PROCESSING_TRACE;
+								break;
+							}
+							else
+							{
+								preprocessState = PREPROCESSSTATE_SKIPPED_FLOOD;
+							}
+						}
+
+						if (calcCount >= RECALC_FLOODFILL_LIMIT && preprocessState == PREPROCESSSTATE_SKIPPED_FLOOD)
 						{
 							if (InitFloodfill(unit, md->_start->x, md->_start->y, FLOODFILL_FLAG_CALCULATE_NEAREST) != PATHSTATE_ERROR)
 							{
-								floodfillState = FLOODFILLSTATE_PROCESSING;
+								preprocessState = PREPROCESSSTATE_PROCESSING_FLOOD;
 								break;
+							}
+							else
+							{
+								preprocessState = PREPROCESSSTATE_DONE;
 							}
 						}
 
@@ -1282,7 +1546,7 @@ namespace Game
 
 						if (md->_popFromQueue)
 						{
-							printf("middle\n");
+//							printf("middle\n");
 							SDL_LockMutex(tdata->pMutex);
 							
 							ParsePopQueueReason(tdata, md);
@@ -1308,7 +1572,7 @@ namespace Game
 						}
 						else
 						{
-//							cout << num_steps << " steps" << endl;
+//							cout << calcCount << " total, " << tsteps << " trace, " << fsteps << " flood, " << psteps << " a*, " << unit << endl;
 							done = true;
 							quit = true;
 							break;
@@ -1324,11 +1588,14 @@ namespace Game
 			md->_currentState = INTTHRSTATE_NONE;
 			md->changedGoal = false;
 			calcCount = 0;
+			psteps = 0;
+			fsteps = 0;
+			tsteps = 0;
 			
 			int ret = ERROR_GENERAL;
 			if (md->_popFromQueue)
 			{
-				printf("end\n");
+//				printf("end\n");
 				ParsePopQueueReason(tdata, md);
 				ret = SUCCESS;
 			}
