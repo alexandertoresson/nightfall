@@ -11,6 +11,14 @@ namespace Game
 
 			int x;
 			int y;
+
+			Node()
+			{
+				pParent = NULL;
+				pChild = NULL;
+				x = 0;
+				y = 0;
+			}
 		};
 	}
 }

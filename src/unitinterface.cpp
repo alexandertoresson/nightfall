@@ -2892,6 +2892,7 @@ else \
 			}
 		}
 
+		pUnitType->index = pWorld->vUnitTypes.size();
 		pWorld->vUnitTypes.push_back(pUnitType);
 		temputdatas.push_back(temputdata);
 

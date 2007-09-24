@@ -224,7 +224,6 @@ namespace Game
 						mainWindow = GameWindow::Instance();
 						if (mainWindow->NewGame() == SUCCESS)
 						{
-							mainWindow->NewGame();
 							Networking::StartNetwork(Networking::CLIENT);
 							nextState = (SwitchState)networkJoin->RunLoop();
 							if(nextState == MENU)
