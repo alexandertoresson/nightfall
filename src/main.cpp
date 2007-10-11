@@ -96,7 +96,10 @@ int main(int argc, char** argv)
 		loading->SetMessage("Initializing Soundsytem");
 		loading->Update();
 	#if USE_AUDIO == 1
-		Audio::Init(configInterprt.GetValue("audio config"));
+		if (!Game::Rules::noSound)
+		{
+			Audio::Init(configInterprt.GetValue("audio config"));
+		}
 	#endif
 		
 		if(SDLNet_Init() == -1)
@@ -170,7 +173,61 @@ void ParseArguments(int argc, char** argv, char*& worldMap)
 		}
 		else if (!strcmp(argv[i], "--dedicated-server"))
 		{
-			Game::Networking::isDedicatedServer = true;
+			Game::Rules::isServer = true;
+			Game::Rules::noGraphics = true;
+			Game::Rules::noSound = true;
+		}
+		else if (!strcmp(argv[i], "--dedicated-client"))
+		{
+			Game::Rules::isClient = true;
+			Game::Rules::noGraphics = true;
+			Game::Rules::noSound = true;
+		}
+		else if (!strcmp(argv[i], "--server"))
+		{
+			Game::Rules::isServer = true;
+		}
+		else if (!strcmp(argv[i], "--client"))
+		{
+			Game::Rules::isClient = true;
+		}
+		else if (!strcmp(argv[i], "--no-graphics"))
+		{
+			Game::Rules::noGraphics = true;
+		}
+		else if (!strcmp(argv[i], "--no-sound"))
+		{
+			Game::Rules::noSound = true;
+		}
+		else if (!strcmp(argv[i], "--host"))
+		{
+			if (++i < argc)
+			{
+				Game::Rules::host = (std::string) argv[i];
+			}
+		}
+		else if (!strcmp(argv[i], "--port"))
+		{
+			if (++i < argc)
+			{
+				std::stringstream ss(argv[i]);
+				ss >> Game::Networking::netPort;
+			}
+		}
+		else if (!strcmp(argv[i], "--checksum-log"))
+		{
+			if (++i < argc)
+			{
+				Game::Rules::checksumLog = (std::string) argv[i];
+			}
+		}
+		else if (!strcmp(argv[i], "--player-goal"))
+		{
+			if (++i < argc)
+			{
+				std::stringstream ss(argv[i]);
+				ss >> Game::Rules::numPlayersGoal;
+			}
 		}
 	}
 }
@@ -210,9 +267,6 @@ void KillAll(void)
 	cout << "attempted frames waiting percent: " << ((float) Game::Networking::attempted_frames_waited / (float) Game::Networking::attempted_frame_count) * 100 << endl;
 	
 	cout << "average bytes sent per second: " << (float) Game::Networking::bytes_sent / (float) Game::Networking::attempted_frame_count * Game::AI::aiFps << endl;
-#ifdef CHECKSUM_DEBUG
-	Game::Networking::checksum_output.close();
-#endif
 
 	std::cout << "Goodbye!" << std::endl;
 }

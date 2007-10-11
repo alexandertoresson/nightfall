@@ -5,7 +5,8 @@
 #warning "networking.h-pre"
 #endif
 
-//#define CHECKSUM_DEBUG
+#define CHECKSUM_DEBUG
+//#define CHECKSUM_DEBUG_HIGH
 
 #include "sdlheader.h"
 #include <fstream>
@@ -17,7 +18,6 @@ namespace Game
 	namespace Networking
 	{
 		extern bool isNetworked;
-		extern bool isDedicatedServer;
 		extern bool isReady;
 		extern bool isReadyToLoad;
 		extern bool isReadyToStart;
@@ -30,10 +30,6 @@ namespace Game
 		extern Uint32 attempted_frames_waited;
 		extern Uint32 bytes_sent;
 		extern std::string nickname;
-
-#ifdef CHECKSUM_DEBUG
-		extern std::ofstream checksum_output;
-#endif
 
 		class BitStream
 		{
@@ -99,6 +95,7 @@ namespace Game
 #include "dimension.h"
 #include "aibase.h"
 #include "ainode.h"
+#include "circularbuffer.h"
 
 #endif
 
@@ -210,6 +207,10 @@ namespace Game
 		};
 
 		extern NETWORKTYPE networkType;
+
+#ifdef CHECKSUM_DEBUG
+		extern CircularBuffer checksum_output;
+#endif
 
 		void InitNetwork();
 		int StartNetwork(NETWORKTYPE type);

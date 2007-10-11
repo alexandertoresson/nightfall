@@ -5,6 +5,8 @@
 #include "dimension.h"
 #include "aibase.h"
 #include "paths.h"
+#include "unitinterface.h"
+#include "console.h"
 #include <cassert>
 
 namespace Utilities
@@ -26,6 +28,7 @@ namespace Utilities
 			SetEnum(L, "Attack", Game::AI::ACTION_ATTACK);
 			SetEnum(L, "Collect", Game::AI::ACTION_COLLECT);
 			SetEnum(L, "Build", Game::AI::ACTION_BUILD);
+			SetEnum(L, "Research", Game::AI::ACTION_RESEARCH);
 			SetEnum(L, "Repair", Game::AI::ACTION_REPAIR);
 			SetEnum(L, "Follow", Game::AI::ACTION_FOLLOW);
 			SetEnum(L, "MoveAttack", Game::AI::ACTION_MOVE_ATTACK);
@@ -64,6 +67,17 @@ namespace Utilities
 			SetEnum(L, "DayLight", Game::Dimension::POWERTYPE_DAYLIGHT);
 			SetEnum(L, "TwentyFourSeven", Game::Dimension::POWERTYPE_TWENTYFOURSEVEN);
 			lua_setglobal(L, "PowerType");
+			
+			lua_newtable(L);
+			SetEnum(L, "CommandCompleted", UnitLuaInterface::EVENTTYPE_COMMANDCOMPLETED);
+			SetEnum(L, "CommandCancelled", UnitLuaInterface::EVENTTYPE_COMMANDCANCELLED);
+			SetEnum(L, "NewCommand", UnitLuaInterface::EVENTTYPE_NEWCOMMAND);
+			SetEnum(L, "BecomeIdle", UnitLuaInterface::EVENTTYPE_BECOMEIDLE);
+			SetEnum(L, "IsAttacked", UnitLuaInterface::EVENTTYPE_ISATTACKED);
+			SetEnum(L, "PerformUnitAI", UnitLuaInterface::EVENTTYPE_PERFORMUNITAI);
+			SetEnum(L, "UnitCreation", UnitLuaInterface::EVENTTYPE_UNITCREATION);
+			SetEnum(L, "PerformPlayerAI", UnitLuaInterface::EVENTTYPE_PERFORMPLAYERAI);
+			lua_setglobal(L, "EventType");
 			
 			char newline[] = {Console::nl, 0};
 			lua_newtable(L);
@@ -148,6 +162,7 @@ namespace Utilities
 
 		void LuaVirtualMachine::SetFunction(std::string luaFunction)
 		{
+//			cout << luaFunction << endl;
 			lua_getglobal(m_pVM,  luaFunction.c_str());
 			curFunction = luaFunction;
 		}

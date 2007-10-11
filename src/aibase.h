@@ -6,18 +6,17 @@
 #endif
 
 #include "sdlheader.h"
+#include <string>
 
 namespace Game
 {
 	namespace AI
 	{
-		struct UnitAIData;
-		struct PlayerAIData;
-		
 		extern Uint32 currentFrame; // for tracking the number of the current frame
 		extern int action_changes;
 		extern int pathnodes;
 		extern int paths;
+		extern int aiFramesPerformedSinceLastRender;
 		
 		enum UnitAction // different actions
 		{
@@ -35,6 +34,25 @@ namespace Game
 			ACTION_BEING_CREATED,
 			ACTION_NETWORK_AWAITING_SYNC,
 			ACTION_NUM         // only here to check the number of actions, not used as an action
+		};
+
+		struct UnitAIFuncs
+		{
+			std::string performUnitAI;
+			int unitAIDelay;
+			std::string commandCompleted;
+			std::string commandCancelled;
+			std::string newCommand;
+			std::string becomeIdle;
+			std::string isAttacked;
+			std::string unitKilled;
+		};
+
+		struct PlayerAIFuncs
+		{
+			std::string performPlayerAI;
+			int playerAIDelay;
+			std::string unitCreation;
 		};
 
 	}
@@ -66,18 +84,6 @@ namespace Game
 {
 	namespace AI
 	{
-		struct UnitAIData
-		{
-			// any data the computer player might want to store for this unit
-			int dummy;
-		};
-
-		struct PlayerAIData
-		{
-			// any data the computer player might want to store for this player
-			int dummy;
-		};
-		
 		void PerformAI(Dimension::Unit* unit);     // Execute AI stuff for a unit
 		void PerformAI(Dimension::Player* player); // Execute player AI (things that have nothing to do with the units, that is)
 		void PerformAIFrame(); // Perform a full AI frame, if possible
@@ -102,6 +108,11 @@ namespace Game
 		void SendUnitEventToLua_BuildCancelled(Dimension::Unit* pUnit);
 		void SendUnitEventToLua_ResearchComplete(Dimension::Unit* pUnit);
 		void SendUnitEventToLua_ResearchCancelled(Dimension::Unit* pUnit);
+		
+		void SendUnitEventToLua_IsAttacked(Dimension::Unit* pUnit, Dimension::Unit* attacker);
+		void SendUnitEventToLua_UnitCreation(Dimension::Unit* pUnit);
+		void SendUnitEventToLua_UnitKilled(Dimension::Unit* pUnit);
+		void SendUnitEventToLua_BecomeIdle(Dimension::Unit* pUnit);
 
 		extern int aiFps;
 		extern int aiFrame;

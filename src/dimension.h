@@ -106,18 +106,20 @@ namespace Game
 
 		struct Player
 		{
-			char              name[16];
+			const char*       name;
 			PlayerType        type;
 			vector<Unit*>     vUnits;
 			vector<Projectile*> vProjectiles;
-			AI::PlayerAIData* aiPlayerData;
 			int**             NumUnitsSeeingSquare;
 			PlayerState*      states;
 			Resources         resources;
 			Resources         oldResources;
 			GLuint            texture;
 			int               index;
-		};	
+			AI::PlayerAIFuncs playerAIFuncs;
+			AI::UnitAIFuncs   unitAIFuncs;
+			int               aiFrame;
+		};
 		
 		struct World
 		{
@@ -150,7 +152,7 @@ namespace Game
 		
 		void GetApproximateMapPosOfClick(int clickx, int clicky, int &map_x, int &map_y);
 		bool GetTerrainPosClicked(int clickx, int clicky, int map_x, int map_y, int &ter_x, int &ter_y);
-		Player* AddPlayer(char* name, PlayerType playertype);
+		Player* AddPlayer(const char* name, PlayerType playertype, const char* playertexture);
 
 		// Ladda modell ur textfil
 		Model*  LoadModel(const char* file);
@@ -158,7 +160,8 @@ namespace Game
 		// Ladda unittype ur textfil
 		UnitType*  LoadUnitType(const char* file);
 
-		void InitPlayers(unsigned players_to_init = 2);
+		void InitPlayers(unsigned players_to_init);
+		void InitPlayers(vector<PlayerType> playertypes);
 		
 		// Deallokerar modellen Model*
 		void    UnloadModel(const Model*);
@@ -167,6 +170,7 @@ namespace Game
 		void SetCurrentPlayer(Player*);
 		
 		void UnloadUnitType(UnitType* pUnitType);
+		bool IsValidPlayerPointer(Player* player);
 	}
 }
 

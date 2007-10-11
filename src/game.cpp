@@ -29,8 +29,17 @@ namespace Game
 {
 	namespace Rules
 	{
+		
+		bool noGraphics = false;
+		bool graphicsLoaded = true;
+		bool noSound = false;
+		bool isServer = false;
+		bool isClient = false;
+		int numPlayersGoal = 0;
+		std::string host = "localhost";
+		std::string checksumLog = "";
 
-		std::string CurrentLevel = "default";
+		std::string CurrentLevel = "aivsai";
 
 		GameWindow* GameWindow::pInstance = NULL;
 
@@ -146,8 +155,11 @@ namespace Game
 			NetworkJoin *networkJoin = new NetworkJoin();
 			NetworkCreate *networkCreate = new NetworkCreate();
 
-			if (Game::Networking::isDedicatedServer)
+			if (isServer)
 				nextState = NETWORKCREATE;
+
+			if (isClient)
+				nextState = NETWORKJOIN;
 
 			while(nextState != QUIT)
 			{
@@ -186,6 +198,10 @@ namespace Game
 						mainWindow = GameWindow::Instance();
 						nextState = (SwitchState)mainWindow->RunLoop();
 						Audio::StopAll();
+						if (Networking::isNetworked)
+						{
+							Networking::ShutdownNetwork();
+						}
 						break;
 					}
 					case INGAMEMENU:
@@ -205,6 +221,7 @@ namespace Game
 					}
 					case NETWORKCREATE:
 					{
+						Networking::isNetworked = true;
 						mainWindow = GameWindow::Instance();
 						if (mainWindow->NewGame() == SUCCESS)
 						{
@@ -221,6 +238,7 @@ namespace Game
 					}
 					case NETWORKJOIN:
 					{
+						Networking::isNetworked = true;
 						mainWindow = GameWindow::Instance();
 						if (mainWindow->NewGame() == SUCCESS)
 						{
@@ -516,8 +534,17 @@ namespace Game
 		int GameWindow::InitGame()
 		{
 			input = new Dimension::InputController();
-			float increment = 0.9f / 8.0f; //0.9 (90%) divided on 6 updates...
+			float increment = 0.9f / 6.0f; //0.9 (90%) divided on 6 updates...
 			Dimension::pWorld = new Dimension::World;
+
+			if (noGraphics)
+			{
+				graphicsLoaded = false;
+			}
+			else
+			{
+				graphicsLoaded = true;
+			}
 			
 			Utilities::Scripting::LuaVirtualMachine* const pVM = Utilities::Scripting::LuaVirtualMachine::Instance();
 			Dimension::Environment::FourthDimension* pDimension = Dimension::Environment::FourthDimension::Instance();
@@ -534,11 +561,6 @@ namespace Game
 			}
 			std::string generic_level_script = "scripts/init_level.lua";
 			if (pVM->DoFile(generic_level_script) != SUCCESS)
-			{
-				return ERROR_GENERAL;
-			}
-			pVM->SetFunction("SetPlayers");
-			if (pVM->CallFunction(0) != SUCCESS)
 			{
 				return ERROR_GENERAL;
 			}
@@ -569,15 +591,7 @@ namespace Game
 				return ERROR_GENERAL;
 			}
 			pLoading->Increment(increment);
-			
-			////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-			if (Dimension::pWorld->vPlayers.size() == 0)
-				Dimension::InitPlayers();
-			pLoading->Increment(increment);
-			
-			////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-			pLoading->Increment(increment);
-			
+				
 			////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 			FX::pParticleSystems = new Game::FX::ParticleSystemHandler(100, 100);
 			pLoading->Increment(increment);
@@ -773,6 +787,8 @@ namespace Game
 				Dimension::RenderBuildOutline(build_type, build_x, build_y);
 			}
 
+			AI::aiFramesPerformedSinceLastRender = 0;
+
 		}
 
 		bool GameWindow::PaintAll()
@@ -808,7 +824,7 @@ namespace Game
 
 			time_passed_since_last_ai_pass += time_since_last_frame;
 
-			if (!Game::Networking::isDedicatedServer)
+			if (!Game::Rules::noGraphics)
 			{
 				time_passed_since_last_water_pass += time_since_last_frame;
 				while (time_passed_since_last_water_pass >= (1.0 / 3))
@@ -816,19 +832,27 @@ namespace Game
 					Dimension::CalculateWater();
 					time_passed_since_last_water_pass -= (1.0 / 3);
 				}
+				
+				while (time_passed_since_last_ai_pass >= (1 / AI::aiFps))
+				{
+
+					Uint32 before_ai_pass = SDL_GetTicks();
+					AI::PerformAIFrame();
+					Uint32 after_ai_pass = SDL_GetTicks();
+					float time_ai_pass = (after_ai_pass - before_ai_pass) / 1000.0;
+
+					time_passed_since_last_ai_pass -= (1 / (float) AI::aiFps);
+					if (time_ai_pass > (1 / (float) AI::aiFps))
+					{
+						time_passed_since_last_ai_pass -= time_ai_pass - (1 / (float) AI::aiFps);
+					}
+				}
+
 			}
-
-
-			while (time_passed_since_last_ai_pass >= (1 / AI::aiFps))
+			else
 			{
-
-				Uint32 before_ai_pass = SDL_GetTicks();
 				AI::PerformAIFrame();
-				Uint32 after_ai_pass = SDL_GetTicks();
-				float time_ai_pass = (after_ai_pass - before_ai_pass) / 1000.0;
-
-				time_passed_since_last_ai_pass -= (1 / (float) AI::aiFps);
-				time_since_last_frame -= time_ai_pass;
+				time_passed_since_last_ai_pass = 0;
 			}
 
 			//Key States operations
@@ -900,7 +924,7 @@ namespace Game
 
 		int GameWindow::RunLoop()
 		{
-			if (!Game::Networking::isDedicatedServer)
+			if (!Game::Rules::noGraphics)
 				glClearColor( 0.2f, 0.2f, 0.2f, 0.7f );
 
 			go = true;
@@ -909,15 +933,15 @@ namespace Game
 				PerformPreFrame();
 				ProcessEvents();
 
-				if (!Game::Networking::isDedicatedServer)
+				if (!Game::Rules::noGraphics)
 					PaintAll();
 			
 				frames++;
 
 				if (SDL_GetTicks() - time >= 1000)
 				{
-					if (Game::Networking::isDedicatedServer)
-						cout << "Fps: " << (frames / (((float) (SDL_GetTicks() - time)) / 1000)) << " " << Dimension::pWorld->vUnits.size() << endl;
+					if (Game::Rules::noGraphics)
+						cout << "Fps: " << (frames / (((float) (SDL_GetTicks() - time)) / 1000)) << " " << Dimension::pWorld->vUnits.size() << " " << AI::currentFrame << endl;
 					else
 						console << "Fps: " << (frames / (((float) (SDL_GetTicks() - time)) / 1000)) << " " << Dimension::pWorld->vUnits.size() << Console::nl;
 
@@ -925,10 +949,13 @@ namespace Game
 					time = SDL_GetTicks();
 				}
 
-				if (Game::Networking::isDedicatedServer)
-					SDL_Delay(1);
 			}
 			return returnValue;
+		}
+
+		void GameWindow::Stop()
+		{
+			go = false;
 		}
 	}
 }

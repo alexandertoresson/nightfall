@@ -471,11 +471,17 @@ namespace Window
 				float scrollWidth;
 				bool mouseDown;
 				bool mouseCorrect;
+				float lineHeight;
+				int translate;
+				int visibleLines;
+				bool scrollOnInput;
+				void SetLineHeight(float value, int vlines);
 			public:
 				ConsoleBuffer();
 				void PrepareBuffer();
 				int Paint();
 				int HandleEvent(EventType, SDL_Event*, TranslatedMouse*);
+				void EventRemLine();
 		};
 /*
 		class Selector : public Label

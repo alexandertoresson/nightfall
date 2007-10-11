@@ -62,8 +62,6 @@ namespace Game
 		static SDL_Thread* pPathfindingThread;
 		static bool        threadRuntime;
 		static SDL_mutex*  gpmxPathfinding;
-		static Node*       gStack[STACK_ELEMENTS];
-		static int         gStackSize = 0;
 			
 		int                lowestH;
 		int                lowestDistance;
@@ -253,10 +251,8 @@ namespace Game
 			ALLOCATIONS++;
 #endif
 			Node* p = NULL;
-			if (gStackSize > 0)
-				p = gStack[--gStackSize];
-			else
-				p = new Node();
+			
+			p = new Node();
 
 			p->pChild = NULL;
 			p->pParent = NULL;
@@ -272,14 +268,7 @@ namespace Game
 #ifdef DEBUG_AI_PATHFINDING
 			ALLOCATIONS--;
 #endif
-			if (gStackSize == STACK_ELEMENTS)
-			{
-				delete p;
-			}
-			else
-			{
-				gStack[gStackSize++] = p;
-			}
+			delete p;
 			p = NULL;
 		}
 
@@ -294,9 +283,14 @@ namespace Game
 			md->pCurGoalNode = NULL;
 			md->calcState = CALCSTATE_REACHED_GOAL;
 			
+			md->action.startPos.x = 0;
+			md->action.startPos.y = 0;
 			md->action.goal.pos.x = 0;
 			md->action.goal.pos.y = 0;
 			md->action.goal.unit = NULL;
+			md->action.goal.goal_id = 0xFFFF;
+			md->action.changedGoalPos.x = 0;
+			md->action.changedGoalPos.y = 0;
 			md->action.arg = NULL;
 			md->action.action = ACTION_GOTO;
 			
@@ -304,12 +298,29 @@ namespace Game
 			md->_popFromQueue = false;
 			md->_start = NULL;
 			md->_goal = NULL;
-			md->_changedGoal = NULL;
+			md->_action.startPos.x = 0;
+			md->_action.startPos.y = 0;
 			md->_action.goal.pos.x = 0;
 			md->_action.goal.pos.y = 0;
 			md->_action.goal.unit = NULL;
+			md->_action.changedGoalPos.x = 0;
+			md->_action.changedGoalPos.y = 0;
+			md->_action.goal.unit = NULL;
+			md->_action.goal.goal_id = 0xFFFF;
 			md->_action.arg = NULL;
 			md->_action.action = ACTION_GOTO;
+			
+			md->_newAction.startPos.x = 0;
+			md->_newAction.startPos.y = 0;
+			md->_newAction.goal.pos.x = 0;
+			md->_newAction.goal.pos.y = 0;
+			md->_newAction.goal.unit = NULL;
+			md->_newAction.goal.goal_id = 0xFFFF;
+			md->_newAction.changedGoalPos.x = 0;
+			md->_newAction.changedGoalPos.y = 0;
+			md->_newAction.goal.unit = NULL;
+			md->_newAction.arg = NULL;
+			md->_newAction.action = ACTION_GOTO;
 			
 #ifdef DEBUG_AI_PATHFINDING
 			std::cout << "Movement data init: " << pUnit << std::endl;
@@ -326,9 +337,6 @@ namespace Game
 
 			if ((int)start_x == (int)goal_x && (int)start_y == (int)goal_y)
 				return IPR_GOAL_IS_START;
-				
-			if (!pUnit->pMovementData)
-				InitMovementData(pUnit);
 
 			SDL_LockMutex(gpmxPathfinding);
 
@@ -341,18 +349,20 @@ namespace Game
 			IPResult res;
 			MovementData* md = pUnit->pMovementData;
 			
-			md->_action.goal.pos.x = goal_x;
-			md->_action.goal.pos.y = goal_y;
-			md->_action.goal.unit = target;
-			md->_action.arg = args;
-			md->_action.action = action;
+			md->_newAction.startPos.x = start_x;
+			md->_newAction.startPos.y = start_y;
+			md->_newAction.goal.pos.x = goal_x;
+			md->_newAction.goal.pos.y = goal_y;
+			md->_newAction.goal.unit = target;
+			md->_newAction.changedGoalPos.x = goal_x;
+			md->_newAction.changedGoalPos.y = goal_y;
+			md->_newAction.arg = args;
+			md->_newAction.action = action;
 				
 			if (curState == INTTHRSTATE_PROCESSING)
 			{
 				md->_popFromQueue = true;
 				md->_reason = POP_NEW_GOAL;
-				md->_newx = goal_x;
-				md->_newy = goal_y;
 				
 				res = IPR_SUCCESS_POPCMD_ISSUED;
 			}
@@ -360,10 +370,9 @@ namespace Game
 			{
 				if (md->_start != NULL)
 					DeallocPathfindingNodes(pUnit, DPN_BACK);
+
+				md->_action = md->_newAction;
 			       
-				md->_start = AllocNode((int)start_x, (int)start_y);
-				md->_goal  = AllocNode((int)goal_x, (int)goal_y);
-				md->_changedGoal  = AllocNode((int)goal_x, (int)goal_y);
 				md->calcState = CALCSTATE_WORKING;
 				md->changedGoal = false;
 #ifdef DEBUG_AI_PATHFINDING
@@ -426,21 +435,21 @@ namespace Game
 				
 			md->pStart = md->_start;
 			md->pGoal  = md->_goal;
-			
-			md->action.goal.pos.x = md->_action.goal.pos.x;
-			md->action.goal.pos.y = md->_action.goal.pos.y;
-			md->action.goal.unit = md->_action.goal.unit;
-			md->action.arg = md->_action.arg;
-			md->action.action = md->_action.action;
+
+			md->action = md->_action;
+
 			unit->action = md->_action.action;
 			
 			md->_start = NULL;
 			md->_goal = NULL;
-			md->_changedGoal = NULL;
 			
+			md->_action.startPos.x = 0;
+			md->_action.startPos.y = 0;
 			md->_action.goal.pos.x = 0;
 			md->_action.goal.pos.y = 0;
 			md->_action.goal.unit  = NULL;
+			md->_action.changedGoalPos.x = 0;
+			md->_action.changedGoalPos.y = 0;
 			md->_action.arg        = NULL;
 			
 			return true;
@@ -499,22 +508,13 @@ namespace Game
 			
 			MovementData* data = tdata->pUnit->pMovementData;
 			
-			if (data->_start->pChild != NULL)
+			if (data->_start != NULL)
 			{
 				DeallocPathfindingNodes(tdata->pUnit, DPN_BACK);
-			}
-			else
-			{
-				DeallocNode(data->_goal);
-
-				DeallocNode(data->_start);
-				
-				DeallocNode(data->_changedGoal);
 			}
 
 			data->_start = NULL;
 			data->_goal  = NULL;
-			data->_changedGoal  = NULL;
 			
 			data->changedGoal = false;
 		}
@@ -538,9 +538,6 @@ namespace Game
 				case DPN_BACK:
 					goal = &md->_goal;
 					start = &md->_start;
-
-					DeallocNode(md->_changedGoal);
-					md->_changedGoal = NULL;
 					break;
 				default:
 					assert(false && "Wrong DPN arguments!");
@@ -738,8 +735,8 @@ namespace Game
 					if (new_distance < lowestDistance)
 					{
 						lowestDistance = new_distance;
-						md->_changedGoal->x = traceCurX;
-						md->_changedGoal->y = traceCurY;
+						md->_action.changedGoalPos.x = traceCurX;
+						md->_action.changedGoalPos.y = traceCurY;
 						if (new_distance == 0)
 						{
 							return PATHSTATE_GOAL;
@@ -943,8 +940,8 @@ namespace Game
 				if (new_distance < lowestDistance)
 				{
 					lowestDistance = new_distance;
-					md->_changedGoal->x = t_x;
-					md->_changedGoal->y = y;
+					md->_action.changedGoalPos.x = t_x;
+					md->_action.changedGoalPos.y = y;
 					if (new_distance == 0)
 					{
 						return PATHSTATE_GOAL;
@@ -1061,8 +1058,8 @@ namespace Game
 								else if (lastScanlineIndex == firstScanlineIndex && numScanlines != 1)
 								{
 									printf("FATAL - end of circular buffer reached start\n");
-									md->_changedGoal->x = target_x;
-									md->_changedGoal->y = target_y;
+									md->_action.changedGoalPos.x = target_x;
+									md->_action.changedGoalPos.y = target_y;
 									return PATHSTATE_GOAL;
 								}
 
@@ -1071,8 +1068,8 @@ namespace Game
 								if (scanline_types[new_start_x] == NODE_TYPE_CLOSED)
 								{
 									printf("FATAL - traversed same scanline twice!\n");
-									md->_changedGoal->x = target_x;
-									md->_changedGoal->y = target_y;
+									md->_action.changedGoalPos.x = target_x;
+									md->_action.changedGoalPos.y = target_y;
 									return PATHSTATE_GOAL;
 								}
 				
@@ -1090,9 +1087,10 @@ namespace Game
 								new_x = scanlines[scanline_nums[new_start_x]].end_x+1;
 								if (new_x <= x)
 								{
-									printf("FATAL - Infinite loop detected in floodfill routine!\n");
-									md->_changedGoal->x = target_x;
-									md->_changedGoal->y = target_y;
+									// what would have become an infinite loop has been detected,
+									// cancel the calculation...
+									md->_action.changedGoalPos.x = target_x;
+									md->_action.changedGoalPos.y = target_y;
 									return PATHSTATE_GOAL;
 								}
 								else
@@ -1118,8 +1116,8 @@ namespace Game
 			Dimension::Unit* unit  = tdata->pUnit;
 			MovementData* md       = unit->pMovementData;
 
-			int start_x = md->_start->x, start_y = md->_start->y;
-			int target_x = md->_goal->x, target_y = md->_goal->y;
+			int start_x = (int) md->_action.startPos.x, start_y = (int) md->_action.startPos.y;
+			int target_x = (int) md->_action.goal.pos.x, target_y = (int) md->_action.goal.pos.y;
 
 			int y;
 
@@ -1166,7 +1164,7 @@ namespace Game
 		{
 			Dimension::Unit* unit  = tdata->pUnit;
 			MovementData* md       = unit->pMovementData;
-			int target_x = md->_changedGoal->x, target_y = md->_changedGoal->y;
+			int target_x = (int) md->_action.changedGoalPos.x, target_y = (int) md->_action.changedGoalPos.y;
 			int x, y;
 			
 			int first_node;
@@ -1180,8 +1178,8 @@ namespace Game
 			if (first_node == -1)
 			{
 	/*			printf("Did not reach target\n"); */
-				md->_goal->x = nodes[nearestNode].x;
-				md->_goal->y = nodes[nearestNode].y;
+				md->_action.changedGoalPos.x = nodes[nearestNode].x;
+				md->_action.changedGoalPos.y = nodes[nearestNode].y;
 				return PATHSTATE_GOAL;
 			}
 
@@ -1221,7 +1219,7 @@ namespace Game
 								if (node_type == NODE_TYPE_OPEN)
 								{
 									int new_g = nodes[first_node].g;
-									new_g += Dimension::GetTraversalTime(unit, node_x, node_y, x, y);
+									new_g += Dimension::GetTraversalTimeAdjusted(unit, node_x, node_y, x, y);
 
 									node_num = scanline_nums[new_x];
 									if (new_g < nodes[node_num].g)
@@ -1245,7 +1243,7 @@ namespace Game
 									if (IsWalkable(unit, new_x, new_y))
 									{
 										int new_g = nodes[first_node].g;
-										new_g += Dimension::GetTraversalTime(unit, node_x, node_y, x, y);
+										new_g += Dimension::GetTraversalTimeAdjusted(unit, node_x, node_y, x, y);
 
 										node_num = scanline_nums[new_x] = nextFreeNode++;
 										if (node_num == first_node)
@@ -1288,6 +1286,10 @@ namespace Game
 				{
 					prev_node->pParent = new_node;
 				}
+				else
+				{
+					new_node->pParent = NULL;
+				}
 				if (!first_node)
 				{
 					first_node = new_node;
@@ -1306,31 +1308,22 @@ namespace Game
 				case POP_NEW_GOAL:
 				{
 //					printf("new_goal\n");
-					int start_x = (int)md->_start->x, 
-					    start_y = (int)md->_start->y;
-
-					DeallocPathfinding(tdata);
 					
 					md->_popFromQueue = false;
 					md->_currentState = INTTHRSTATE_WAITING;
 					md->calcState     = CALCSTATE_WORKING;
 
-					float* x = &md->_newx;
-					float* y = &md->_newy;
-					
-					md->_start = AllocNode(start_x, start_y);
-					md->_goal  = AllocNode((int)*x, (int)*y);
-					md->_changedGoal  = AllocNode((int)*x, (int)*y);
-					
+					md->_action = md->_newAction;
+
 					gCalcQueue.push(tdata->pUnit);
 
-					*x = 0; *y = 0;
 				} break;
 
 				case POP_DELETED:
 				{
 //					printf("deleted\n");
 					DeallocPathfinding(tdata);
+					
 					delete md;
 					delete tdata->pUnit;
 
@@ -1390,15 +1383,6 @@ namespace Game
 				return SUCCESS;
 			}
 			
-			if (md->_goal == NULL)
-			{
-				md->_currentState = INTTHRSTATE_NONE;
-				tdata->pUnit = NULL;
-				
-				SDL_UnlockMutex(tdata->pMutex);
-				return SUCCESS;
-			}
-
 			int steps = 0;
 			bool quit = false; // <<< bad solution? See below...
 			bool done = false;
@@ -1412,7 +1396,7 @@ namespace Game
 					if (preprocessState == PREPROCESSSTATE_NONE)
 					{
 						int m_type = unit->type->movementType;
-						if (IsWalkable(unit, md->_goal->x, md->_goal->y) && areaMaps[m_type][md->_start->y][md->_start->x] == areaMaps[m_type][md->_goal->y][md->_goal->x])
+						if (IsWalkable(unit, (int)md->_action.goal.pos.x, (int)md->_action.goal.pos.y) && areaMaps[m_type][(int)md->_action.startPos.y][(int)md->_action.startPos.x] == areaMaps[m_type][(int)md->_action.goal.pos.y][(int)md->_action.goal.pos.x])
 						{
 							preprocessState = PREPROCESSSTATE_SKIPPED_TRACE; // Skip it for now
 							InitPathfinding(tdata);
@@ -1420,10 +1404,10 @@ namespace Game
 						else
 						{
 							preprocessState = PREPROCESSSTATE_PROCESSING_TRACE;
-							if (InitTrace(unit, md->_start->x, md->_start->y, md->_goal->x, md->_goal->y) == PATHSTATE_ERROR)
+							if (InitTrace(unit, (int)md->_action.startPos.x, (int)md->_action.startPos.y, (int)md->_action.goal.pos.x, (int)md->_action.goal.pos.y) == PATHSTATE_ERROR)
 							{
 								preprocessState = PREPROCESSSTATE_PROCESSING_FLOOD;
-								if (InitFloodfill(unit, md->_start->x, md->_start->y, FLOODFILL_FLAG_CALCULATE_NEAREST) == PATHSTATE_ERROR)
+								if (InitFloodfill(unit, (int)md->_action.startPos.x, (int)md->_action.startPos.y, FLOODFILL_FLAG_CALCULATE_NEAREST) == PATHSTATE_ERROR)
 								{
 									preprocessState = PREPROCESSSTATE_SKIPPED_FLOOD;
 									InitPathfinding(tdata);
@@ -1439,7 +1423,7 @@ namespace Game
 							steps++;
 							tsteps++;
 						
-							if (TraceStep(unit, md, md->_start->x, md->_start->x, md->_goal->x, md->_goal->y) == PATHSTATE_GOAL)
+							if (TraceStep(unit, md, (int)md->_action.startPos.x, (int)md->_action.startPos.x, (int)md->_action.goal.pos.x, (int)md->_action.goal.pos.y) == PATHSTATE_GOAL)
 							{
 								preprocessState = PREPROCESSSTATE_SKIPPED_FLOOD;
 								InitPathfinding(tdata);
@@ -1471,7 +1455,7 @@ namespace Game
 							steps++;
 							fsteps++;
 						
-							if (FloodfillStep(unit, md, md->_goal->x, md->_goal->y) == PATHSTATE_GOAL)
+							if (FloodfillStep(unit, md, (int)md->_action.goal.pos.x, (int)md->_action.goal.pos.y) == PATHSTATE_GOAL)
 							{
 								preprocessState = PREPROCESSSTATE_DONE;
 								InitPathfinding(tdata);
@@ -1516,7 +1500,7 @@ namespace Game
 
 						if (calcCount >= RECALC_TRACE_LIMIT && preprocessState == PREPROCESSSTATE_SKIPPED_TRACE)
 						{
-							if (InitTrace(unit, md->_start->x, md->_start->y, md->_goal->x, md->_goal->y) != PATHSTATE_ERROR)
+							if (InitTrace(unit, (int)md->_action.startPos.x, (int)md->_action.startPos.y, (int)md->_action.goal.pos.x, (int)md->_action.goal.pos.y) != PATHSTATE_ERROR)
 							{
 								preprocessState = PREPROCESSSTATE_PROCESSING_TRACE;
 								break;
@@ -1529,7 +1513,7 @@ namespace Game
 
 						if (calcCount >= RECALC_FLOODFILL_LIMIT && preprocessState == PREPROCESSSTATE_SKIPPED_FLOOD)
 						{
-							if (InitFloodfill(unit, md->_start->x, md->_start->y, FLOODFILL_FLAG_CALCULATE_NEAREST) != PATHSTATE_ERROR)
+							if (InitFloodfill(unit, (int)md->_action.startPos.x, (int)md->_action.startPos.y, FLOODFILL_FLAG_CALCULATE_NEAREST) != PATHSTATE_ERROR)
 							{
 								preprocessState = PREPROCESSSTATE_PROCESSING_FLOOD;
 								break;

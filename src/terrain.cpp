@@ -928,7 +928,7 @@ namespace Game
 			is_visible[0] = new int[levelmap_height];
 			is_visible[1] = new int[levelmap_height];
 
-			if (!Game::Networking::isDedicatedServer)
+			if (!Game::Rules::noGraphics)
 			{
 
 				cout << "Calculating normals for heightmap..." <<  endl;
@@ -2887,7 +2887,7 @@ namespace Game
 			}
 			delete [] HeightMipmaps[0][0].ppSquareHasWater;
 		
-			if (!Game::Networking::isDedicatedServer)
+			if (!Game::Rules::noGraphics)
 			{
 
 				for(int y = 0; y < pWorld->height; y++)

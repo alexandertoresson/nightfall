@@ -15,6 +15,7 @@ ut.attackMaxRange = 1.2
 ut.attackAccuracy = 80.0
 
 ut.sightRange = 6.0
+ut.attackRange = 1.5
 ut.movementSpeed = 6.0
 ut.movementType = MovementType.Human
 ut.attackSpeed = 1.0

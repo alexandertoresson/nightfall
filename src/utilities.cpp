@@ -3,6 +3,9 @@
 #include "sdlheader.h"
 #include "networking.h"
 #include "paths.h"
+#include "errors.h"
+#include "game.h"
+#include "console.h"
 
 using namespace Window;
 
@@ -308,22 +311,28 @@ namespace Utilities
 
 	ConfigurationFile::ConfigurationFile(void)
 	{
-		// Gör ingenting!
+		mFile = NULL;
 	}
 	
 	ConfigurationFile::ConfigurationFile(const std::string file)
 	{
+		mFile = NULL;
 		SetFile(file);
 	}
 	
 	void ConfigurationFile::SetFile(const std::string file)
 	{
-		strncpy(mFile, file.c_str(), 256);
+		if (mFile)
+		{
+			delete mFile;
+		}
+		mFile = new char[file.size()+1];
+		memcpy(mFile, file.c_str(), file.size()+1);
 	}
 	
 	int ConfigurationFile::Parse(void)
 	{
-		if (mFile[0] == 0)
+		if (!mFile)
 			return WINDOW_ERROR_NO_CONFIG_FILE;
 	
 		std::ifstream file;
@@ -387,7 +396,14 @@ namespace Utilities
 	int ConfigurationFile::Update(std::string output /* = "" */)
 	{
 		if (output != "")
-			strncpy(mFile, output.c_str(), 256);
+		{
+			if (mFile)
+			{
+				delete mFile;
+			}
+			mFile = new char[output.size()+1];
+			memcpy(mFile, output.c_str(), output.size()+1);
+		}
 		
 		std::ofstream file(mFile);
 		
@@ -422,6 +438,7 @@ namespace Utilities
 
 	StructuredInstructionsFile::StructuredInstructionsFile(void)
 	{
+		mFile = NULL;
 		PrepareIterator();
 	}
 	
@@ -448,12 +465,12 @@ namespace Utilities
 	
 	void StructuredInstructionsFile::SetFile(const std::string file)
 	{
-		strncpy(mFile, file.c_str(), 256);
+		mFile = file.c_str();
 	}
 	
 	int StructuredInstructionsFile::Parse(void)
 	{
-		if (mFile[0] == 0)
+		if (!mFile)
 			return STRUCTURED_INSTRUCTIONS_ERROR_NO_LIST;
 		
 		std::ifstream file(mFile);
@@ -710,7 +727,7 @@ namespace Utilities
 	
 	GLuint CreateGLTexture(SDL_Surface *image)
 	{
-		if (Game::Networking::isDedicatedServer)
+		if (Game::Rules::noGraphics)
 			return 0;
 		if(!image) 
 		{
@@ -768,7 +785,7 @@ namespace Utilities
 	//This function handles malformed textures with a size that is not a power of 2
 	GLuint LoadTexture(std::string path)
 	{
-		if (Game::Networking::isDedicatedServer)
+		if (Game::Rules::noGraphics)
 			return 0;
 		
 		std::string filename = GetDataFile(path);

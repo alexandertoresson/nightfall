@@ -2,8 +2,10 @@
 
 #include "errors.h"
 #include "utilities.h"
+#include "paths.h"
 #include <iostream>
 #include <fstream>
+#include <sstream>
 
 namespace Window
 {
@@ -276,12 +278,21 @@ namespace Window
 			return;
 		}
 
-		char filename[256];
+		std::stringstream ss;
+		std::string filename;
 		while (true)
 		{
-			sprintf(filename, "./screenshots/SCR%d.bmp", screenshotCount);
+			ss << "screenshots/SCR" << screenshotCount << ".bmp";
 
-			ifstream file(filename);
+			filename = Utilities::GetWritableDataFile(ss.str());
+
+			if (!filename.length())
+			{
+				std::cout << "Screenshot failed - could not find a writable location." << std::endl;
+				return;
+			}
+
+			ifstream file(filename.c_str());
 
 			if (file.good() == 0)
 			{
@@ -310,7 +321,7 @@ namespace Window
 				   4*pWindow->w);
 		}
 
-		int result = SDL_SaveBMP(temp, filename);
+		int result = SDL_SaveBMP(temp, filename.c_str());
 
 		SDL_FreeSurface(image);
 		SDL_FreeSurface(temp);

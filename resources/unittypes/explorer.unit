@@ -2,8 +2,6 @@ local ut = {}
 ut.id = "Explorer"
 ut.maxHealth = 50
 ut.maxPower = 100
-ut.minAttack = 2
-ut.maxAttack = 4
 ut.heightOnMap = 1
 ut.widthOnMap = 1
 ut.hasAI = true
@@ -11,7 +9,6 @@ ut.isResearched = true
 ut.isMobile = true
 
 ut.sightRange = 6.0
-ut.attackRange = 1.5
 ut.movementSpeed = 12.0
 ut.movementType = MovementType.Human
 

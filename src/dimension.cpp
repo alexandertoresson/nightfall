@@ -7,6 +7,7 @@
 #include "textures.h"
 #include "console.h"
 #include "networking.h"
+#include "game.h"
 
 #define OVERLAY 1
 
@@ -19,7 +20,14 @@ namespace Game
 		Player*    currentPlayerView = NULL;
 		Player*    currentPlayer     = NULL;
 
+		map<Player*, bool> validPlayerPointers;
+
 		Utilities::ModelParser modelLoader;
+
+		bool IsValidPlayerPointer(Player* player)
+		{
+			return validPlayerPointers[player];
+		}
 
 		InputController::InputController(void)
 		{
@@ -28,7 +36,7 @@ namespace Game
 				mKeys[i] = false;
 		}
 
-		// Checks whether a unit selected or not
+		// Checks whether a unit is selected or not
 		bool IsUnitSelected(Unit* unit)
 		{
 			for (vector<Unit*>::iterator it = unitsSelected.begin(); it != unitsSelected.end(); it++)
@@ -40,7 +48,6 @@ namespace Game
 			}
 			return false;
 		}
-
 		
 		// Get the approximate position of a click on the map
 		void GetApproximateMapPosOfClick(int clickx, int clicky, int &map_x, int &map_y)
@@ -114,16 +121,73 @@ namespace Game
 		}
 
 		// add a player
-		Player* AddPlayer(char* name, PlayerType playertype, char* playertexture)
+		Player* AddPlayer(const char* name, PlayerType playertype, const char* playertexture)
 		{
 			Player* player = new Player;
-			strncpy(player->name, name, 16);
+			player->name = name;
 			player->type = playertype;
-			player->aiPlayerData = new AI::PlayerAIData;
 			player->texture = Utilities::LoadGLTexture(playertexture);
-			pWorld->vPlayers.push_back(player);
-			player->index = pWorld->vPlayers.size()-1;
+			player->index = pWorld->vPlayers.size();
 			player->states = NULL;
+			player->resources.money = 1000;
+			player->resources.power = 1000;
+			player->oldResources.money = 1000;
+			player->oldResources.power = 1000;
+			player->aiFrame = 0;
+
+			player->playerAIFuncs.performPlayerAI = "PerformAI_Player";
+			player->playerAIFuncs.unitCreation = "UnitEvent_UnitCreation";
+			player->playerAIFuncs.playerAIDelay = 6;
+					
+			player->unitAIFuncs.performUnitAI = "PerformAI_Unit";
+			player->unitAIFuncs.commandCompleted = "UnitEvent_CommandCompleted";
+			player->unitAIFuncs.commandCancelled = "UnitEvent_CommandCancelled";
+			player->unitAIFuncs.newCommand = "UnitEvent_NewCommand";
+			player->unitAIFuncs.becomeIdle = "UnitEvent_BecomeIdle";
+			player->unitAIFuncs.isAttacked = "UnitEvent_IsAttacked";
+			player->unitAIFuncs.unitKilled = "UnitEvent_UnitKilled";
+			player->unitAIFuncs.unitAIDelay = 6;
+
+			switch (playertype)
+			{
+				case PLAYER_TYPE_HUMAN:
+					player->playerAIFuncs.performPlayerAI += "_Human";
+					player->playerAIFuncs.unitCreation += "_Human";
+					player->unitAIFuncs.performUnitAI += "_Human";
+					player->unitAIFuncs.commandCompleted += "_Human";
+					player->unitAIFuncs.commandCancelled += "_Human";
+					player->unitAIFuncs.newCommand += "_Human";
+					player->unitAIFuncs.becomeIdle += "_Human";
+					player->unitAIFuncs.isAttacked += "_Human";
+					player->unitAIFuncs.unitKilled += "_Human";
+					break;
+				case PLAYER_TYPE_GAIA:
+					player->playerAIFuncs.performPlayerAI += "_Gaia";
+					player->playerAIFuncs.unitCreation += "_Gaia";
+					player->unitAIFuncs.performUnitAI += "_Gaia";
+					player->unitAIFuncs.commandCompleted += "_Gaia";
+					player->unitAIFuncs.commandCancelled += "_Gaia";
+					player->unitAIFuncs.newCommand += "_Gaia";
+					player->unitAIFuncs.becomeIdle += "_Gaia";
+					player->unitAIFuncs.isAttacked += "_Gaia";
+					player->unitAIFuncs.unitKilled += "_Gaia";
+					break;
+				case PLAYER_TYPE_AI:
+					player->playerAIFuncs.performPlayerAI += "_AI";
+					player->playerAIFuncs.unitCreation += "_AI";
+					player->unitAIFuncs.performUnitAI += "_AI";
+					player->unitAIFuncs.commandCompleted += "_AI";
+					player->unitAIFuncs.commandCancelled += "_AI";
+					player->unitAIFuncs.newCommand += "_AI";
+					player->unitAIFuncs.becomeIdle += "_AI";
+					player->unitAIFuncs.isAttacked += "_AI";
+					player->unitAIFuncs.unitKilled += "_AI";
+					break;
+				case PLAYER_TYPE_REMOTE:
+					return NULL;
+			}
+
+			pWorld->vPlayers.push_back(player);
 			for (unsigned int i = 0; i < pWorld->vPlayers.size(); i++)
 			{
 				PlayerState* new_states = new PlayerState[pWorld->vPlayers.size()];
@@ -131,18 +195,20 @@ namespace Game
 				{
 					memcpy(new_states, pWorld->vPlayers.at(i)->states, sizeof(PlayerState*) * (pWorld->vPlayers.size()-1));
 					delete[] pWorld->vPlayers.at(i)->states;
-					new_states[pWorld->vPlayers.size()-1] = PLAYER_STATE_NEUTRAL;
+					new_states[pWorld->vPlayers.size()-1] = PLAYER_STATE_ENEMY;
 				}
 				else
 				{
-					for (unsigned int j = 0; j < pWorld->vPlayers.size(); j++)
+					new_states[0] = PLAYER_STATE_NEUTRAL;
+					for (unsigned int j = 1; j < pWorld->vPlayers.size()-1; j++)
 					{
-						new_states[j] = PLAYER_STATE_NEUTRAL;
+						new_states[j] = PLAYER_STATE_ENEMY;
 					}
+					new_states[pWorld->vPlayers.size()-1] = PLAYER_STATE_ALLY;
 				}
 				pWorld->vPlayers.at(i)->states = new_states;
 			}
-			player->states[pWorld->vPlayers.size()-1] = PLAYER_STATE_ALLY;
+			validPlayerPointers[player] = true;
 			return player;
 		}
 
@@ -181,7 +247,7 @@ namespace Game
 		{
 			Model* data;
 			char *file, *modelname;
-			if (Game::Networking::isDedicatedServer)
+			if (Game::Rules::noGraphics)
 				return (Model*) 0x1;
 			SplitString(model, '#', file, modelname);
 			if((data = modelLoader.GetModel(modelname)) != NULL)
@@ -353,48 +419,18 @@ namespace Game
 		{
 			Player* human = NULL;
 			int     color = 1;
-			size_t players_initialized = pWorld->vPlayers.size();
 		
-			if (players_initialized > 0)
-			{
-				players_initialized -= 1;
-				if (players_to_init > players_initialized)
-				{
-					players_to_init -= players_initialized;
-				
-					for (unsigned i = 1; i <= players_initialized; i++)
-					{
-						if (pWorld->vPlayers.at(i)->type == PLAYER_TYPE_HUMAN)
-							human = pWorld->vPlayers.at(i);
-							
-						color++;
-					}
-				}
-				else
-				{
-					SetCurrentPlayer(pWorld->vPlayers.at(1));
-					return;
-				}
-			}
-			else
-			{
-				AddPlayer((char*) "GAIA", PLAYER_TYPE_GAIA, (char*) "textures/player_gaia.png");
-			}
+			AddPlayer("GAIA", PLAYER_TYPE_GAIA, "textures/player_gaia.png");
 			
-			PlayerType next_type;
-			
-			if (human == NULL)
-				next_type = PLAYER_TYPE_HUMAN;
-			else
-				next_type = PLAYER_TYPE_HUMAN;
+			PlayerType next_type = PLAYER_TYPE_HUMAN;
 			
 			for (unsigned i = 1; i <= players_to_init; i++)
 			{
-				char texture[32];
-				char player[16];
-				sprintf(texture, "textures/player_%d.png", color);
-				sprintf(player, "player_%d", players_initialized + i);
-				Player* p = AddPlayer(player, next_type, texture);
+				std::stringstream texture;
+				std::stringstream player;
+				texture << "textures/player_" << color << ".png";
+				player << "player_" << i;
+				Player* p = AddPlayer(player.str().c_str(), next_type, texture.str().c_str());
 				if (next_type == PLAYER_TYPE_HUMAN)
 				{
 					human = p;
@@ -404,15 +440,31 @@ namespace Game
 				color++;
 			}
 			
-			for (unsigned i = 1; i <= players_to_init + players_initialized; i++)
+			currentPlayerView = human;
+			SetCurrentPlayer(human);
+		
+		}
+		
+		void InitPlayers(vector<PlayerType> playertypes)
+		{
+			Player* human = NULL;
+			int     color = 1;
+		
+			AddPlayer("GAIA", PLAYER_TYPE_GAIA, "textures/player_gaia.png");
+			
+			for (unsigned i = 0; i <= playertypes.size(); i++)
 			{
-				for (unsigned j = 1; j <= players_to_init + players_initialized; j++)
+				std::stringstream texture;
+				std::stringstream player;
+				texture << "textures/player_" << color << ".png";
+				player << "player_" << i+1;
+				Player* p = AddPlayer(player.str().c_str(), playertypes[i], texture.str().c_str());
+				if (!human)
 				{
-					if (j == i)
-						continue;
-					
-					SetPlayerState(i, j, PLAYER_STATE_ENEMY);
+					human = p;
 				}
+				
+				color++;
 			}
 			
 			currentPlayerView = human;

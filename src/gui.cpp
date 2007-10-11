@@ -59,7 +59,7 @@ namespace Window
 			float vy = (y * texture->h) - py;
 			
 			Uint8 v[12];
-			Uint8 *tv = (Uint8*)&v;
+			Uint8 *tv = (Uint8*) &v;
 			
 			Uint8 *end = tv + 6;
 
@@ -464,8 +464,11 @@ namespace Window
 
 		void Panel::SetTexture(GLuint texture)
 		{
-			this->texture = texture;
-			this->hasTexture = true;
+			if (texture)
+			{
+				this->texture = texture;
+				this->hasTexture = true;
+			}
 		}
 
 		void Panel::SetVisible(int id, bool value)
@@ -1515,19 +1518,42 @@ namespace Window
 			return text;
 		}
 
+		void RemLine()
+		{
+			Game::Rules::GameWindow::Instance()->GetConsoleBuffer()->EventRemLine();
+		}
+
 		ConsoleBuffer::ConsoleBuffer()
 		{
 			scrollSize = 0.05f;
 			scrollWidth = 0.025f;
 			mouseDown = false;
 			mouseCorrect = false;
+			lineHeight = 0.0f;
+			translate = 0;
+			scrollOnInput = true;
+			console.SetRemLineCallback(&RemLine);
+		}
+
+		void ConsoleBuffer::EventRemLine()
+		{
+			if (translate > 0)
+			{
+				translate--;
+			}
 		}
 
 		void ConsoleBuffer::PrepareBuffer()
 		{
 			Fonts.SetFontType(this->type);
 			float lineHeight = Fonts.GetLineHeight(this->yUnit);
-			console.SetLineHeight(lineHeight, (int)(this->h / lineHeight));
+			SetLineHeight(lineHeight, (int)(this->h / lineHeight));
+		}
+		
+		void ConsoleBuffer::SetLineHeight(float value, int vlines)
+		{
+			lineHeight = value;
+			visibleLines = vlines;
 		}
 
 		int ConsoleBuffer::Paint()
@@ -1542,22 +1568,23 @@ namespace Window
 
 			float y = 0.0f;
 
-			const string* lines = console.GetBuffer();
-			if (lines == NULL) return SUCCESS;
-
-			int location = console.start + console.translate;
-			if(location >= console.lineCount)
-				location -= console.lineCount;
-
+			if (scrollOnInput)
+			{
+				translate = console.GetLineCount() - visibleLines;
+				if (translate < 0)
+				{
+					translate = 0;
+				}
+			}
 			int c = 0;
 
-			while(c < console.visibleLines)
+			while(c < visibleLines && c < console.GetLineCount())
 			{
-				if(lines[location] != "" && lines[location].size() != 0)
+				if(console.GetLine(c + translate) != "")
 				{
 					Window::GUI::FontCache::RenderedText RenderedInfo;
 					Window::GUI::Fonts.SetFontType(this->type);
-					string output = lines[location];
+					string output = console.GetLine(c + translate);
 					bool revert = false;
 					char first = output.at(0);
 					char* print;
@@ -1583,12 +1610,9 @@ namespace Window
 						Fonts.SetColor(255, 255, 255);
 				}
 
-				y += floor(console.lineHeight / yUnit + 0.5f) * yUnit;
+				y += floor(lineHeight / yUnit + 0.5f) * yUnit;
 
 				c++;
-				location++;
-				if(location == console.lineCount)
-					location = 0;
 			}
 
 			glBegin(GL_QUADS);
@@ -1599,7 +1623,7 @@ namespace Window
 				glVertex2f(this->w - scrollWidth, this->h);
 			glEnd();
 			
-			float pos = (float)console.translate / (float)(console.lineCount - console.visibleLines);
+			float pos = (float)translate / (float)(console.GetLineCount() - visibleLines);
 			
 			pos = (1.0f - scrollSize) * pos;
 			pos += (scrollSize / 2);
@@ -1633,17 +1657,25 @@ namespace Window
 					{
 						if(MouseCoord->y < (scrollSize / 2)) //also protects from divide by zero.
 						{
-							console.translate = 0;
+							translate = 0;
 						}
 						else if(MouseCoord->y > this->h - (scrollSize / 2))
 						{
-							console.translate = console.lineCount - console.visibleLines;
+							translate = console.GetLineCount() - visibleLines;
 						}
 						else
 						{
 							float y = MouseCoord->y - (scrollSize / 2);
 							y /= (this->h - scrollSize);
-							console.translate = (int)((console.lineCount - console.visibleLines) * y);
+							translate = (int)((console.GetLineCount() - visibleLines) * y);
+						}
+						if (translate != console.GetLineCount() - visibleLines)
+						{
+							scrollOnInput = false;
+						}
+						else
+						{
+							scrollOnInput = true;
 						}
 					}
 					break;
@@ -2290,7 +2322,7 @@ namespace Window
 */
 		LoadWindow::LoadWindow(float maxprogress)
 		{
-			if (!Game::Networking::isDedicatedServer)
+			if (!Game::Rules::noGraphics)
 			{
 				glClearColor( 0.0f, 0.0f, 0.0f, 1.0f );
 			}
@@ -2302,7 +2334,7 @@ namespace Window
 			this->label = new Label();
 			this->panel = new Panel();
 			SetLayout();
-			if (!Game::Networking::isDedicatedServer)
+			if (!Game::Rules::noGraphics)
 			{
 				glEnable(GL_BLEND);
 				glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -2336,7 +2368,7 @@ namespace Window
 
 		int LoadWindow::Update()
 		{
-			if (!Game::Networking::isDedicatedServer)
+			if (!Game::Rules::noGraphics)
 			{
 
 				// nollställ backbufferten och depthbufferten

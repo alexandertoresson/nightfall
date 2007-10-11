@@ -3,6 +3,7 @@
 #include "ainode.h"
 #include "aipathfinding.h"
 #include "unit.h"
+#include "game.h"
 #include <fstream>
 
 //#define NET_DEBUG
@@ -19,15 +20,17 @@ namespace Game
 #define PACKETTYPE(val) memcmp(packet->id, val, 4) == 0
 
 		bool isNetworked = false;
-		bool isDedicatedServer = false;
 		bool isReady = false;
 		bool isReadyToLoad = false;
 		bool isReadyToStart = false;
 
+		bool scheduleShutdown = false;
+		Uint32 shutdownFrame;
+
 		int numReady = 0;
 		int playerCounter = 2;
 
-		int netPort = 2500;
+		int netPort = 51500;
 		Uint32 netDelay = 10;
 		int packetLossResistanceLevel = 0;
 		unsigned queueLimit = 40;
@@ -110,6 +113,10 @@ namespace Game
 		bool *frameAcknowledged;
 		bool **individualFrameAcknowledged;
 		bool *frameMayAdvance;
+
+#ifdef CHECKSUM_DEBUG
+		CircularBuffer checksum_output(100000, "");
+#endif
 
 		// CRC32 functions:
 		// based on implementation by Finn Yannick Jacobs
@@ -505,9 +512,13 @@ namespace Game
 			{
 				return NULL;
 			}
-			else
+			else if (IsValidUnitPointer(Dimension::unitByID[id]))
 			{
 				return Dimension::unitByID[id];
+			}
+			else
+			{
+				return NULL;
 			}
 		}
 
@@ -859,6 +870,14 @@ namespace Game
 			Packet* packet;
 			attempted_frame_count++;
 			unsigned queueSize = QueueSize();
+
+			if (scheduleShutdown)
+			{
+				if (AI::currentFrame == shutdownFrame)
+				{
+					Game::Rules::GameWindow::Instance()->Stop();
+				}
+			}
 			
 			if (queueSize <= queueLimit)
 			{
@@ -977,7 +996,7 @@ namespace Game
 						{
 							cout << "throwaway packet " << frame << " at frame " << AI::currentFrame << endl;
 						}
-						cout << "RECV ACK " << frame << " " << index << endl;;
+						cout << "RECV ACK " << frame << " " << index << endl;
 #endif
 					}
 					else if (packet->id[0] == 'R' && packet->id[1] == 'F' && packet->id[2] == 'R' && packet->id[3] == 'S' && packet->frameLength == 4)
@@ -1178,9 +1197,9 @@ namespace Game
 							      || target)
 							{
 								AI::ApplyAction(unit, actiondata->action, actiondata->x + 0.5, actiondata->y + 0.5, target, actiondata->arg);
-#ifdef CHECKSUM_DEBUG
-								checksum_output << "ActionData chunk on frame " << AI::currentFrame << endl;
-								checksum_output << actiondata->unit_id << " " << actiondata->goalunit_id << " " << actiondata->action << " " << actiondata->x << " " << actiondata->y << " " << actiondata->arg << endl;
+#ifdef CHECKSUM_DEBUG_HIGH
+								checksum_output << "ActionData chunk on frame " << AI::currentFrame << "\n";
+								checksum_output << actiondata->unit_id << " " << actiondata->goalunit_id << " " << actiondata->action << " " << actiondata->x << " " << actiondata->y << " " << actiondata->arg << "\n";
 #endif
 							}
 						}
@@ -1201,9 +1220,9 @@ namespace Game
 							unit->pMovementData->pStart = path->pStart;
 							unit->pMovementData->pGoal = path->pGoal;
 							unit->pMovementData->pCurGoalNode = NULL;
-#ifdef CHECKSUM_DEBUG
-							checksum_output << "Path chunk on frame " << AI::currentFrame << endl;
-							checksum_output << path->unit_id << endl;
+#ifdef CHECKSUM_DEBUG_HIGH
+							checksum_output << "Path chunk on frame " << AI::currentFrame << "\n";
+							checksum_output << path->unit_id << "\n";
 #endif
 						}
 						delete path;
@@ -1226,9 +1245,9 @@ namespace Game
 							{
 								unit->rotation = create->rot;
 							}
-#ifdef CHECKSUM_DEBUG
-							checksum_output << "Creation chunk on frame " << AI::currentFrame << endl;
-							checksum_output << create->unittype_id << " " << create->owner_id << " " << create->x << " " << create->y << endl;
+#ifdef CHECKSUM_DEBUG_HIGH
+							checksum_output << "Creation chunk on frame " << AI::currentFrame << "\n";
+							checksum_output << create->unittype_id << " " << create->owner_id << " " << create->x << " " << create->y << "\n";
 #endif
 						}
 						delete create;
@@ -1246,9 +1265,9 @@ namespace Game
 						if (unit)
 						{
 							Dimension::Attack(unit, (float) damage->damage / 100);
-#ifdef CHECKSUM_DEBUG
-							checksum_output << "Damaging chunk on frame " << AI::currentFrame << endl;
-							checksum_output << damage->unit_id << " " << damage->damage << endl;
+#ifdef CHECKSUM_DEBUG_HIGH
+							checksum_output << "Damaging chunk on frame " << AI::currentFrame << "\n";
+							checksum_output << damage->unit_id << " " << damage->damage << "\n";
 #endif
 						}
 						delete damage;
@@ -1265,9 +1284,9 @@ namespace Game
 						if (sell->owner_id < Dimension::pWorld->vPlayers.size())
 						{
 							Dimension::SellPower(Dimension::pWorld->vPlayers.at(sell->owner_id), sell->amount);
-#ifdef CHECKSUM_DEBUG
-							checksum_output << "Sell chunk on frame " << AI::currentFrame << endl;
-							checksum_output << sell->owner_id << " " << sell->amount << endl;
+#ifdef CHECKSUM_DEBUG_HIGH
+							checksum_output << "Sell chunk on frame " << AI::currentFrame << "\n";
+							checksum_output << sell->owner_id << " " << sell->amount << "\n";
 #endif
 						}
 						delete sell;
@@ -1328,7 +1347,7 @@ namespace Game
 				{
 					frameFragmentsReceived[(netDelay<<2)-1][j] = false;
 				}
-#ifdef CHECKSUM_DEBUG
+#ifdef CHECKSUM_DEBUG_HIGH
 				CalculateChecksum();
 #else
 				if (AI::currentFrame % 20 == 0)
@@ -1726,10 +1745,6 @@ namespace Game
 			PushPacketToSend(packet);
 		}
 
-#ifdef CHECKSUM_DEBUG
-		ofstream checksum_output;
-#endif
-
 		int InitClient(NetworkSocket *net, int port)
 		{
 			clientID = 0;
@@ -1900,9 +1915,21 @@ namespace Game
 #endif
 			networkType = type;
 
+			if (Game::Rules::checksumLog.length() == 0)
+			{
+				if (type == SERVER)
+				{
+					Game::Rules::checksumLog = "checksum-server.log";
+				}
+				else if (type == CLIENT)
+				{
+					Game::Rules::checksumLog = "checksum-client.log";
+				}
+			}
 #ifdef CHECKSUM_DEBUG
-			checksum_output.open("checksum.log");
+			checksum_output.SetFile(Game::Rules::checksumLog.c_str());
 #endif
+
 			if(type == CLIENT)
 			{
 				int ret = InitClient(net, netPort); 
@@ -2048,6 +2075,14 @@ namespace Game
 #endif
 			while(true)
 			{
+				SDL_LockMutex(mutNetworkShutdown);
+				if(terminateNetwork)
+				{
+					SDL_UnlockMutex(mutNetworkShutdown);
+					break;
+				}
+				SDL_UnlockMutex(mutNetworkShutdown);
+
 				if(serverListening)
 				{
 					acceptSock = SDLNet_TCP_Accept(net->socket);
@@ -2167,10 +2202,6 @@ namespace Game
 					SDL_Delay(1);
 				}
 
-				SDL_LockMutex(mutNetworkShutdown);
-				if(terminateNetwork)
-					break;
-				SDL_UnlockMutex(mutNetworkShutdown);
 			}
 			return SUCCESS;
 		}
@@ -2248,6 +2279,14 @@ namespace Game
 			int count = 0;
 			while(true)
 			{
+				SDL_LockMutex(mutNetworkShutdown);
+				if(terminateNetwork)
+				{
+					SDL_UnlockMutex(mutNetworkShutdown);
+					break;
+				}
+				SDL_UnlockMutex(mutNetworkShutdown);
+
 				SDL_LockMutex(mutPacketFrameOutQueue);
 				while (packetFrameOutQueue.size())
 				{
@@ -2301,11 +2340,6 @@ namespace Game
 				}
 				SDL_UnlockMutex(mutPacketOutQueue);
 				SDL_Delay(1);
-
-				SDL_LockMutex(mutNetworkShutdown);
-				if(terminateNetwork)
-					break;
-				SDL_UnlockMutex(mutNetworkShutdown);
 			}
 			return SUCCESS;
 		}
@@ -2332,6 +2366,14 @@ namespace Game
 #endif
 			while(true)
 			{
+				SDL_LockMutex(mutNetworkShutdown);
+				if(terminateNetwork)
+				{
+					SDL_UnlockMutex(mutNetworkShutdown);
+					break;
+				}
+				SDL_UnlockMutex(mutNetworkShutdown);
+
 				SDL_LockMutex(mutClientConnect);
 				if(connect == true)
 				{
@@ -2456,10 +2498,6 @@ namespace Game
 						SDL_Delay(1);
 					}
 				}
-				SDL_LockMutex(mutNetworkShutdown);
-				if(terminateNetwork)
-					break;
-				SDL_UnlockMutex(mutNetworkShutdown);
 			}
 			return SUCCESS;
 		}
@@ -2470,6 +2508,14 @@ namespace Game
 			int count = 0;
 			while(true)
 			{
+				SDL_LockMutex(mutNetworkShutdown);
+				if(terminateNetwork)
+				{
+					SDL_UnlockMutex(mutNetworkShutdown);
+					break;
+				}
+
+				SDL_UnlockMutex(mutNetworkShutdown);
 				SDL_LockMutex(mutClientConnect);
 				if(clientConnected == false)
 				{
@@ -2479,7 +2525,10 @@ namespace Game
 #endif
 					SDL_LockMutex(mutNetworkShutdown);
 					if(terminateNetwork)
+					{
+						SDL_UnlockMutex(mutNetworkShutdown);
 						break;
+					}
 					SDL_UnlockMutex(mutNetworkShutdown);
 					SDL_Delay(1);
 					continue;
@@ -2540,11 +2589,6 @@ namespace Game
 				}
 				SDL_UnlockMutex(mutPacketOutQueue);
 				SDL_Delay(1);
-
-				SDL_LockMutex(mutNetworkShutdown);
-				if(terminateNetwork)
-					break;
-				SDL_UnlockMutex(mutNetworkShutdown);
 			}
 			return SUCCESS;
 		}
@@ -2907,24 +2951,39 @@ namespace Game
 				Dimension::Player* player = *it;
 				checksum ^= ((Uint32) floor(player->resources.power))<<bits;
 				sstr << (Uint32) floor(player->resources.power) << " ";
+				bits += 11;
+				if (bits >= 32)
+					bits -= 32;
+
+				checksum ^= ((Uint32) floor((player->resources.power - player->oldResources.power) * 100))<<bits;
+				sstr << (Uint32) floor((player->resources.power - player->oldResources.power) * 100) << " ";
 				bits += 12;
 				if (bits >= 32)
 					bits -= 32;
+
 				checksum ^= ((Uint32) floor(player->resources.money))<<bits;
 				sstr << (Uint32) floor(player->resources.money) << " ";
 				bits += 9;
 				if (bits >= 32)
 					bits -= 32;
+				
+				checksum ^= ((Uint32) floor((player->resources.money - player->oldResources.money) * 100))<<bits;
+				sstr << (Uint32) floor((player->resources.money - player->oldResources.money) * 100) << " ";
+				bits += 10;
+				if (bits >= 32)
+					bits -= 32;
+
 				sstr << endl;
 			}
 			
 			checksum_struct->data = sstr.str();
-			checksum_struct->checksum = CRC32((Uint8*)checksum_struct->data.c_str(), checksum_struct->data.size()); // checksum;
+			checksum_struct->checksum = checksum;
 			checksum_struct->frame = AI::currentFrame;
 #ifdef CHECKSUM_DEBUG
-			checksum_output << "Data for frame " << AI::currentFrame << endl << checksum_struct->data;
-			checksum_output << "Checksum for frame " << AI::currentFrame << ": " << (void*) checksum_struct->checksum << endl;
+			checksum_output << "Data for frame " << AI::currentFrame << "\n" << checksum_struct->data;
+			checksum_output << "Checksum for frame " << AI::currentFrame << ": " << (void*) checksum_struct->checksum << "\n";
 #endif
+
 			unsentChecksums.push_back(checksum_struct);
 
 			Checksum *checksum_struct2 = new Checksum;
@@ -2946,8 +3005,8 @@ namespace Game
 			chunk->length = CHECKSUM_CHUNK_SIZE;
 			chunk->data = data;
 
-#ifdef CHECKSUM_DEBUG
-			checksum_output << "CHECKSUM SEND: " << checksum_struct->frame << " " << (void*) checksum_struct->checksum << endl;
+#ifdef CHECKSUM_DEBUG_HIGH
+			checksum_output << "CHECKSUM SEND: " << checksum_struct->frame << " " << (void*) checksum_struct->checksum << "\n";
 #endif
 
 			APPEND32BIT(data, checksum_struct->frame)
@@ -2967,8 +3026,8 @@ namespace Game
 			frame = READ32BIT(data);
 			checksum = READ32BIT(data);
 
-#ifdef CHECKSUM_DEBUG
-			checksum_output << "CHECKSUM RECV: " << frame << " " << (void*) checksum << endl;
+#ifdef CHECKSUM_DEBUG_HIGH
+			checksum_output << "CHECKSUM RECV: " << frame << " " << (void*) checksum << "\n";
 #endif
 
 			Checksum *checksum_struct = new Checksum;
@@ -2985,11 +3044,16 @@ namespace Game
 						if (waitingChecksums.at(j)->checksum != receivedChecksums.at(i)->checksum)
 						{
 #ifdef CHECKSUM_DEBUG
-							checksum_output << "Checksum failed on frame " << frame << "!" << endl;
-							checksum_output << (void*) waitingChecksums.at(j)->checksum << " != " << (void*) receivedChecksums.at(i)->checksum << endl;
-#else
-							cout << "Checksum failed on frame " << frame << "!" << endl;
+							checksum_output << "Checksum failed on frame " << waitingChecksums.at(j)->frame << "!" << "\n";
+							checksum_output << (void*) waitingChecksums.at(j)->checksum << " != " << (void*) receivedChecksums.at(i)->checksum << "\n";
 #endif
+							if (!scheduleShutdown)
+							{
+								scheduleShutdown = true;
+								shutdownFrame = AI::currentFrame + netDelay;
+							}
+
+							cout << "Checksum failed on frame " << waitingChecksums.at(j)->frame << "!" << endl;
 						}
 						delete waitingChecksums.at(j);
 						delete receivedChecksums.at(i);

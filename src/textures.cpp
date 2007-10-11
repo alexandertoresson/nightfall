@@ -2,6 +2,7 @@
 
 #include "networking.h"
 #include "paths.h"
+#include "game.h"
 
 namespace Utilities
 {	
@@ -20,7 +21,7 @@ namespace Utilities
 	// to it that might be passed as the second argument to glBindTexture()
 	int LoadGLTexture(std::string file)
 	{
-		if (Game::Networking::isDedicatedServer)
+		if (Game::Rules::noGraphics)
 			return 0;
 		SDL_Surface *TextureImage[1];
 

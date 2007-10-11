@@ -117,11 +117,14 @@ namespace Game
 		{
 			Dimension::Unit* unit;
 			Dimension::Position pos;
+			Uint16 goal_id;
 		};
 		
 		struct ActionData
 		{
+			Dimension::Position startPos;
 			UnitGoal goal;
+			Dimension::Position changedGoalPos;
 			void*    arg;
 			UnitAction action;
 		};
@@ -130,6 +133,7 @@ namespace Game
 		{
 			Node*        pStart;
 			Node*        pGoal;
+			
 			ActionData   action;
 
 			bool         changedGoal;
@@ -142,13 +146,13 @@ namespace Game
 			IntThrState  _currentState;
 			bool         _popFromQueue;
 			PopReason    _reason;
-			float        _newx;
-			float        _newy;
 			
 			Node*        _start;
 			Node*        _goal;
-			Node*        _changedGoal;
+
 			ActionData   _action;
+			
+			ActionData   _newAction;
 			
 #ifdef DEBUG_AI_PATHFINDING
 			unsigned int _cycles;

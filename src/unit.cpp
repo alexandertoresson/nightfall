@@ -6,6 +6,7 @@
 #include "networking.h"
 #include "textures.h"
 #include "environment.h"
+#include "game.h"
 #include <cstdarg>
 
 namespace Game
@@ -18,6 +19,7 @@ namespace Game
 		Unit**        unitByID;
 		Uint32*       frameRemovedAt;
 		unsigned short         nextID;
+		map<Unit*, bool> validUnitPointers;
 		
 		GLfloat    unitMaterialAmbient[2][2][4] = {
 							    {
@@ -267,6 +269,11 @@ namespace Game
 				// scale down
 				glScalef(0.0625*type->size, 0.0625*type->size, 0.0625*type->size);
 				
+		}
+
+		bool IsValidUnitPointer(Unit* unit)
+		{
+			return validUnitPointers[unit];
 		}
 
 		void GetTypeUpperLeftCorner(UnitType* type, float mx, float my, int& lx, int& uy)
@@ -900,15 +907,13 @@ namespace Game
 		void Build(Unit* unit)
 		{
 			double build_cost;
-			double power_usage =  unit->type->buildPowerUsage / AI::aiFps;
+			double power_usage = unit->type->buildPowerUsage / AI::aiFps;
 			UnitType* build_type = (UnitType*) unit->pMovementData->action.arg;
 
 			if (unit->owner->resources.power < power_usage)
 			{
 				return;
 			}
-
-			unit->owner->resources.power -= power_usage;
 
 			if (!unit->pMovementData->action.goal.unit)
 			{
@@ -997,9 +1002,11 @@ namespace Game
 				return;
 			}
 
-#ifdef CHECKSUM_DEBUG
-			Networking::checksum_output << "BUILD " << AI::currentFrame << ": " << unit->id << " " << unit->pMovementData->action.goal.unit->id << endl;
+#ifdef CHECKSUM_DEBUG_HIGH
+			Networking::checksum_output << "BUILD " << AI::currentFrame << ": " << unit->id << " " << unit->pMovementData->action.goal.unit->id << " " << build_cost << " " << power_usage << "\n";
 #endif
+
+			unit->owner->resources.power -= power_usage;
 
 			unit->owner->resources.money -= build_cost;
 
@@ -1026,12 +1033,15 @@ namespace Game
 					Complete(unit->pMovementData->action.goal.unit);
 				}
 
+				Unit* newUnit = unit->pMovementData->action.goal.unit;
+
+				AI::CompleteAction(unit);
+				
 				if (unit->rallypoint != NULL)
 				{
-					AI::CommandUnit(unit->pMovementData->action.goal.unit, unit->rallypoint->x, unit->rallypoint->y, AI::ACTION_GOTO, NULL, true, true);
+					AI::CommandUnit(newUnit, unit->rallypoint->x, unit->rallypoint->y, AI::ACTION_GOTO, NULL, true, true);
 				}
 				
-				AI::CompleteAction(unit);
 			}
 
 		}
@@ -1055,8 +1065,6 @@ namespace Game
 				return;
 			}
 
-			unit->owner->resources.power -= power_usage;
-
 			research_cost = research_type->researchCost / (research_type->researchTime * AI::aiFps);
 
 			if (unit->owner->resources.money < research_cost)
@@ -1064,9 +1072,11 @@ namespace Game
 				return;
 			}
 
-#ifdef CHECKSUM_DEBUG
-			Networking::checksum_output << "RESEARCH " << AI::currentFrame << ": " << unit->id << endl;
+#ifdef CHECKSUM_DEBUG_HIGH
+			Networking::checksum_output << "RESEARCH " << AI::currentFrame << ": " << unit->id << " " << research_cost << " " << power_usage << "\n";
 #endif
+
+			unit->owner->resources.power -= power_usage;
 
 			unit->owner->resources.money -= research_cost;
 
@@ -1111,6 +1121,7 @@ namespace Game
 				{
 					Complete(target);
 				}
+				pUnit->pMovementData->action.goal.goal_id = 0xFFFF;
 				pUnit->pMovementData->action.goal.unit = NULL; // Zero out target unit before calling DeleteUnit,
 				                                        // to prevent DeleteUnit from calling CancelAction which calls
 				                                        // CancelBuild which calls DeleteUnit which calls CancelAction....
@@ -1133,7 +1144,6 @@ namespace Game
 		{
 			if (AI::currentFrame - attacker->lastAttack >= (AI::aiFps / attacker->type->attackSpeed))
 			{
-				attacker->lastAttack = AI::currentFrame;
 				return true;
 			}
 			return false;
@@ -1142,8 +1152,8 @@ namespace Game
 		// perform an attack at target, returning true if the target has been eliminated
 		bool Attack(Unit* target, float damage)
 		{
-#ifdef CHECKSUM_DEBUG
-			Networking::checksum_output << "DAMAGE " << AI::currentFrame << ": " << target->id << " " << damage << endl;
+#ifdef CHECKSUM_DEBUG_HIGH
+			Networking::checksum_output << "DAMAGE " << AI::currentFrame << ": " << target->id << " " << damage << "\n";
 #endif
 			if (target->health > 1e-3)
 			{
@@ -1152,14 +1162,10 @@ namespace Game
 			target->health -= damage;
 			if (target->health <= 1e-3 && target->action != AI::ACTION_DIE)
 			{
-				target->health = 0;
-				target->action = AI::ACTION_DIE;
-				PlayActionSound(target, Audio::SFX_ACT_DEATH_FNF);
-				//Start a explosion
-				if(UnitIsVisible(target, Dimension::currentPlayerView))
-				{
-					FX::pParticleSystems->InitEffect(target->pos.x, target->pos.y, 0.0f, target->type->size, FX::PARTICLE_SPHERICAL_EXPLOSION);
-				}
+#ifdef CHECKSUM_DEBUG_HIGH
+				Networking::checksum_output << "DIE" << "\n";
+#endif
+				KillUnit(target);
 			}
 			if (target->action == AI::ACTION_DIE)
 			{
@@ -1192,7 +1198,13 @@ namespace Game
 				return;
 			}
 
+			attacker->lastAttack = AI::currentFrame;
+
 			attacker->owner->resources.power -= power_usage;
+
+#ifdef CHECKSUM_DEBUG_HIGH
+			Networking::checksum_output << "ATTACK " << AI::currentFrame << ": " << attacker->id << " " << target->id << " " << power_usage << "\n";
+#endif
 
 			if (attacker->type->isMobile)
 			{
@@ -1200,6 +1212,8 @@ namespace Game
 			}
 			if (!attacker->type->projectileType)
 			{
+				attacker->lastSeenPositions[target->owner->index] = attacker->curAssociatedSquare;
+				AI::SendUnitEventToLua_IsAttacked(target, attacker);
 				if (Attack(target, CalcUnitDamage(attacker)))
 				{
 					AI::CompleteAction(attacker);
@@ -1228,11 +1242,20 @@ namespace Game
 				for (unsigned index = 0; index < pUnit->projectiles.size(); )
 				{
 					proj = pUnit->projectiles.at(index);
+#ifdef CHECKSUM_DEBUG_HIGH
+					Networking::checksum_output << "PROJ " << AI::currentFrame << ": " << proj->pos.x << ", " << proj->pos.y << ", " << proj->pos.z << " " << proj->pos.distance(proj->goalPos) << " " << proj->type->speed * (1.0 / AI::aiFps) << "\n";
+#endif
 					if (proj->pos.distance(proj->goalPos) < proj->type->speed * (1.0 / AI::aiFps))
 					{
+						
 						max_radius = proj->type->areaOfEffect * 0.125f;
+						proj->pos = proj->goalPos;
 
-						if (proj->type->homing && proj->goalUnit != NULL)
+#ifdef CHECKSUM_DEBUG_HIGH
+						Networking::checksum_output << "HIT " << proj->pos.x << ", " << proj->pos.y << ", " << proj->pos.z << "\n";
+#endif
+
+						if (proj->type->isHoming && proj->goalUnit != NULL)
 							proj->goalPos = GetTerrainCoord(proj->goalUnit->pos.x, proj->goalUnit->pos.y);
 
 						for (it = pWorld->vUnits.begin(); it != pWorld->vUnits.end(); it++)
@@ -1244,6 +1267,14 @@ namespace Game
 							Utilities::Vector3D unit_pos = GetTerrainCoord(target->pos.x, target->pos.y);
 							if (proj->goalPos.distance(unit_pos) <= max_radius)
 							{
+#ifdef CHECKSUM_DEBUG_HIGH
+								Networking::checksum_output << "HIT " << target->id << "\n";
+#endif
+								pUnit->lastSeenPositions[target->owner->index] = pUnit->curAssociatedSquare;
+								if (target->owner != pUnit->owner)
+								{
+									AI::SendUnitEventToLua_IsAttacked(target, pUnit);
+								}
 								if (Attack(target, CalcUnitDamage(pUnit)))
 								{
 									if (target == proj->goalUnit || proj->goalUnit == NULL)
@@ -1253,12 +1284,18 @@ namespace Game
 						}
 
 						Position proj_pos = GetPosition(&proj->pos);
-						FX::pParticleSystems->InitEffect(proj_pos.x, proj_pos.y, 0.0f, max_radius * 4, FX::PARTICLE_SPHERICAL_EXPLOSION);
+						if (!Game::Rules::noGraphics)
+						{
+							FX::pParticleSystems->InitEffect(proj_pos.x, proj_pos.y, 0.0f, max_radius * 4, FX::PARTICLE_SPHERICAL_EXPLOSION);
+						}
 						
 						pUnit->projectiles.erase(pUnit->projectiles.begin()+index);
 					}
 					else
 					{
+#ifdef CHECKSUM_DEBUG_HIGH
+						Networking::checksum_output << "MOVE " << proj->direction.x << ", " << proj->direction.y << ", " << proj->direction.z << "\n";
+#endif
 						proj->pos += proj->direction * proj->type->speed * (1.0 / AI::aiFps);
 						index++;
 					}
@@ -1644,28 +1681,20 @@ namespace Game
 		bool SquareIsGoal(Unit *unit, int x, int y, bool use_internal)
 		{
 			Unit*       target = NULL;
-			Position   pos;
+			Position    pos;
 			void*       arg;
-			AI::Node*   start;
-			AI::Node*   goal;
 			
 			if (!use_internal)
 			{
 				target = unit->pMovementData->action.goal.unit;
 				pos    = unit->pMovementData->action.goal.pos;
 				arg    = unit->pMovementData->action.arg;
-				
-				start  = unit->pMovementData->pStart;
-				goal   = unit->pMovementData->pGoal;
 			}
 			else
 			{
 				target = unit->pMovementData->_action.goal.unit;
 				pos    = unit->pMovementData->_action.goal.pos;
 				arg    = unit->pMovementData->_action.arg;
-				
-				start  = unit->pMovementData->_start;
-				goal   = unit->pMovementData->_goal;
 			}
 		
 			if(target)
@@ -1691,12 +1720,12 @@ namespace Game
 				}
 				else
 				{
-					return (x == goal->x) && (y == goal->y);
+					return (x == (int) pos.x) && (y == (int) pos.y);
 				}
 			}
 			else
 			{
-				return (x == goal->x) && (y == goal->y);
+				return (x == (int) pos.x) && (y == (int) pos.y);
 			}
 		}		
 
@@ -1840,6 +1869,20 @@ namespace Game
 				}
 			}
 			
+			int old_big_x = unit->curAssociatedBigSquare.x;
+			int old_big_y = unit->curAssociatedBigSquare.y;
+			int new_big_x = new_x >> 5;
+			int new_big_y = new_y >> 5;
+
+			if (old_big_x != new_big_x || old_big_y != new_big_y)
+			{
+				if (old_big_x != -1 && old_big_y != -1)
+				{
+				}
+				unit->curAssociatedBigSquare.x = new_big_x;
+				unit->curAssociatedBigSquare.y = new_big_y;
+			}
+
 			return true;
 		}
 
@@ -1920,6 +1963,16 @@ namespace Game
 			return (int) ((10 + abs((pWorld->ppHeight[y][x] - pWorld->ppHeight[y+dy][x+dx])) * 256) * sqrt(pow((float)dx, 2) + pow((float)dy, 2)));
 		}
 
+		int GetTraversalTimeAdjusted(Unit *unit, int x, int y, int dx, int dy)
+		{
+			int time = GetTraversalTime(unit, x, y, dx, dy);
+			if (!SquaresAreLighted(unit->type, unit->owner, x+dx, y+dy))
+			{
+				time *= 10;
+			}
+			return time;
+		}
+
 		void ChangePath(Unit* pUnit, float goal_x, float goal_y, AI::UnitAction action, Unit* target, void* arg)
 		{
 			if (pUnit->type->isMobile)
@@ -1982,8 +2035,6 @@ namespace Game
 				return true;
 			}
 
-			pUnit->owner->resources.power -= power_usage;
-
 			if (pUnit->pMovementData->pStart)
 			{
 				if ((action == AI::ACTION_FOLLOW || action == AI::ACTION_ATTACK) && pUnit->owner->type != PLAYER_TYPE_REMOTE)
@@ -2011,8 +2062,8 @@ namespace Game
 							if (curnode->x == pUnit->curAssociatedSquare.x &&
 							    curnode->y == pUnit->curAssociatedSquare.y)
 							{
-#ifdef CHECKSUM_DEBUG
-								Networking::checksum_output << "START PATH GOAL " << AI::currentFrame << ": " << pUnit->id << " " << curnode->x << " " << curnode->y << endl;
+#ifdef CHECKSUM_DEBUG_HIGH
+								Networking::checksum_output << "START PATH GOAL " << AI::currentFrame << ": " << pUnit->id << " " << curnode->x << " " << curnode->y << "\n";
 #endif
 								break;
 							}
@@ -2022,6 +2073,7 @@ namespace Game
 						if (!curnode)
 						{
 							recalc_path = true;
+							pUnit->pMovementData->pCurGoalNode = NULL;
 						}
 						else
 						{
@@ -2033,8 +2085,8 @@ namespace Game
 					{
 						if (pUnit->owner->type != PLAYER_TYPE_REMOTE)
 						{
-#ifdef CHECKSUM_DEBUG
-							Networking::checksum_output << "INIT RECALC " << AI::currentFrame << ": " << pUnit->id << endl;
+#ifdef CHECKSUM_DEBUG_HIGH
+							Networking::checksum_output << "INIT RECALC " << AI::currentFrame << ": " << pUnit->id << "\n";
 #endif
 							// unit positions has changed enough since the path was calculated, making it needed to
 							// recalculate it. another possibility is that the path was invalidated by CheckPath()...
@@ -2058,18 +2110,18 @@ namespace Game
 					else
 					{
 						pUnit->pMovementData->switchedSquare = false;
-						if (!pUnit->pMovementData->pCurGoalNode)
+						if (!pUnit->pMovementData->pCurGoalNode || !pUnit->pMovementData->pCurGoalNode->pParent)
 						{
-#ifdef CHECKSUM_DEBUG
-							Networking::checksum_output << "ONE NODE PATH " << AI::currentFrame << ": " << pUnit->id << endl;
+#ifdef CHECKSUM_DEBUG_HIGH
+							Networking::checksum_output << "ONE NODE PATH " << AI::currentFrame << ": " << pUnit->id << "\n";
 #endif
 							AI::DeallocPathfindingNodes(pUnit);
 							if (pUnit->pMovementData->action.goal.unit)
 							{
 								if (!CanSee(pUnit, pUnit->pMovementData->action.goal.unit))
 								{
-#ifdef CHECKSUM_DEBUG
-									Networking::checksum_output << "CANCEL CANNOTSEE " << AI::currentFrame << ": " << pUnit->id << endl;
+#ifdef CHECKSUM_DEBUG_HIGH
+									Networking::checksum_output << "CANCEL CANNOTSEE " << AI::currentFrame << ": " << pUnit->id << "\n";
 #endif
 									AI::CancelAction(pUnit);
 								}
@@ -2078,8 +2130,8 @@ namespace Game
 							{
 								if (pUnit->action != AI::ACTION_BUILD)
 								{
-#ifdef CHECKSUM_DEBUG
-									Networking::checksum_output << "COMPLETE " << AI::currentFrame << ": " << pUnit->id << endl;
+#ifdef CHECKSUM_DEBUG_HIGH
+									Networking::checksum_output << "COMPLETE " << AI::currentFrame << ": " << pUnit->id << "\n";
 #endif
 									AI::CompleteAction(pUnit);
 								}
@@ -2087,8 +2139,8 @@ namespace Game
 								{
 									if (!IsWithinRangeForBuilding(pUnit))
 									{
-#ifdef CHECKSUM_DEBUG
-										Networking::checksum_output << "CANCEL CANNOTBUILD " << AI::currentFrame << ": " << pUnit->id << endl;
+#ifdef CHECKSUM_DEBUG_HIGH
+										Networking::checksum_output << "CANCEL CANNOTBUILD " << AI::currentFrame << ": " << pUnit->id << "\n";
 #endif
 										AI::CancelAction(pUnit);
 									}
@@ -2103,8 +2155,8 @@ namespace Game
 			}
 			else
 			{
-#ifdef CHECKSUM_DEBUG
-				Networking::checksum_output << "PATHWAIT " << AI::currentFrame << ": " << pUnit->id << endl;
+#ifdef CHECKSUM_DEBUG_HIGH
+				Networking::checksum_output << "PATHWAIT " << AI::currentFrame << ": " << pUnit->id << "\n";
 #endif
 				should_move = false;
 				pUnit->isMoving = false;
@@ -2125,6 +2177,12 @@ namespace Game
 					goto_pos.y = pUnit->pMovementData->pCurGoalNode->y + 0.5;
 				}
 
+				if (!pUnit->pMovementData->pCurGoalNode->pParent)
+				{
+					cout << "ERROR: !pCurGoalNode->pParent" << endl;
+					return true;
+				}
+
 				distance_per_frame = pUnit->type->movementSpeed / AI::aiFps / 
 				                     (GetTraversalTime(pUnit,
 						                       pUnit->pMovementData->pCurGoalNode->pParent->x,
@@ -2139,8 +2197,8 @@ namespace Game
 				move.normalize();
 				move *= distance_per_frame;
 				
-#ifdef CHECKSUM_DEBUG
-				Networking::checksum_output << "MOVE " << AI::currentFrame << ": " << pUnit->id << " " << pUnit->pos.x << " " << pUnit->pos.y << " " << move.x << " " << move.y << " " << pUnit->type->movementSpeed << " " << AI::aiFps << " " << GetTraversalTime(pUnit, pUnit->pMovementData->pCurGoalNode->pParent->x, pUnit->pMovementData->pCurGoalNode->pParent->y, pUnit->pMovementData->pCurGoalNode->x - pUnit->pMovementData->pCurGoalNode->pParent->x, pUnit->pMovementData->pCurGoalNode->y - pUnit->pMovementData->pCurGoalNode->pParent->y) << " " << distance_per_frame << " " << distance << endl;
+#ifdef CHECKSUM_DEBUG_HIGH
+				Networking::checksum_output << "MOVE " << AI::currentFrame << ": " << pUnit->id << " " << pUnit->pos.x << " " << pUnit->pos.y << " " << move.x << " " << move.y << " " << pUnit->type->movementSpeed << " " << AI::aiFps << " " << GetTraversalTime(pUnit, pUnit->pMovementData->pCurGoalNode->pParent->x, pUnit->pMovementData->pCurGoalNode->pParent->y, pUnit->pMovementData->pCurGoalNode->x - pUnit->pMovementData->pCurGoalNode->pParent->x, pUnit->pMovementData->pCurGoalNode->y - pUnit->pMovementData->pCurGoalNode->pParent->y) << " " << distance_per_frame << " " << distance << " " << power_usage << "\n";
 #endif
 				
 				if (distance < distance_per_frame)
@@ -2154,8 +2212,8 @@ namespace Game
 				    Distance2D(pUnit->pos.x + move.x - pUnit->pMovementData->pCurGoalNode->x - 0.5,
 					       pUnit->pos.y + move.y - pUnit->pMovementData->pCurGoalNode->y - 0.5))
 				{
-#ifdef CHECKSUM_DEBUG
-					Networking::checksum_output << "ATTEMPT " << AI::currentFrame << ": " << pUnit->id << " " << pUnit->pMovementData->pCurGoalNode->x << " " << pUnit->pMovementData->pCurGoalNode->y << endl;
+#ifdef CHECKSUM_DEBUG_HIGH
+					Networking::checksum_output << "ATTEMPT " << AI::currentFrame << ": " << pUnit->id << " " << pUnit->pMovementData->pCurGoalNode->x << " " << pUnit->pMovementData->pCurGoalNode->y << "\n";
 #endif
 					if (!UpdateAssociatedSquares(pUnit, pUnit->pMovementData->pCurGoalNode->x,
 								            pUnit->pMovementData->pCurGoalNode->y,
@@ -2166,8 +2224,8 @@ namespace Game
 						pUnit->isMoving = false;
 						if (!SquaresAreWalkable(pUnit, pUnit->pMovementData->pCurGoalNode->x, pUnit->pMovementData->pCurGoalNode->y, SIW_IGNORE_MOVING))
 						{
-#ifdef CHECKSUM_DEBUG
-							Networking::checksum_output << "RECALC " << AI::currentFrame << ": " << pUnit->id << endl;
+#ifdef CHECKSUM_DEBUG_HIGH
+							Networking::checksum_output << "RECALC " << AI::currentFrame << ": " << pUnit->id << "\n";
 #endif
 							AI::DeallocPathfindingNodes(pUnit);
 							if (pUnit->owner->type != PLAYER_TYPE_REMOTE)
@@ -2187,8 +2245,8 @@ namespace Game
 						}
 						else
 						{
-#ifdef CHECKSUM_DEBUG
-							Networking::checksum_output << "STOP " << AI::currentFrame << ": " << pUnit->id << endl;
+#ifdef CHECKSUM_DEBUG_HIGH
+							Networking::checksum_output << "STOP " << AI::currentFrame << ": " << pUnit->id << "\n";
 #endif
 						}
 					}
@@ -2202,6 +2260,11 @@ namespace Game
 
 				if (should_move)
 				{
+#ifdef CHECKSUM_DEBUG_HIGH
+					Networking::checksum_output << "REALLYMOVE " << AI::currentFrame << ": " << pUnit->id << "\n";
+#endif
+					pUnit->owner->resources.power -= power_usage;
+			
 					pUnit->pos.x += move.x;
 					pUnit->pos.y += move.z;
 					pUnit->isMoving = true;
@@ -2216,16 +2279,16 @@ namespace Game
 						if (pUnit->pMovementData->pCurGoalNode->x == pUnit->pMovementData->pGoal->x &&
 						    pUnit->pMovementData->pCurGoalNode->y == pUnit->pMovementData->pGoal->y)
 						{
-#ifdef CHECKSUM_DEBUG
-							Networking::checksum_output << "REACH " << AI::currentFrame << ": " << pUnit->id << " " << pUnit->pMovementData->pGoal->x << " " << pUnit->pMovementData->pGoal->y << endl;
+#ifdef CHECKSUM_DEBUG_HIGH
+							Networking::checksum_output << "REACH " << AI::currentFrame << ": " << pUnit->id << " " << pUnit->pMovementData->pGoal->x << " " << pUnit->pMovementData->pGoal->y << "\n";
 #endif
 							AI::DeallocPathfindingNodes(pUnit);
 							if (pUnit->pMovementData->action.goal.unit)
 							{
 								if (!CanSee(pUnit, pUnit->pMovementData->action.goal.unit))
 								{
-#ifdef CHECKSUM_DEBUG
-									Networking::checksum_output << "CANCEL CANNOTSEE " << AI::currentFrame << ": " << pUnit->id << endl;
+#ifdef CHECKSUM_DEBUG_HIGH
+									Networking::checksum_output << "CANCEL CANNOTSEE " << AI::currentFrame << ": " << pUnit->id << "\n";
 #endif
 									AI::CancelAction(pUnit);
 								}
@@ -2234,18 +2297,18 @@ namespace Game
 							{
 								if (pUnit->action != AI::ACTION_BUILD)
 								{
-#ifdef CHECKSUM_DEBUG
-									Networking::checksum_output << "COMPLETE " << AI::currentFrame << ": " << pUnit->id << endl;
+#ifdef CHECKSUM_DEBUG_HIGH
+									Networking::checksum_output << "COMPLETE " << AI::currentFrame << ": " << pUnit->id << "\n";
 #endif
 									AI::CompleteAction(pUnit);
 								}
 								else
 								{
 									if (!IsWithinRangeForBuilding(pUnit))
-#ifdef CHECKSUM_DEBUG
-										Networking::checksum_output << "CANCEL CANNOTBUILD " << AI::currentFrame << ": " << pUnit->id << endl;
-#endif
 									{
+#ifdef CHECKSUM_DEBUG_HIGH
+										Networking::checksum_output << "CANCEL CANNOTBUILD " << AI::currentFrame << ": " << pUnit->id << "\n";
+#endif
 										AI::CancelAction(pUnit);
 									}
 								}
@@ -2255,9 +2318,17 @@ namespace Game
 						}
 						else
 						{
-							pUnit->pMovementData->pCurGoalNode = pUnit->pMovementData->pCurGoalNode->pChild;
-#ifdef CHECKSUM_DEBUG
-							Networking::checksum_output << "NEXT GOAL " << AI::currentFrame << ": " << pUnit->id << " " << pUnit->pMovementData->pCurGoalNode->x << " " << pUnit->pMovementData->pCurGoalNode->y << endl;
+							if (pUnit->pMovementData->pCurGoalNode->pChild && pUnit->pMovementData->pCurGoalNode->pChild->pParent != pUnit->pMovementData->pCurGoalNode)
+							{
+								cout << "ERROR: pCurGoalNode != pCurGoalNode->pChild->pParent" << endl;
+								pUnit->pMovementData->pCurGoalNode = NULL;
+							}
+							else
+							{
+								pUnit->pMovementData->pCurGoalNode = pUnit->pMovementData->pCurGoalNode->pChild;
+							}
+#ifdef CHECKSUM_DEBUG_HIGH
+							Networking::checksum_output << "NEXT GOAL " << AI::currentFrame << ": " << pUnit->id << " " << pUnit->pMovementData->pCurGoalNode->x << " " << pUnit->pMovementData->pCurGoalNode->y << "\n";
 #endif
 							pUnit->pMovementData->switchedSquare = false;
 						}
@@ -2380,8 +2451,7 @@ namespace Game
 				unit->animData.sAnimData[0][i] = new SingleAnimData[10];
 				unit->animData.sAnimData[1][i] = new SingleAnimData[10];
 			}
-			unit->pMovementData = new AI::MovementData;
-			unit->aiUnitData = new AI::UnitAIData;
+			unit->pMovementData = NULL;
 			unit->lastAttack = 0;
 			unit->action = AI::ACTION_NONE;
 			unit->lastAttacked = 0;
@@ -2394,11 +2464,24 @@ namespace Game
 			unit->hasSeen = false;
 			unit->curAssociatedSquare.x = -1;
 			unit->curAssociatedSquare.y = -1;
+			unit->curAssociatedBigSquare.x = -1;
+			unit->curAssociatedBigSquare.x = -1;
 			unit->rallypoint = NULL;
-			unit->id = nextID++;
+			unit->unitAIFuncs = type->unitAIFuncs[owner->index];
+			unit->aiFrame = 0;
 
-			if (nextID == 0xFFFF)
-				nextID = 0;
+			int tries = 0;
+
+			while (unitByID[nextID])
+			{
+				nextID++;
+				if (tries++ == 0xFFFF)
+				{
+					return false;
+				}
+			}
+			
+			unit->id = nextID;
 
 			unitByID[unit->id] = unit;
 			
@@ -2411,23 +2494,36 @@ namespace Game
 				unit->lastSeenPositions[i].y = -1000;
 			}
 
- 			AI::InitMovementData(unit);
+ 			validUnitPointers[unit] = true;
 
 			return unit;
 		}
 		
 		bool DisplayUnit(Unit* unit, float x, float y)
 		{
+			if (pWorld->vUnits.size() >= 0xFFFF)
+			{
+				return false;
+			}
+
 			if (!SquaresAreWalkable_AllKnowing(unit->type, (int) x, (int) y))
 			{
 				return false;
 			}
+			
+			unit->pMovementData = new AI::MovementData;
+ 			AI::InitMovementData(unit);
+
 			unit->pos.x = x;
 			unit->pos.y = y;
 			SetAssociatedSquares(unit, (int)x, (int)y);
 			pWorld->vUnits.push_back(unit);
 			unit->owner->vUnits.push_back(unit);
 			unit->isDisplayed = true;
+
+			AI::SendUnitEventToLua_UnitCreation(unit);
+			AI::SendUnitEventToLua_BecomeIdle(unit);
+
 			return true;
 		}
 
@@ -2445,10 +2541,101 @@ namespace Game
 			return unit;
 		}
 
+		void KillUnit(Unit* unit)
+		{
+			unsigned int i, j;
+			Unit* curUnit;
+
+			AI::CancelAllActions(unit);
+
+			AI::SendUnitEventToLua_UnitKilled(unit);
+			
+			unit->health = 0;
+			unit->action = AI::ACTION_DIE;
+
+			PlayActionSound(unit, Audio::SFX_ACT_DEATH_FNF);
+
+			if (!Game::Rules::noGraphics)
+			{
+				//Start a explosion
+				if(UnitIsVisible(unit, Dimension::currentPlayerView))
+				{
+					FX::pParticleSystems->InitEffect(unit->pos.x, unit->pos.y, 0.0f, unit->type->size, FX::PARTICLE_SPHERICAL_EXPLOSION);
+				}
+			}
+
+			for (j = 0; j < 10; j++)
+			{
+				for (i = 0; i < unitGroups[j].size(); i++)
+				{
+					if (unitGroups[j].at(i) == unit)
+					{
+						unitGroups[j].erase(unitGroups[j].begin() + i);
+						break;
+					}
+				}
+			}
+			for (i = 0; i < unitsSelected.size(); i++)
+			{
+				if (unitsSelected.at(i) == unit)
+				{
+					unitsSelected.erase(unitsSelected.begin() + i);
+					break;
+				}
+			}
+			
+			for (i = 0; i < pWorld->vUnits.size(); i++)
+			{
+				curUnit = pWorld->vUnits.at(i);
+				if (curUnit->pMovementData->action.goal.unit == unit)
+				{
+					AI::CancelAction(curUnit);
+				}
+				if (curUnit->pMovementData->_action.goal.unit == unit)
+				{
+					SDL_LockMutex(AI::GetMutex());
+					
+					curUnit->pMovementData->_action.goal.unit = NULL;
+					curUnit->pMovementData->_action.action = AI::ACTION_GOTO;
+					
+					SDL_UnlockMutex(AI::GetMutex());
+				}
+
+				for (vector<Projectile*>::iterator it = curUnit->projectiles.begin(); it != curUnit->projectiles.end(); it++)
+				{
+					if ((*it)->goalUnit == unit)
+					{
+						(*it)->goalUnit = NULL;
+					}
+
+					//if (curUnit->projectiles.at(j)->goalUnit == unit)
+					//{
+						//curUnit->projectiles.erase(curUnit->projectiles.begin() + j);
+						//j--;
+					//}
+				}
+			}
+			
+		}
+
 		void DeleteUnit(Unit* unit)
 		{
 			Unit* curUnit;
 			unsigned int i, j;
+
+			if (!IsValidUnitPointer(unit))
+			{
+				return;
+			}
+
+			if (unit->action != AI::ACTION_DIE)
+			{
+				AI::CancelAllActions(unit);
+
+				AI::SendUnitEventToLua_UnitKilled(unit);
+			}
+
+ 			validUnitPointers.erase(validUnitPointers.find(unit));
 
 			frameRemovedAt[unit->id] = AI::currentFrame;
 			unitByID[unit->id] = NULL;
@@ -2491,7 +2678,7 @@ namespace Game
 			for (i = 0; i < pWorld->vUnits.size(); i++)
 			{
 				curUnit = pWorld->vUnits.at(i);
-				if (curUnit->pMovementData->action.goal.unit == unit)
+				while (curUnit->pMovementData->action.goal.unit == unit)
 				{
 					AI::CancelAction(curUnit);
 				}
@@ -2501,6 +2688,15 @@ namespace Game
 					
 					curUnit->pMovementData->_action.goal.unit = NULL;
 					curUnit->pMovementData->_action.action = AI::ACTION_GOTO;
+					
+					SDL_UnlockMutex(AI::GetMutex());
+				}
+				if (curUnit->pMovementData->_newAction.goal.unit == unit)
+				{
+					SDL_LockMutex(AI::GetMutex());
+					
+					curUnit->pMovementData->_newAction.goal.unit = NULL;
+					curUnit->pMovementData->_newAction.action = AI::ACTION_GOTO;
 					
 					SDL_UnlockMutex(AI::GetMutex());
 				}
@@ -2539,7 +2735,6 @@ namespace Game
 
 			delete[] unit->animData.sAnimData[0];
 			delete[] unit->animData.sAnimData[1];
-			delete unit->aiUnitData;
 			delete[] unit->lastSeenPositions;
 			
 			for (int i = 0; i < Audio::SFX_ACT_COUNT; i++)
@@ -2561,6 +2756,9 @@ namespace Game
 			if (unit->pMovementData->pStart != NULL)
 				AI::DeallocPathfindingNodes(unit);
 
+			if (unit->pMovementData->_start != NULL)
+				AI::DeallocPathfindingNodes(unit, AI::DPN_BACK);
+
 			delete unit->pMovementData;
 
 			delete unit;
@@ -2577,6 +2775,7 @@ namespace Game
 			type->startPos = start_pos;
 			type->speed = speed;
 			type->size = size;
+			type->isHoming = false;
 			return type;
 		}
 
@@ -2638,7 +2837,7 @@ namespace Game
 
 			va_end(ap);
 
-			if (!Game::Networking::isDedicatedServer)
+			if (!Game::Rules::noGraphics)
 				morphAnim->tempModel = CreateEmptyModel(morphAnim->models[0]);
 
 			return morphAnim;
@@ -2784,7 +2983,7 @@ namespace Game
 				}
 				pos_between_anim_frames[i] = (animPos - keyFramePositions[a_frames[i][1]]) / frameLength;
 				
-				pUnit->animData.sAnimData[i][animNum]->animPos += Rules::time_since_last_frame;
+				pUnit->animData.sAnimData[i][animNum]->animPos += AI::aiFramesPerformedSinceLastRender / (float) AI::aiFps;
 //			}
 //			mix = Utilities::InterpolateCatmullRomBounded(0.0, 0.0, 1.0, 1.0, pUnit->animData.transitionPos / pUnit->animData.transitionLength);
 		}

@@ -228,7 +228,7 @@ namespace Game
 				float length = CalculateLength(m_curEnvCond);
 
 				console << "Length: " << length << ", Seconds: " <<
-					(m_hourLength * length) << ", current time: " << m_currentHour << Console::nl;
+					(m_hourLength * length) << ", current time: " << m_currentHour << "\n";
 
 				int i = 0;
 				for ( ; i < 4; i++)

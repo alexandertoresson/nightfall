@@ -1,6 +1,15 @@
-loadfile(GetLUAScript("ai_human.lua"))()
-loadfile(GetLUAScript("ai_gaia.lua"))()
-loadfile(GetLUAScript("ai_ai.lua"))()
+function DoFile(filename)
+	func, err = loadfile(GetLUAScript(filename))
+	if func == nil then
+		Output("Error encountered while loading " .. filename .. ": " .. err .. "\n")
+	else
+		func()
+	end
+end
+
+DoFile("ai_human.lua")
+DoFile("ai_gaia.lua")
+DoFile("ai_ai.lua")
 
 InitLevel_Current = InitLevel
 
@@ -36,6 +45,8 @@ function LoadDefaultUnitTypes()
 end
 
 function InitLevel()
+
+	SetPlayers()
 
 	LoadDefaultUnitTypes()
 

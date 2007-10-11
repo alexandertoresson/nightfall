@@ -588,7 +588,7 @@ namespace Game
 									if (Networking::isNetworked)
 										Networking::PrepareDamaging(p, p->health+1);
 									else
-										Dimension::DeleteUnit(p);
+										Dimension::KillUnit(p);
 								}
 							}
 							break;
@@ -735,6 +735,15 @@ namespace Game
 							{
 								Dimension::SellPower(Dimension::GetCurrentPlayer(), 100.0);
 							}
+							break;
+						}
+						case SDLK_g:
+						{
+							if (graphicsLoaded)
+							{
+								noGraphics = !noGraphics;
+							}
+							break;
 						}
 						default:
 						{
@@ -940,7 +949,7 @@ namespace Game
 			bgColor[2] = 0.7f;
 			bgColor[3] = 0.6f;
 			pGame = ref;
-			if (!Game::Networking::isDedicatedServer)
+			if (!Game::Rules::noGraphics)
 				tmap = CreateMap(img, &Dimension::HeightMipmaps[0][0], Dimension::pWorld->width, Dimension::pWorld->height, 256,256);
 			buildSelected = false;
 		}
@@ -957,7 +966,7 @@ namespace Game
 			{
 				delete (*iter).second;
 			}
-			if (!Game::Networking::isDedicatedServer)
+			if (!Game::Rules::noGraphics)
 				glDeleteTextures(1, &tmap);
 		}
 
@@ -1626,8 +1635,7 @@ namespace Game
 					{
 						if (!target->isCompleted)
 						{
-							char status[12];
-							const char* format = "%d%% / %d ";
+							stringstream status;
 							int size = pUnit->actionQueue.size();
 
 							if (size > 100)
@@ -1635,8 +1643,8 @@ namespace Game
 								size = 100;
 							}
 
-							sprintf(status, format, (int)target->completeness, size);
-							lbl = status;
+							status << (int)target->completeness << "% / " << size;
+							lbl = status.str().c_str();
 							value = target->completeness / 100.0f;
 							return;
 						}
@@ -1648,8 +1656,7 @@ namespace Game
 				Dimension::UnitType* research_type = (Dimension::UnitType*) pUnit->pMovementData->action.arg;
 				if((unsigned) id >= pUnit->type->canBuild.size() && pUnit->type->canResearch.at(id - pUnit->type->canBuild.size()) == research_type)
 				{
-					char status[12];
-					const char* format = "%d%% / %d ";
+					stringstream status;
 					int size = pUnit->actionQueue.size();
 
 					if (size > 100)
@@ -1657,8 +1664,8 @@ namespace Game
 						size = 100;
 					}
 
-					sprintf(status, format, (int)pUnit->action_completeness, size);
-					lbl = status;
+					status << (int)pUnit->action_completeness << "% / " << size;
+					lbl = status.str().c_str();
 					value = pUnit->action_completeness / 100.0f;
 					return;
 				}
@@ -1833,12 +1840,12 @@ namespace Game
 			{
 				for (int x = 0, x2 = 0; x < worldWidth; x += xIncrement, x2++)
 				{
-					int is_seen = Dimension::currentPlayerView->NumUnitsSeeingSquare[y][x];
-					int is_lighted = Dimension::pWorld->NumLightsOnSquare[y][x];
+					int is_seen = Dimension::SquareIsVisible(Dimension::currentPlayerView, x, y);
+					int is_lighted = Dimension::SquareIsLighted(Dimension::currentPlayerView, x, y);
 
 					Uint8 alpha;
 
-					if(is_seen && is_lighted)
+					if(is_lighted)
 						alpha = 0; //100%
 					else if(is_seen)
 						alpha = 63; //75%
@@ -1980,6 +1987,7 @@ namespace Game
 			pMainPanel->SetConstraintPercent(pMainPanel->Add(pQuit), 0.0, 0.9, 0.5, 0.1);
 
 			pIPAdress->SetText("Host:");
+			pIPText->SetText(Game::Rules::host);
 			pIPText->SetMaxLen(60);
 
 			this->sleep = true;
@@ -2009,7 +2017,10 @@ namespace Game
 			}
 			else if(stat == Networking::JOIN_WAITING)
 			{
-				
+				if (Game::Rules::isClient && Networking::isClientConnected() == false)
+				{
+					this->Connect(MOUSE_PRESS, this);
+				}
 			}
 			else if(stat == Networking::JOIN_FAILED)
 			{
@@ -2093,7 +2104,9 @@ namespace Game
 
 			pNick->SetText("NoName");
 
-			pPort->SetText("50150");
+			stringstream ss;
+			ss << Networking::netPort;
+			pPort->SetText(ss.str());
 			pPort->SetMaxLen(5);
 
 			sleep = true;
@@ -2179,6 +2192,10 @@ namespace Game
 				stringstream str;
 				str << "Antal spelare: " << Networking::playerCounter;
 				pStatus->SetText(str.str());
+				if (Game::Rules::numPlayersGoal && Networking::playerCounter == Game::Rules::numPlayersGoal)
+				{
+					this->Start(MOUSE_PRESS, this);
+				}
 			}
 
 			if(Networking::isReadyToStart == true)

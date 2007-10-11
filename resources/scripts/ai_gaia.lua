@@ -6,7 +6,7 @@ LastCommands = {}
 
 function PerformAI_Unit_Gaia(Unit)
 
-	if GetUnitType(Unit) == GetUnitTypeFromString("Grue") then
+	if GetUnitType(Unit) == Grue.pointer then
 
 		if GetTime() >= 6.0 and GetTime() <= 18.0 then
 			Attack(Unit, 0.3 * GetUnitMaxHealth(Unit))
@@ -18,7 +18,6 @@ function PerformAI_Unit_Gaia(Unit)
 
 		if (math.random() < 1/100) then
 			Attack(Unit, 1.0 * GetUnitMaxHealth(Unit) + 1)
-			NumMonsters = NumMonsters - 1
 		end
 
 		action = GetUnitAction(Unit)
@@ -46,7 +45,7 @@ end
 
 function PerformAI_Player_Gaia(Player)
 	if (GetTime() < 6.0 or GetTime() > 18.0) then
-		if NumMonsters < 100 then
+		if NumMonsters < 25 then
 			width, height = GetMapDimensions()
 			UnitType = GetUnitTypeFromString("Grue")
 
@@ -56,12 +55,21 @@ function PerformAI_Player_Gaia(Player)
 			until CanCreateUnitAt(UnitType, Player, x, y)
 
 			CreateUnit(UnitType, Player, x,  y)
---			Unit = CreateUnit(UnitType, Player, x,  y)
---			CreationTimes[Unit] = os.time()
-			NumMonsters = NumMonsters + 1
 		end
 	else
 		NumMonsters = 0
+	end
+end
+
+function UnitEvent_UnitKilled_Gaia(Unit)
+	if GetUnitType(Unit) == Grue.pointer then
+		NumMonsters = NumMonsters - 1
+	end
+end
+
+function UnitEvent_UnitCreation_Gaia(Unit)
+	if GetUnitType(Unit) == Grue.pointer then
+		NumMonsters = NumMonsters + 1
 	end
 end
 

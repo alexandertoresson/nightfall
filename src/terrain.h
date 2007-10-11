@@ -67,14 +67,12 @@ namespace Game
 #include "vector3d.h"
 #include "unit.h"
 #include "utilities.h"
-#include "dimension.h"
 
 #endif
 
 #ifdef __UTILITIES_H_END__
 #ifdef __VECTOR3D_H_END__
 #ifdef __UNIT_H_PRE_END__
-#ifdef __DIMENSION_H_END__
 
 #ifndef __TERRAIN_H__
 #define __TERRAIN_H__
@@ -160,7 +158,6 @@ namespace Game
 
 #define __TERRAIN_H_END__
 
-#endif
 #endif
 #endif
 #endif

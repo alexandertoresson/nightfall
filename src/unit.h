@@ -25,8 +25,11 @@ namespace Game
 		struct TransformAnim;
 		struct TransData;
 		struct Animation;
+		
+		bool IsValidUnitPointer(Unit* unit);
 
 		int GetTraversalTime(Unit *unit, int x, int y, int dx, int dy);
+		int GetTraversalTimeAdjusted(Unit *unit, int x, int y, int dx, int dy);
 		bool MoveUnit(Unit* unit);
 		bool SquareIsGoal(Unit *unit, int x, int y, bool use_internal = false);
 		
@@ -53,7 +56,6 @@ namespace Game
 #include "vector3d.h"
 #include "aipathfinding.h"
 #include "aibase.h"
-#include "game.h"
 #include "terrain.h"
 #include "audio.h"
 
@@ -63,7 +65,6 @@ namespace Game
 #ifdef __AIPATHFINDING_H_PRE_END__
 #ifdef __DIMENSION_H_END__
 #ifdef __VECTOR3D_H_END__
-#ifdef __GAME_H_END__
 #ifdef __TERRAIN_H_END__
 #ifdef __AUDIO_H_END__
 
@@ -246,12 +247,12 @@ namespace Game
 			float       lightRange;      // how far the unit spreads light
 			bool        isMobile;        // whether the unit is moveable
 			PowerType   powerType;       // defines how long the unit generates light.
-			double       powerIncrement;  // the power generation quantity per second per unit.
-			double       powerUsage;      // the power the unit uses per second
-			double       lightPowerUsage; // the power the light uses per second
-			double       attackPowerUsage;// the power an attack uses
-			double       buildPowerUsage; // the power building uses per second
-			double       movePowerUsage;  // the power moving uses per second
+			double      powerIncrement;  // the power generation quantity per second per unit.
+			double      powerUsage;      // the power the unit uses per second
+			double      lightPowerUsage; // the power the light uses per second
+			double      attackPowerUsage;// the power an attack uses
+			double      buildPowerUsage; // the power building uses per second
+			double      movePowerUsage;  // the power moving uses per second
 			float       movementSpeed;   // in squares per second
 			float       attackSpeed;     // in times per second
 			vector<UnitType*> canBuild;  // vector of what the unit can build, if anything at all
@@ -273,6 +274,8 @@ namespace Game
 			MovementType movementType;   // Type of movement the unit has
 			int         index;           // index of the unit in vUnitTypes
 			GLuint	    Symbol;	     // Build symbol or Unit Symbol
+			AI::UnitAIFuncs *unitAIFuncs; // UnitAIFuncs, one for each player
+			AI::PlayerAIFuncs *playerAIFuncs; // PlayerAIFuncs, one for each player
 			Audio::AudioFXInfo* actionSounds[Audio::SFX_ACT_COUNT];
 		};
 
@@ -283,7 +286,7 @@ namespace Game
 			float               areaOfEffect;
 			Utilities::Vector3D startPos;
 			float               speed;
-			bool                homing;
+			bool                isHoming;
 		};
 
 		struct Projectile
@@ -304,12 +307,12 @@ namespace Game
 			Position            pos;
 			IntPosition*        lastSeenPositions;
 			IntPosition         curAssociatedSquare;
+			IntPosition         curAssociatedBigSquare;
 			float               rotation;  // how rotated the model is
 			UnitAnimData        animData;
 			AI::UnitAction      action;
-			deque<ActionData*> actionQueue;
+			deque<ActionData*>  actionQueue;
 			AI::MovementData*   pMovementData;
-			AI::UnitAIData*     aiUnitData;
 			vector<Projectile*> projectiles;
 			Uint32              lastAttack;    // frame of the last attack done by the unit
 			Uint32              lastAttacked;    // frame of the last attack done at the unit
@@ -323,9 +326,13 @@ namespace Game
 			bool                hasSeen;     // the unit has squares added that are marked as seen
 			LightState          lightState;
 			Position*           rallypoint;
-			Uint16               id;
+			Uint16              id;
+			AI::UnitAIFuncs     unitAIFuncs;
+			int                 aiFrame;
 			Audio::SoundListNode* soundNodes[Audio::SFX_ACT_COUNT];
 		};
+
+		extern vector<Unit*> **unitBigSquares;
 
 		extern vector<Unit*> unitsSelected;
 		extern vector<Unit*> unitGroups[10];
@@ -385,6 +392,7 @@ namespace Game
 		Unit* GetUnitClicked(int clickx, int clicky, int map_x, int map_y);
 		Unit* CreateUnit(UnitType* type, Player* owner, float x, float y);
 		void DeleteUnit(Unit* unit);
+		void KillUnit(Unit* unit);
 		Unit* CreateUnitNoDisplay(UnitType* type, Player* owner);
 		bool DisplayUnit(Unit* unit, float x, float y);
 		void UpdateSeenSquares(Unit* unit, int x, int y, int operation);
@@ -431,7 +439,6 @@ namespace Game
 
 #define __UNIT_H_END__
 
-#endif
 #endif
 #endif
 #endif

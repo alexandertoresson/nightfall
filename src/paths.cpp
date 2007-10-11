@@ -96,6 +96,28 @@ namespace Utilities
 		return NULL;
 	}
 
+	std::string GetWritableDataFile(std::string file)
+	{
+		std::string path;
+		int path_index = 0;
+		while ((path = GetPath(PATHTYPE_DATA, path_index++)).length())
+		{
+			if (CanOpenForWriting(path + file))
+			{
+				return (path + file).c_str();
+			}
+			else
+			{
+				CreateDirectory(path);
+				if (CanOpenForWriting(path + file))
+				{
+					return (path + file).c_str();
+				}
+			}
+		}
+		return NULL;
+	}
+
 	std::string GetPath(PathType type, unsigned num)
 	{
 	#ifdef WIN32

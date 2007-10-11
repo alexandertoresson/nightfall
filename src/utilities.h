@@ -51,7 +51,7 @@ namespace Utilities
 	{
 		private:
 			Hashtable mData;
-			char      mFile[256];
+			char* mFile;
 	
 		public:
 			ConfigurationFile(void);
@@ -80,9 +80,9 @@ namespace Utilities
 	class StructuredInstructionsFile
 	{
 		private:
-			char mFile[256];
-			int  mIndex;
-			int  mLength;
+			const char* mFile;
+			int   mIndex;
+			int   mLength;
 			StructuredInstructionsVector mItems;
 			
 		public:

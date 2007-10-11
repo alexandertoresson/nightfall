@@ -8,12 +8,52 @@
 #include "paths.h"
 #include "dimension.h"
 #include "aibase.h"
+#include "camera.h"
+#include "gamegui.h"
 
 namespace UnitLuaInterface
 {
 	using namespace Game::Dimension;
 	using namespace Game::AI;
 	using namespace Utilities;
+
+#define CHECK_UNIT_PTR(x) \
+	if ((x) == NULL) \
+	{ \
+		lua_pushboolean(pVM, 0); \
+		std::cout << "[LUA SET] Failure:" << __FUNCTION__ << " Invalid unit - null pointer" << std::endl; \
+		return 1; \
+	}  \
+	if (!IsValidUnitPointer(x)) \
+	{ \
+		lua_pushboolean(pVM, 0); \
+		std::cout << "[LUA SET] Failure:" << __FUNCTION__ << " Invalid unit - not in list of valid ones" << std::endl; \
+		return 1; \
+	} \
+	if (!(x)->isDisplayed) \
+	{ \
+		lua_pushboolean(pVM, 0); \
+		std::cout << "[LUA SET] Failure:" << __FUNCTION__ << " Invalid unit - not displayed; can't command" << std::endl; \
+		return 1; \
+	} 
+
+
+#define CHECK_UNIT_PTR_NULL_VALID(x) \
+	if ((x) != NULL) \
+	{ \
+		if (!IsValidUnitPointer(x)) \
+		{ \
+			lua_pushboolean(pVM, 0); \
+			std::cout << "[LUA SET] Failure:" << __FUNCTION__ << " Invalid unit - not in list of valid ones" << std::endl; \
+			return 1; \
+		} \
+		if (!(x)->isDisplayed) \
+		{ \
+			lua_pushboolean(pVM, 0); \
+			std::cout << "[LUA SET] Failure:" << __FUNCTION__ << " Invalid unit - not displayed; can't command" << std::endl; \
+			return 1; \
+		} \
+	} 
 
 	Unit* _GetUnit(void* ptr)
 	{
@@ -28,7 +68,9 @@ namespace UnitLuaInterface
 		float health = -1.0f;
 		Unit* pUnit = _GetUnit(lua_touserdata(pVM, 1));
 
-		if (pUnit != NULL)
+		CHECK_UNIT_PTR(pUnit);
+
+		if (pUnit != NULL && IsValidUnitPointer(pUnit))
 			health = pUnit->health;
 
 		lua_pushnumber(pVM, health);
@@ -40,7 +82,7 @@ namespace UnitLuaInterface
 		float health = -1.0f;
 		Unit* pUnit = _GetUnit(lua_touserdata(pVM, 1));
 
-		if (pUnit != NULL)
+		if (pUnit != NULL && IsValidUnitPointer(pUnit))
 			health = pUnit->type->maxHealth;
 
 		lua_pushnumber(pVM, health);
@@ -52,7 +94,7 @@ namespace UnitLuaInterface
 		float power = -1.0f;
 		Unit* pUnit = _GetUnit(lua_touserdata(pVM, 1));
 
-		if (pUnit != NULL)
+		if (pUnit != NULL && IsValidUnitPointer(pUnit))
 			power = pUnit->power;
 
 		lua_pushnumber(pVM, power);
@@ -64,7 +106,7 @@ namespace UnitLuaInterface
 		float power = -1.0f;
 		Unit* pUnit = _GetUnit(lua_touserdata(pVM, 1));
 
-		if (pUnit != NULL)
+		if (pUnit != NULL && IsValidUnitPointer(pUnit))
 			power = pUnit->type->maxPower;
 
 		lua_pushnumber(pVM, power);
@@ -76,7 +118,7 @@ namespace UnitLuaInterface
 		UnitAction action = ACTION_NONE;
 		Unit* pUnit = _GetUnit(lua_touserdata(pVM, 1));
 
-		if (pUnit != NULL)
+		if (pUnit != NULL && IsValidUnitPointer(pUnit))
 			action = pUnit->action;
 
 		lua_pushinteger(pVM, action);
@@ -88,7 +130,7 @@ namespace UnitLuaInterface
 		void* arg = NULL;
 		Unit* pUnit = _GetUnit(lua_touserdata(pVM, 1));
 
-		if (pUnit != NULL)
+		if (pUnit != NULL && IsValidUnitPointer(pUnit))
 			arg = pUnit->pMovementData->action.arg;
 
 		lua_pushlightuserdata(pVM, arg);
@@ -100,7 +142,7 @@ namespace UnitLuaInterface
 		float position[2] = { 0, 0 };
 		Unit* pUnit = _GetUnit(lua_touserdata(pVM, 1));
 
-		if (pUnit != NULL)
+		if (pUnit != NULL && IsValidUnitPointer(pUnit))
 		{
 			position[0] = pUnit->pos.x;
 			position[1] = pUnit->pos.y;
@@ -116,7 +158,7 @@ namespace UnitLuaInterface
 		float rotation = 0;
 		Unit* pUnit = _GetUnit(lua_touserdata(pVM, 1));
 
-		if (pUnit != NULL)
+		if (pUnit != NULL && IsValidUnitPointer(pUnit))
 			rotation = pUnit->rotation;
 
 		lua_pushnumber(pVM, rotation);
@@ -128,7 +170,7 @@ namespace UnitLuaInterface
 		Unit* pUnit = _GetUnit(lua_touserdata(pVM, 1));
 		UnitType* pUType = NULL;
 
-		if (pUnit != NULL)
+		if (pUnit != NULL && IsValidUnitPointer(pUnit))
 		{
 			pUType = pUnit->type;
 		}
@@ -143,7 +185,7 @@ namespace UnitLuaInterface
 		Player* pPlayer = NULL;
 		int result = 0;
 
-		if (pUnit != NULL)
+		if (pUnit != NULL && IsValidUnitPointer(pUnit))
 		{
 			result = 1;
 			pPlayer = pUnit->owner;
@@ -159,7 +201,7 @@ namespace UnitLuaInterface
 		Unit* pUnit = _GetUnit(lua_touserdata(pVM, 1));
 		bool isMobile = false;
 
-		if (pUnit != NULL)
+		if (pUnit != NULL && IsValidUnitPointer(pUnit))
 			isMobile = pUnit->type->isMobile;
 
 		lua_pushboolean(pVM, isMobile);
@@ -183,7 +225,7 @@ namespace UnitLuaInterface
 		Unit* pUnit = _GetUnit(lua_touserdata(pVM, 1));
 		bool hurtByLight = false;
 
-		if (pUnit != NULL)
+		if (pUnit != NULL && IsValidUnitPointer(pUnit))
 			hurtByLight = pUnit->type->hurtByLight;
 
 		lua_pushboolean(pVM, hurtByLight);
@@ -195,7 +237,7 @@ namespace UnitLuaInterface
 		Unit* pUnit = _GetUnit(lua_touserdata(pVM, 1));
 		float lightAmount = 0.0;
 
-		if (pUnit != NULL)
+		if (pUnit != NULL && IsValidUnitPointer(pUnit))
 			lightAmount = GetLightAmountOnUnit(pUnit);
 
 		lua_pushnumber(pVM, lightAmount);
@@ -207,10 +249,22 @@ namespace UnitLuaInterface
 		Unit* pUnit = _GetUnit(lua_touserdata(pVM, 1));
 		bool canAttack = false;
 
-		if (pUnit != NULL)
+		if (pUnit != NULL && IsValidUnitPointer(pUnit))
 			canAttack = pUnit->type->canAttack;
 
 		lua_pushboolean(pVM, canAttack);
+		return 1;
+	}
+
+	int LGetUnitCanBuild(LuaVM* pVM)
+	{
+		Unit* pUnit = _GetUnit(lua_touserdata(pVM, 1));
+		bool canBuild = false;
+
+		if (pUnit != NULL && IsValidUnitPointer(pUnit))
+			canBuild = pUnit->type->canBuild.size() > 0;
+
+		lua_pushboolean(pVM, canBuild);
 		return 1;
 	}
 
@@ -219,7 +273,7 @@ namespace UnitLuaInterface
 		Unit* pUnit = _GetUnit(lua_touserdata(pVM, 1));
 		bool canAttackWhileMoving = false;
 
-		if (pUnit != NULL)
+		if (pUnit != NULL && IsValidUnitPointer(pUnit))
 			canAttackWhileMoving = pUnit->type->canAttackWhileMoving;
 
 		lua_pushboolean(pVM, canAttackWhileMoving);
@@ -231,7 +285,7 @@ namespace UnitLuaInterface
 		Unit* pUnit = _GetUnit(lua_touserdata(pVM, 1));
 		Uint32 time = 0;
 
-		if (pUnit != NULL)
+		if (pUnit != NULL && IsValidUnitPointer(pUnit))
 			time = pUnit->lastAttack;
 		
 		lua_pushnumber(pVM, time);
@@ -243,7 +297,7 @@ namespace UnitLuaInterface
 		Unit* pUnit = _GetUnit(lua_touserdata(pVM, 1));
 		Uint32 time = 0;
 
-		if (pUnit != NULL)
+		if (pUnit != NULL && IsValidUnitPointer(pUnit))
 			time = pUnit->lastAttacked;
 		
 		lua_pushnumber(pVM, time);
@@ -255,7 +309,7 @@ namespace UnitLuaInterface
 		Unit* pUnit = _GetUnit(lua_touserdata(pVM, 1));
 		Unit* target = NULL;
 
-		if (pUnit != NULL)
+		if (pUnit != NULL && IsValidUnitPointer(pUnit))
 			if (pUnit->pMovementData != NULL)
 				target = pUnit->pMovementData->action.goal.unit;
 		
@@ -271,7 +325,7 @@ namespace UnitLuaInterface
 		target.x = 0;
 		target.y = 0;
 
-		if (pUnit != NULL)
+		if (pUnit != NULL && IsValidUnitPointer(pUnit))
 			if (pUnit->pMovementData != NULL)
 				target = pUnit->pMovementData->action.goal.pos;
 		
@@ -288,7 +342,7 @@ namespace UnitLuaInterface
 
 		Unit* retUnit = NULL;
 
-		if (pUnit != NULL)
+		if (pUnit != NULL && IsValidUnitPointer(pUnit))
 		{
 			retUnit = GetNearestUnitInRange(pUnit, rangeType, PSBitmask);
 		}
@@ -338,7 +392,7 @@ namespace UnitLuaInterface
 		Unit* pUnit = _GetUnit(lua_touserdata(pVM, 1));
 		int num = 0;
 
-		if (pUnit != NULL)
+		if (pUnit != NULL && IsValidUnitPointer(pUnit))
 			num = pUnit->projectiles.size();
 		
 		lua_pushinteger(pVM, num);
@@ -350,7 +404,7 @@ namespace UnitLuaInterface
 		Unit* pUnit = _GetUnit(lua_touserdata(pVM, 1));
 		ProjectileType* projtype = NULL;
 
-		if (pUnit != NULL)
+		if (pUnit != NULL && IsValidUnitPointer(pUnit))
 			projtype = pUnit->type->projectileType;
 		
 		lua_pushlightuserdata(pVM, projtype);
@@ -363,7 +417,7 @@ namespace UnitLuaInterface
 		unsigned int num = lua_tointeger(pVM, 2);
 		Projectile* proj = NULL;
 
-		if (pUnit != NULL)
+		if (pUnit != NULL && IsValidUnitPointer(pUnit))
 			if (num < pUnit->projectiles.size())
 				proj = pUnit->projectiles.at(num);
 		
@@ -632,14 +686,6 @@ namespace UnitLuaInterface
 		return 2;
 	}
 
-#define CHECK_UNIT_PTR(x) \
-	if ((x) == NULL) \
-	{ \
-		lua_pushboolean(pVM, 0); \
-		std::cout << "[LUA SET] Failure: invalid unit - null pointer" << std::endl; \
-		return 0; \
-	} 
-
 #define LUA_FAILURE(x) \
 	{ \
 		lua_pushboolean(pVM, 0); \
@@ -794,8 +840,7 @@ namespace UnitLuaInterface
 		Unit* pUnit02 = _GetUnit(lua_touserdata(pVM, 2));
 
 		CHECK_UNIT_PTR(pUnit01)
-//		CHECK_UNIT_PTR(pUnit02)
-		// the above line was commented because a target unit of NULL is indeed legal, as it signifies no target.
+		CHECK_UNIT_PTR_NULL_VALID(pUnit02)
 
 		pUnit01->pMovementData->action.goal.unit = pUnit02;
 
@@ -1054,16 +1099,6 @@ namespace UnitLuaInterface
 		return 0;
 	}
 
-	int LCanAttack(LuaVM* pVM)
-	{
-		Unit* pUnit = _GetUnit(lua_touserdata(pVM, 1));
-
-		CHECK_UNIT_PTR(pUnit)
-
-		lua_pushboolean(pVM, CanAttack(pUnit));
-		return 1;
-	}
-
 	int LCalculateUnitDamage(LuaVM* pVM)
 	{
 		Unit* pUnit = _GetUnit(lua_touserdata(pVM, 1));
@@ -1111,15 +1146,7 @@ namespace UnitLuaInterface
 		}
 		else
 		{
-			unit->action = action;
-			unit->action_completeness = 0.0;
-			unit->pMovementData->action.goal.unit = target;
-			unit->pMovementData->action.arg = arg;
-			unit->pMovementData->action.goal.pos = target->pos;
-			if (unit->type->isMobile)
-			{
-				unit->isMoving = true;
-			}
+			ApplyAction(unit, action, target->pos.x, target->pos.y, target, arg);
 		}
 		Game::Dimension::ChangePath(unit, target->pos.x, target->pos.y, action, target, arg);
 	}
@@ -1136,16 +1163,7 @@ namespace UnitLuaInterface
 		}
 		else
 		{
-			unit->action = action;
-			unit->action_completeness = 0.0;
-			unit->pMovementData->action.goal.unit = NULL;
-			unit->pMovementData->action.arg = arg;
-			unit->pMovementData->action.goal.pos.x = x;
-			unit->pMovementData->action.goal.pos.y = y;
-			if (unit->type->isMobile)
-			{
-				unit->isMoving = true;
-			}
+			ApplyAction(unit, action, x, y, NULL, arg);
 		}
 		Game::Dimension::ChangePath(unit, x, y, action, NULL, arg);
 	}
@@ -1252,7 +1270,7 @@ namespace UnitLuaInterface
 	{
 		Unit* pUnit01 = _GetUnit(lua_touserdata(pVM, 1));
 		Unit* pUnit02 = _GetUnit(lua_touserdata(pVM, 2));
-
+		
 		CHECK_UNIT_PTR(pUnit01)
 		CHECK_UNIT_PTR(pUnit02)
 
@@ -1303,6 +1321,208 @@ namespace UnitLuaInterface
 		CHECK_UNIT_PTR(pUnit)
 
 		MoveUnit(pUnit);
+		LUA_SUCCESS
+	}
+
+	bool IsValidUnitTypePointer(UnitType* unittype);
+
+	int LSetEventHandler(LuaVM* pVM)
+	{
+		void* context = lua_touserdata(pVM, 1);
+		EventType eventtype = (EventType) lua_tointeger(pVM, 2);
+		const char* handler = lua_tostring(pVM, 3);
+
+		if (!handler)
+		{
+			LUA_FAILURE("LSetEventHandler: Null pointer handler string received")
+		}
+
+		std::string handlerString = (std::string) handler;
+
+		if (!context)
+		{
+			LUA_FAILURE("LSetEventHandler: Null pointer context received")
+		}
+
+		if (IsValidUnitPointer((Unit*)context))
+		{
+			Unit* unit = (Unit*) context;
+			switch (eventtype)
+			{
+				case EVENTTYPE_COMMANDCOMPLETED:
+					unit->unitAIFuncs.commandCompleted = handlerString;
+					break;
+				case EVENTTYPE_COMMANDCANCELLED:
+					unit->unitAIFuncs.commandCancelled = handlerString;
+					break;
+				case EVENTTYPE_NEWCOMMAND:
+					unit->unitAIFuncs.newCommand = handlerString;
+					break;
+				case EVENTTYPE_BECOMEIDLE:
+					unit->unitAIFuncs.becomeIdle = handlerString;
+					break;
+				case EVENTTYPE_ISATTACKED:
+					unit->unitAIFuncs.isAttacked = handlerString;
+					break;
+				case EVENTTYPE_UNITKILLED:
+					unit->unitAIFuncs.unitKilled = handlerString;
+					break;
+				case EVENTTYPE_PERFORMUNITAI:
+					unit->unitAIFuncs.performUnitAI = handlerString;
+					break;
+				default:
+					LUA_FAILURE("LSetEventHandler: Event type not valid for unit")
+			}
+		}
+		else if (IsValidUnitTypePointer((UnitType*)context))
+		{
+			Player* player = (Player*) lua_touserdata(pVM, 4);
+			UnitType* unittype = (UnitType*) context;
+			if (IsValidPlayerPointer(player))
+			{
+				switch (eventtype)
+				{
+					case EVENTTYPE_COMMANDCOMPLETED:
+						unittype->unitAIFuncs[player->index].commandCompleted = handlerString;
+						break;
+					case EVENTTYPE_COMMANDCANCELLED:
+						unittype->unitAIFuncs[player->index].commandCancelled = handlerString;
+						break;
+					case EVENTTYPE_NEWCOMMAND:
+						unittype->unitAIFuncs[player->index].newCommand = handlerString;
+						break;
+					case EVENTTYPE_BECOMEIDLE:
+						unittype->unitAIFuncs[player->index].becomeIdle = handlerString;
+						break;
+					case EVENTTYPE_ISATTACKED:
+						unittype->unitAIFuncs[player->index].isAttacked = handlerString;
+						break;
+					case EVENTTYPE_UNITKILLED:
+						unittype->unitAIFuncs[player->index].unitKilled = handlerString;
+						break;
+					case EVENTTYPE_PERFORMUNITAI:
+						unittype->unitAIFuncs[player->index].performUnitAI = handlerString;
+						break;
+					case EVENTTYPE_UNITCREATION:
+						unittype->playerAIFuncs[player->index].unitCreation = handlerString;
+						break;
+					default:
+						LUA_FAILURE("LSetEventHandler: Event type not valid for unit type")
+				}
+			}
+			else
+			{
+				LUA_FAILURE("LSetEventHandler: Invalid player pointer received")
+			}
+		}
+		else if (IsValidPlayerPointer((Player*)context))
+		{
+			Player* player = (Player*) context;
+			switch (eventtype)
+			{
+				case EVENTTYPE_COMMANDCOMPLETED:
+					player->unitAIFuncs.commandCompleted = handlerString;
+					break;
+				case EVENTTYPE_COMMANDCANCELLED:
+					player->unitAIFuncs.commandCancelled = handlerString;
+					break;
+				case EVENTTYPE_NEWCOMMAND:
+					player->unitAIFuncs.newCommand = handlerString;
+					break;
+				case EVENTTYPE_BECOMEIDLE:
+					player->unitAIFuncs.becomeIdle = handlerString;
+					break;
+				case EVENTTYPE_ISATTACKED:
+					player->unitAIFuncs.isAttacked = handlerString;
+					break;
+				case EVENTTYPE_UNITKILLED:
+					player->unitAIFuncs.unitKilled = handlerString;
+					break;
+				case EVENTTYPE_PERFORMUNITAI:
+					player->unitAIFuncs.performUnitAI = handlerString;
+					break;
+				case EVENTTYPE_UNITCREATION:
+					player->playerAIFuncs.unitCreation = handlerString;
+					break;
+				case EVENTTYPE_PERFORMPLAYERAI:
+					player->playerAIFuncs.performPlayerAI = handlerString;
+					break;
+				default:
+					LUA_FAILURE("LSetEventHandler: Event type not valid for player")
+			}
+		}
+		else
+		{
+			LUA_FAILURE("LSetEventHandler: Invalid pointer received")
+		}
+
+		LUA_SUCCESS
+	}
+
+	int LSetRegularAIDelay(LuaVM* pVM)
+	{
+		void* context = lua_touserdata(pVM, 1);
+		EventType eventtype = (EventType) lua_tointeger(pVM, 2);
+		int delay = lua_tointeger(pVM, 3);
+
+		if (!context)
+		{
+			LUA_FAILURE("LSetRegularAIDelay: Null pointer context received")
+		}
+		
+		if (IsValidUnitPointer((Unit*)context))
+		{
+			Unit* unit = (Unit*) context;
+			if (eventtype == EVENTTYPE_PERFORMUNITAI)
+			{
+				unit->unitAIFuncs.unitAIDelay = delay;
+			}
+			else
+			{
+				LUA_FAILURE("LSetRegularAIDelay: Event type not valid for unit")
+			}
+		}
+		else if (IsValidUnitTypePointer((UnitType*)context))
+		{
+			Player* player = (Player*) lua_touserdata(pVM, 4);
+			UnitType* unittype = (UnitType*) context;
+			if (IsValidPlayerPointer(player))
+			{
+				if (eventtype == EVENTTYPE_PERFORMUNITAI)
+				{
+					unittype->unitAIFuncs[player->index].unitAIDelay = delay;
+				}
+				else
+				{
+					LUA_FAILURE("LSetRegularAIDelay: Event type not valid for unit type")
+				}
+			}
+			else
+			{
+				LUA_FAILURE("LSetEventHandler: Invalid player pointer received")
+			}
+		}
+		else if (IsValidPlayerPointer((Player*)context))
+		{
+			Player* player = (Player*) context;
+			if (eventtype == EVENTTYPE_PERFORMUNITAI)
+			{
+				player->unitAIFuncs.unitAIDelay = delay;
+			}
+			else if (eventtype == EVENTTYPE_PERFORMPLAYERAI)
+			{
+				player->playerAIFuncs.playerAIDelay = delay;
+			}
+			else
+			{
+				LUA_FAILURE("LSetRegularAIDelay: Event type not valid for player")
+			}
+		}
+		else
+		{
+			LUA_FAILURE("LSetRegularAIDelay: Invalid pointer received")
+		}
+
 		LUA_SUCCESS
 	}
 
@@ -1433,10 +1653,6 @@ namespace UnitLuaInterface
 		}
 		
 		int value = (int)lua_tonumber(pVM, 1);
-		if (value < 1 || value > 4)
-		{
-			LUA_FAILURE("LInitPlayers: Invalid amount of players. Reasonable amounts: 1-4")
-		}
 		
 		Game::Dimension::InitPlayers(value);
 		LUA_SUCCESS
@@ -1453,6 +1669,19 @@ namespace UnitLuaInterface
 	{
 		lua_pushlightuserdata(pVM, NULL);
 		return 1;
+	}
+
+	int LIsValidUnit(LuaVM* pVM)
+	{
+		Unit* pUnit = (Unit*) lua_touserdata(pVM, 1);
+		if (pUnit != NULL && IsValidUnitPointer(pUnit))
+		{
+			LUA_SUCCESS
+		}
+		else
+		{
+			LUA_FAIL
+		}
 	}
 
 	int LGetUnitTypeName(LuaVM* pVM)
@@ -2767,6 +2996,13 @@ else \
 		lua_pop(pVM, 1);
 	}
 
+	map<UnitType*, bool> validUnitTypePointers;
+
+	bool IsValidUnitTypePointer(UnitType* unittype)
+	{
+		return validUnitTypePointers[unittype];
+	}
+
 	int LCreateUnitType(LuaVM* pVM)
 	{
 		UnitType *pUnitType;
@@ -2809,6 +3045,7 @@ else \
 		GET_FLOAT_FIELD_OPTIONAL(pUnitType->lightPowerUsage, "lightPowerUsage", 0.0)
 		GET_FLOAT_FIELD_OPTIONAL(pUnitType->attackPowerUsage, "attackPowerUsage", 0.0)
 		GET_FLOAT_FIELD_OPTIONAL(pUnitType->movePowerUsage, "movePowerUsage", 0.0)
+		GET_FLOAT_FIELD_OPTIONAL(pUnitType->buildPowerUsage, "buildPowerUsage", 0.0)
 		GET_FLOAT_FIELD_OPTIONAL(pUnitType->movementSpeed, "movementSpeed", 0.0)
 		GET_FLOAT_FIELD_OPTIONAL(pUnitType->attackSpeed, "attackSpeed", 0.0)
 		GET_FLOAT_FIELD_OPTIONAL(pUnitType->size, "size", 0.0)
@@ -2931,6 +3168,7 @@ else \
 			GET_FLOAT_FIELD_OPTIONAL(pUnitType->projectileType->size, "size", 0.0)
 			GET_FLOAT_FIELD_OPTIONAL(pUnitType->projectileType->speed, "speed", 0.0)
 			GET_FLOAT_FIELD_OPTIONAL(pUnitType->projectileType->areaOfEffect, "areaOfEffect", 0.0)
+			GET_BOOL_FIELD_OPTIONAL(pUnitType->projectileType->isHoming, "isHoming", false)
 			
 			lua_getfield(pVM, -1, "startPos");
 			if (lua_isstring(pVM, -1))
@@ -2986,6 +3224,22 @@ else \
 		lua_setfield(pVM, 2, pUnitType->id);
 		lua_pop(pVM, 1);
 
+		pUnitType->playerAIFuncs = new PlayerAIFuncs[pWorld->vPlayers.size()];
+
+		for (unsigned i = 0; i < pWorld->vPlayers.size(); i++)
+		{
+			pUnitType->playerAIFuncs[i] = pWorld->vPlayers[i]->playerAIFuncs;
+		}
+
+		pUnitType->unitAIFuncs = new UnitAIFuncs[pWorld->vPlayers.size()];
+
+		for (unsigned i = 0; i < pWorld->vPlayers.size(); i++)
+		{
+			pUnitType->unitAIFuncs[i] = pWorld->vPlayers[i]->unitAIFuncs;
+		}
+
+		validUnitTypePointers[pUnitType] = true;
+
 		LUA_SUCCESS
 	}
 
@@ -3007,6 +3261,7 @@ else \
 		pVM->RegisterFunction("GetUnitIsHurtByLight", LGetUnitIsHurtByLight);
 		pVM->RegisterFunction("GetUnitLightAmount", LGetUnitLightAmount);
 		pVM->RegisterFunction("GetUnitCanAttack", LGetUnitCanAttack);
+		pVM->RegisterFunction("GetUnitCanBuild", LGetUnitCanBuild);
 		pVM->RegisterFunction("GetUnitCanAttackWhileMoving", LGetUnitCanAttackWhileMoving);
 		pVM->RegisterFunction("GetUnitLastAttack", LGetUnitLastAttack);
 		pVM->RegisterFunction("GetUnitLastAttacked", LGetUnitLastAttacked);
@@ -3044,9 +3299,8 @@ else \
 		pVM->RegisterFunction("Build", LBuild);
 		pVM->RegisterFunction("IsWithinRangeForBuilding", LIsWithinRangeForBuilding);
 
-		pVM->RegisterFunction("InitiateAttack", LInitiateAttack);
+//		pVM->RegisterFunction("InitiateAttack", LInitiateAttack);
 		pVM->RegisterFunction("Attack", LAttack);
-		pVM->RegisterFunction("CanAttack", LCanAttack);
 		pVM->RegisterFunction("CalculateUnitDamage", LCalculateUnitDamage);
 		pVM->RegisterFunction("CanReach", LCanReach);
 		
@@ -3096,6 +3350,7 @@ else \
 		
 		pVM->RegisterFunction("IsNonNull", LIsNonNull);
 		pVM->RegisterFunction("Null", LNull);
+		pVM->RegisterFunction("IsValidUnit", LIsValidUnit);
 		
 		pVM->RegisterFunction("GetUnitTypeName", LGetUnitTypeName);
 		pVM->RegisterFunction("Output", LOutput);
@@ -3149,5 +3404,8 @@ else \
 		pVM->RegisterFunction("UnloadAllUnitTypes", LUnloadAllUnitTypes);
 		
 		pVM->RegisterFunction("CreateUnitType", LCreateUnitType);
+		
+		pVM->RegisterFunction("SetEventHandler", LSetEventHandler);
+		pVM->RegisterFunction("SetRegularAIDelay", LSetRegularAIDelay);
 	}
 }

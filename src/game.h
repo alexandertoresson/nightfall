@@ -14,7 +14,15 @@ namespace Game
 
 		extern std::string CurrentLevel;
 
-		extern float time_since_last_frame;
+		extern bool noGraphics;
+		extern bool graphicsLoaded;
+		extern bool noSound;
+		extern bool isServer;
+		extern bool isClient;
+		extern int numPlayersGoal;
+		extern std::string host;
+		extern std::string checksumLog;
+
 		extern float time_passed_since_last_water_pass;
 
 		//All game related run loop shall return a switchstate.
@@ -157,6 +165,7 @@ namespace Game
 				void PerformPostFrame();
 				void ResetGame(); //Should perform last initalization, and game start.
 				int RunLoop();
+				void Stop();
 				virtual ~GameWindow();
 				
 			friend class GameInput; //Allows access to protected and private members of this class. Practical reasons.

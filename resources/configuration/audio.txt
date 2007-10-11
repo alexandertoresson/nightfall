@@ -10,8 +10,8 @@
 # As what is written above, changing these two variables
 # is very unwise. The application will refuse to start up
 # if not all files defined in the audio list below are found!
-music directory			resources/music/%s
-sound directory			resources/sound/%s
+music directory			resources/music/
+sound directory			resources/sound/
 
 # 44100 (CD-quality) recommended. Set to half 22050 if
 # you do experience a significant performance loss.

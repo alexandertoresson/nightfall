@@ -4,6 +4,7 @@
 #include "vector3d.h"
 #include "console.h"
 #include "dimension.h"
+#include "unit.h"
 #include <vector>
 #include <map>
 #include <queue>
@@ -298,13 +299,13 @@ namespace Audio
 						else if (pList->type == AUDIO_MUSIC && buffer.size() > 0)
 						{
 							std::queue<Music*> finalBuffer;
-							char file[256];
+							std::string file;
 							while (buffer.size() > 0)
 							{
-								sprintf(file, musicDirectory, buffer.front().c_str());
+								file = (std::string) musicDirectory + buffer.front();
 								console << "Loading '" << file << "' as music. Result: ";
 
-								Music* pNoice = Mix_LoadMUS(file);
+								Music* pNoice = Mix_LoadMUS(file.c_str());
 								if (pNoice == NULL)
 									console << "Failure. Error: " << Mix_GetError() << Console::nl;
 								else
@@ -335,13 +336,13 @@ namespace Audio
 						else if (buffer.size() > 0)
 						{
 							std::queue<Sound*> finalBuffer;
-							char file[256];
+							std::string file;
 							while (buffer.size() > 0)
 							{
-								sprintf(file, soundDirectory, buffer.front().c_str());
+								file = (std::string) musicDirectory + buffer.front();
 								console << "Loading '" << file << "' as sound-FX. Result: ";
 
-								Sound* pNoice = Mix_LoadWAV(file);
+								Sound* pNoice = Mix_LoadWAV(file.c_str());
 								if (pNoice == NULL)
 									console << "Failure. Error: " << Mix_GetError() << Console::nl;
 								else
