@@ -74,48 +74,41 @@ namespace Utilities
 		return GetFile(PATHTYPE_DATA, file);
 	}
 
-	std::string GetWritableConfigFile(std::string file)
+	std::string GetWritableFile(PathType type, std::string file, bool &exists)
 	{
 		std::string path;
 		int path_index = 0;
-		while ((path = GetPath(PATHTYPE_CONFIG, path_index++)).length())
+		while ((path = GetPath(type, path_index++)).length())
 		{
+			exists = false;
+			if (FileExists(path + file))
+			{
+				exists = true;
+			}
 			if (CanOpenForWriting(path + file))
 			{
 				return (path + file).c_str();
 			}
 			else
 			{
-				CreateDirectory(path);
+				CreateDirectory(GetDirectoryInPath(path + file));
 				if (CanOpenForWriting(path + file))
 				{
 					return (path + file).c_str();
 				}
 			}
 		}
-		return NULL;
+		return "";
 	}
 
-	std::string GetWritableDataFile(std::string file)
+	std::string GetWritableConfigFile(std::string file, bool &exists)
 	{
-		std::string path;
-		int path_index = 0;
-		while ((path = GetPath(PATHTYPE_DATA, path_index++)).length())
-		{
-			if (CanOpenForWriting(path + file))
-			{
-				return (path + file).c_str();
-			}
-			else
-			{
-				CreateDirectory(path);
-				if (CanOpenForWriting(path + file))
-				{
-					return (path + file).c_str();
-				}
-			}
-		}
-		return NULL;
+		return GetWritableFile(PATHTYPE_CONFIG, file, exists);
+	}
+
+	std::string GetWritableDataFile(std::string file, bool &exists)
+	{
+		return GetWritableFile(PATHTYPE_DATA, file, exists);
 	}
 
 	std::string GetPath(PathType type, unsigned num)

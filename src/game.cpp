@@ -198,10 +198,6 @@ namespace Game
 						mainWindow = GameWindow::Instance();
 						nextState = (SwitchState)mainWindow->RunLoop();
 						Audio::StopAll();
-						if (Networking::isNetworked)
-						{
-							Networking::ShutdownNetwork();
-						}
 						break;
 					}
 					case INGAMEMENU:
@@ -497,9 +493,6 @@ namespace Game
 				return ERROR_GENERAL;
 			}
 			
-#ifdef USE_MULTITHREADED_CALCULATIONS
-			Game::AI::InitPathfindingThreading();
-#endif
 			/*
 			SDL_Surface* img = Utilities::LoadImage("textures/terrain2.png");
 			Dimension::terraintexture = Utilities::CreateGLTexture(img);
@@ -524,6 +517,11 @@ namespace Game
 			Dimension::UnloadWorld();
 			Dimension::Environment::FourthDimension::Destroy();
 			DestroyGUI();
+			Utilities::Scripting::StopVM();
+			if (Networking::isNetworked)
+			{
+				Networking::ShutdownNetwork();
+			}
 
 			delete this->worldCamera;
 			delete this->input;
@@ -534,7 +532,7 @@ namespace Game
 		int GameWindow::InitGame()
 		{
 			input = new Dimension::InputController();
-			float increment = 0.9f / 6.0f; //0.9 (90%) divided on 6 updates...
+			float increment = 0.9f / 11.0f; //0.9 (90%) divided on 11 updates...
 			Dimension::pWorld = new Dimension::World;
 
 			if (noGraphics)
@@ -545,6 +543,8 @@ namespace Game
 			{
 				graphicsLoaded = true;
 			}
+
+			Utilities::Scripting::StartVM();
 			
 			Utilities::Scripting::LuaVirtualMachine* const pVM = Utilities::Scripting::LuaVirtualMachine::Instance();
 			Dimension::Environment::FourthDimension* pDimension = Dimension::Environment::FourthDimension::Instance();
@@ -559,16 +559,14 @@ namespace Game
 			{
 				return ERROR_GENERAL;
 			}
+
 			std::string generic_level_script = "scripts/init_level.lua";
 			if (pVM->DoFile(generic_level_script) != SUCCESS)
 			{
 				return ERROR_GENERAL;
 			}
-			
-			////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-			Dimension::InitUnits();
 			pLoading->Increment(increment);
-
+			
 			////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 			worldCamera = new Dimension::Camera();
 			/*
@@ -585,13 +583,42 @@ namespace Game
 			pLoading->Increment(increment);
 			
 			////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+			pVM->SetFunction("SetPlayers");
+			if (pVM->CallFunction(0, 1) != SUCCESS)
+			{
+				return ERROR_GENERAL;
+			}
+			pLoading->Increment(increment);
+
+			Utilities::Scripting::StartPlayerVMs();			
+			pLoading->Increment(increment);
+
+			////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 			pVM->SetFunction("InitLevel");
 			if (pVM->CallFunction(0, 1) != SUCCESS)
 			{
 				return ERROR_GENERAL;
 			}
 			pLoading->Increment(increment);
-				
+			
+			////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+#ifdef USE_MULTITHREADED_CALCULATIONS
+			Game::AI::InitPathfindingThreading();
+#endif
+			pLoading->Increment(increment);
+
+			////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+			Dimension::InitUnits();
+			pLoading->Increment(increment);
+
+			////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+			pVM->SetFunction("InitLevelUnits");
+			if (pVM->CallFunction(0, 1) != SUCCESS)
+			{
+				return ERROR_GENERAL;
+			}
+			pLoading->Increment(increment);
+			
 			////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 			FX::pParticleSystems = new Game::FX::ParticleSystemHandler(100, 100);
 			pLoading->Increment(increment);
@@ -941,9 +968,14 @@ namespace Game
 				if (SDL_GetTicks() - time >= 1000)
 				{
 					if (Game::Rules::noGraphics)
-						cout << "Fps: " << (frames / (((float) (SDL_GetTicks() - time)) / 1000)) << " " << Dimension::pWorld->vUnits.size() << " " << AI::currentFrame << endl;
+						cout << "Fps: " << (frames / (((float) (SDL_GetTicks() - time)) / 1000)) << " " << Dimension::pWorld->vUnits.size() << " " << AI::currentFrame << " c: " << AI::cCount << " t: " << AI::tCount << " f: " << AI::fCount << " p: " << AI::pCount << " n: " << AI::numPaths << " q: " << AI::GetQueueSize() << endl;
 					else
 						console << "Fps: " << (frames / (((float) (SDL_GetTicks() - time)) / 1000)) << " " << Dimension::pWorld->vUnits.size() << Console::nl;
+					AI::cCount = 0;
+					AI::tCount = 0;
+					AI::fCount = 0;
+					AI::pCount = 0;
+					AI::numPaths = 0;
 
 					frames = 0;
 					time = SDL_GetTicks();

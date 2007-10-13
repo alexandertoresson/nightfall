@@ -77,7 +77,7 @@ namespace Game
 		void SendCommandUnitToLua(Dimension::Unit* pUnit, float x, float y, UnitAction action, void* argument)
 		{
 			pUnit->lastCommand = SDL_GetTicks();
-			Utilities::Scripting::LuaVirtualMachine* pVM = Utilities::Scripting::LuaVirtualMachine::Instance();
+			Utilities::Scripting::LuaVirtualMachine* pVM = Utilities::Scripting::GetPlayerVMInstance(pUnit->owner->index);
 			if (pUnit->owner->type == Dimension::PLAYER_TYPE_REMOTE)
 				return;
 			switch (pUnit->owner->type)
@@ -105,7 +105,7 @@ namespace Game
 		void SendCommandUnitToLua(Dimension::Unit* pUnit, Dimension::Unit* destination, UnitAction action, void* argument)
 		{
 			pUnit->lastCommand = SDL_GetTicks();
-			Utilities::Scripting::LuaVirtualMachine* pVM = Utilities::Scripting::LuaVirtualMachine::Instance();
+			Utilities::Scripting::LuaVirtualMachine* pVM = Utilities::Scripting::GetPlayerVMInstance(pUnit->owner->index);
 			if (pUnit->owner->type == Dimension::PLAYER_TYPE_REMOTE)
 				return;
 			switch (pUnit->owner->type)
@@ -131,7 +131,7 @@ namespace Game
 
 		void SendActionUnitEventToLua(Dimension::Unit* pUnit, std::string func)
 		{
-			Utilities::Scripting::LuaVirtualMachine* pVM = Utilities::Scripting::LuaVirtualMachine::Instance();
+			Utilities::Scripting::LuaVirtualMachine* pVM = Utilities::Scripting::GetPlayerVMInstance(pUnit->owner->index);
 
 			if (func.length() == 0)
 				return;
@@ -167,7 +167,7 @@ namespace Game
 
 		void SendUnitEventToLua_BecomeIdle(Dimension::Unit* pUnit)
 		{
-			Utilities::Scripting::LuaVirtualMachine* pVM = Utilities::Scripting::LuaVirtualMachine::Instance();
+			Utilities::Scripting::LuaVirtualMachine* pVM = Utilities::Scripting::GetPlayerVMInstance(pUnit->owner->index);
 			
 			if (pUnit->unitAIFuncs.becomeIdle.length() == 0)
 				return;
@@ -183,7 +183,7 @@ namespace Game
 
 		void SendUnitEventToLua_IsAttacked(Dimension::Unit* pUnit, Dimension::Unit* attacker)
 		{
-			Utilities::Scripting::LuaVirtualMachine* pVM = Utilities::Scripting::LuaVirtualMachine::Instance();
+			Utilities::Scripting::LuaVirtualMachine* pVM = Utilities::Scripting::GetPlayerVMInstance(pUnit->owner->index);
 			
 			if (pUnit->unitAIFuncs.isAttacked.length() == 0)
 				return;
@@ -200,7 +200,7 @@ namespace Game
 
 		void SendUnitEventToLua_UnitCreation(Dimension::Unit* pUnit)
 		{
-			Utilities::Scripting::LuaVirtualMachine* pVM = Utilities::Scripting::LuaVirtualMachine::Instance();
+			Utilities::Scripting::LuaVirtualMachine* pVM = Utilities::Scripting::GetPlayerVMInstance(pUnit->owner->index);
 			
 			if (pUnit->type->playerAIFuncs[pUnit->owner->index].unitCreation.length() == 0)
 				return;
@@ -219,7 +219,7 @@ namespace Game
 
 		void SendUnitEventToLua_UnitKilled(Dimension::Unit* pUnit)
 		{
-			Utilities::Scripting::LuaVirtualMachine* pVM = Utilities::Scripting::LuaVirtualMachine::Instance();
+			Utilities::Scripting::LuaVirtualMachine* pVM = Utilities::Scripting::GetPlayerVMInstance(pUnit->owner->index);
 			
 			if (pUnit->unitAIFuncs.unitKilled.length() == 0)
 				return;
@@ -235,7 +235,7 @@ namespace Game
 
 		void SendUnitEventToLua_BuildComplete(Dimension::Unit* pUnit)
 		{
-			Utilities::Scripting::LuaVirtualMachine* pVM = Utilities::Scripting::LuaVirtualMachine::Instance();
+			Utilities::Scripting::LuaVirtualMachine* pVM = Utilities::Scripting::GetPlayerVMInstance(pUnit->owner->index);
 			if (pUnit->owner->type == Dimension::PLAYER_TYPE_REMOTE)
 				return;
 			switch (pUnit->owner->type)
@@ -260,7 +260,7 @@ namespace Game
 
 		void SendUnitEventToLua_BuildCancelled(Dimension::Unit* pUnit)
 		{
-			Utilities::Scripting::LuaVirtualMachine* pVM = Utilities::Scripting::LuaVirtualMachine::Instance();
+			Utilities::Scripting::LuaVirtualMachine* pVM = Utilities::Scripting::GetPlayerVMInstance(pUnit->owner->index);
 			if (pUnit->owner->type == Dimension::PLAYER_TYPE_REMOTE)
 				return;
 			switch (pUnit->owner->type)
@@ -285,7 +285,7 @@ namespace Game
 
 		void SendUnitEventToLua_ResearchComplete(Dimension::Unit* pUnit)
 		{
-			Utilities::Scripting::LuaVirtualMachine* pVM = Utilities::Scripting::LuaVirtualMachine::Instance();
+			Utilities::Scripting::LuaVirtualMachine* pVM = Utilities::Scripting::GetPlayerVMInstance(pUnit->owner->index);
 			if (pUnit->owner->type == Dimension::PLAYER_TYPE_REMOTE)
 				return;
 			switch (pUnit->owner->type)
@@ -309,7 +309,7 @@ namespace Game
 
 		void SendUnitEventToLua_ResearchCancelled(Dimension::Unit* pUnit)
 		{
-			Utilities::Scripting::LuaVirtualMachine* pVM = Utilities::Scripting::LuaVirtualMachine::Instance();
+			Utilities::Scripting::LuaVirtualMachine* pVM = Utilities::Scripting::GetPlayerVMInstance(pUnit->owner->index);
 			if (pUnit->owner->type == Dimension::PLAYER_TYPE_REMOTE)
 				return;
 			switch (pUnit->owner->type)
@@ -333,7 +333,7 @@ namespace Game
 
 		void PerformSimpleAI(Dimension::Unit* pUnit)
 		{
-			UnitAction action = pUnit->action;
+			UnitAction action;
 			int should_move;
 			
 			if (!Networking::isNetworked)
@@ -363,13 +363,14 @@ namespace Game
 				}
 			}
 
+			action = pUnit->action;
 			
 			if (action == ACTION_GOTO || action == ACTION_FOLLOW || action == ACTION_ATTACK || action == ACTION_BUILD || action == ACTION_RESEARCH)
 			{
 	
 				should_move = pUnit->type->isMobile;
 
-				if (Dimension::CanAttack(pUnit) && action == ACTION_ATTACK)
+				if (action == ACTION_ATTACK)
 				{
 					Dimension::Unit* targetUnit = pUnit->pMovementData->action.goal.unit;
 					if (pUnit->owner == targetUnit->owner)
@@ -379,10 +380,12 @@ namespace Game
 					}
 					if (Dimension::CanReach(pUnit, targetUnit))
 					{
-						Dimension::InitiateAttack(pUnit, targetUnit);
+						if (Dimension::CanAttack(pUnit))
+						{
+							Dimension::InitiateAttack(pUnit, targetUnit);
+						}
 						should_move = false;
 						pUnit->isMoving = false;
-						AI::DeallocPathfindingNodes(pUnit);
 					}
 					else if (!pUnit->type->isMobile)
 					{
@@ -480,7 +483,7 @@ namespace Game
 
 					if (pUnit->aiFrame >= pUnit->unitAIFuncs.unitAIDelay && pUnit->owner->type != Dimension::PLAYER_TYPE_REMOTE)
 					{
-						Utilities::Scripting::LuaVirtualMachine* pVM = Utilities::Scripting::LuaVirtualMachine::Instance();
+						Utilities::Scripting::LuaVirtualMachine* pVM = Utilities::Scripting::GetPlayerVMInstance(pUnit->owner->index);
 
 						if (pUnit->unitAIFuncs.performUnitAI.length())
 						{
@@ -502,7 +505,7 @@ namespace Game
 			player->aiFrame++;
 			if (player->aiFrame >= player->playerAIFuncs.playerAIDelay && player->type != Dimension::PLAYER_TYPE_REMOTE)
 			{
-				Utilities::Scripting::LuaVirtualMachine* pVM = Utilities::Scripting::LuaVirtualMachine::Instance();
+				Utilities::Scripting::LuaVirtualMachine* pVM = Utilities::Scripting::GetPlayerVMInstance(player->index);
 
 				if (player->playerAIFuncs.performPlayerAI.length())
 				{
@@ -666,12 +669,6 @@ namespace Game
 		{
 			for (vector<Dimension::Unit*>::iterator it = pUnits.begin(); it != pUnits.end(); it++)
 			{
-/*				x -= (*it)->type->widthOnMap+1;
-				while (!SquareIsWalkable_AllKnowing((*it)->type, (int) x, (int) y))
-				{
-					x += 1.0f;
-					y -= 1.0f;
-				}*/
 				CommandUnit(*it, x, y, action, argument, queue, insert);
 			}
 		}

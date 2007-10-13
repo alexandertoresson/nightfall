@@ -6,7 +6,7 @@ LastCommands = {}
 
 function PerformAI_Unit_Gaia(Unit)
 
-	if GetUnitType(Unit) == Grue.pointer then
+	if GetUnitType(Unit) == GetUnitTypeFromString("Grue") then
 
 		if GetTime() >= 6.0 and GetTime() <= 18.0 then
 			Attack(Unit, 0.3 * GetUnitMaxHealth(Unit))
@@ -24,7 +24,7 @@ function PerformAI_Unit_Gaia(Unit)
 
 		if (action == UnitAction.None and (LastCommands[Unit] == nil or os.difftime(os.time(), LastCommands[Unit]) > 0.25)) and math.random() < 0.8 then
 			targetUnit = GetNearestUnitInRange(Unit, RangeType.Sight, PlayerState.Neutral)
-			LastCommands[Unit] = os.time();
+			LastCommands[Unit] = os.time()
 			if IsNonNull(targetUnit) then
 				CommandUnit_TargetUnit(Unit, targetUnit, UnitAction.Attack, Null())
 			end
@@ -62,13 +62,13 @@ function PerformAI_Player_Gaia(Player)
 end
 
 function UnitEvent_UnitKilled_Gaia(Unit)
-	if GetUnitType(Unit) == Grue.pointer then
+	if GetUnitType(Unit) == GetUnitTypeFromString("Grue") then
 		NumMonsters = NumMonsters - 1
 	end
 end
 
 function UnitEvent_UnitCreation_Gaia(Unit)
-	if GetUnitType(Unit) == Grue.pointer then
+	if GetUnitType(Unit) == GetUnitTypeFromString("Grue") then
 		NumMonsters = NumMonsters + 1
 	end
 end

@@ -88,6 +88,7 @@ namespace Utilities
 		}
 
 		LuaVirtualMachine* LuaVirtualMachine::m_pInstance = NULL;
+
 		LuaVirtualMachine* LuaVirtualMachine::Instance(void)
 		{
 			if (m_pInstance == NULL)
@@ -120,6 +121,7 @@ namespace Utilities
 
 			luaL_openlibs(m_pVM);
 			InitializeEnums(m_pVM);
+			UnitLuaInterface::Init(this);
 		}
 
 		LuaVirtualMachine::~LuaVirtualMachine(void)
@@ -214,9 +216,34 @@ namespace Utilities
 			return m_pVM;
 		}
 		
+		LuaVirtualMachine** m_pPlayerInstances;
+
 		void StartVM(void)
 		{
 			LuaVirtualMachine::Instance();
+		}
+
+		void StartPlayerVMs(void)
+		{
+			m_pPlayerInstances = new LuaVirtualMachine*[Game::Dimension::pWorld->vPlayers.size()];
+			for (unsigned i = 0; i < Game::Dimension::pWorld->vPlayers.size(); i++)
+			{
+				m_pPlayerInstances[i] = new LuaVirtualMachine;
+				switch (Game::Dimension::pWorld->vPlayers[i]->type)
+				{
+					case Game::Dimension::PLAYER_TYPE_HUMAN:
+						m_pPlayerInstances[i]->DoFile("scripts/ai_human.lua");
+						break;
+					case Game::Dimension::PLAYER_TYPE_GAIA:
+						m_pPlayerInstances[i]->DoFile("scripts/ai_gaia.lua");
+						break;
+					case Game::Dimension::PLAYER_TYPE_AI:
+						m_pPlayerInstances[i]->DoFile("scripts/ai_ai.lua");
+						break;
+					case Game::Dimension::PLAYER_TYPE_REMOTE:
+						break;
+				}
+			}
 		}
 
 		void StopVM(void)
@@ -227,6 +254,20 @@ namespace Utilities
 		LuaVM* GetVM(void)
 		{
 			return LuaVirtualMachine::Instance()->GetVM();
+		}
+		
+		LuaVirtualMachine* GetPlayerVMInstance(unsigned player)
+		{
+			if (player < Game::Dimension::pWorld->vPlayers.size())
+			{
+				return m_pPlayerInstances[player];
+			}
+			return NULL;
+		}
+
+		LuaVM* GetPlayerVM(unsigned player)
+		{
+			return GetPlayerVMInstance(player)->GetVM();
 		}
 	}
 }

@@ -11,6 +11,7 @@ namespace Game
 	{
 		struct MovementData;
 		struct UnitGoal;
+		extern bool  **regenerateAreaCodes;
 	}
 }
 
@@ -36,7 +37,7 @@ namespace Game
 #define USE_MULTITHREADED_CALCULATIONS
 
 #ifdef USE_MULTIFRAMED_CALCULATIONS
-	#define MAXIMUM_CALCULATIONS_PER_FRAME 4000
+	#define MAXIMUM_CALCULATIONS_PER_FRAME 1000
 #endif
 
 #include <vector>
@@ -259,7 +260,13 @@ namespace Game
 		//
 		int  _ThreadMethod(void* arg);
 
+		void DeleteUnitFromAreaMap(Dimension::Unit* unit);
+		void AddUnitToAreaMap(Dimension::Unit* unit);
+
 		const int STACK_ELEMENTS = 2048;
+		
+		extern int cCount, fCount, tCount, pCount, numPaths;
+		int GetQueueSize();
 	}
 }
 

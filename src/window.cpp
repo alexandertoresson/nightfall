@@ -278,13 +278,14 @@ namespace Window
 			return;
 		}
 
-		std::stringstream ss;
 		std::string filename;
 		while (true)
 		{
+			bool exists;
+			std::stringstream ss;
 			ss << "screenshots/SCR" << screenshotCount << ".bmp";
 
-			filename = Utilities::GetWritableDataFile(ss.str());
+			filename = Utilities::GetWritableDataFile(ss.str(), exists);
 
 			if (!filename.length())
 			{
@@ -292,16 +293,12 @@ namespace Window
 				return;
 			}
 
-			ifstream file(filename.c_str());
-
-			if (file.good() == 0)
+			if (!exists)
 			{
-				file.close();
 				break;
 			}
 
 			screenshotCount++;
-			file.close();
 		}
 
 		SDL_Surface *image;

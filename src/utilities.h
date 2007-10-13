@@ -80,7 +80,7 @@ namespace Utilities
 	class StructuredInstructionsFile
 	{
 		private:
-			const char* mFile;
+			char* mFile;
 			int   mIndex;
 			int   mLength;
 			StructuredInstructionsVector mItems;

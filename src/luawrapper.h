@@ -31,8 +31,11 @@ namespace Utilities
 		class LuaVirtualMachine;
 
 		void StartVM(void);
+		void StartPlayerVMs(void);
 		void StopVM(void);
 		LuaVM* GetVM(void);
+		LuaVM* GetPlayerVM(unsigned player);
+		LuaVirtualMachine* GetPlayerVMInstance(unsigned player);
 	}
 }
 

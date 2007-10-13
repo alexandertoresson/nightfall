@@ -51,10 +51,10 @@ function UnitEvent_ResearchCancelled_Human(Unit, UnitType, TargetUnit)
 end
 
 function UnitEvent_IsAttacked_Human(Unit, attacker)
-	if GetUnitType(attacker) == Grue.pointer then
+	if GetUnitType(attacker) == GetUnitTypeFromString("Grue") then
 		return
 	end
-	if GetUnitCanAttack(Unit) and not (GetUnitType(Unit) == Builder.pointer) then
+	if GetUnitCanAttack(Unit) and not (GetUnitType(Unit) == GetUnitTypeFromString("Builder")) then
 		CommandAttack(Unit, attacker)
 	end
 end

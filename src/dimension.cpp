@@ -422,7 +422,7 @@ namespace Game
 		
 			AddPlayer("GAIA", PLAYER_TYPE_GAIA, "textures/player_gaia.png");
 			
-			PlayerType next_type = PLAYER_TYPE_HUMAN;
+			PlayerType next_type = PLAYER_TYPE_AI;
 			
 			for (unsigned i = 1; i <= players_to_init; i++)
 			{
@@ -431,9 +431,12 @@ namespace Game
 				texture << "textures/player_" << color << ".png";
 				player << "player_" << i;
 				Player* p = AddPlayer(player.str().c_str(), next_type, texture.str().c_str());
-				if (next_type == PLAYER_TYPE_HUMAN)
+				if (!human)
 				{
 					human = p;
+				}
+				if (next_type == PLAYER_TYPE_HUMAN)
+				{
 					next_type = PLAYER_TYPE_AI;
 				}
 				

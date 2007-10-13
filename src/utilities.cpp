@@ -444,6 +444,7 @@ namespace Utilities
 	
 	StructuredInstructionsFile::StructuredInstructionsFile(const std::string file)
 	{
+		mFile = NULL;
 		SetFile(file);
 		PrepareIterator();
 	}
@@ -465,7 +466,12 @@ namespace Utilities
 	
 	void StructuredInstructionsFile::SetFile(const std::string file)
 	{
-		mFile = file.c_str();
+		if (mFile)
+		{
+			delete mFile;
+		}
+		mFile = new char[file.size()+1];
+		memcpy(mFile, file.c_str(), file.size()+1);
 	}
 	
 	int StructuredInstructionsFile::Parse(void)

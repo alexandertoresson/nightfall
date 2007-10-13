@@ -20,6 +20,9 @@ namespace Game
 		Uint32*       frameRemovedAt;
 		unsigned short         nextID;
 		map<Unit*, bool> validUnitPointers;
+		int**         numUnitsPerAreaMap;
+		char****      movementTypeWithSizeCanWalkOnSquare;
+		char***       traversalTimeBySize;
 		
 		GLfloat    unitMaterialAmbient[2][2][4] = {
 							    {
@@ -276,10 +279,28 @@ namespace Game
 			return validUnitPointers[unit];
 		}
 
+		void GetSizeUpperLeftCorner(int size, float mx, float my, int& lx, int& uy)
+		{
+			lx = (int) mx - (size>>1);
+			uy = (int) my - (size>>1);
+		}
+
+		void GetTypeUpperLeftCorner(UnitType* type, int mx, int my, int& lx, int& uy)
+		{
+			lx = mx - (type->widthOnMap>>1);
+			uy = my - (type->heightOnMap>>1);
+		}
+
 		void GetTypeUpperLeftCorner(UnitType* type, float mx, float my, int& lx, int& uy)
 		{
 			lx = (int) mx - (type->widthOnMap>>1);
 			uy = (int) my - (type->heightOnMap>>1);
+		}
+
+		void GetTypeUpperLeftCorner(UnitType* type, float mx, float my, float& lx, float& uy)
+		{
+			lx = floor(mx) - (type->widthOnMap>>1);
+			uy = floor(my) - (type->heightOnMap>>1);
 		}
 
 		void GetUnitUpperLeftCorner(Unit* unit, int& lx, int& uy)
@@ -306,20 +327,68 @@ namespace Game
 
 		bool WithinRange(UnitType* type, float attacker_x, float attacker_y, float target_x, float target_y, float maxrange, float minrange)
 		{
-			int start_x, start_y;
+			float start_x, start_y;
+			float end_x, end_y;
 			float distance;
+			float x, y;
 			GetTypeUpperLeftCorner(type, target_x, target_y, start_x, start_y);
-			for (int y = start_y; y < start_y + type->heightOnMap; y++)
+			start_x += 0.5;
+			start_y += 0.5;
+			end_x = start_x + type->widthOnMap - 1;
+			end_y = start_y + type->heightOnMap - 1;
+
+			if (attacker_x < start_x)
 			{
-				for (int x = start_x; x < start_x + type->widthOnMap; x++)
+				x = start_x;
+			}
+			else if (attacker_x > end_x)
+			{
+				x = end_x;
+			}
+			else
+			{
+				x = attacker_x;
+			}
+
+			if (attacker_y < start_y)
+			{
+				y = start_y;
+			}
+			else if (attacker_y > end_y)
+			{
+				y = end_y;
+			}
+			else
+			{
+				y = attacker_y;
+			}
+
+			float dist_x = attacker_x - x, dist_y = attacker_y - y;
+			float dist_both = fabs(dist_x) + fabs(dist_y);
+			if (dist_both <= maxrange)
+			{
+				if (dist_both < minrange)
 				{
-					distance = sqrt(pow(attacker_x - (x + 0.5), 2) + pow(attacker_y - (y + 0.5), 2));
-					if ((distance <= maxrange) && (distance >= minrange))
+					return false;
+				}
+				else
+				{
+					distance = sqrt(pow(dist_x, 2) + pow(dist_y, 2));
+					if (distance >= minrange)
 					{
 						return true;
 					}
 				}
 			}
+			else if (fabs(dist_x) <= maxrange && fabs(dist_y) <= maxrange && dist_both * 1.5 <= maxrange)
+			{
+				distance = sqrt(pow(dist_x, 2) + pow(dist_y, 2));
+				if ((distance <= maxrange) && (distance >= minrange))
+				{
+					return true;
+				}
+			}
+
 			return false;
 		}
 
@@ -345,7 +414,7 @@ namespace Game
 		void GetNearestUnoccupiedPosition(UnitType* type, int& x, int& y)
 		{
 			int num_steps = 1;
-			if (SquaresAreWalkable_AllKnowing(type, x, y))
+			if (SquaresAreWalkable(type, x, y, SIW_ALLKNOWING))
 			{
 				return;
 			}
@@ -355,7 +424,7 @@ namespace Game
 				for (int i = 0; i < num_steps; i++)
 				{
 					x++;
-					if (SquaresAreWalkable_AllKnowing(type, x, y))
+					if (SquaresAreWalkable(type, x, y, SIW_ALLKNOWING))
 					{
 						return;
 					}
@@ -364,7 +433,7 @@ namespace Game
 				for (int i = 0; i < num_steps; i++)
 				{
 					y++;
-					if (SquaresAreWalkable_AllKnowing(type, x, y))
+					if (SquaresAreWalkable(type, x, y, SIW_ALLKNOWING))
 					{
 						return;
 					}
@@ -375,7 +444,7 @@ namespace Game
 				for (int i = 0; i < num_steps; i++)
 				{
 					x--;
-					if (SquaresAreWalkable_AllKnowing(type, x, y))
+					if (SquaresAreWalkable(type, x, y, SIW_ALLKNOWING))
 					{
 						return;
 					}
@@ -384,7 +453,7 @@ namespace Game
 				for (int i = 0; i < num_steps; i++)
 				{
 					y--;
-					if (SquaresAreWalkable_AllKnowing(type, x, y))
+					if (SquaresAreWalkable(type, x, y, SIW_ALLKNOWING))
 					{
 						return;
 					}
@@ -415,7 +484,9 @@ namespace Game
 
 		bool IsSuitableForBuilding(UnitType* type, UnitType *test_type, Player* player, int build_x, int build_y)
 		{
-			int m_add, m_sub;
+			int m_add_x, m_sub_x;
+			int m_add_y, m_sub_y;
+			int width_on_map, height_on_map;
 			int start_x, start_y, end_x, end_y;
 			int changes = 0;
 			bool last_val, cur_val;
@@ -425,20 +496,26 @@ namespace Game
 				return false;
 			}
 
-			m_add = (int) floor(test_type->widthOnMap / 2.0);
-			m_sub = (int) floor(test_type->widthOnMap / 2.0 - 0.5);
+			m_add_x = (int) floor(test_type->widthOnMap / 2.0);
+			m_sub_x = (int) floor(test_type->widthOnMap / 2.0 - 0.5);
+
+			m_add_y = (int) floor(test_type->heightOnMap / 2.0);
+			m_sub_y = (int) floor(test_type->heightOnMap / 2.0 - 0.5);
 
 			GetTypeUpperLeftCorner(type, build_x, build_y, start_x, start_y);
 
-			end_x = start_x + type->widthOnMap + m_add;
-			end_y = start_y + type->heightOnMap + m_add;
+			end_x = start_x + type->widthOnMap + m_add_x;
+			end_y = start_y + type->heightOnMap + m_add_y;
 
-			start_x -= m_sub + 1;
-			start_y -= m_sub + 1;
+			start_x -= m_sub_x + 1;
+			start_y -= m_sub_y + 1;
+
+			width_on_map = test_type->widthOnMap;
+			height_on_map = test_type->heightOnMap;
 
 			last_val = SquaresAreWalkable(test_type, player, start_x, start_y, SIW_IGNORE_OWN_MOBILE_UNITS);
 			
-			for (int x = start_x + 1; x <= end_x; x++)
+			for (int x = start_x + width_on_map; x <= end_x; x += width_on_map)
 			{
 				cur_val = SquaresAreWalkable(test_type, player, x, start_y, SIW_IGNORE_OWN_MOBILE_UNITS);
 				if (cur_val != last_val)
@@ -450,7 +527,7 @@ namespace Game
 			
 			last_val = SquaresAreWalkable(test_type, player, start_x, end_y, SIW_IGNORE_OWN_MOBILE_UNITS);
 			
-			for (int x = start_x + 1; x <= end_x; x++)
+			for (int x = start_x + width_on_map; x <= end_x; x += width_on_map)
 			{
 				cur_val = SquaresAreWalkable(test_type, player, x, end_y, SIW_IGNORE_OWN_MOBILE_UNITS);
 				if (cur_val != last_val)
@@ -462,7 +539,7 @@ namespace Game
 			
 			last_val = SquaresAreWalkable(test_type, player, start_x, start_y, SIW_IGNORE_OWN_MOBILE_UNITS);
 
-			for (int y = start_y + 1; y <= end_y; y++)
+			for (int y = start_y + height_on_map; y <= end_y; y += height_on_map)
 			{
 				cur_val = SquaresAreWalkable(test_type, player, start_x, y, SIW_IGNORE_OWN_MOBILE_UNITS);
 				if (cur_val != last_val)
@@ -474,7 +551,7 @@ namespace Game
 			
 			last_val = SquaresAreWalkable(test_type, player, end_x, start_y, SIW_IGNORE_OWN_MOBILE_UNITS);
 
-			for (int y = start_y + 1; y <= end_y; y++)
+			for (int y = start_y + height_on_map; y <= end_y; y += height_on_map)
 			{
 				cur_val = SquaresAreWalkable(test_type, player, end_x, y, SIW_IGNORE_OWN_MOBILE_UNITS);
 				if (cur_val != last_val)
@@ -560,16 +637,35 @@ namespace Game
 			int** NumLightsOnSquare = pWorld->NumLightsOnSquare;
 			int covered = 0, total = 0;
 			int start_x, start_y, end_x, end_y;
+			int dist_x, dist_y, dist_both;
+			float range = type->lightRange;
 
 			start_x = x - type->lightRange < 0 ? 0 : (int) (x - type->lightRange);
 			start_y = y - type->lightRange < 0 ? 0 : (int) (y - type->lightRange);
 			end_x = x + type->lightRange >= pWorld->width ? pWorld->width-1 : (int) (x + type->lightRange);
 			end_y = y + type->lightRange >= pWorld->height ? pWorld->height-1 : (int) (y + type->lightRange);
-			for (int ny = start_y; ny < end_y; ny++)
+
+			dist_y = start_y - y;
+
+			for (int ny = start_y; ny < end_y; ny++, dist_y++)
 			{
-				for (int nx = start_x; nx < end_x; nx++)
+				int nx;
+				dist_x = start_x - x;
+				dist_both = abs(dist_y) + abs(dist_y);
+				for (nx = start_x; nx <= x; nx++, dist_x++, dist_both--)
 				{
-					if (Distance2D(nx - x, ny - y) <= type->lightRange)
+					if (dist_both < range || Distance2D(dist_x, dist_y) <= range)
+					{
+						if (NumLightsOnSquare[ny][nx])
+						{
+							covered++;
+						}
+						total++;
+					}
+				}
+				for (; nx < end_x; nx++, dist_x++, dist_both++)
+				{
+					if (dist_both < range || Distance2D(dist_x, dist_y) <= range)
 					{
 						if (NumLightsOnSquare[ny][nx])
 						{
@@ -1446,8 +1542,12 @@ namespace Game
 			}
 		}
 
-		inline bool MovementTypeCanWalkOnSquare_UnGuarded(MovementType mType, int x, int y)
+		inline bool MovementTypeCanWalkOnSquare_NoPrecalc(MovementType mType, int x, int y)
 		{
+			if (x < 0 || y < 0 || x >= pWorld->width || y >= pWorld->height)
+			{
+				return false;
+			}
 			int steepness = pWorld->ppSteepness[y][x];
 			float height = HeightMipmaps[0][0].ppHeights[y][x];
 			switch (mType)
@@ -1470,6 +1570,16 @@ namespace Game
 			}
 		}
 
+		inline bool MovementTypeCanWalkOnSquare_UnGuarded(MovementType mType, int x, int y)
+		{
+			return movementTypeWithSizeCanWalkOnSquare[0][mType][y][x];
+		}
+
+		inline bool MovementTypeCanWalkOnSquares_UnGuarded(MovementType mType, int size, int x, int y)
+		{
+			return movementTypeWithSizeCanWalkOnSquare[size-1][mType][y][x];
+		}
+
 		bool MovementTypeCanWalkOnSquare(MovementType mType, int x, int y)
 		{
 			if (x < 0 || y < 0 || x >= pWorld->width || y >= pWorld->height)
@@ -1477,6 +1587,44 @@ namespace Game
 				return false;
 			}
 			return MovementTypeCanWalkOnSquare_UnGuarded(mType, x, y);
+		}
+
+		bool MovementTypeCanWalkOnSquares(MovementType mType, int size, int x, int y)
+		{
+			if (x < 0 || y < 0 || x >= pWorld->width || y >= pWorld->height)
+			{
+				return false;
+			}
+			return MovementTypeCanWalkOnSquares_UnGuarded(mType, size, x, y);
+		}
+
+		bool MovementTypeCanWalkOnSquare_Pathfinding(MovementType mType, int size, int pos_x, int pos_y)
+		{
+			int start_x, start_y;
+			int end_x, end_y;
+			if (pos_x < 0 || pos_y < 0 || pos_x >= pWorld->width || pos_y >= pWorld->height)
+			{
+				return false;
+			}
+			if (!MovementTypeCanWalkOnSquares_UnGuarded(mType, size+1, pos_x, pos_y))
+			{
+				return false;
+			}
+			GetSizeUpperLeftCorner(size, pos_x, pos_y, start_x, start_y);
+			end_x = start_x + size - 1;
+			end_y = start_y + size - 1;
+			for (int y = start_y; y <= end_y; y++)
+			{
+				for (int x = start_x; x <= end_x; x++)
+				{
+					if (pppElements[y][x] && !pppElements[y][x]->type->isMobile)
+					{
+						pppElements[y][x]->usedInAreaMaps = true;
+						return false;
+					}
+				}
+			}
+			return true;
 		}
 
 		inline bool UnitTypeCanWalkOnSquare(UnitType* type, int x, int y)
@@ -1489,21 +1637,14 @@ namespace Game
 			return MovementTypeCanWalkOnSquare_UnGuarded(type->movementType, x, y);
 		}
 
-		inline bool UnitTypeCanWalkOnSquares(UnitType* type, int pos_x, int pos_y)
+		inline bool UnitTypeCanWalkOnSquares(UnitType* type, int x, int y)
 		{
-			int start_x, start_y;
-			GetTypeUpperLeftCorner(type, pos_x, pos_y, start_x, start_y);
-			for (int y = start_y; y < start_y + type->heightOnMap; y++)
-			{
-				for (int x = start_x; x < start_x + type->widthOnMap; x++)
-				{
-					if (!UnitTypeCanWalkOnSquare(type, x, y))
-					{
-						return false;
-					}
-				}
-			}
-			return true;
+			return MovementTypeCanWalkOnSquares(type->movementType, type->heightOnMap, x, y);
+		}
+
+		inline bool UnitTypeCanWalkOnSquares_UnGuarded(UnitType* type, int x, int y)
+		{
+			return MovementTypeCanWalkOnSquares_UnGuarded(type->movementType, type->heightOnMap, x, y);
 		}
 
 		inline bool SquareIsWalkable_Internal(Unit *unit, UnitType *type, Player *player, int x, int y, int flags)
@@ -1511,7 +1652,14 @@ namespace Game
 			bool walkable;
 			if (x >= 0 && y >= 0 && x < pWorld->width && y < pWorld->height)
 			{
-				walkable = UnitTypeCanWalkOnSquare_UnGuarded(type, x, y);
+				if (unit->type->isMobile)
+				{
+					walkable = UnitTypeCanWalkOnSquare_UnGuarded(type, x, y);
+				}
+				else
+				{
+					walkable = MovementTypeCanWalkOnSquare_NoPrecalc(type->movementType, x, y);
+				}
 				if (walkable && (flags & SIW_ALLKNOWING || SquareIsVisible_UnGuarded(player, x, y)))
 				{
 					if (pppElements[y][x] == NULL || pppElements[y][x] == unit)
@@ -1536,6 +1684,27 @@ namespace Game
 			return false;
 		}
 
+		inline bool SquareIsWalkable_MultipleInternal(Unit *unit, UnitType *type, Player *player, int x, int y, int flags)
+		{
+			if (flags & SIW_ALLKNOWING || SquareIsVisible_UnGuarded(player, x, y))
+			{
+				if (pppElements[y][x] == NULL || pppElements[y][x] == unit)
+				{
+					return true;
+				}
+				if (flags & SIW_IGNORE_MOVING && pppElements[y][x]->isMoving)
+				{
+					return true;
+				}
+				if (flags & SIW_IGNORE_OWN_MOBILE_UNITS && pppElements[y][x]->owner == player && pppElements[y][x]->type->isMobile)
+				{
+					return true;
+				}
+				return false;
+			}
+			return false;
+		}
+
 		inline bool SquareIsWalkable(Unit *unit, int x, int y, int flags)
 		{
 			return SquareIsWalkable_Internal(unit, unit->type, unit->owner, x, y, flags);
@@ -1544,11 +1713,6 @@ namespace Game
 		inline bool SquareIsWalkable(Unit *unit, int x, int y)
 		{
 			return SquareIsWalkable_Internal(unit, unit->type, unit->owner, x, y, SIW_DEFAULT);
-		}
-
-		inline bool SquareIsWalkable_AllKnowing(Unit *unit, int x, int y)
-		{
-			return SquareIsWalkable_Internal(unit, unit->type, unit->owner, x, y, SIW_ALLKNOWING);
 		}
 
 		inline bool SquareIsWalkable(UnitType *type, Player *player, int x, int y, int flags)
@@ -1561,29 +1725,54 @@ namespace Game
 			return SquareIsWalkable_Internal(NULL, type, player, x, y, SIW_DEFAULT);
 		}
 
-		inline bool SquareIsWalkable_AllKnowing(UnitType *type, int x, int y)
-		{
-			return SquareIsWalkable_Internal(NULL, type, NULL, x, y, SIW_ALLKNOWING);
-		}
-
 		bool SquaresAreWalkable(Unit *unit, int x, int y, int flags)
 		{
 			int start_x, start_y;
 			int end_x, end_y;
-			GetUnitUpperLeftCorner(unit, x, y, start_x, start_y);
-			end_x = start_x + unit->type->widthOnMap;
-			end_y = start_y + unit->type->heightOnMap;
-			for (int ny = start_y; ny < end_y; ny++)
+			UnitType* type = unit->type;
+			if (x >= 0 && y >= 0 && x < pWorld->width && y < pWorld->height)
 			{
-				for (int nx = start_x; nx < end_x; nx++)
+				if (unit->type->isMobile)
 				{
-					if (!SquareIsWalkable(unit, nx, ny, flags))
+					if (UnitTypeCanWalkOnSquares(unit->type, x, y))
 					{
-						return false;
+						Player* player = unit->owner;
+						GetUnitUpperLeftCorner(unit, x, y, start_x, start_y);
+						end_x = start_x + unit->type->widthOnMap;
+						end_y = start_y + unit->type->heightOnMap;
+						for (int ny = start_y; ny < end_y; ny++)
+						{
+							for (int nx = start_x; nx < end_x; nx++)
+							{
+								if (!SquareIsWalkable_MultipleInternal(unit, type, player, nx, ny, flags))
+								{
+									return false;
+								}
+							}
+						}
+						return true;
 					}
 				}
+				else
+				{
+					Player* player = unit->owner;
+					GetUnitUpperLeftCorner(unit, x, y, start_x, start_y);
+					end_x = start_x + unit->type->widthOnMap;
+					end_y = start_y + unit->type->heightOnMap;
+					for (int ny = start_y; ny < end_y; ny++)
+					{
+						for (int nx = start_x; nx < end_x; nx++)
+						{
+							if (!SquareIsWalkable_Internal(unit, type, player, nx, ny, flags))
+							{
+								return false;
+							}
+						}
+					}
+					return true;
+				}
 			}
-			return true;
+			return false;
 		}
 
 		bool SquaresAreWalkable(Unit *unit, int x, int y)
@@ -1594,18 +1783,48 @@ namespace Game
 		bool SquaresAreWalkable(UnitType *type, Player *player, int x, int y, int flags)
 		{
 			int start_x, start_y;
-			GetTypeUpperLeftCorner(type, x, y, start_x, start_y);
-			for (int ny = start_y; ny < start_y + type->heightOnMap; ny++)
+			int end_x, end_y;
+			if (x >= 0 && y >= 0 && x < pWorld->width && y < pWorld->height)
 			{
-				for (int nx = start_x; nx < start_x + type->widthOnMap; nx++)
+				if (type->isMobile)
 				{
-					if (!SquareIsWalkable(type, player, nx, ny, flags))
+					if (UnitTypeCanWalkOnSquares(type, x, y))
 					{
-						return false;
+						GetTypeUpperLeftCorner(type, x, y, start_x, start_y);
+						end_x = start_x + type->widthOnMap;
+						end_y = start_y + type->heightOnMap;
+						for (int ny = start_y; ny < end_y; ny++)
+						{
+							for (int nx = start_x; nx < end_x; nx++)
+							{
+								if (!SquareIsWalkable_MultipleInternal(NULL, type, player, nx, ny, flags))
+								{
+									return false;
+								}
+							}
+						}
+						return true;
 					}
 				}
+				else
+				{
+					GetTypeUpperLeftCorner(type, x, y, start_x, start_y);
+					end_x = start_x + type->widthOnMap;
+					end_y = start_y + type->heightOnMap;
+					for (int ny = start_y; ny < end_y; ny++)
+					{
+						for (int nx = start_x; nx < end_x; nx++)
+						{
+							if (!SquareIsWalkable_MultipleInternal(NULL, type, player, nx, ny, flags))
+							{
+								return false;
+							}
+						}
+					}
+					return true;
+				}
 			}
-			return true;
+			return false;
 		}
 
 		inline bool SquaresAreWalkable(UnitType *type, Player *player, int x, int y)
@@ -1613,14 +1832,9 @@ namespace Game
 			return SquaresAreWalkable(type, player, x, y, SIW_DEFAULT);
 		}
 
-		inline bool SquaresAreWalkable_AllKnowing(Unit *unit, int x, int y)
+		bool SquaresAreWalkable(UnitType *type, int x, int y, int flags)
 		{
-			return SquaresAreWalkable(unit, x, y, SIW_ALLKNOWING);
-		}
-
-		bool SquaresAreWalkable_AllKnowing(UnitType *type, int x, int y)
-		{
-			return SquaresAreWalkable(type, NULL, x, y, SIW_ALLKNOWING);
+			return SquaresAreWalkable(type, NULL, x, y, flags);
 		}
 
 		bool SquareIsLighted(Player *player, int x, int y)
@@ -1629,7 +1843,7 @@ namespace Game
 			{
 				if (player->NumUnitsSeeingSquare[y][x])
 				{
-					return pWorld->NumLightsOnSquare[y][x] != 0;
+					return pWorld->NumLightsOnSquare[y][x];
 				}
 				else
 				{
@@ -1642,15 +1856,34 @@ namespace Game
 			}
 		}
 
+		inline bool SquareIsLighted_UnGuarded(Player *player, int x, int y)
+		{
+			if (player->NumUnitsSeeingSquare[y][x])
+			{
+				return pWorld->NumLightsOnSquare[y][x];
+			}
+			else
+			{
+				return false;
+			}
+		}
+
 		bool SquaresAreLighted(UnitType *type, Player *player, int x, int y)
 		{
 			int start_x, start_y;
+			int end_x, end_y;
 			GetTypeUpperLeftCorner(type, x, y, start_x, start_y);
-			for (int ny = start_y; ny < start_y + type->heightOnMap; ny++)
+			end_y = start_y + type->heightOnMap - 1;
+			end_x = start_x + type->widthOnMap - 1;
+			if (start_x < 0 || start_y < 0 || end_x > pWorld->width || end_y > pWorld->height)
 			{
-				for (int nx = start_x; nx < start_x + type->widthOnMap; nx++)
+				return false;
+			}
+			for (int ny = start_y; ny <= end_y; ny++)
+			{
+				for (int nx = start_x; nx <= end_x; nx++)
 				{
-					if (!SquareIsLighted(player, nx, ny))
+					if (!SquareIsLighted_UnGuarded(player, nx, ny))
 					{
 						return false;
 					}
@@ -1837,7 +2070,7 @@ namespace Game
 
 		bool SetAssociatedSquares(Unit* unit, int new_x, int new_y)
 		{
-			if (!SquaresAreWalkable(unit, new_x, new_y))
+			if (!SquaresAreWalkable(unit, new_x, new_y, SIW_ALLKNOWING))
 			{
 				return false;
 			}
@@ -1909,7 +2142,7 @@ namespace Game
 		// updates pppElements according to how the unit has moved on the grid
 		bool UpdateAssociatedSquares(Unit* unit, int new_x, int new_y, int old_x, int old_y)
 		{
-			if (!SquaresAreWalkable(unit, new_x, new_y))
+			if (!SquaresAreWalkable(unit, new_x, new_y, SIW_ALLKNOWING))
 			{
 				return false;
 			}
@@ -1958,9 +2191,14 @@ namespace Game
 			}
 		}
 
-		int GetTraversalTime(Unit *unit, int x, int y, int dx, int dy)
+		inline int GetTraversalTime(Unit *unit, int x, int y, int dx, int dy)
 		{
-			return (int) ((10 + abs((pWorld->ppHeight[y][x] - pWorld->ppHeight[y+dy][x+dx])) * 256) * sqrt(pow((float)dx, 2) + pow((float)dy, 2)));
+			int time = traversalTimeBySize[unit->type->widthOnMap-1][y+dy][x+dx];
+			if (dy && dx)
+			{
+				time += (time>>2) + (time>>3) + (time>>5);
+			}
+			return time;
 		}
 
 		int GetTraversalTimeAdjusted(Unit *unit, int x, int y, int dx, int dy)
@@ -1968,7 +2206,7 @@ namespace Game
 			int time = GetTraversalTime(unit, x, y, dx, dy);
 			if (!SquaresAreLighted(unit->type, unit->owner, x+dx, y+dy))
 			{
-				time *= 10;
+				time = time << 2;
 			}
 			return time;
 		}
@@ -2469,6 +2707,7 @@ namespace Game
 			unit->rallypoint = NULL;
 			unit->unitAIFuncs = type->unitAIFuncs[owner->index];
 			unit->aiFrame = 0;
+			unit->usedInAreaMaps = false;
 
 			int tries = 0;
 
@@ -2506,7 +2745,7 @@ namespace Game
 				return false;
 			}
 
-			if (!SquaresAreWalkable_AllKnowing(unit->type, (int) x, (int) y))
+			if (!SquaresAreWalkable(unit->type, (int) x, (int) y, SIW_ALLKNOWING))
 			{
 				return false;
 			}
@@ -2521,6 +2760,11 @@ namespace Game
 			unit->owner->vUnits.push_back(unit);
 			unit->isDisplayed = true;
 
+			if (unit->type->isMobile)
+				numUnitsPerAreaMap[unit->type->heightOnMap-1][unit->type->movementType]++;
+			else
+				AI::AddUnitToAreaMap(unit);
+
 			AI::SendUnitEventToLua_UnitCreation(unit);
 			AI::SendUnitEventToLua_BecomeIdle(unit);
 
@@ -2531,7 +2775,7 @@ namespace Game
 		// create a unit
 		Unit* CreateUnit(UnitType* type, Player* owner, float x, float y)
 		{
-			if (!SquaresAreWalkable_AllKnowing(type, (int) x, (int) y))
+			if (!SquaresAreWalkable(type, (int) x, (int) y, SIW_ALLKNOWING))
 			{
 //				cout << "buildfail" << endl;
 				return NULL;
@@ -2678,9 +2922,11 @@ namespace Game
 			for (i = 0; i < pWorld->vUnits.size(); i++)
 			{
 				curUnit = pWorld->vUnits.at(i);
-				while (curUnit->pMovementData->action.goal.unit == unit)
+				if (curUnit->pMovementData->action.goal.unit == unit)
 				{
-					AI::CancelAction(curUnit);
+					curUnit->pMovementData->action.goal.unit = NULL;
+					curUnit->pMovementData->action.action = AI::ACTION_GOTO;
+					curUnit->action = AI::ACTION_GOTO;
 				}
 				if (curUnit->pMovementData->_action.goal.unit == unit)
 				{
@@ -2717,6 +2963,12 @@ namespace Game
 			}
 			
 			DeleteAssociatedSquares(unit, unit->curAssociatedSquare.x, unit->curAssociatedSquare.y);
+
+			if (unit->usedInAreaMaps)
+			{
+				cout << "delete from area map" << endl;
+				AI::DeleteUnitFromAreaMap(unit);
+			}
 			
 			for (i = 0; i < unit->projectiles.size(); i++)
 				delete unit->projectiles.at(i);
@@ -2758,6 +3010,9 @@ namespace Game
 
 			if (unit->pMovementData->_start != NULL)
 				AI::DeallocPathfindingNodes(unit, AI::DPN_BACK);
+		
+			if (unit->type->isMobile)
+				numUnitsPerAreaMap[unit->type->heightOnMap-1][unit->type->movementType]--;
 
 			delete unit->pMovementData;
 
@@ -2917,6 +3172,83 @@ namespace Game
 				frameRemovedAt[i] = 0;
 			}
 			nextID = 0;
+
+			numUnitsPerAreaMap = new int*[4];
+
+			for (int j = 0; j < 4; j++)
+			{
+				numUnitsPerAreaMap[j] = new int[Game::Dimension::MOVEMENT_TYPES_NUM];
+				for (int i = 0; i < Game::Dimension::MOVEMENT_TYPES_NUM; i++)
+				{
+					numUnitsPerAreaMap[j][i] = 0;
+				}
+			}
+			
+			movementTypeWithSizeCanWalkOnSquare = new char***[4];
+			for (int j = 0; j < 4; j++)
+			{
+				movementTypeWithSizeCanWalkOnSquare[j] = new char**[Game::Dimension::MOVEMENT_TYPES_NUM];
+				for (int i = 0; i < Game::Dimension::MOVEMENT_TYPES_NUM; i++)
+				{
+					movementTypeWithSizeCanWalkOnSquare[j][i] = new char*[pWorld->height];
+					for (int y = 0; y < pWorld->height; y++)
+					{
+						movementTypeWithSizeCanWalkOnSquare[j][i][y] = new char[pWorld->width];
+						for (int x = 0; x < pWorld->width; x++)
+						{
+							int start_x, start_y;
+							GetSizeUpperLeftCorner(j+1, x, y, start_x, start_y);
+							for (int y2 = start_y; y2 <= start_y + j; y2++)
+							{
+								for (int x2 = start_x; x2 <= start_x + j; x2++)
+								{
+									if (!MovementTypeCanWalkOnSquare_NoPrecalc((MovementType)i, x2, y2))
+									{
+										goto not_walkable;
+									}
+								}
+							}
+							movementTypeWithSizeCanWalkOnSquare[j][i][y][x] = 1;
+							continue;
+							not_walkable:
+							movementTypeWithSizeCanWalkOnSquare[j][i][y][x] = 0;
+						}
+					}
+				}
+			}
+			
+			traversalTimeBySize = new char**[4];
+			for (int j = 0; j < 4; j++)
+			{
+				traversalTimeBySize[j] = new char*[pWorld->height];
+				for (int y = 0; y < pWorld->height; y++)
+				{
+					traversalTimeBySize[j][y] = new char[pWorld->width];
+					for (int x = 0; x < pWorld->width; x++)
+					{
+						int start_x, start_y;
+						int steepness = 0, num = 0;
+						GetSizeUpperLeftCorner(j+1, x, y, start_x, start_y);
+						for (int y2 = start_y; y2 <= start_y + j; y2++)
+						{
+							for (int x2 = start_x; x2 <= start_x + j; x2++)
+							{
+								if (x2 >= 0 && y2 >= 0 && x2 < pWorld->width && y2 < pWorld->height)
+								{
+									steepness += pWorld->ppSteepness[y2][x2];
+									num++;
+								}
+							}
+						}
+						steepness /= num;
+
+						if (steepness > 255)
+							steepness = 255;
+
+						traversalTimeBySize[j][y][x] = 10 + (steepness >> 1);
+					}
+				}
+			}
 			
 			genericTexture = Utilities::LoadGLTexture((char*) "models/textures/generic.png");
 

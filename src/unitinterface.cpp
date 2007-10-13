@@ -773,9 +773,6 @@ namespace UnitLuaInterface
 
 		float position[2] = { lua_tonumber(pVM, 2), lua_tonumber(pVM, 3) };
 
-		if (position[0] < 0 || position[1] < 0)
-			LUA_FAILURE("Invalid position, x or y values lower than zero")
-
 		if (SquaresAreWalkable(pUnit, (int)position[0], (int)position[1]) == false)
 			LUA_FAILURE("Designated goal isn't walkable")
 
@@ -902,9 +899,6 @@ namespace UnitLuaInterface
 
 		x = lua_tonumber(pVM, 2);
 		y = lua_tonumber(pVM, 3);
-
-		if (x < 0 || y < 0)
-			LUA_FAILURE("Invalid position, x or y values lower than zero")
 
 		location = GetTerrainCoord(x, y);
 
@@ -1201,9 +1195,6 @@ namespace UnitLuaInterface
 		float position[2] = { lua_tonumber(pVM, 2), 
 		                      lua_tonumber(pVM, 3) };
 
-		if (position[0] < 0 || position[1] < 0)
-			LUA_FAILURE("Invalid position, x or y values lower than zero")
-
 		CommandUnit_TargetPos(pUnit, position[0], position[1], ACTION_GOTO, NULL);
 		LUA_SUCCESS
 	}
@@ -1216,9 +1207,6 @@ namespace UnitLuaInterface
 
 		float position[2] = { lua_tonumber(pVM, 2), 
 		                      lua_tonumber(pVM, 3) };
-
-		if (position[0] < 0 || position[1] < 0)
-			LUA_FAILURE("Invalid position, x or y values lower than zero")
 
 		CommandUnit_TargetPos(pUnit, position[0], position[1], ACTION_MOVE_ATTACK, NULL);
 		LUA_SUCCESS
@@ -1234,9 +1222,6 @@ namespace UnitLuaInterface
 		                      lua_tonumber(pVM, 3) };
 
 		UnitType* pUnitType = (UnitType*) lua_touserdata(pVM, 4);
-
-		if (position[0] < 0 || position[1] < 0)
-			LUA_FAILURE("Invalid position, x or y values lower than zero")
 
 		CommandUnit_TargetPos(pUnit, position[0], position[1], ACTION_BUILD, pUnitType);
 		LUA_SUCCESS
@@ -1542,10 +1527,8 @@ namespace UnitLuaInterface
 			LUA_FAILURE("Invalid owner - null pointer")
 
 		float position[2] = { lua_tonumber(pVM, 3), lua_tonumber(pVM, 4) };
-		if (position[0] < 0 || position[1] < 0)
-			LUA_FAILURE("Invalid position, x or y values lower than zero")
 
-		if (SquaresAreWalkable_AllKnowing(pUnitType, (int)position[0], (int)position[1]) == false)
+		if (SquaresAreWalkable(pUnitType, (int)position[0], (int)position[1], SIW_ALLKNOWING) == false)
 		{
 			LUA_FAILURE("Designated goal isn't walkable (or is preoccupied by another unit).")
 		}
@@ -1592,7 +1575,7 @@ namespace UnitLuaInterface
 		if (position[0] < 0 || position[1] < 0)
 			LUA_FAIL
 
-		if (SquaresAreWalkable_AllKnowing(pUnitType, (int)position[0], (int)position[1]) == false)
+		if (SquaresAreWalkable(pUnitType, (int)position[0], (int)position[1], SIW_ALLKNOWING) == false)
 			LUA_FAIL
 
 		LUA_SUCCESS
@@ -1674,7 +1657,7 @@ namespace UnitLuaInterface
 	int LIsValidUnit(LuaVM* pVM)
 	{
 		Unit* pUnit = (Unit*) lua_touserdata(pVM, 1);
-		if (pUnit != NULL && IsValidUnitPointer(pUnit))
+		if (pUnit != NULL && IsValidUnitPointer(pUnit) && pUnit->isDisplayed)
 		{
 			LUA_SUCCESS
 		}
@@ -2801,7 +2784,8 @@ namespace UnitLuaInterface
 	int LGetWritableConfigFile(LuaVM* pVM)
 	{
 		const char* filename = lua_tostring(pVM, 1);
-		std::string filepath = Utilities::GetWritableConfigFile(filename);
+		bool exists;
+		std::string filepath = Utilities::GetWritableConfigFile(filename, exists);
 
 		if (!filepath.length())
 		{
@@ -2809,7 +2793,8 @@ namespace UnitLuaInterface
 		}
 
 		lua_pushstring(pVM, filepath.c_str());
-		return 1;
+		lua_pushboolean(pVM, exists);
+		return 2;
 	}
 
 	int LLoadUnitType(LuaVM* pVM)
@@ -3243,10 +3228,8 @@ else \
 		LUA_SUCCESS
 	}
 
-	void Init(void)
+	void Init(Scripting::LuaVirtualMachine* pVM)
 	{
-		Scripting::LuaVirtualMachine* const pVM = Scripting::LuaVirtualMachine::Instance();
-
 		pVM->RegisterFunction("GetUnitHealth", LGetUnitHealth);
 		pVM->RegisterFunction("GetUnitPower", LGetUnitPower);
 		pVM->RegisterFunction("GetUnitMaxHealth", LGetUnitMaxHealth);

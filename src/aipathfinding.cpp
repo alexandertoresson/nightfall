@@ -46,7 +46,7 @@
 #define BINARY_HEAP_DATATYPE int
 #include "binaryheap.h"
 
-#define MAXIMUM_PATH_CALCULATIONS 2e16
+#define MAXIMUM_PATH_CALCULATIONS 10000
 #define RECALC_TRACE_LIMIT 1000
 #define RECALC_FLOODFILL_LIMIT 4000
 
@@ -77,9 +77,14 @@ namespace Game
 
 		unsigned short**   nodeTypes;
 		int**              nodeNums;
-		int***             areaMaps;
+		int****            areaMaps;
 		int                areaMapIndex;
 		int                areaCode;
+		int                unitSize;
+		bool             **regenerateAreaCodes;
+		bool             **changedSinceLastRegen;
+		int              **numNotReached;
+		int                cCount = 0, fCount = 0, tCount = 0, pCount = 0, numPaths = 0;
 
 		unsigned short NODE_TYPE_OPEN = 1, NODE_TYPE_CLOSED = 2, NODE_TYPE_BLOCKED = 3;
 
@@ -118,36 +123,80 @@ namespace Game
 		PathState InitFloodfill(Dimension::Unit* unit, int start_x, int start_y, int flags);
 		PathState FloodfillStep(Dimension::Unit* unit, MovementData* md, int target_x, int target_y);
 
-		bool IsWalkable_MType(int areaMapIndex, int x, int y)
+		bool IsWalkable_MType(int x, int y)
 		{
-			return Game::Dimension::MovementTypeCanWalkOnSquare((Game::Dimension::MovementType) areaMapIndex, x, y);
+			return Game::Dimension::MovementTypeCanWalkOnSquare_Pathfinding((Game::Dimension::MovementType) areaMapIndex, unitSize, x, y);
 		}
 
-		void InitAreaCodes()
+		void InitAreaMap(int size, int mt)
 		{
-			int x, y, i;
-			for (i = 0; i < Game::Dimension::MOVEMENT_TYPES_NUM; i++)
+			int x, y;
+			int time = SDL_GetTicks();
+
+			unitSize = size;
+			areaMapIndex = mt;
+
+			for (y = 0; y < height; y++)
 			{
-				areaCode = 1;
-				for (y = 0; y < height; y++)
+				memset(areaMaps[size][mt][y], 0, width * sizeof(int));
+			}
+			areaCode = 0;
+			for (y = 0; y < height; y++)
+			{
+				for (x = 0; x < width; x++)
 				{
-					for (x = 0; x < width; x++)
+					if (IsWalkable_MType(x, y) && areaMaps[size][mt][y][x] == 0)
 					{
-						if (IsWalkable_MType(i, x, y) && areaMaps[i][y][x] == 0)
+						if (InitFloodfill(NULL, x, y, FLOODFILL_FLAG_SET_AREA_CODE) == PATHSTATE_OK)
 						{
-							areaMapIndex = i;
-							if (InitFloodfill(NULL, x, y, FLOODFILL_FLAG_SET_AREA_CODE) == PATHSTATE_OK)
+							while (FloodfillStep(NULL, NULL, 0, 0) == PATHSTATE_OK)
 							{
-								while (FloodfillStep(NULL, NULL, 0, 0) == PATHSTATE_OK)
-								{
-									
-								}
+								
 							}
-							areaCode++;
 						}
+						areaCode++;
 					}
 				}
-				printf("Area codes: %d\n", areaCode-1);
+			}
+			regenerateAreaCodes[size][mt] = false;
+			changedSinceLastRegen[size][mt] = false;
+			printf("Area code regen %d ms\n", SDL_GetTicks() - time);
+		}
+
+		void InitAreaMaps()
+		{
+			for (int j = 0; j < 4; j++)
+			{
+				for (int i = 0; i < Game::Dimension::MOVEMENT_TYPES_NUM; i++)
+				{
+					if (regenerateAreaCodes[j][i] && changedSinceLastRegen[j][i] && Dimension::numUnitsPerAreaMap[j][i])
+					{
+						InitAreaMap(j, i);
+					}
+				}
+			}
+		}
+
+		void DeleteUnitFromAreaMap(Dimension::Unit* unit)
+		{
+			for (int j = 0; j < 4; j++)
+			{
+				for (int i = 0; i < Game::Dimension::MOVEMENT_TYPES_NUM; i++)
+				{
+					changedSinceLastRegen[j][i] = true;
+					regenerateAreaCodes[j][i] = true;
+				}
+			}
+		}
+
+		void AddUnitToAreaMap(Dimension::Unit* unit)
+		{
+			for (int j = 0; j < 4; j++)
+			{
+				for (int i = 0; i < Game::Dimension::MOVEMENT_TYPES_NUM; i++)
+				{
+					changedSinceLastRegen[j][i] = true;
+				}
 			}
 		}
 
@@ -176,13 +225,26 @@ namespace Game
 				nodeTypes[y] = (unsigned short*) calloc(width, sizeof(unsigned short));
 				nodeNums[y] = (int*) calloc(width, sizeof(int));
 			}
-			areaMaps = (int***) malloc(Game::Dimension::MOVEMENT_TYPES_NUM * sizeof(int**));
-			for (int i = 0; i < Game::Dimension::MOVEMENT_TYPES_NUM; i++)
+			numNotReached = (int**) malloc(4 * sizeof(int*));
+			changedSinceLastRegen = (bool**) malloc(4 * sizeof(bool*));
+			regenerateAreaCodes = (bool**) malloc(4 * sizeof(bool*));
+			areaMaps = (int****) malloc(4 * sizeof(int***));
+			for (int j = 0; j < 4; j++)
 			{
-				areaMaps[i] = (int**) malloc(height * sizeof(int*));
-				for (y = 0; y < height; y++)
+				numNotReached[j] = (int*) malloc(Game::Dimension::MOVEMENT_TYPES_NUM * sizeof(int));
+				changedSinceLastRegen[j] = (bool*) malloc(Game::Dimension::MOVEMENT_TYPES_NUM * sizeof(bool));
+				regenerateAreaCodes[j] = (bool*) malloc(Game::Dimension::MOVEMENT_TYPES_NUM * sizeof(bool));
+				areaMaps[j] = (int***) malloc(Game::Dimension::MOVEMENT_TYPES_NUM * sizeof(int**));
+				for (int i = 0; i < Game::Dimension::MOVEMENT_TYPES_NUM; i++)
 				{
-					areaMaps[i][y] = (int*) calloc(width, sizeof(int));
+					numNotReached[j][i] = 0;
+					changedSinceLastRegen[j][i] = true;
+					regenerateAreaCodes[j][i] = true;
+					areaMaps[j][i] = (int**) malloc(height * sizeof(int*));
+					for (y = 0; y < height; y++)
+					{
+						areaMaps[j][i][y] = (int*) calloc(width, sizeof(int));
+					}
 				}
 			}
 			nodes = (struct node*) malloc(width*height * sizeof(struct node));
@@ -196,8 +258,6 @@ namespace Game
 			
 			scanlineQueue = (int*) malloc((width + height) * sizeof(int));
 			scanlineQueueSize = width + height;
-
-			InitAreaCodes();
 
 			heap = binary_heap_create(scores, openList, positions);
 		}
@@ -595,7 +655,7 @@ namespace Game
 				{
 					return 0;
 				}
-				if (areaMaps[unit->type->movementType][cur_y][cur_x] == areaMaps[unit->type->movementType][start_y][start_x])
+				if (areaMaps[unitSize][areaMapIndex][cur_y][cur_x] == areaMaps[unitSize][areaMapIndex][start_y][start_x])
 				{
 					if (IsWalkable(unit, cur_x, cur_y))
 					{
@@ -773,6 +833,9 @@ namespace Game
 		{
 			int x, y;
 
+			calculateNearestReachable = flags & FLOODFILL_FLAG_CALCULATE_NEAREST;
+			setAreaCodes = flags & FLOODFILL_FLAG_SET_AREA_CODE;
+
 			if (calculateNearestReachable)
 			{
 				if (!IsWalkable(unit, start_x, start_y))
@@ -782,14 +845,11 @@ namespace Game
 			}
 			else
 			{
-				if (!IsWalkable_MType(areaMapIndex, start_x, start_y))
+				if (!IsWalkable_MType(start_x, start_y))
 				{
 					return PATHSTATE_ERROR;
 				}
 			}
-
-			calculateNearestReachable = flags & FLOODFILL_FLAG_CALCULATE_NEAREST;
-			setAreaCodes = flags & FLOODFILL_FLAG_SET_AREA_CODE;
 
 			firstScanlineIndex = 0;
 			lastScanlineIndex = 0;
@@ -846,7 +906,7 @@ namespace Game
 
 				for (x = start_x-1; ; x--)
 				{
-					if (!IsWalkable_MType(areaMapIndex, x, start_y))
+					if (!IsWalkable_MType(x, start_y))
 					{
 						break;
 					}
@@ -863,7 +923,7 @@ namespace Game
 
 				for (x = start_x+1; ; x++)
 				{
-					if (!IsWalkable_MType(areaMapIndex, x, start_y))
+					if (!IsWalkable_MType(x, start_y))
 					{
 						break;
 					}
@@ -900,6 +960,11 @@ namespace Game
 
 			if (numScanlines == 0)
 			{
+				// Target not found...
+				if (calculateNearestReachable)
+				{
+					numNotReached[unitSize][areaMapIndex]++;
+				}
 				return PATHSTATE_GOAL;
 			}
 
@@ -913,7 +978,7 @@ namespace Game
 			{
 				for (x = start_x; x <= end_x; x++)
 				{
-					areaMaps[areaMapIndex][y][x] = areaCode;
+					areaMaps[unitSize][areaMapIndex][y][x] = areaCode;
 				}
 			}
 
@@ -975,14 +1040,14 @@ namespace Game
 					}
 					else if (scanline_types[x] != NODE_TYPE_BLOCKED)
 					{
-						if ((calculateNearestReachable && IsWalkable(unit, x, new_y)) || (setAreaCodes && IsWalkable_MType(areaMapIndex, x, new_y)))
+						if ((calculateNearestReachable && IsWalkable(unit, x, new_y)) || (setAreaCodes && IsWalkable_MType(x, new_y)))
 						{
 							int new_scanline;
 							if (setAreaCodes)
 							{
 								for (new_x = x-1; ; new_x--)
 								{
-									if (scanline_types[x] == NODE_TYPE_BLOCKED || !IsWalkable_MType(areaMapIndex, new_x, new_y))
+									if (scanline_types[x] == NODE_TYPE_BLOCKED || !IsWalkable_MType(new_x, new_y))
 									{
 										break;
 									}
@@ -1011,7 +1076,7 @@ namespace Game
 								{
 									for (new_x = x+1; ; new_x++)
 									{
-										if (scanline_types[x] == NODE_TYPE_BLOCKED || !IsWalkable_MType(areaMapIndex, new_x, new_y))
+										if (scanline_types[x] == NODE_TYPE_BLOCKED || !IsWalkable_MType(new_x, new_y))
 										{
 											break;
 										}
@@ -1178,12 +1243,13 @@ namespace Game
 			if (first_node == -1)
 			{
 	/*			printf("Did not reach target\n"); */
+				numNotReached[unitSize][areaMapIndex]++;
 				md->_action.changedGoalPos.x = nodes[nearestNode].x;
 				md->_action.changedGoalPos.y = nodes[nearestNode].y;
 				return PATHSTATE_GOAL;
 			}
 
-			if (lowestH > nodes[first_node].h)
+			if (lowestH > nodes[first_node].h || nearestNode == -1)
 			{
 				lowestH = nodes[first_node].h;
 				nearestNode = first_node;
@@ -1367,6 +1433,19 @@ namespace Game
 
 					tdata->pUnit->pMovementData->_currentState = INTTHRSTATE_PROCESSING;
 					preprocessState = PREPROCESSSTATE_NONE;
+					unitSize = tdata->pUnit->type->heightOnMap-1;
+					areaMapIndex = tdata->pUnit->type->movementType;
+
+					if (numNotReached[unitSize][areaMapIndex] > 5)
+					{
+						regenerateAreaCodes[unitSize][areaMapIndex] = true;
+						numNotReached[unitSize][areaMapIndex] = 0;
+					}
+					
+					InitAreaMaps();
+
+					unitSize = tdata->pUnit->type->heightOnMap-1;
+					areaMapIndex = tdata->pUnit->type->movementType;
 				}
 			}
 
@@ -1395,8 +1474,7 @@ namespace Game
 				{
 					if (preprocessState == PREPROCESSSTATE_NONE)
 					{
-						int m_type = unit->type->movementType;
-						if (IsWalkable(unit, (int)md->_action.goal.pos.x, (int)md->_action.goal.pos.y) && areaMaps[m_type][(int)md->_action.startPos.y][(int)md->_action.startPos.x] == areaMaps[m_type][(int)md->_action.goal.pos.y][(int)md->_action.goal.pos.x])
+						if (IsWalkable(unit, (int)md->_action.goal.pos.x, (int)md->_action.goal.pos.y) && areaMaps[unitSize][areaMapIndex][(int)md->_action.startPos.y][(int)md->_action.startPos.x] == areaMaps[unitSize][areaMapIndex][(int)md->_action.goal.pos.y][(int)md->_action.goal.pos.x])
 						{
 							preprocessState = PREPROCESSSTATE_SKIPPED_TRACE; // Skip it for now
 							InitPathfinding(tdata);
@@ -1559,6 +1637,11 @@ namespace Game
 //							cout << calcCount << " total, " << tsteps << " trace, " << fsteps << " flood, " << psteps << " a*, " << unit << endl;
 							done = true;
 							quit = true;
+							cCount += calcCount;
+							tCount += tsteps;
+							fCount += fsteps;
+							pCount += psteps;
+							numPaths++;
 							break;
 						}
 					
@@ -1603,6 +1686,15 @@ namespace Game
 			
 			SDL_UnlockMutex(tdata->pMutex);
 			
+			return ret;
+		}
+
+		int GetQueueSize()
+		{
+			int ret;
+			SDL_LockMutex(gpmxPathfinding);
+			ret = gCalcQueue.size();
+			SDL_UnlockMutex(gpmxPathfinding);
 			return ret;
 		}
 	}

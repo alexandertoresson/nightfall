@@ -32,7 +32,7 @@
 #define USE_LUA
 #include "luawrapper.h"
 
-void ParseArguments(int argc, char** argv, char*& worldMap);
+void ParseArguments(int argc, char** argv);
 void KillAll(void);
 
 int main(int argc, char** argv)
@@ -43,8 +43,7 @@ int main(int argc, char** argv)
 
 	Utilities::InitPaths(argv[0]);
 
-	char *worldMap = NULL;
-	ParseArguments(argc, argv, worldMap);
+	ParseArguments(argc, argv);
 
 	int errCode = Window::Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO);
 	
@@ -108,14 +107,7 @@ int main(int argc, char** argv)
 			return NETWORK_ERROR_INIT;
 		}
 
-		loading->Increment(1.0f);
-		loading->SetMessage("Initializing Lua");
-		loading->Update();
-		
 		Utilities::Scripting::StartVM();
-		
-		UnitLuaInterface::Init();
-		
 		loading->Increment(1.0f);
 		loading->SetMessage("Loading World");
 		loading->Update();
@@ -144,9 +136,6 @@ int main(int argc, char** argv)
 				Game::Dimension::cameraZoomSpeed = value;
 		}
 
-		if (worldMap)
-			Game::Dimension::LoadWorld(worldMap);
-
 		loading->Increment(1.0f);
 		loading->SetMessage("Loading GameMain...");
 		loading->Update();
@@ -159,19 +148,11 @@ int main(int argc, char** argv)
 	return SUCCESS;
 }
 
-void ParseArguments(int argc, char** argv, char*& worldMap)
+void ParseArguments(int argc, char** argv)
 {
 	for (int i = 1; i < argc; i++)
 	{
-		if (!strcmp(argv[i], "-w"))
-		{
-			if (++i < argc)
-			{
-				worldMap = new char[strlen(argv[i])];
-				strcpy(worldMap, argv[i]);
-			}
-		}
-		else if (!strcmp(argv[i], "--dedicated-server"))
+		if (!strcmp(argv[i], "--dedicated-server"))
 		{
 			Game::Rules::isServer = true;
 			Game::Rules::noGraphics = true;
@@ -240,9 +221,6 @@ void KillAll(void)
 
 #if USE_AUDIO == 1
 	Audio::Kill();
-#endif
-#ifdef USE_LUA
-	Utilities::Scripting::StopVM();
 #endif
 
 #if USE_FONT == 1

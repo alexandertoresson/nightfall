@@ -8,13 +8,14 @@ function table_maxn(table)
 end
 
 LastCheckForTarget = {}
+LastCommands = {}
 
 function PerformAI_Unit_Generic(Unit)
 
-	if not (GetUnitType(Unit) == Builder.pointer) then
+	if not (GetUnitType(Unit) == GetUnitTypeFromString("Builder")) then
 		action = GetUnitAction(Unit)
 
-		if action == UnitAction.None and (LastCommands[Unit] == nil or os.difftime(os.time(), LastCheckForTarget[Unit]) > 0.1) and GetUnitCanAttack(Unit) then
+		if action == UnitAction.None and (LastCheckForTarget[Unit] == nil or os.difftime(os.time(), LastCheckForTarget[Unit]) > 0.1) and GetUnitCanAttack(Unit) then
 			targetUnit = GetNearestUnitInRange(Unit, RangeType.Sight, PlayerState.Enemy)
 			LastCheckForTarget[Unit] = os.time()
 			if IsNonNull(targetUnit) then

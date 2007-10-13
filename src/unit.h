@@ -28,7 +28,7 @@ namespace Game
 		
 		bool IsValidUnitPointer(Unit* unit);
 
-		int GetTraversalTime(Unit *unit, int x, int y, int dx, int dy);
+		inline int GetTraversalTime(Unit *unit, int x, int y, int dx, int dy);
 		int GetTraversalTimeAdjusted(Unit *unit, int x, int y, int dx, int dy);
 		bool MoveUnit(Unit* unit);
 		bool SquareIsGoal(Unit *unit, int x, int y, bool use_internal = false);
@@ -37,16 +37,13 @@ namespace Game
 		bool SquaresAreWalkable(Unit *unit, int x, int y, int flags);
 		inline bool SquareIsWalkable(Unit *unit, int x, int y);
 		bool SquaresAreWalkable(Unit *unit, int x, int y);
-		
-		inline bool SquareIsWalkable_AllKnowing(Unit *unit, int x, int y);
-		inline bool SquaresAreWalkable_AllKnowing(Unit *unit, int x, int y);
-		inline bool SquareIsWalkable_AllKnowing(UnitType *type, int x, int y);
-		bool SquaresAreWalkable_AllKnowing(UnitType *type, int x, int y);
+		bool SquaresAreWalkable(UnitType *type, int x, int y, int flags);
 		
 		struct TransformData;
 		struct TransformAnim;
 		struct Animation;
 		extern map<string, UnitType*> unitTypeMap;
+		extern int** numUnitsPerAreaMap;
 	}
 }
 
@@ -330,6 +327,7 @@ namespace Game
 			AI::UnitAIFuncs     unitAIFuncs;
 			int                 aiFrame;
 			Audio::SoundListNode* soundNodes[Audio::SFX_ACT_COUNT];
+			int                 usedInAreaMaps;
 		};
 
 		extern vector<Unit*> **unitBigSquares;
@@ -370,6 +368,7 @@ namespace Game
 		
 		bool MovementTypeCanWalkOnSquare(MovementType mType, int x, int y);
 		inline bool MovementTypeCanWalkOnSquare_UnGuarded(MovementType mType, int x, int y);
+		bool MovementTypeCanWalkOnSquare_Pathfinding(MovementType mType, int size, int pos_x, int pos_y);
 
 		inline bool SquareIsWalkable(UnitType *type, Player *player, int x, int y, int flags);
 		bool SquaresAreWalkable(UnitType *type, Player *player, int x, int y, int flags);

@@ -8,6 +8,8 @@ TempNoonIncomeChanges = 0
 TempMoneyReserved = 0
 Need = {}
 NeedForPower = {}
+NeedForSurvival = {}
+LastCommands = {}
 
 function GetPowerAtDawnCached(Player)
 	if Cached_PowerAtDawn == nil then
@@ -197,16 +199,30 @@ function PerformAI_Player_AI(Player)
 					cost = GetUnitTypeResearchCost(ToBuild[i])
 				end
 			end
+			if ToBuild[i] == GetUnitTypeFromString("Explorer") then
+				if GetNumBuilt(ToBuild[i]) > 5 then
+					can_produce = false
+				end
+			end
 			if can_produce then
-				if ShouldBuild(Player, ToBuild[i]) then
+				should_build = ShouldBuild(Player, ToBuild[i])
+				if ToBuild[i] == GetUnitTypeFromString("MainBuilding") and GetNumBuilt(GetUnitTypeFromString("MainBuilding")) == 0 then
+					should_build = true
+					NeedForSurvival[GetUnitTypeFromString("MainBuilding")] = true
+				end
+				if ToBuild[i] == GetUnitTypeFromString("Builder") and GetNumBuilt(GetUnitTypeFromString("Builder")) == 0 then
+					should_build = true
+					NeedForSurvival[GetUnitTypeFromString("Builder")] = true
+				end
+				if should_build then
 					InBuildList = true
 					CanBuild[ToBuild[i]] = true
 					Temp = {UnitType = ToBuild[i], BuilderType = builder, Weight = cost}
 					table.insert(BuildList, Temp)
 				else
-					Need[SolarPanel.pointer] = true
-					Need[DeepGeothermal.pointer] = true
-					Need[SurfaceGeothermal.pointer] = true
+					Need[GetUnitTypeFromString("SolarPanel")] = true
+					Need[GetUnitTypeFromString("DeepGeothermal")] = true
+					Need[GetUnitTypeFromString("SurfaceGeothermal")] = true
 				end
 			end
 		end
@@ -215,6 +231,8 @@ function PerformAI_Player_AI(Player)
 	for i = 1,table_maxn(BuildList) do
 		iterations = iterations + 1
 		if NeedForPower[BuildList[i].UnitType] then
+			BuildList[i].NewWeight = 1
+		elseif NeedForPower[BuildList[i].UnitType] then
 			BuildList[i].NewWeight = BuildList[i].Weight
 		elseif Need[BuildList[i].UnitType] then
 			BuildList[i].NewWeight = BuildList[i].Weight * math.sqrt(GetNumBuilt(BuildList[i].UnitType) + 1)
@@ -228,6 +246,7 @@ function PerformAI_Player_AI(Player)
 --	Output(" ")
 
 	NeedForPower = {}
+	NeedForSurvival = {}
 
 	table.sort(BuildList, function(a,b) return a.NewWeight<b.NewWeight end)
 	iterations = 0;
@@ -265,7 +284,7 @@ function PerformAI_Player_AI(Player)
 				end
 				if valid then
 					x, y = GetUnitPosition(builder)
-					if UnitType == SmallLightTower.pointer or UnitType == MediumLightTower.pointer or UnitType == LargeLightTower.pointer then
+					if UnitType == GetUnitTypeFromString("SmallLightTower") or UnitType == GetUnitTypeFromString("MediumLightTower") or UnitType == GetUnitTypeFromString("LargeLightTower") then
 						x, y, valid = GetSuitablePositionForLightTower(UnitType, Player, math.floor(x + math.random(-30, 30)), math.floor(y + math.random(-30, 30)))
 					else
 						x, y, valid = GetNearestSuitableAndLightedPosition(UnitType, Player, math.floor(x + math.random(-30, 30)), math.floor(y + math.random(-30, 30)))
@@ -305,14 +324,14 @@ function PerformAI_Player_AI(Player)
 			SendBackFirstInQueue()
 		else
 			if unitavailable then
-				if UnitType == SolarPanel.pointer or UnitType == DeepGeothermal.pointer or UnitType == SurfaceGeothermal.pointer then
-					NeedForPower[SmallLightTower.pointer] = true
-					NeedForPower[MediumLightTower.pointer] = true
-					NeedForPower[LargeLightTower.pointer] = true
+				if UnitType == GetUnitTypeFromString("SolarPanel") or UnitType == GetUnitTypeFromString("DeepGeothermal") or UnitType == GetUnitTypeFromString("SurfaceGeothermal") then
+					NeedForPower[GetUnitTypeFromString("SmallLightTower")] = true
+					NeedForPower[GetUnitTypeFromString("MediumLightTower")] = true
+					NeedForPower[GetUnitTypeFromString("LargeLightTower")] = true
 				else
-					Need[SmallLightTower.pointer] = true
-					Need[MediumLightTower.pointer] = true
-					Need[LargeLightTower.pointer] = true
+					Need[GetUnitTypeFromString("SmallLightTower")] = true
+					Need[GetUnitTypeFromString("MediumLightTower")] = true
+					Need[GetUnitTypeFromString("LargeLightTower")] = true
 				end
 			else
 				Need[BuilderType] = true
@@ -332,18 +351,27 @@ function PerformAI_Player_AI(Player)
 	end
 
 	for Unit,value in pairs(IdleList) do
-		if (GetUnitType(Unit) == Builder.pointer) or not GetUnitCanAttack(Unit) or (lastAttacker == nil) then
-			if GetUnitAction(Unit) == UnitAction.None then
-				x, y = GetUnitPosition(Unit)
-				Type = GetUnitType(Unit)
-				new_x = x + math.floor(math.random(-10, 10))
-				new_y = y + math.floor(math.random(-10, 10))
-				if SquaresAreLightedAround(Type, Player, new_x, new_y) then
-					CommandGoto(Unit, new_x, new_y)
+		if LastCommands[Unit] == nil or os.difftime(os.time(), LastCommands[Unit]) > 3.00 then
+			if (GetUnitType(Unit) == GetUnitTypeFromString("Builder")) or not GetUnitCanAttack(Unit) or (lastAttacker == nil) then
+				if GetUnitAction(Unit) == UnitAction.None then
+					x, y = GetUnitPosition(Unit)
+					Type = GetUnitType(Unit)
+					new_x = x + math.floor(math.random(-10, 10))
+					new_y = y + math.floor(math.random(-10, 10))
+					if Type == GetUnitTypeFromString("Explorer") then 
+						new_x = x + math.floor(math.random(-100, 100))
+						new_y = y + math.floor(math.random(-100, 100))
+						CommandGoto(Unit, new_x, new_y)
+						LastCommands[Unit] = os.time()
+					elseif SquaresAreLightedAround(Type, Player, new_x, new_y) then
+						CommandGoto(Unit, new_x, new_y)
+						LastCommands[Unit] = os.time()
+					end
 				end
+			else
+				CommandAttack(Unit, lastAttacker)
+				LastCommands[Unit] = os.time()
 			end
-		else
-			CommandAttack(Unit, lastAttacker)
 		end
 	end
 
@@ -352,27 +380,28 @@ function PerformAI_Player_AI(Player)
 
 	if ToBuild[1] == nil then
 --				Output("Replace\n")
-		AppendToBuildList(Builder.pointer)
-		AppendToBuildList(SolarPanel.pointer)
-		AppendToBuildList(SurfaceGeothermal.pointer)
-		AppendToBuildList(DeepGeothermal.pointer)
-		AppendToBuildList(SmallLightTower.pointer)
-		AppendToBuildList(MediumLightTower.pointer)
-		AppendToBuildList(LargeLightTower.pointer)
-		AppendToBuildList(SmallAttackRobot.pointer)
-		AppendToBuildList(LargeAttackRobot.pointer)
-		AppendToBuildList(SmallTank.pointer)
-		AppendToBuildList(LargeTank.pointer)
-		AppendToBuildList(Barracks.pointer)
-		AppendToBuildList(TankFactory.pointer)
-		AppendToBuildList(MainBuilding.pointer)
-		AppendToBuildList(DefenseTower.pointer)
+		AppendToBuildList(GetUnitTypeFromString("Builder"))
+		AppendToBuildList(GetUnitTypeFromString("SolarPanel"))
+		AppendToBuildList(GetUnitTypeFromString("SurfaceGeothermal"))
+		AppendToBuildList(GetUnitTypeFromString("DeepGeothermal"))
+		AppendToBuildList(GetUnitTypeFromString("SmallLightTower"))
+		AppendToBuildList(GetUnitTypeFromString("MediumLightTower"))
+		AppendToBuildList(GetUnitTypeFromString("LargeLightTower"))
+		AppendToBuildList(GetUnitTypeFromString("SmallAttackRobot"))
+		AppendToBuildList(GetUnitTypeFromString("LargeAttackRobot"))
+		AppendToBuildList(GetUnitTypeFromString("SmallTank"))
+		AppendToBuildList(GetUnitTypeFromString("LargeTank"))
+		AppendToBuildList(GetUnitTypeFromString("Barracks"))
+		AppendToBuildList(GetUnitTypeFromString("TankFactory"))
+		AppendToBuildList(GetUnitTypeFromString("MainBuilding"))
+		AppendToBuildList(GetUnitTypeFromString("DefenseTower"))
+		AppendToBuildList(GetUnitTypeFromString("Explorer"))
 	end
 	if GetPowerAtDawnCached(Player) - TempMoneyReserved < 1000 or PowerQuote(Player) < 2.00 then
 --			Output("Lowpower\n")
-		NeedForPower[SolarPanel.pointer] = true
-		NeedForPower[DeepGeothermal.pointer] = true
-		NeedForPower[SurfaceGeothermal.pointer] = true
+		NeedForPower[GetUnitTypeFromString("SolarPanel")] = true
+		NeedForPower[GetUnitTypeFromString("DeepGeothermal")] = true
+		NeedForPower[GetUnitTypeFromString("SurfaceGeothermal")] = true
 	end
 		
 	if LastSell == nil or os.difftime(os.time(), LastSell) > 0.50 then
@@ -496,10 +525,10 @@ function UnitEvent_NewCommand_AI(Unit, action, x, y, goal, arg)
 end
 
 function UnitEvent_IsAttacked_AI(Unit, attacker)
-	if GetUnitType(attacker) == Grue.pointer then
+	if GetUnitType(attacker) == GetUnitTypeFromString("Grue") then
 		return
 	end
-	if GetUnitCanAttack(Unit) and not (GetUnitType(Unit) == Builder.pointer) then
+	if GetUnitCanAttack(Unit) and not (GetUnitType(Unit) == GetUnitTypeFromString("Builder")) then
 		CommandAttack(Unit, attacker)
 	end
 	lastAttacker = attacker

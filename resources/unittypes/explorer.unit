@@ -8,15 +8,14 @@ ut.hasAI = true
 ut.isResearched = true
 ut.isMobile = true
 
-ut.sightRange = 6.0
+ut.sightRange = 10.0
 ut.movementSpeed = 12.0
 ut.movementType = MovementType.Human
 
-ut.attackSpeed = 1.0
 ut.size = 1.0
 ut.height = 1.0
 ut.buildTime = 10.0
-ut.buildCost = 50
+ut.buildCost = 100
 ut.researchTime = 20.0
 ut.researchCost = 100
 

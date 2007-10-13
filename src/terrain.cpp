@@ -180,7 +180,7 @@ namespace Game
 					HeightMipmaps[0][mipmap_num].ppTexCoords[y] = new UVWCoord*[new_width];
 //					HeightMipmaps[0][mipmap_num].ppSquareHasWater[y] = new bool[new_width];
 
-					for(int x=0;x<new_height;x++)
+					for(int x=0;x<new_width;x++)
 					{
 						height = 0.0;
 						weight = 0.0;
@@ -336,7 +336,7 @@ namespace Game
 								heights_2[y2+1][x2+1] = (heights_1[y][x] + heights_1[y+1][x] + heights_1[y][x+1] + heights_1[y+1][x+1]) * 0.25;
 							}
 						}
-						if (y != new_width-1)
+						if (y != new_height-1)
 						{
 							normals_2[y2+1][x2] = new SphereNormal;
 							normals_2[y2+1][x2]->phi = (normals_1[y][x]->phi + normals_1[y+1][x]->phi) * 0.5;
@@ -530,7 +530,7 @@ namespace Game
 			for(int y=0;y<pWorld->height;y++)
 			{
 
-				HeightMipmaps[0][0].ppTexCoords[y] = new UVWCoord*[pWorld->height];
+				HeightMipmaps[0][0].ppTexCoords[y] = new UVWCoord*[pWorld->width];
 
 				for(int x=0;x<pWorld->width;x++)
 				{
@@ -688,7 +688,7 @@ namespace Game
 				pWorld->ppWater[0][y] = new float[pWorld->width];
 				pWorld->ppWater[1][y] = new float[pWorld->width];
 				pWorld->ppWater[2][y] = new float[pWorld->width];
-				water_normals[y] = new XYZCoord*[pWorld->height];
+				water_normals[y] = new XYZCoord*[pWorld->width];
 
 				for (int x = 0; x < pWorld->width; x++)
 				{

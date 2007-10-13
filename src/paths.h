@@ -21,8 +21,8 @@ namespace Utilities
 
 	std::string GetPath(PathType type, unsigned num);
 	std::string GetFile(PathType type, std::string file);
-	std::string GetWritableConfigFile(std::string file);
-	std::string GetWritableDataFile(std::string file);
+	std::string GetWritableConfigFile(std::string file, bool &exists);
+	std::string GetWritableDataFile(std::string file, bool &exists);
 	std::string GetConfigFile(std::string file);
 	std::string GetDataFile(std::string file);
 }
