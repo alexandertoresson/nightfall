@@ -87,6 +87,11 @@ function InitLevel()
 
 	---------------------------------------------------
 
+	return true
+end
+	
+function InitLevelUnits()
+
 	cur_player = GetPlayerByIndex(0) -- GAIA
 	CreateUnit(MediumLightTower.pointer, cur_player, 107.5,  117.5, 0)
 	CreateUnit(SolarPanel.pointer,       cur_player, 103.5,  124.5, 0)
