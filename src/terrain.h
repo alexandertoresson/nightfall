@@ -147,6 +147,7 @@ namespace Game
 		Utilities::Vector3D GetTerrainNormal(float x, float y);
 		
 		Utilities::Vector3D GetTerrainCoord(float x, float y);
+		Utilities::Vector3D GetTerrainCoordHighestLevel(float x, float y);
 		Dimension::Position GetPosition(Utilities::Vector3D* v);
 
 	}

@@ -44,6 +44,9 @@ namespace Game
 		struct Animation;
 		extern map<string, UnitType*> unitTypeMap;
 		extern int** numUnitsPerAreaMap;
+		extern int numSentCommands;
+		
+		void GenerateUnitTypeRanges(UnitType* type);
 	}
 }
 
@@ -101,7 +104,9 @@ namespace Game
 		const int SIW_DEFAULT = 0,
 		          SIW_ALLKNOWING = 1,
 		          SIW_IGNORE_MOVING = 2,
-		          SIW_IGNORE_OWN_MOBILE_UNITS = 4;
+		          SIW_CONSIDER_WAITING = 4,
+		          SIW_CONSIDER_PUSHED = 8,
+		          SIW_IGNORE_OWN_MOBILE_UNITS = 16;
 
 		struct Model
 		{
@@ -225,6 +230,10 @@ namespace Game
 			void* arg;
 		};
 
+		struct Scanline;
+		struct RangeScanlines;
+		struct RangeArray;
+
 		struct UnitType
 		{
 			const char* name;
@@ -237,11 +246,16 @@ namespace Game
 			int         maxAttack;
 			bool        canAttack;
 			bool        canAttackWhileMoving;
-			float       attackAccuracy;  // accuracy of attack (0 - 100)
+			float       attackAccuracy;  // accuracy of attack (0 - 100) -- not currently used or implemented
 			float       attackMinRange;  // the minimum range of the unit's attack
 			float       attackMaxRange;  // the maximum range of the unit's attack
 			float       sightRange;      // how far the unit can see
 			float       lightRange;      // how far the unit spreads light
+			RangeArray* attackRangeArray;
+			RangeArray* sightRangeArray;
+			RangeScanlines* sightRangeScanlines;
+			RangeArray* lightRangeArray;
+			RangeScanlines* lightRangeScanlines;
 			bool        isMobile;        // whether the unit is moveable
 			PowerType   powerType;       // defines how long the unit generates light.
 			double      powerIncrement;  // the power generation quantity per second per unit.
@@ -321,6 +335,8 @@ namespace Game
 			bool                isMoving;
 			bool                isLighted;   // the unit has squares added that are marked as lighted
 			bool                hasSeen;     // the unit has squares added that are marked as seen
+			bool                isWaiting;
+			bool                isPushed;
 			LightState          lightState;
 			Position*           rallypoint;
 			Uint16              id;
@@ -328,6 +344,8 @@ namespace Game
 			int                 aiFrame;
 			Audio::SoundListNode* soundNodes[Audio::SFX_ACT_COUNT];
 			int                 usedInAreaMaps;
+			Uint32              pushID;
+			Unit*               pusher;
 		};
 
 		extern vector<Unit*> **unitBigSquares;

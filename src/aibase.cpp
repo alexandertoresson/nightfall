@@ -22,7 +22,7 @@ namespace Game
 {
 	namespace AI
 	{
-		int aiFps = 60;
+		int aiFps = 30;
 		int resetFrame = 0;   // for determining when to reset Dimension::PositionSearch_NumStepsTaken
 		Uint32 currentFrame = 0; // for tracking the number of the current frame
 		int aiFramesPerformedSinceLastRender = 0;
@@ -335,15 +335,16 @@ namespace Game
 		{
 			UnitAction action;
 			int should_move;
+			PathState state = GetInternalPathState(pUnit);
 			
 			if (!Networking::isNetworked)
 			{
-				if (GetInternalPathState(pUnit) == PATHSTATE_GOAL)
+				if (state == PATHSTATE_GOAL)
 				{
 					ApplyNewPath(pUnit);
 					pUnit->pMovementData->pCurGoalNode = NULL;
 				}
-				else if (GetInternalPathState(pUnit) == PATHSTATE_ERROR)
+				else if (state == PATHSTATE_ERROR)
 				{
 					CancelAction(pUnit);
 					pUnit->pMovementData->pCurGoalNode = NULL;
@@ -351,12 +352,12 @@ namespace Game
 			}
 			else
 			{
-				if (GetInternalPathState(pUnit) == PATHSTATE_GOAL)
+				if (state == PATHSTATE_GOAL)
 				{
 					Networking::PreparePath(pUnit, pUnit->pMovementData->_start, pUnit->pMovementData->_goal);
 					DeallocPathfindingNodes(pUnit, AI::DPN_BACK);
 				}
-				else if (GetInternalPathState(pUnit) == PATHSTATE_ERROR)
+				else if (state == PATHSTATE_ERROR)
 				{
 					DeallocPathfindingNodes(pUnit, AI::DPN_BACK);
 					ScheduleNextAction(pUnit);
@@ -369,6 +370,10 @@ namespace Game
 			{
 	
 				should_move = pUnit->type->isMobile;
+				if (!should_move)
+				{
+					pUnit->isWaiting = false;
+				}
 
 				if (action == ACTION_ATTACK)
 				{
@@ -384,8 +389,11 @@ namespace Game
 						{
 							Dimension::InitiateAttack(pUnit, targetUnit);
 						}
-						should_move = false;
-						pUnit->isMoving = false;
+						if (should_move)
+						{
+							pUnit->isWaiting = true;
+							should_move = false;
+						}
 					}
 					else if (!pUnit->type->isMobile)
 					{
@@ -398,9 +406,12 @@ namespace Game
 					if (IsWithinRangeForBuilding(pUnit))
 					{
 						Dimension::Build(pUnit);
-						should_move = false;
-						pUnit->isMoving = false;
 						AI::DeallocPathfindingNodes(pUnit);
+						if (should_move)
+						{
+							pUnit->isWaiting = true;
+							should_move = false;
+						}
 					}
 				}
 
@@ -412,6 +423,10 @@ namespace Game
 				if (should_move)
 				{
 					Dimension::MoveUnit(pUnit);
+				}
+				else
+				{
+					pUnit->isMoving = false;
 				}
 				
 				if (pUnit->isMoving)
@@ -430,6 +445,11 @@ namespace Game
 					}
 				}
 
+			}
+			else
+			{
+				pUnit->isWaiting = false;
+				pUnit->isMoving = false;
 			}
 		}
 
@@ -533,7 +553,7 @@ namespace Game
 				{
 					Dimension::Unit* pUnit = Dimension::pWorld->vUnits.at(i);
 					PerformAI(pUnit);
-					if (pUnit->action == ACTION_DIE && currentFrame - pUnit->lastAttacked > 60)
+					if (pUnit->action == ACTION_DIE && currentFrame - pUnit->lastAttacked > (unsigned) aiFps)
 					{
 						DeleteUnit(pUnit);
 						i--;
@@ -587,7 +607,7 @@ namespace Game
 			if (pUnit->owner != Dimension::currentPlayer)
 				return;
 
-			if (pUnit->isCompleted)
+			if (pUnit->isCompleted && pUnit->action != ACTION_DIE)
 			{
 				if (!queue)
 				{
@@ -630,7 +650,7 @@ namespace Game
 			if (pUnit->owner != Dimension::currentPlayer)
 				return;
 
-			if (pUnit->isCompleted)
+			if (pUnit->isCompleted && pUnit->action != ACTION_DIE)
 			{
 				if (!queue)
 				{
@@ -698,6 +718,11 @@ namespace Game
 		
 		void IssueNextAction(Dimension::Unit* pUnit)
 		{
+			if (pUnit->action == AI::ACTION_DIE)
+			{
+				return;
+			}
+
 			pUnit->action = ACTION_NONE;
 			pUnit->pMovementData->action.goal.unit = NULL;
 			pUnit->pMovementData->action.goal.goal_id = 0xFFFF;
@@ -731,6 +756,11 @@ namespace Game
 
 		void CancelAction(Dimension::Unit* pUnit)
 		{
+			if (pUnit->action == AI::ACTION_DIE)
+			{
+				return;
+			}
+
 			if (pUnit->action == ACTION_BUILD)
 			{
 				Game::Dimension::CancelBuild(pUnit);
@@ -745,6 +775,11 @@ namespace Game
 		
 		void CancelAllActions(Dimension::Unit* pUnit)
 		{
+			if (pUnit->action == AI::ACTION_DIE)
+			{
+				return;
+			}
+
 			AI::SendUnitEventToLua_CommandCancelled(pUnit);
 			if (pUnit->action == ACTION_BUILD)
 			{
@@ -763,6 +798,11 @@ namespace Game
 		
 		void CompleteAction(Dimension::Unit* pUnit)
 		{
+			if (pUnit->action == AI::ACTION_DIE)
+			{
+				return;
+			}
+
 			if (pUnit->action == ACTION_BUILD)
 			{
 				AI::SendUnitEventToLua_BuildComplete(pUnit);
@@ -799,6 +839,11 @@ namespace Game
 		
 		void ApplyAction(Dimension::Unit* pUnit, UnitAction action, float goal_x, float goal_y, Dimension::Unit* target, void* arg)
 		{
+			if (pUnit->action == AI::ACTION_DIE)
+			{
+				return;
+			}
+
 			if (pUnit->action == ACTION_BUILD)
 			{
 				Game::Dimension::CancelBuild(pUnit);

@@ -85,7 +85,7 @@ namespace Utilities
 			{
 				exists = true;
 			}
-			if (CanOpenForWriting(path + file))
+			if (exists || CanOpenForWriting(path + file))
 			{
 				return (path + file).c_str();
 			}

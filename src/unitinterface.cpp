@@ -3223,6 +3223,8 @@ else \
 			pUnitType->unitAIFuncs[i] = pWorld->vPlayers[i]->unitAIFuncs;
 		}
 
+		GenerateUnitTypeRanges(pUnitType);
+
 		validUnitTypePointers[pUnitType] = true;
 
 		LUA_SUCCESS

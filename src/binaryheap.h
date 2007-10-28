@@ -1,7 +1,7 @@
 
 typedef struct
 {
-	int *scores;
+	Uint32 *scores;
 	BINARY_HEAP_DATATYPE *data;
 	int *positions;
 	int num_items;
@@ -11,7 +11,7 @@ typedef struct
 #define BINARY_HEAP_CHILD1(x) ((x<<1)+1)
 #define BINARY_HEAP_CHILD2(x) ((x<<1)+2)
 
-binary_heap_t *binary_heap_create(int *scores, BINARY_HEAP_DATATYPE *data, int *positions)
+binary_heap_t *binary_heap_create(Uint32 *scores, BINARY_HEAP_DATATYPE *data, int *positions)
 {
 	binary_heap_t *heap = (binary_heap_t*) malloc(sizeof(binary_heap_t));
 	heap->scores = scores;
@@ -26,12 +26,12 @@ void binary_heap_destroy(binary_heap_t *heap)
 	free(heap);
 }
 
-void binary_heap_push_item(binary_heap_t *heap, BINARY_HEAP_DATATYPE new_data, int score)
+void binary_heap_push_item(binary_heap_t *heap, BINARY_HEAP_DATATYPE new_data, Uint32 score)
 {
 	int pos, parent_pos, temp_score;
 	BINARY_HEAP_DATATYPE temp_data;
 	BINARY_HEAP_DATATYPE *data = heap->data;
-	int *scores = heap->scores;
+	Uint32 *scores = heap->scores;
 	int *positions = heap->positions;
 	pos = heap->num_items;
 	scores[pos] = score;
@@ -60,7 +60,7 @@ BINARY_HEAP_DATATYPE binary_heap_pop_item(binary_heap_t *heap, BINARY_HEAP_DATAT
 	int temp_score;
 	BINARY_HEAP_DATATYPE temp_data;
 	BINARY_HEAP_DATATYPE *data = heap->data;
-	int *scores = heap->scores;
+	Uint32 *scores = heap->scores;
 	int *positions = heap->positions;
 
 	if (heap->num_items)
@@ -119,12 +119,12 @@ BINARY_HEAP_DATATYPE binary_heap_pop_item(binary_heap_t *heap, BINARY_HEAP_DATAT
 	return ret;
 }
 
-void binary_heap_lower_item_score(binary_heap_t *heap, BINARY_HEAP_DATATYPE altered_data, int score)
+void binary_heap_lower_item_score(binary_heap_t *heap, BINARY_HEAP_DATATYPE altered_data, Uint32 score)
 {
 	int pos, parent_pos, temp_score;
 	BINARY_HEAP_DATATYPE temp_data;
 	BINARY_HEAP_DATATYPE *data = heap->data;
-	int *scores = heap->scores;
+	Uint32 *scores = heap->scores;
 	int *positions = heap->positions;
 	pos = positions[altered_data];
 /*	for (pos = 0; pos < heap->num_items; pos++)

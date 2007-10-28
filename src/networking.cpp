@@ -292,9 +292,9 @@ namespace Game
 			return ret;
 		}
 
-		int EncodePath(AI::Node* pStart, Uint8* data, int max_size)
+		int EncodePath(AI::Node* pGoal, Uint8* data, int max_size)
 		{
-			AI::Node* curnode = pStart;
+			AI::Node* curnode = pGoal;
 			BitStream bitstream(data, max_size);
 			int len;
 			int numsteps = 0;
@@ -303,15 +303,15 @@ namespace Game
 			                       {6, 5, 4}};
 
 			bitstream.Seek(12);
-			bitstream.WriteInteger(12, pStart->x);
-			bitstream.WriteInteger(12, pStart->y);
+			bitstream.WriteInteger(12, pGoal->x);
+			bitstream.WriteInteger(12, pGoal->y);
 
-			while (curnode->pChild)
+			while (curnode->pParent)
 			{
 				int stepcode = -1;
-				if (abs(curnode->pChild->x - curnode->x) <= 1 && abs(curnode->pChild->y - curnode->y) <= 1)
+				if (abs(curnode->pParent->x - curnode->x) <= 1 && abs(curnode->pParent->y - curnode->y) <= 1)
 				{
-					stepcode = stepcodes[(curnode->pChild->y - curnode->y)+1][(curnode->pChild->x - curnode->x)+1];
+					stepcode = stepcodes[(curnode->pParent->y - curnode->y)+1][(curnode->pParent->x - curnode->x)+1];
 				}
 				if (stepcode != -1)
 				{
@@ -322,7 +322,7 @@ namespace Game
 					return 0;
 				}
 				numsteps++;
-				curnode = curnode->pChild;
+				curnode = curnode->pParent;
 			}
 
 			len = bitstream.BytesUsed();
@@ -332,44 +332,48 @@ namespace Game
 			return len;
 		}
 
-		void DeallocPath(AI::Node *pStart)
+		void DeallocPath(AI::Node *pGoal)
 		{
-			AI::Node *pNext;
-			while (pStart)
-			{
-				pNext = pStart->pChild;
-				delete pStart;
-				pStart = pNext;
-			}
+			delete[] pGoal;
 		}
 
 		void ClonePath(AI::Node *&pStart, AI::Node *&pGoal)
 		{
-			AI::Node *new_start, *new_cur, *cur, *new_last;
-			new_cur = new AI::Node;
+			AI::Node *new_nodes, *new_start, *new_cur, *cur, *new_last;
+			int num_nodes = 0, i;
+			cur = pGoal;
+			while (cur)
+			{
+				num_nodes++;
+				cur = cur->pParent;
+			}
+			new_nodes = new AI::Node[num_nodes];
+
+			new_cur = &new_nodes[0];
 			new_start = new_cur;
-			cur = pStart;
+			cur = pGoal;
 			new_last = NULL;
+			i = 1;
 			while (cur)
 			{
 				new_cur->x = cur->x;
 				new_cur->y = cur->y;
-				cur = cur->pChild;
+				cur = cur->pParent;
 				new_last = new_cur;
 				if (cur)
 				{
-					new_cur = new AI::Node;
-					new_cur->pParent = new_last;
-					new_last->pChild = new_cur;
+					new_cur = &new_nodes[i++];
+					new_cur->pChild = new_last;
+					new_last->pParent = new_cur;
 				}
 			}
-			pStart = new_start;
-			pGoal = new_cur;
+			pStart = new_cur;
+			pGoal = new_start;
 		}
 
 		int DecodePath(AI::Node *&pStart, AI::Node *&pGoal, Uint8* data, int max_size)
 		{
-			AI::Node *curnode, *lastnode;
+			AI::Node *new_nodes, *curnode, *lastnode;
 			BitStream bitstream(data, max_size);
 			int numsteps = bitstream.ReadInteger(12);
 			int stepcodes[8][2] = {{-1, -1},
@@ -381,15 +385,17 @@ namespace Game
 			                       {-1,  1},
 			                       {-1,  0}};
 
-			curnode = new AI::Node;
-			pStart = curnode;
+			new_nodes = new AI::Node[numsteps+1];
+
+			curnode = &new_nodes[0];
+			pGoal = curnode;
 
 			curnode->x = bitstream.ReadInteger(12);
 			curnode->y = bitstream.ReadInteger(12);
 
 			if (curnode->x == -1 || curnode->y == -1 || numsteps == -1)
 			{
-				DeallocPath(pStart);
+				DeallocPath(pGoal);
 				pStart = NULL;
 				return ERROR_GENERAL;
 			}
@@ -399,19 +405,19 @@ namespace Game
 				int stepcode = bitstream.ReadInteger(3);
 				if (stepcode == -1)
 				{
-					DeallocPath(pStart);
-					pStart = NULL;
+					DeallocPath(pGoal);
+					pGoal = NULL;
 					return ERROR_GENERAL;
 				}
 				lastnode = curnode;
-				curnode = new AI::Node;
+				curnode = &new_nodes[i+1];
 				curnode->x = lastnode->x + stepcodes[stepcode][0];
 				curnode->y = lastnode->y + stepcodes[stepcode][1];
 				lastnode->pChild = curnode;
 				curnode->pParent = lastnode;
 			}
 
-			pGoal = curnode;
+			pStart = curnode;
 
 			return SUCCESS;
 		}
@@ -2716,8 +2722,8 @@ namespace Game
 			chunk->data = data;
 			APPEND32BIT(data, path->valid_at_frame)
 			APPEND16BIT(data, path->unit_id)
-			len = EncodePath(path->pStart, data, 1536-6);
-			DeallocPath(path->pStart);
+			len = EncodePath(path->pGoal, data, 1536-6);
+			DeallocPath(path->pGoal);
 			if (!len)
 			{
 				delete[] data;
@@ -2911,72 +2917,108 @@ namespace Game
 			{
 				Dimension::Unit* unit = *it;
 				checksum ^= unit->id;
+#ifdef CHECKSUM_DEBUG
 				sstr << unit->id << " ";
+#endif
 				checksum ^= (Uint32) floor((float)unit->curAssociatedSquare.x);
+#ifdef CHECKSUM_DEBUG
 				sstr << (Uint32) floor((float)unit->curAssociatedSquare.x) << " ";
+#endif
 				checksum ^= ((Uint32) floor((float)unit->curAssociatedSquare.y))<<8;
+#ifdef CHECKSUM_DEBUG
 				sstr << (Uint32) floor((float)unit->curAssociatedSquare.y) << " ";
+#endif
 				checksum ^= ((Uint32) floor(unit->health))<<16;
+#ifdef CHECKSUM_DEBUG
 				sstr << (Uint32) floor(unit->health) << " ";
+#endif
 				checksum ^= ((Uint32) floor(unit->power))<<24;
+#ifdef CHECKSUM_DEBUG
 				sstr << (Uint32) floor(unit->power) << " ";
+#endif
 				checksum ^= unit->isCompleted;
+#ifdef CHECKSUM_DEBUG
 				sstr << unit->isCompleted << " ";
+#endif
 				checksum ^= unit->isDisplayed<<1;
+#ifdef CHECKSUM_DEBUG
 				sstr << unit->isDisplayed << " ";
+#endif
 				checksum ^= unit->isMoving<<2;
+#ifdef CHECKSUM_DEBUG
 				sstr << unit->isMoving << " ";
+#endif
 				checksum ^= unit->isLighted<<3;
+#ifdef CHECKSUM_DEBUG
 				sstr << unit->isLighted << " ";
+#endif
 
 				int bits = 0;
 				for (unsigned i = 0; i < Dimension::pWorld->vPlayers.size(); i++)
 				{
 					checksum ^= ((Uint32) floor((float)unit->lastSeenPositions[i].x))<<bits;
+#ifdef CHECKSUM_DEBUG
 					sstr << (Uint32) floor((float)unit->lastSeenPositions[i].x) << " ";
+#endif
 					bits += 9;
 					if (bits >= 32)
 						bits -= 32;
 					checksum ^= ((Uint32) floor((float)unit->lastSeenPositions[i].y))<<bits;
+#ifdef CHECKSUM_DEBUG
 					sstr << (Uint32) floor((float)unit->lastSeenPositions[i].y) << " ";
+#endif
 					bits += 6;
 					if (bits >= 32)
 						bits -= 32;
 				}
+#ifdef CHECKSUM_DEBUG
 				sstr << endl;
+#endif
 			}
 			int bits = 0;
 			for (vector<Dimension::Player*>::iterator it = Dimension::pWorld->vPlayers.begin(); it != Dimension::pWorld->vPlayers.end(); it++)
 			{
 				Dimension::Player* player = *it;
 				checksum ^= ((Uint32) floor(player->resources.power))<<bits;
+#ifdef CHECKSUM_DEBUG
 				sstr << (Uint32) floor(player->resources.power) << " ";
+#endif
 				bits += 11;
 				if (bits >= 32)
 					bits -= 32;
 
 				checksum ^= ((Uint32) floor((player->resources.power - player->oldResources.power) * 100))<<bits;
+#ifdef CHECKSUM_DEBUG
 				sstr << (Uint32) floor((player->resources.power - player->oldResources.power) * 100) << " ";
+#endif
 				bits += 12;
 				if (bits >= 32)
 					bits -= 32;
 
 				checksum ^= ((Uint32) floor(player->resources.money))<<bits;
+#ifdef CHECKSUM_DEBUG
 				sstr << (Uint32) floor(player->resources.money) << " ";
+#endif
 				bits += 9;
 				if (bits >= 32)
 					bits -= 32;
 				
 				checksum ^= ((Uint32) floor((player->resources.money - player->oldResources.money) * 100))<<bits;
+#ifdef CHECKSUM_DEBUG
 				sstr << (Uint32) floor((player->resources.money - player->oldResources.money) * 100) << " ";
+#endif
 				bits += 10;
 				if (bits >= 32)
 					bits -= 32;
 
+#ifdef CHECKSUM_DEBUG
 				sstr << endl;
+#endif
 			}
 			
+#ifdef CHECKSUM_DEBUG
 			checksum_struct->data = sstr.str();
+#endif
 			checksum_struct->checksum = checksum;
 			checksum_struct->frame = AI::currentFrame;
 #ifdef CHECKSUM_DEBUG

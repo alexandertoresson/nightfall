@@ -422,7 +422,7 @@ namespace Game
 		
 			AddPlayer("GAIA", PLAYER_TYPE_GAIA, "textures/player_gaia.png");
 			
-			PlayerType next_type = PLAYER_TYPE_AI;
+			PlayerType next_type = PLAYER_TYPE_HUMAN;
 			
 			for (unsigned i = 1; i <= players_to_init; i++)
 			{

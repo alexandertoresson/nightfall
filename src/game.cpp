@@ -967,8 +967,13 @@ namespace Game
 
 				if (SDL_GetTicks() - time >= 1000)
 				{
+					int avgcount = 0;
+					if (AI::numPaths)
+					{
+						avgcount = AI::cCount / AI::numPaths;
+					}
 					if (Game::Rules::noGraphics)
-						cout << "Fps: " << (frames / (((float) (SDL_GetTicks() - time)) / 1000)) << " " << Dimension::pWorld->vUnits.size() << " " << AI::currentFrame << " c: " << AI::cCount << " t: " << AI::tCount << " f: " << AI::fCount << " p: " << AI::pCount << " n: " << AI::numPaths << " q: " << AI::GetQueueSize() << endl;
+						cout << "Fps: " << (frames / (((float) (SDL_GetTicks() - time)) / 1000)) << " " << Dimension::pWorld->vUnits.size() << " " << AI::currentFrame << " c: " << AI::cCount << " t: " << AI::tCount << " f: " << AI::fCount << " p: " << AI::pCount << " n: " << AI::numPaths << " q: " << AI::GetQueueSize() << " f: " << AI::numFailed << " a: " << avgcount << " nrf: " << AI::notReachedFlood << " nrp: " << AI::notReachedPath << " nsc: " << Dimension::numSentCommands << " ngs1: " << AI::numGreatSuccess1 << " ngs2: " << AI::numGreatSuccess2 << endl;
 					else
 						console << "Fps: " << (frames / (((float) (SDL_GetTicks() - time)) / 1000)) << " " << Dimension::pWorld->vUnits.size() << Console::nl;
 					AI::cCount = 0;
@@ -976,6 +981,12 @@ namespace Game
 					AI::fCount = 0;
 					AI::pCount = 0;
 					AI::numPaths = 0;
+					AI::numFailed = 0;
+					AI::notReachedFlood = 0;
+					AI::notReachedPath = 0;
+					Dimension::numSentCommands = 0;
+					AI::numGreatSuccess1 = 0;
+					AI::numGreatSuccess2 = 0;
 
 					frames = 0;
 					time = SDL_GetTicks();

@@ -113,6 +113,7 @@ Builders = {}
 Researchers = {}
 
 IdleList = {}
+CheckedIdleList = {}
 AvailableBuilders = {}
 CheckedBuilders = {}
 
@@ -161,6 +162,18 @@ end
 function MoveBackChecked(UnitType)
 	AvailableBuilders[UnitType] = CheckedBuilders[UnitType]
 	CheckedBuilders[UnitType] = {}
+end
+
+function MoveUnitToIdleChecked(Unit)
+	IdleList[Unit] = nil
+	CheckedIdleList[Unit] = true
+end
+
+function MoveBackCheckedIdle(Unit)
+	for Unit,value in pairs(CheckedIdleList) do
+		IdleList[Unit] = true
+	end
+	CheckedIdleList = {}
 end
 
 function PerformAI_Unit_AI(Unit)
@@ -256,6 +269,7 @@ function PerformAI_Player_AI(Player)
 		BuilderType = BuildList[i].BuilderType
 		unitavailable = false
 		valid = false
+		checked = 0
 		if not (AvailableBuilders[BuilderType] == nil) then
 			if GetUnitTypeIsMobile(UnitType) then
 				builder = nil
@@ -266,6 +280,10 @@ function PerformAI_Player_AI(Player)
 						unitavailable = true
 						valid = true
 						MoveUnitToChecked(builder, BuilderType)
+						break
+					end
+					checked = checked + 1
+					if checked == 10 then
 						break
 					end
 				end
@@ -280,6 +298,10 @@ function PerformAI_Player_AI(Player)
 						unitavailable = true
 						valid = true
 						MoveUnitToChecked(builder, BuilderType)
+					end
+					checked = checked + 1
+					if checked == 10 then
+						break
 					end
 				end
 				if valid then
@@ -323,18 +345,20 @@ function PerformAI_Player_AI(Player)
 			end
 			SendBackFirstInQueue()
 		else
-			if unitavailable then
-				if UnitType == GetUnitTypeFromString("SolarPanel") or UnitType == GetUnitTypeFromString("DeepGeothermal") or UnitType == GetUnitTypeFromString("SurfaceGeothermal") then
-					NeedForPower[GetUnitTypeFromString("SmallLightTower")] = true
-					NeedForPower[GetUnitTypeFromString("MediumLightTower")] = true
-					NeedForPower[GetUnitTypeFromString("LargeLightTower")] = true
+			if checked ~= 10 then
+				if unitavailable then
+					if UnitType == GetUnitTypeFromString("SolarPanel") or UnitType == GetUnitTypeFromString("DeepGeothermal") or UnitType == GetUnitTypeFromString("SurfaceGeothermal") then
+						NeedForPower[GetUnitTypeFromString("SmallLightTower")] = true
+						NeedForPower[GetUnitTypeFromString("MediumLightTower")] = true
+						NeedForPower[GetUnitTypeFromString("LargeLightTower")] = true
+					else
+						Need[GetUnitTypeFromString("SmallLightTower")] = true
+						Need[GetUnitTypeFromString("MediumLightTower")] = true
+						Need[GetUnitTypeFromString("LargeLightTower")] = true
+					end
 				else
-					Need[GetUnitTypeFromString("SmallLightTower")] = true
-					Need[GetUnitTypeFromString("MediumLightTower")] = true
-					Need[GetUnitTypeFromString("LargeLightTower")] = true
+					Need[BuilderType] = true
 				end
-			else
-				Need[BuilderType] = true
 			end
 		end
 	end
@@ -348,6 +372,10 @@ function PerformAI_Player_AI(Player)
 		if not IsValidUnit(lastAttacker) then
 			lastAttacker = nil
 		end
+	end
+
+	if LastMoveBackIdle == nil or os.difftime(os.time(), LastMoveBackIdle) > 1.00 then
+		MoveBackCheckedIdle()
 	end
 
 	for Unit,value in pairs(IdleList) do
@@ -372,6 +400,8 @@ function PerformAI_Player_AI(Player)
 				CommandAttack(Unit, lastAttacker)
 				LastCommands[Unit] = os.time()
 			end
+		else
+			MoveUnitToIdleChecked(Unit)
 		end
 	end
 
@@ -404,12 +434,9 @@ function PerformAI_Player_AI(Player)
 		NeedForPower[GetUnitTypeFromString("SurfaceGeothermal")] = true
 	end
 		
-	if LastSell == nil or os.difftime(os.time(), LastSell) > 0.50 then
-		if GetMoney(Player) < 50 then
-			if GetPowerAtDawnCached(Player) - TempMoneyReserved > 600 then
-				SellPower(Player, 100)
-				LastSell = os.time()
-			end
+	if GetMoney(Player) < 50 then
+		if GetPowerAtDawnCached(Player) - TempMoneyReserved > 600 then
+			SellPower(Player, 100)
 		end
 	end
 	Cached_PowerAtDawn = nil

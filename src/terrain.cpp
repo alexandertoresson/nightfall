@@ -1277,7 +1277,12 @@ namespace Game
 
 		Utilities::Vector3D GetTerrainCoord(float x, float y)
 		{
-			return Utilities::Vector3D((x / 8) - terrainOffsetX, GetTerrainHeight(x, y), (y / 8) - terrainOffsetY);
+			return Utilities::Vector3D((x * 0.125) - terrainOffsetX, GetTerrainHeight(x, y), (y * 0.125) - terrainOffsetY);
+		}
+
+		Utilities::Vector3D GetTerrainCoordHighestLevel(float x, float y)
+		{
+			return Utilities::Vector3D((x * 0.125) - terrainOffsetX, GetTerrainHeightHighestLevel(x, y), (y * 0.125) - terrainOffsetY);
 		}
 
 		Dimension::Position GetPosition(Utilities::Vector3D* v)
