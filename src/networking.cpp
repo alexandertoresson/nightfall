@@ -413,8 +413,8 @@ namespace Game
 				curnode = &new_nodes[i+1];
 				curnode->x = lastnode->x + stepcodes[stepcode][0];
 				curnode->y = lastnode->y + stepcodes[stepcode][1];
-				lastnode->pChild = curnode;
-				curnode->pParent = lastnode;
+				lastnode->pParent = curnode;
+				curnode->pChild = lastnode;
 			}
 
 			pStart = curnode;

@@ -1426,9 +1426,17 @@ namespace Game
 				{
 					numNotReached[unitSize][areaMapIndex]++;
 				}
-				md->_action.changedGoalPos.x = nodes[nearestNode].x;
-				md->_action.changedGoalPos.y = nodes[nearestNode].y;
-				return PATHSTATE_GOAL;
+				if (nearestNode != -1)
+				{
+					md->_action.changedGoalPos.x = nodes[nearestNode].x;
+					md->_action.changedGoalPos.y = nodes[nearestNode].y;
+					return PATHSTATE_GOAL;
+				}
+				else
+				{
+					// No idea why nearestNode might be -1, but prevent the game from crashing when so is the case.
+					return PATHSTATE_ERROR;
+				}
 			}
 
 			if (lowestH > nodes[first_node].h || nearestNode == -1)

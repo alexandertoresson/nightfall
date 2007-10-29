@@ -5,7 +5,7 @@
 #warning "networking.h-pre"
 #endif
 
-#define CHECKSUM_DEBUG
+//#define CHECKSUM_DEBUG
 //#define CHECKSUM_DEBUG_HIGH
 
 #include "sdlheader.h"
