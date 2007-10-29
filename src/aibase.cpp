@@ -335,35 +335,7 @@ namespace Game
 		{
 			UnitAction action;
 			int should_move;
-			PathState state = GetInternalPathState(pUnit);
 			
-			if (!Networking::isNetworked)
-			{
-				if (state == PATHSTATE_GOAL)
-				{
-					ApplyNewPath(pUnit);
-					pUnit->pMovementData->pCurGoalNode = NULL;
-				}
-				else if (state == PATHSTATE_ERROR)
-				{
-					CancelAction(pUnit);
-					pUnit->pMovementData->pCurGoalNode = NULL;
-				}
-			}
-			else
-			{
-				if (state == PATHSTATE_GOAL)
-				{
-					Networking::PreparePath(pUnit, pUnit->pMovementData->_start, pUnit->pMovementData->_goal);
-					DeallocPathfindingNodes(pUnit, AI::DPN_BACK);
-				}
-				else if (state == PATHSTATE_ERROR)
-				{
-					DeallocPathfindingNodes(pUnit, AI::DPN_BACK);
-					ScheduleNextAction(pUnit);
-				}
-			}
-
 			action = pUnit->action;
 			
 			if (action == ACTION_GOTO || action == ACTION_FOLLOW || action == ACTION_ATTACK || action == ACTION_BUILD || action == ACTION_RESEARCH)
@@ -545,6 +517,46 @@ namespace Game
 			{
 				aiFramesPerformedSinceLastRender++;
 				Dimension::Environment::FourthDimension::Instance()->RotateWorld(1.00 / aiFps);
+
+				SDL_LockMutex(AI::GetMutex());
+
+				for (set<Dimension::Unit*>::iterator it = doneUnits.begin(); it != doneUnits.end(); it++)
+				{
+					Dimension::Unit* pUnit = *it;
+					PathState state = GetInternalPathState(pUnit);
+					
+					if (!Networking::isNetworked)
+					{
+						if (state == PATHSTATE_GOAL)
+						{
+							ApplyNewPath(pUnit);
+							pUnit->pMovementData->pCurGoalNode = NULL;
+						}
+						else if (state == PATHSTATE_ERROR)
+						{
+							CancelAction(pUnit);
+							pUnit->pMovementData->pCurGoalNode = NULL;
+						}
+					}
+					else
+					{
+						if (state == PATHSTATE_GOAL)
+						{
+							Networking::PreparePath(pUnit, pUnit->pMovementData->_start, pUnit->pMovementData->_goal);
+							DeallocPathfindingNodes(pUnit, AI::DPN_BACK);
+						}
+						else if (state == PATHSTATE_ERROR)
+						{
+							DeallocPathfindingNodes(pUnit, AI::DPN_BACK);
+							ScheduleNextAction(pUnit);
+						}
+					}
+				}
+
+				doneUnits.clear();
+
+				SDL_UnlockMutex(AI::GetMutex());
+
 				for (vector<Dimension::Player*>::iterator it = Dimension::pWorld->vPlayers.begin(); it != Dimension::pWorld->vPlayers.end(); it++)
 				{
 					PerformAI(*it);

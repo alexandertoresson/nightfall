@@ -46,6 +46,7 @@
 #define BINARY_HEAP_DATATYPE int
 #include "binaryheap.h"
 #include <map>
+#include <set>
 
 #define MAXIMUM_PATH_CALCULATIONS 10000
 #define RECALC_TRACE_LIMIT 1000
@@ -63,6 +64,7 @@ namespace Game
 		static SDL_Thread* pPathfindingThread;
 		static bool        threadRuntime;
 		static SDL_mutex*  gpmxPathfinding;
+		set<Dimension::Unit*>         doneUnits;
 			
 		int                lowestH, highestH;
 		int                circumTracking;
@@ -1966,7 +1968,9 @@ namespace Game
 
 					md->calcState = CALCSTATE_FAILURE;
 				}
+				doneUnits.insert(unit);
 			}
+
 			
 			tdata->pUnit = NULL;
 			

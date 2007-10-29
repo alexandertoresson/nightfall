@@ -266,6 +266,8 @@ namespace Game
 		const int STACK_ELEMENTS = 2048;
 		
 		extern int cCount, fCount, tCount, pCount, numPaths, numFailed, notReachedPath, notReachedFlood, numGreatSuccess1, numGreatSuccess2;
+		extern set<Dimension::Unit*> doneUnits;
+		
 		int GetQueueSize();
 	}
 }

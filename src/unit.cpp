@@ -2350,7 +2350,7 @@ namespace Game
 
 			if (old_big_x != new_big_x || old_big_y != new_big_y)
 			{
-				if (old_big_x >= -1 && old_big_y >= -1)
+				if (old_big_x > -1 && old_big_y > -1)
 				{
 					unitsInBigSquaresPerPlayer[unit->owner->index][old_big_y][old_big_x]->erase(unit);
 					unitsInBigSquares[old_big_y][old_big_x]->erase(unit);
