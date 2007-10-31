@@ -523,35 +523,36 @@ namespace Game
 				for (set<Dimension::Unit*>::iterator it = doneUnits.begin(); it != doneUnits.end(); it++)
 				{
 					Dimension::Unit* pUnit = *it;
-					if (Dimension::IsValidUnitPointer(pUnit))
+					if (!Dimension::IsValidUnitPointer(pUnit) || pUnit->action == ACTION_DIE)
 					{
-						PathState state = GetInternalPathState(pUnit);
-						
-						if (!Networking::isNetworked)
+						continue;
+					}
+					PathState state = GetInternalPathState(pUnit);
+					
+					if (!Networking::isNetworked)
+					{
+						if (state == PATHSTATE_GOAL)
 						{
-							if (state == PATHSTATE_GOAL)
-							{
-								ApplyNewPath(pUnit);
-								pUnit->pMovementData->pCurGoalNode = NULL;
-							}
-							else if (state == PATHSTATE_ERROR)
-							{
-								CancelAction(pUnit);
-								pUnit->pMovementData->pCurGoalNode = NULL;
-							}
+							ApplyNewPath(pUnit);
+							pUnit->pMovementData->pCurGoalNode = NULL;
 						}
-						else
+						else if (state == PATHSTATE_ERROR)
 						{
-							if (state == PATHSTATE_GOAL)
-							{
-								Networking::PreparePath(pUnit, pUnit->pMovementData->_start, pUnit->pMovementData->_goal);
-								DeallocPathfindingNodes(pUnit, AI::DPN_BACK);
-							}
-							else if (state == PATHSTATE_ERROR)
-							{
-								DeallocPathfindingNodes(pUnit, AI::DPN_BACK);
-								ScheduleNextAction(pUnit);
-							}
+							CancelAction(pUnit);
+							pUnit->pMovementData->pCurGoalNode = NULL;
+						}
+					}
+					else
+					{
+						if (state == PATHSTATE_GOAL)
+						{
+							Networking::PreparePath(pUnit, pUnit->pMovementData->_start, pUnit->pMovementData->_goal);
+							DeallocPathfindingNodes(pUnit, AI::DPN_BACK);
+						}
+						else if (state == PATHSTATE_ERROR)
+						{
+							DeallocPathfindingNodes(pUnit, AI::DPN_BACK);
+							ScheduleNextAction(pUnit);
 						}
 					}
 				}
@@ -893,6 +894,7 @@ namespace Game
 			{
 				pUnit->isMoving = true;
 			}
+			pUnit->faceTarget = Dimension::FACETARGET_NONE;
 			AI::SendUnitEventToLua_NewCommand(pUnit);
 		}
 	}

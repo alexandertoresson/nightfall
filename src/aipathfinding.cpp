@@ -1434,8 +1434,7 @@ namespace Game
 				}
 				else
 				{
-					// No idea why nearestNode might be -1, but prevent the game from crashing when so is the case.
-					cout << "first_node == -1 && nearestNode == -1" << endl;
+					// Happens when InitPathfinding() failed and this routine was called nonetheless
 					return PATHSTATE_ERROR;
 				}
 			}

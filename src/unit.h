@@ -309,6 +309,13 @@ namespace Game
 			Unit*               goalUnit;
 		};
 
+		enum FaceTarget
+		{
+			FACETARGET_NONE = 0,
+			FACETARGET_PATH,
+			FACETARGET_TARGET
+		};
+
 		struct Unit
 		{
 			float               health;
@@ -346,6 +353,7 @@ namespace Game
 			int                 usedInAreaMaps;
 			Uint32              pushID;
 			Unit*               pusher;
+			FaceTarget          faceTarget;
 		};
 
 		extern vector<Unit*> **unitBigSquares;

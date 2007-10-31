@@ -1090,13 +1090,13 @@ namespace Game
 			if (mx >= (pWorld->width-1)>>level)
 			{
 				xmix = 1.0;
-				mx = (pWorld->width-1)>>level-1;
+				mx = ((pWorld->width-1)>>level)-1;
 			}
 
 			if (my >= (pWorld->height-1)>>level)
 			{
 				ymix = 1.0;
-				my = (pWorld->height-1)>>level-1;
+				my = ((pWorld->height-1)>>level)-1;
 			}
 
 			if (mx < 0)
@@ -1188,13 +1188,13 @@ namespace Game
 			if (mx >= (pWorld->width-1)>>level)
 			{
 				xmix = 1.0;
-				mx = (pWorld->width-1)>>level-1;
+				mx = ((pWorld->width-1)>>level)-1;
 			}
 
 			if (my >= (pWorld->height-1)>>level)
 			{
 				ymix = 1.0;
-				my = (pWorld->height-1)>>level-1;
+				my = ((pWorld->height-1)>>level)-1;
 			}
 
 			if (mx < 0)

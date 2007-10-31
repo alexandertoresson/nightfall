@@ -1241,9 +1241,10 @@ namespace Game
 				return;
 			}
 
-			if (unit->type->isMobile)
+			if (unit->faceTarget != FACETARGET_TARGET && unit->type->isMobile)
 			{
 				FaceUnit(unit, unit->pMovementData->action.goal.unit);
+				unit->faceTarget = FACETARGET_TARGET;
 			}
 
 			build_cost = unit->pMovementData->action.goal.unit->type->buildCost / (unit->pMovementData->action.goal.unit->type->buildTime * AI::aiFps);
@@ -1747,18 +1748,19 @@ namespace Game
 		bool UnitIsVisible(Unit *unit, Player *player)
 		{
 			int start_x, start_y;
+			int end_x, end_y;
 			int** NumUnitsSeeingSquare = player->NumUnitsSeeingSquare;
 			GetUnitUpperLeftCorner(unit, start_x, start_y);
-			for (int y = start_y; y < start_y + unit->type->heightOnMap; y++)
+			end_x = start_x + unit->type->widthOnMap - 1;
+			end_y = start_y + unit->type->heightOnMap - 1;
+			for (int y = start_y; y <= end_y; y++)
 			{
-				for (int x = start_x; x < start_x + unit->type->widthOnMap; x++)
+				int* row = NumUnitsSeeingSquare[y];
+				for (int x = start_x; x <= end_x; x++)
 				{
-					if (x >= 0 && y >= 0 && x < pWorld->width && y < pWorld->height)
+					if (row[x])
 					{
-						if (NumUnitsSeeingSquare[y][x])
-						{
-							return true;
-						}
+						return true;
 					}
 				}
 			}
@@ -2348,6 +2350,7 @@ namespace Game
 
 		bool SetAssociatedSquares(Unit* unit, int new_x, int new_y)
 		{
+			int start_x, start_y, end_x, end_y;
 			if (!SquaresAreWalkable(unit, new_x, new_y, SIW_ALLKNOWING))
 			{
 				return false;
@@ -2359,15 +2362,14 @@ namespace Game
 			unit->curAssociatedSquare.x = new_x;
 			unit->curAssociatedSquare.y = new_y;
 
-			GetUnitUpperLeftCorner(unit, new_x, new_y, new_x, new_y);
-			for (int y = new_y; y < new_y + unit->type->heightOnMap; y++)
+			GetUnitUpperLeftCorner(unit, new_x, new_y, start_x, start_y);
+			end_x = start_x + unit->type->widthOnMap - 1;
+			end_y = start_y + unit->type->heightOnMap - 1;
+			for (int y = start_y; y <= end_y; y++)
 			{
-				for (int x = new_x; x < new_x + unit->type->widthOnMap; x++)
+				for (int x = start_x; x <= end_x; x++)
 				{
-					if (x >= 0 && y >= 0 && x < pWorld->width && y < pWorld->height)
-					{
-						pppElements[y][x] = unit;
-					}
+					pppElements[y][x] = unit;
 				}
 			}
 
@@ -2403,18 +2405,18 @@ namespace Game
 
 		void DeleteAssociatedSquares(Unit* unit, int old_x, int old_y)
 		{
+			int start_x, start_y, end_x, end_y;
 			UpdateSeenSquares(unit, old_x, old_y, 0); // remove old
 			UpdateLightedSquares(unit, old_x, old_y, 0); // remove old
 
-			GetUnitUpperLeftCorner(unit, old_x, old_y, old_x, old_y);
-			for (int y = old_y; y < old_y + unit->type->heightOnMap; y++)
+			GetUnitUpperLeftCorner(unit, old_x, old_y, start_x, start_y);
+			end_x = start_x + unit->type->widthOnMap - 1;
+			end_y = start_y + unit->type->heightOnMap - 1;
+			for (int y = start_y; y <= end_y; y++)
 			{
-				for (int x = old_x; x < old_x + unit->type->widthOnMap; x++)
+				for (int x = start_x; x <= end_x; x++)
 				{
-					if (x >= 0 && y >= 0 && x < pWorld->width && y < pWorld->height)
-					{
-						pppElements[y][x] = NULL;
-					}
+					pppElements[y][x] = NULL;
 				}
 			}
 
@@ -2940,6 +2942,7 @@ namespace Game
 						}
 						else
 						{
+							pUnit->faceTarget = FACETARGET_NONE;
 /*							PushUnits(pUnit);
 							if (!pUnit->pMovementData->pStart)
 							{
@@ -2964,18 +2967,8 @@ namespace Game
 
 			if (should_move)
 			{
-				if (pUnit->pMovementData->pCurGoalNode->x == pUnit->pMovementData->pGoal->x &&
-				    pUnit->pMovementData->pCurGoalNode->y == pUnit->pMovementData->pGoal->y &&
-				    (int) pUnit->pMovementData->action.goal.pos.x == pUnit->pMovementData->pGoal->x &&
-				    (int) pUnit->pMovementData->action.goal.pos.y == pUnit->pMovementData->pGoal->y)
-				{
-					goto_pos = pUnit->pMovementData->action.goal.pos;
-				}
-				else
-				{
-					goto_pos.x = pUnit->pMovementData->pCurGoalNode->x + 0.5;
-					goto_pos.y = pUnit->pMovementData->pCurGoalNode->y + 0.5;
-				}
+				goto_pos.x = pUnit->pMovementData->pCurGoalNode->x + 0.5;
+				goto_pos.y = pUnit->pMovementData->pCurGoalNode->y + 0.5;
 
 				if (!pUnit->pMovementData->pCurGoalNode->pParent)
 				{
@@ -3096,10 +3089,14 @@ namespace Game
 					pUnit->pos.y += move.z;
 					pUnit->isMoving = true;
 
-					zero_rot.set(-1.0, 0.0, 0.0);
-					move.normalize();
-					pUnit->rotation = acos(zero_rot.dot(move)) * (180 / PI);
-					if (move.z < 0) pUnit->rotation = 180 - pUnit->rotation + 180;
+					if (pUnit->faceTarget != FACETARGET_PATH)
+					{
+						zero_rot.set(-1.0, 0.0, 0.0);
+						move.normalize();
+						pUnit->rotation = acos(zero_rot.dot(move)) * (180 / PI);
+						if (move.z < 0) pUnit->rotation = 180 - pUnit->rotation + 180;
+						pUnit->faceTarget = FACETARGET_PATH;
+					}
 
 					if (distance < distance_per_frame)
 					{
@@ -3163,8 +3160,11 @@ namespace Game
 							Networking::checksum_output << "NEXT GOAL " << AI::currentFrame << ": " << pUnit->id << " " << pUnit->pMovementData->pCurGoalNode->x << " " << pUnit->pMovementData->pCurGoalNode->y << "\n";
 #endif
 							pUnit->pMovementData->switchedSquare = false;
+
+							pUnit->faceTarget = FACETARGET_NONE;
 						}
 					}
+				
 				}
 			}
 
@@ -3399,7 +3399,7 @@ namespace Game
 
 			if (!Game::Rules::noGraphics)
 			{
-				//Start a explosion
+				//Start an explosion
 				if(UnitIsVisible(unit, Dimension::currentPlayerView))
 				{
 					FX::pParticleSystems->InitEffect(unit->pos.x, unit->pos.y, 0.0f, unit->type->size, FX::PARTICLE_SPHERICAL_EXPLOSION);
