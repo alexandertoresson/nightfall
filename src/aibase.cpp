@@ -523,32 +523,35 @@ namespace Game
 				for (set<Dimension::Unit*>::iterator it = doneUnits.begin(); it != doneUnits.end(); it++)
 				{
 					Dimension::Unit* pUnit = *it;
-					PathState state = GetInternalPathState(pUnit);
-					
-					if (!Networking::isNetworked)
+					if (Dimension::IsValidUnitPointer(pUnit))
 					{
-						if (state == PATHSTATE_GOAL)
+						PathState state = GetInternalPathState(pUnit);
+						
+						if (!Networking::isNetworked)
 						{
-							ApplyNewPath(pUnit);
-							pUnit->pMovementData->pCurGoalNode = NULL;
+							if (state == PATHSTATE_GOAL)
+							{
+								ApplyNewPath(pUnit);
+								pUnit->pMovementData->pCurGoalNode = NULL;
+							}
+							else if (state == PATHSTATE_ERROR)
+							{
+								CancelAction(pUnit);
+								pUnit->pMovementData->pCurGoalNode = NULL;
+							}
 						}
-						else if (state == PATHSTATE_ERROR)
+						else
 						{
-							CancelAction(pUnit);
-							pUnit->pMovementData->pCurGoalNode = NULL;
-						}
-					}
-					else
-					{
-						if (state == PATHSTATE_GOAL)
-						{
-							Networking::PreparePath(pUnit, pUnit->pMovementData->_start, pUnit->pMovementData->_goal);
-							DeallocPathfindingNodes(pUnit, AI::DPN_BACK);
-						}
-						else if (state == PATHSTATE_ERROR)
-						{
-							DeallocPathfindingNodes(pUnit, AI::DPN_BACK);
-							ScheduleNextAction(pUnit);
+							if (state == PATHSTATE_GOAL)
+							{
+								Networking::PreparePath(pUnit, pUnit->pMovementData->_start, pUnit->pMovementData->_goal);
+								DeallocPathfindingNodes(pUnit, AI::DPN_BACK);
+							}
+							else if (state == PATHSTATE_ERROR)
+							{
+								DeallocPathfindingNodes(pUnit, AI::DPN_BACK);
+								ScheduleNextAction(pUnit);
+							}
 						}
 					}
 				}

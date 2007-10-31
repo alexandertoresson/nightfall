@@ -31,7 +31,7 @@ namespace Game
 		int playerCounter = 2;
 
 		int netPort = 51500;
-		Uint32 netDelay = 10;
+		Uint32 netDelay = 5;
 		int packetLossResistanceLevel = 0;
 		unsigned queueLimit = 40;
 		int simulatedPacketLoss = -1;
@@ -2951,30 +2951,11 @@ namespace Game
 				checksum ^= unit->isLighted<<3;
 #ifdef CHECKSUM_DEBUG
 				sstr << unit->isLighted << " ";
-#endif
-
-				int bits = 0;
-				for (unsigned i = 0; i < Dimension::pWorld->vPlayers.size(); i++)
-				{
-					checksum ^= ((Uint32) floor((float)unit->lastSeenPositions[i].x))<<bits;
-#ifdef CHECKSUM_DEBUG
-					sstr << (Uint32) floor((float)unit->lastSeenPositions[i].x) << " ";
-#endif
-					bits += 9;
-					if (bits >= 32)
-						bits -= 32;
-					checksum ^= ((Uint32) floor((float)unit->lastSeenPositions[i].y))<<bits;
-#ifdef CHECKSUM_DEBUG
-					sstr << (Uint32) floor((float)unit->lastSeenPositions[i].y) << " ";
-#endif
-					bits += 6;
-					if (bits >= 32)
-						bits -= 32;
-				}
-#ifdef CHECKSUM_DEBUG
 				sstr << endl;
 #endif
+
 			}
+
 			int bits = 0;
 			for (vector<Dimension::Player*>::iterator it = Dimension::pWorld->vPlayers.begin(); it != Dimension::pWorld->vPlayers.end(); it++)
 			{

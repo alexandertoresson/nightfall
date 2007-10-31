@@ -1151,6 +1151,9 @@ namespace Game
 
 			if (unit->owner->resources.power < power_usage)
 			{
+#ifdef CHECKSUM_DEBUG_HIGH
+				Networking::checksum_output << "BUILD WAIT NOPOWER " << AI::currentFrame << ": " << unit->id << " " << power_usage << " " << unit->owner->resources.power << "\n";
+#endif
 				return;
 			}
 
@@ -1158,6 +1161,9 @@ namespace Game
 			{
 				if (!build_type->isResearched[unit->owner->index])
 				{
+#ifdef CHECKSUM_DEBUG_HIGH
+					Networking::checksum_output << "BUILD CANCEL NORESEARCH " << AI::currentFrame << ": " << unit->id << "\n";
+#endif
 					AI::CancelAction(unit);
 					return;
 				}
@@ -1190,7 +1196,7 @@ namespace Game
 					}
 					else
 					{
-						if (SquaresAreWalkable(build_type, unit->owner, (int) unit->pMovementData->action.goal.pos.x, (int) unit->pMovementData->action.goal.pos.y, SIW_IGNORE_OWN_MOBILE_UNITS))
+						if (SquaresAreWalkable(build_type, unit->owner, (int) unit->pMovementData->action.goal.pos.x, (int) unit->pMovementData->action.goal.pos.y, SIW_IGNORE_OWN_MOBILE_UNITS | SIW_ALLKNOWING))
 						{
 							if (unit->owner->type != PLAYER_TYPE_REMOTE)
 							{
@@ -1228,6 +1234,9 @@ namespace Game
 
 			if (unit->pMovementData->action.goal.unit->action == AI::ACTION_DIE)
 			{
+#ifdef CHECKSUM_DEBUG_HIGH
+				Networking::checksum_output << "BUILD CANCEL TARGETDYING " << AI::currentFrame << ": " << unit->id << "\n";
+#endif
 				AI::CancelAction(unit);
 				return;
 			}
@@ -1241,6 +1250,9 @@ namespace Game
 
 			if (unit->owner->resources.money < build_cost)
 			{
+#ifdef CHECKSUM_DEBUG_HIGH
+				Networking::checksum_output << "BUILD WAIT NOMONEY " << AI::currentFrame << ": " << unit->id << " " << build_cost << " " << unit->owner->resources.power << "\n";
+#endif
 				return;
 			}
 
@@ -1296,6 +1308,16 @@ namespace Game
 
 			if ((research_type->isBeingResearchedBy[unit->owner->index] && research_type->isBeingResearchedBy[unit->owner->index] != unit) || research_type->isResearched[unit->owner->index])
 			{
+#ifdef CHECKSUM_DEBUG_HIGH
+				if (research_type->isBeingResearchedBy[unit->owner->index] && research_type->isBeingResearchedBy[unit->owner->index] != unit)
+				{
+					Networking::checksum_output << "RESEARCH CANCEL ISBEINGRESEARCHEDBY " << AI::currentFrame << ": " << unit->id << " " << research_type->isBeingResearchedBy[unit->owner->index] << "\n";
+				}
+				else
+				{
+					Networking::checksum_output << "RESEARCH CANCEL ISRESEARCHED " << AI::currentFrame << ": " << unit->id << "\n";
+				}
+#endif
 				AI::CancelAction(unit);
 				return;
 			}
@@ -1304,6 +1326,9 @@ namespace Game
 
 			if (unit->owner->resources.power < power_usage)
 			{
+#ifdef CHECKSUM_DEBUG_HIGH
+				Networking::checksum_output << "RESEARCH WAIT NOPOWER " << AI::currentFrame << ": " << unit->id << " " << power_usage << " " << unit->owner->resources.power << "\n";
+#endif
 				return;
 			}
 
@@ -1311,6 +1336,9 @@ namespace Game
 
 			if (unit->owner->resources.money < research_cost)
 			{
+#ifdef CHECKSUM_DEBUG_HIGH
+				Networking::checksum_output << "RESEARCH WAIT NOMONEY " << AI::currentFrame << ": " << unit->id << " " << research_cost << " " << unit->owner->resources.money << "\n";
+#endif
 				return;
 			}
 
@@ -2196,6 +2224,12 @@ namespace Game
 			int start_x, start_y, end_x, end_y;
 			int** NumUnitsSeeingSquare = unit->owner->NumUnitsSeeingSquare;
 			RangeScanlines* rangeScanlines = unit->type->sightRangeScanlines;
+
+			if (unit->owner->type == PLAYER_TYPE_REMOTE)
+			{
+				// Do not calculate seen squares for units not controlled by this client/server
+				return;
+			}
 			
 			if (operation == 0 && unit->hasSeen == false)
 			{
@@ -2228,6 +2262,9 @@ namespace Game
 						NumUnitsSeeingSquare[ny][nx]++;
 						if (NumUnitsSeeingSquare[ny][nx] == 1 && pppElements[ny][nx] && pppElements[ny][nx]->owner != unit->owner)
 						{
+							// A unit that might have been hidden before has been spotted.
+							// Update the lastSeenPosition in the spotted unit of the player
+							// of the spotting unit correctly.
 							int player_index = unit->owner->index;
 							Unit* rev_unit = pppElements[ny][nx];
 
@@ -2987,7 +3024,7 @@ namespace Game
 						pUnit->isMoving = false;
 						pUnit->pushID = 0;
 						pUnit->pusher = NULL;
-						if (!SquaresAreWalkable(pUnit, pUnit->pMovementData->pCurGoalNode->x, pUnit->pMovementData->pCurGoalNode->y, SIW_IGNORE_MOVING))
+						if (!SquaresAreWalkable(pUnit, pUnit->pMovementData->pCurGoalNode->x, pUnit->pMovementData->pCurGoalNode->y, SIW_IGNORE_MOVING | SIW_ALLKNOWING))
 						{
 							bool recalc = true;
 							

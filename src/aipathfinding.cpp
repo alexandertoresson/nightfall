@@ -1155,7 +1155,7 @@ namespace Game
 					}
 					if (circumTracking_Flood == 15)
 					{
-						if (new_distance > highestDistance)
+						if (new_distance > lowestDistance)
 						{
 //							cout << "Great success 2!" << endl;
 							numGreatSuccess2++;
@@ -1435,6 +1435,7 @@ namespace Game
 				else
 				{
 					// No idea why nearestNode might be -1, but prevent the game from crashing when so is the case.
+					cout << "first_node == -1 && nearestNode == -1" << endl;
 					return PATHSTATE_ERROR;
 				}
 			}
@@ -1541,7 +1542,7 @@ namespace Game
 											printf("Ouch\n");
 										}
 										nodes[node_num].h = CalcH(new_x, new_y, target_x, target_y);
-										if (circumTracking != 15 || nodes[node_num].h <= highestH)
+										if (circumTracking != 15 || nodes[node_num].h <= lowestH)
 										{
 											nodes[node_num].x = new_x;
 											nodes[node_num].y = new_y;
