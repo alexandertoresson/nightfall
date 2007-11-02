@@ -451,11 +451,11 @@ namespace Game
 		{
 			if (Networking::isNetworked)
 			{
-				Networking::PrepareSell(Dimension::GetCurrentPlayer(), 100.0);
+				Networking::PrepareSell(Dimension::GetCurrentPlayer(), 100);
 			}
 			else
 			{
-				Dimension::SellPower(Dimension::GetCurrentPlayer(), 100.0);
+				Dimension::SellPower(Dimension::GetCurrentPlayer(), 100);
 			}
 		}
 

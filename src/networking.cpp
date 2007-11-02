@@ -422,13 +422,13 @@ namespace Game
 			return SUCCESS;
 		}
 
-		void PrepareAction(Dimension::Unit* unit, Dimension::Unit* target, float x, float y, AI::UnitAction action, void* arg)
+		void PrepareAction(Dimension::Unit* unit, Dimension::Unit* target, int x, int y, AI::UnitAction action, void* arg)
 		{
 			NetActionData* actiondata = new NetActionData;
 			actiondata->unit_id = unit->id;
 			actiondata->action = action;
-			actiondata->x = (int) x;
-			actiondata->y = (int) y;
+			actiondata->x = x;
+			actiondata->y = y;
 			if (target)
 				actiondata->goalunit_id = target->id;
 			else
@@ -464,14 +464,14 @@ namespace Game
 			unsentPaths.push_back(path);
 		}
 
-		void PrepareCreation(Dimension::UnitType* unittype, Dimension::Player* owner, float x, float y, float rot)
+		void PrepareCreation(Dimension::UnitType* unittype, Dimension::Player* owner, int x, int y, int rot)
 		{
 			NetCreate* create = new NetCreate;
 			create->unittype_id = unittype->index;
 			create->owner_id = owner->index;
-			create->x = (int) x;
-			create->y = (int) y;
-			create->rot = (int) rot;
+			create->x = x;
+			create->y = y;
+			create->rot = rot;
 			create->valid_at_frame = AI::currentFrame + netDelay;
 			if (networkType == SERVER)
 			{
@@ -497,11 +497,11 @@ namespace Game
 			unsentDamagings.push_back(dmg);
 		}
 
-		void PrepareSell(Dimension::Player* owner, float amount)
+		void PrepareSell(Dimension::Player* owner, int amount)
 		{
 			NetSell* sell = new NetSell;
 			sell->owner_id = owner->index;
-			sell->amount = (int) amount;
+			sell->amount = amount;
 			sell->valid_at_frame = AI::currentFrame + netDelay;
 			if (networkType == SERVER)
 			{
@@ -518,13 +518,9 @@ namespace Game
 			{
 				return NULL;
 			}
-			else if (IsValidUnitPointer(Dimension::unitByID[id]))
-			{
-				return Dimension::unitByID[id];
-			}
 			else
 			{
-				return NULL;
+				return Dimension::unitByID[id];
 			}
 		}
 
@@ -897,7 +893,7 @@ namespace Game
 						Uint8 num_fragments = packet->frame[5];
 						int index = frame-AI::currentFrame+(netDelay<<1)-1;
 						bool accept = false;
-						if (fragment > 15 || num_fragments > 16)
+						if (fragment > 31 || num_fragments > 32)
 							break;
 						if (networkType == CLIENT)
 						{
@@ -1202,7 +1198,7 @@ namespace Game
 							      actiondata->action == AI::ACTION_MOVE_ATTACK_UNIT)
 							      || target)
 							{
-								AI::ApplyAction(unit, actiondata->action, actiondata->x + 0.5, actiondata->y + 0.5, target, actiondata->arg);
+								AI::ApplyAction(unit, actiondata->action, actiondata->x, actiondata->y, target, actiondata->arg);
 #ifdef CHECKSUM_DEBUG_HIGH
 								checksum_output << "ActionData chunk on frame " << AI::currentFrame << "\n";
 								checksum_output << actiondata->unit_id << " " << actiondata->goalunit_id << " " << actiondata->action << " " << actiondata->x << " " << actiondata->y << " " << actiondata->arg << "\n";

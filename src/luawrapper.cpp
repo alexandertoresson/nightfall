@@ -158,6 +158,9 @@ namespace Utilities
 				std::cout << "Error: " << lua_tostring(m_pVM, -1) << std::endl;
 			else
 				std::cout << "Success!!" << std::endl;
+#else
+			if (result)
+				std::cout << "Error executing " << filepath << ": " << lua_tostring(m_pVM, -1) << std::endl;
 #endif
 			return result;
 		}
@@ -220,6 +223,7 @@ namespace Utilities
 
 		void StartVM(void)
 		{
+			std::cout << "Initializing global LUA state" << std::endl;
 			LuaVirtualMachine::Instance();
 		}
 
@@ -228,6 +232,7 @@ namespace Utilities
 			m_pPlayerInstances = new LuaVirtualMachine*[Game::Dimension::pWorld->vPlayers.size()];
 			for (unsigned i = 0; i < Game::Dimension::pWorld->vPlayers.size(); i++)
 			{
+				std::cout << "Initializing LUA state for player " << i+1 << std::endl;
 				m_pPlayerInstances[i] = new LuaVirtualMachine;
 				switch (Game::Dimension::pWorld->vPlayers[i]->type)
 				{

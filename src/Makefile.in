@@ -51,7 +51,8 @@ am_rts_OBJECTS = main.$(OBJEXT) window.$(OBJEXT) game.$(OBJEXT) \
 	console.$(OBJEXT) linkedlist.$(OBJEXT) textures.$(OBJEXT) \
 	effect.$(OBJEXT) camera.$(OBJEXT) gamegui.$(OBJEXT) \
 	randomgenerator.$(OBJEXT) networking.$(OBJEXT) \
-	filesystem.$(OBJEXT) paths.$(OBJEXT) circularbuffer.$(OBJEXT)
+	filesystem.$(OBJEXT) paths.$(OBJEXT) circularbuffer.$(OBJEXT) \
+	minixml.$(OBJEXT) saveandload.$(OBJEXT)
 rts_OBJECTS = $(am_rts_OBJECTS)
 rts_LDADD = $(LDADD)
 DEFAULT_INCLUDES = -I.@am__isrc@
@@ -165,7 +166,7 @@ rts_SOURCES = main.cpp window.cpp game.cpp utilities.cpp model.cpp audio.cpp ter
 	      aibase.cpp dimension.cpp font.cpp unit.cpp aipathfinding.cpp vector3d.cpp luawrapper.cpp \
 	      unitinterface.cpp gui.cpp environment.cpp console.cpp linkedlist.cpp textures.cpp \
 	      effect.cpp camera.cpp gamegui.cpp randomgenerator.cpp networking.cpp filesystem.cpp \
-	      paths.cpp circularbuffer.cpp
+	      paths.cpp circularbuffer.cpp minixml.cpp saveandload.cpp
 
 all: all-am
 
@@ -250,10 +251,12 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/linkedlist.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/luawrapper.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/main.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/minixml.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/model.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/networking.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/paths.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/randomgenerator.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/saveandload.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/terrain.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/textures.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/unit.Po@am__quote@

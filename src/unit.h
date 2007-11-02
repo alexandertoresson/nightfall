@@ -345,7 +345,7 @@ namespace Game
 			bool                isWaiting;
 			bool                isPushed;
 			LightState          lightState;
-			Position*           rallypoint;
+			IntPosition*        rallypoint;
 			Uint16              id;
 			AI::UnitAIFuncs     unitAIFuncs;
 			int                 aiFrame;
@@ -390,7 +390,7 @@ namespace Game
 		void InitiateAttack(Unit* attacker, Unit* target);
 		void HandleProjectiles(Unit* pUnit);
 		bool CanReach(Unit* attacker, Unit* target);
-		void ChangePath(Unit* pUnit, float goal_x, float goal_y, AI::UnitAction action, Unit* target, void* arg);
+		void ChangePath(Unit* pUnit, int goal_x, int goal_y, AI::UnitAction action, Unit* target, void* arg);
 		
 		bool MovementTypeCanWalkOnSquare(MovementType mType, int x, int y);
 		inline bool MovementTypeCanWalkOnSquare_UnGuarded(MovementType mType, int x, int y);

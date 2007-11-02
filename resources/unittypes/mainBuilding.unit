@@ -13,7 +13,7 @@ ut.height = 2.0
 ut.buildTime = 180.0
 ut.buildCost = 500
 ut.researchTime = 360.0
-ut.researchCost = 1000
+ut.researchCost = 2000
 
 ut.lightRange = 17.0
 

@@ -320,7 +320,7 @@ namespace UnitLuaInterface
 	int LGetUnitTargetPos(LuaVM* pVM)
 	{
 		Unit* pUnit = _GetUnit(lua_touserdata(pVM, 1));
-		Position target;
+		IntPosition target;
 
 		target.x = 0;
 		target.y = 0;
@@ -650,7 +650,7 @@ namespace UnitLuaInterface
 	int LSellPower(LuaVM* pVM)
 	{
 		Player* player = (Player*) lua_touserdata(pVM, 1);
-		float power = lua_tonumber(pVM, 2);
+		int power = lua_tointeger(pVM, 2);
 
 		if (player)
 		{
@@ -847,8 +847,8 @@ namespace UnitLuaInterface
 	int LSetUnitTargetPos(LuaVM* pVM)
 	{
 		Unit* pUnit = _GetUnit(lua_touserdata(pVM, 1));
-		float x = lua_tonumber(pVM, 2);
-		float y = lua_tonumber(pVM, 3);
+		int x = lua_tointeger(pVM, 2);
+		int y = lua_tointeger(pVM, 3);
 
 		CHECK_UNIT_PTR(pUnit)
 
@@ -1121,8 +1121,8 @@ namespace UnitLuaInterface
 
 		CHECK_UNIT_PTR(pUnit)
 
-		float position[2] = { lua_tonumber(pVM, 2), 
-		                      lua_tonumber(pVM, 3) };
+		int position[2] = { lua_tointeger(pVM, 2), 
+		                    lua_tointeger(pVM, 3) };
 
 		if (position[0] < 0 || position[1] < 0)
 			LUA_FAILURE("Invalid position, x or y values lower than zero")
@@ -1136,16 +1136,16 @@ namespace UnitLuaInterface
 		Game::AI::action_changes++;
 		if (Game::Networking::isNetworked)
 		{
-			Game::Networking::PrepareAction(unit, target, target->pos.x, target->pos.y, action, arg);
+			Game::Networking::PrepareAction(unit, target, target->curAssociatedSquare.x, target->curAssociatedSquare.y, action, arg);
 		}
 		else
 		{
-			ApplyAction(unit, action, target->pos.x, target->pos.y, target, arg);
+			ApplyAction(unit, action, target->curAssociatedSquare.x, target->curAssociatedSquare.y, target, arg);
 		}
-		Game::Dimension::ChangePath(unit, target->pos.x, target->pos.y, action, target, arg);
+		Game::Dimension::ChangePath(unit, target->curAssociatedSquare.x, target->curAssociatedSquare.y, action, target, arg);
 	}
 
-	void CommandUnit_TargetPos(Unit* unit, float x, float y, UnitAction action, void* arg)
+	void CommandUnit_TargetPos(Unit* unit, int x, int y, UnitAction action, void* arg)
 	{
 		if (!unit->type->isMobile && action == ACTION_GOTO)
 			return;
@@ -1181,7 +1181,7 @@ namespace UnitLuaInterface
 
 		CHECK_UNIT_PTR(pUnit)
 
-		CommandUnit_TargetPos(pUnit, lua_tonumber(pVM, 2), lua_tonumber(pVM, 3), (UnitAction) lua_tointeger(pVM, 4), lua_touserdata(pVM, 5));
+		CommandUnit_TargetPos(pUnit, lua_tointeger(pVM, 2), lua_tointeger(pVM, 3), (UnitAction) lua_tointeger(pVM, 4), lua_touserdata(pVM, 5));
 
 		LUA_SUCCESS
 	}
@@ -1192,8 +1192,8 @@ namespace UnitLuaInterface
 
 		CHECK_UNIT_PTR(pUnit)
 
-		float position[2] = { lua_tonumber(pVM, 2), 
-		                      lua_tonumber(pVM, 3) };
+		int position[2] = { lua_tointeger(pVM, 2), 
+		                    lua_tointeger(pVM, 3) };
 
 		CommandUnit_TargetPos(pUnit, position[0], position[1], ACTION_GOTO, NULL);
 		LUA_SUCCESS
@@ -1205,8 +1205,8 @@ namespace UnitLuaInterface
 
 		CHECK_UNIT_PTR(pUnit)
 
-		float position[2] = { lua_tonumber(pVM, 2), 
-		                      lua_tonumber(pVM, 3) };
+		int position[2] = { lua_tointeger(pVM, 2), 
+		                    lua_tointeger(pVM, 3) };
 
 		CommandUnit_TargetPos(pUnit, position[0], position[1], ACTION_MOVE_ATTACK, NULL);
 		LUA_SUCCESS
@@ -1218,8 +1218,8 @@ namespace UnitLuaInterface
 
 		CHECK_UNIT_PTR(pUnit)
 
-		float position[2] = { lua_tonumber(pVM, 2), 
-		                      lua_tonumber(pVM, 3) };
+		int position[2] = { lua_tointeger(pVM, 2), 
+		                    lua_tointeger(pVM, 3) };
 
 		UnitType* pUnitType = (UnitType*) lua_touserdata(pVM, 4);
 
@@ -1526,24 +1526,24 @@ namespace UnitLuaInterface
 		if (pOwner == NULL)
 			LUA_FAILURE("Invalid owner - null pointer")
 
-		float position[2] = { lua_tonumber(pVM, 3), lua_tonumber(pVM, 4) };
+		int position[2] = { lua_tointeger(pVM, 3), lua_tointeger(pVM, 4) };
 
-		if (SquaresAreWalkable(pUnitType, (int)position[0], (int)position[1], SIW_ALLKNOWING) == false)
+		if (SquaresAreWalkable(pUnitType, position[0], position[1], SIW_ALLKNOWING) == false)
 		{
 			LUA_FAILURE("Designated goal isn't walkable (or is preoccupied by another unit).")
 		}
 
-		float rotation = rand()/((double)RAND_MAX + 1) * 360;
+		int rotation = (int) (rand()/((double)RAND_MAX + 1) * 360);
 
 		if (lua_isnumber(pVM, 5))
 		{
-			rotation = lua_tonumber(pVM, 5);
+			rotation = lua_tointeger(pVM, 5);
 
-			while (rotation >= 360.0f)
-				rotation -= 360.0f;
+			while (rotation >= 360)
+				rotation -= 360;
 
-			while (rotation < 0.0f)
-				rotation += 360.0f;
+			while (rotation < 0)
+				rotation += 360;
 
 		}
 

@@ -26,9 +26,10 @@ namespace Game
 		char****      movementTypeWithSizeCanWalkOnSquare;
 		char***       traversalTimeBySize;
 		int           nextPushID = 1;
-		set<Unit*>****unitsInBigSquaresPerPlayer;
-		set<Unit*>*** unitsInBigSquares;
+		vector<Unit*>****unitsInBigSquaresPerPlayer;
+		vector<Unit*>*** unitsInBigSquares;
 		int bigSquareHeight, bigSquareWidth;
+		int bigSquareRightShift = 4;
 		RangeArray* nextToRangeArray;
 
 		struct Scanline
@@ -612,11 +613,11 @@ namespace Game
 			{
 				if (unit->pMovementData->action.arg)
 				{
-					return WithinRangeArray((UnitType*) unit->pMovementData->action.arg, unit->curAssociatedSquare.x, (int) unit->curAssociatedSquare.y, (int) unit->pMovementData->action.goal.pos.x, (int) unit->pMovementData->action.goal.pos.y, nextToRangeArray);
+					return WithinRangeArray((UnitType*) unit->pMovementData->action.arg, unit->curAssociatedSquare.x, unit->curAssociatedSquare.y, unit->pMovementData->action.goal.pos.x, unit->pMovementData->action.goal.pos.y, nextToRangeArray);
 				}
 				else
 				{
-					return WithinRangeArray((UnitType*) unit->pMovementData->action.goal.unit->type, unit->curAssociatedSquare.x, unit->curAssociatedSquare.y, (int) unit->pMovementData->action.goal.unit->pos.x, (int) unit->pMovementData->action.goal.unit->pos.y, nextToRangeArray);
+					return WithinRangeArray((UnitType*) unit->pMovementData->action.goal.unit->type, unit->curAssociatedSquare.x, unit->curAssociatedSquare.y, unit->pMovementData->action.goal.unit->curAssociatedSquare.x, unit->pMovementData->action.goal.unit->curAssociatedSquare.y, nextToRangeArray);
 				}
 			}
 			else
@@ -1133,14 +1134,14 @@ namespace Game
 
 		void Incomplete(Unit* unit)
 		{
-			UpdateLightedSquares(unit, (int) unit->pos.x, (int) unit->pos.y, 0);
-			UpdateSeenSquares(unit, (int) unit->pos.x, (int) unit->pos.y, 0);
+			UpdateLightedSquares(unit, unit->curAssociatedSquare.x, unit->curAssociatedSquare.y, 0);
+			UpdateSeenSquares(unit, unit->curAssociatedSquare.x, unit->curAssociatedSquare.y, 0);
 		}
 
 		void Complete(Unit* unit)
 		{
-			UpdateLightedSquares(unit, (int) unit->pos.x, (int) unit->pos.y, 1);
-			UpdateSeenSquares(unit, (int) unit->pos.x, (int) unit->pos.y, 1);
+			UpdateLightedSquares(unit, unit->curAssociatedSquare.x, unit->curAssociatedSquare.y, 1);
+			UpdateSeenSquares(unit, unit->curAssociatedSquare.x, unit->curAssociatedSquare.y, 1);
 		}
 
 		void Build(Unit* unit)
@@ -1186,7 +1187,7 @@ namespace Game
 				}
 				else
 				{
-					Unit* cur_unit = pppElements[(int)unit->pMovementData->action.goal.pos.y][(int)unit->pMovementData->action.goal.pos.x];
+					Unit* cur_unit = pppElements[unit->pMovementData->action.goal.pos.y][unit->pMovementData->action.goal.pos.x];
 
 					if (cur_unit && cur_unit->type == build_type)
 					{
@@ -1196,12 +1197,12 @@ namespace Game
 					}
 					else
 					{
-						if (SquaresAreWalkable(build_type, unit->owner, (int) unit->pMovementData->action.goal.pos.x, (int) unit->pMovementData->action.goal.pos.y, SIW_IGNORE_OWN_MOBILE_UNITS | SIW_ALLKNOWING))
+						if (SquaresAreWalkable(build_type, unit->owner, unit->pMovementData->action.goal.pos.x, unit->pMovementData->action.goal.pos.y, SIW_IGNORE_OWN_MOBILE_UNITS | SIW_ALLKNOWING))
 						{
 							if (unit->owner->type != PLAYER_TYPE_REMOTE)
 							{
 								int start_x, start_y;
-								GetTypeUpperLeftCorner(build_type, (int)unit->pMovementData->action.goal.pos.x, (int)unit->pMovementData->action.goal.pos.y, start_x, start_y);
+								GetTypeUpperLeftCorner(build_type, unit->pMovementData->action.goal.pos.x, unit->pMovementData->action.goal.pos.y, start_x, start_y);
 								Uint32 curtime = SDL_GetTicks();
 								for (int y = start_y; y < start_y + build_type->heightOnMap; y++)
 								{
@@ -1212,9 +1213,9 @@ namespace Game
 											if ((curtime - pppElements[y][x]->lastCommand) / 1000.0 > 1.0)
 											{
 												int goto_x, goto_y;
-												NearestSquareFromBuildingPlace(pppElements[y][x], build_type, (int)unit->pMovementData->action.goal.pos.x, (int)unit->pMovementData->action.goal.pos.y, goto_x, goto_y);
+												NearestSquareFromBuildingPlace(pppElements[y][x], build_type, unit->pMovementData->action.goal.pos.x, unit->pMovementData->action.goal.pos.y, goto_x, goto_y);
 		//										cout << "command " << pppElements[y][x]->type->id << endl;
-												CommandUnit(pppElements[y][x], goto_x+0.5, goto_y+0.5, AI::ACTION_GOTO, unit->pMovementData->action.arg, true, true);
+												CommandUnit(pppElements[y][x], goto_x, goto_y, AI::ACTION_GOTO, unit->pMovementData->action.arg, true, true);
 											}
 										}
 									}
@@ -1279,7 +1280,7 @@ namespace Game
 				unit->pMovementData->action.goal.unit->isCompleted = true;
 				if (!unit->pMovementData->action.goal.unit->isDisplayed)
 				{
-					int new_x = (int) unit->pos.x, new_y = (int) unit->pos.y;
+					int new_x = unit->curAssociatedSquare.x, new_y = unit->curAssociatedSquare.y;
 					GetNearestUnoccupiedPosition(unit->pMovementData->action.goal.unit->type, new_x, new_y);
 					DisplayUnit(unit->pMovementData->action.goal.unit, new_x, new_y);
 				}
@@ -1381,7 +1382,7 @@ namespace Game
 				Unit* target = pUnit->pMovementData->action.goal.unit;
 				if (!pUnit->pMovementData->action.goal.unit->isDisplayed)
 				{
-					int new_x = (int) pUnit->pos.x, new_y = (int) pUnit->pos.y;
+					int new_x = pUnit->curAssociatedSquare.x, new_y = pUnit->curAssociatedSquare.y;
 
 					cost = build_type->buildCost;
 					pUnit->owner->resources.money += cost * target->completeness / 200;
@@ -1513,7 +1514,7 @@ namespace Game
 		{
 			Projectile *proj = NULL;
 			float max_radius = 0;
-			set<Unit*>::iterator it;
+			vector<Unit*>::iterator it;
 			list<Unit*> units_hit;
 
 			for (unsigned index = 0; index < pUnit->projectiles.size(); )
@@ -1536,10 +1537,10 @@ namespace Game
 #endif
 
 					Position projTerrainPos = GetPosition(&proj->pos);
-					int big_start_x = (int) (projTerrainPos.x - ceil(max_radius) - 10) >> 5;
-					int big_start_y = (int) (projTerrainPos.y - ceil(max_radius) - 10) >> 5;
-					int big_end_x = (int) (projTerrainPos.x + ceil(max_radius) + 10) >> 5;
-					int big_end_y = (int) (projTerrainPos.y + ceil(max_radius) + 10) >> 5;
+					int big_start_x = (int) (projTerrainPos.x - ceil(max_radius) - 10) >> bigSquareRightShift;
+					int big_start_y = (int) (projTerrainPos.y - ceil(max_radius) - 10) >> bigSquareRightShift;
+					int big_end_x = (int) (projTerrainPos.x + ceil(max_radius) + 10) >> bigSquareRightShift;
+					int big_end_y = (int) (projTerrainPos.y + ceil(max_radius) + 10) >> bigSquareRightShift;
 			
 					if (big_start_y < 0)
 						big_start_y = 0;
@@ -1636,10 +1637,10 @@ namespace Game
 			Unit* curUnit;
 			vector<Unit*>* units;
 			int max_range = rangeType == RANGE_SIGHT ? (int) ceil(unit->type->sightRange) : (int) ceil(unit->type->attackMaxRange);
-			int big_start_x = (unit->curAssociatedSquare.x - max_range - 10) >> 5;
-			int big_start_y = (unit->curAssociatedSquare.y - max_range - 10) >> 5;
-			int big_end_x = (unit->curAssociatedSquare.x + max_range + 10) >> 5;
-			int big_end_y = (unit->curAssociatedSquare.y + max_range + 10) >> 5;
+			int big_start_x = (unit->curAssociatedSquare.x - max_range - 10) >> bigSquareRightShift;
+			int big_start_y = (unit->curAssociatedSquare.y - max_range - 10) >> bigSquareRightShift;
+			int big_end_x = (unit->curAssociatedSquare.x + max_range + 10) >> bigSquareRightShift;
+			int big_end_y = (unit->curAssociatedSquare.y + max_range + 10) >> bigSquareRightShift;
 
 			if (big_start_y < 0)
 				big_start_y = 0;
@@ -1664,7 +1665,7 @@ namespace Game
 					{
 						for (int x = big_start_x; x <= big_end_x; x++)
 						{
-							for (set<Unit*>::iterator it_unit = unitsInBigSquaresPerPlayer[owner_index][y][x]->begin(); it_unit != unitsInBigSquaresPerPlayer[owner_index][y][x]->end(); it_unit++)
+							for (vector<Unit*>::iterator it_unit = unitsInBigSquaresPerPlayer[owner_index][y][x]->begin(); it_unit != unitsInBigSquaresPerPlayer[owner_index][y][x]->end(); it_unit++)
 							{
 								curUnit = *it_unit;
 								if (curUnit != unit)
@@ -2172,7 +2173,7 @@ namespace Game
 		bool SquareIsGoal(Unit *unit, int x, int y, bool use_internal)
 		{
 			Unit*       target = NULL;
-			Position    pos;
+			IntPosition pos;
 			void*       arg;
 			
 			if (!use_internal)
@@ -2196,27 +2197,27 @@ namespace Game
 				}
 				else if (unit->action == AI::ACTION_FOLLOW)
 				{
-					return WithinRangeArray(target->type, x, y, (int) target->pos.x, (int) target->pos.y, nextToRangeArray);
+					return WithinRangeArray(target->type, x, y, target->curAssociatedSquare.x, target->curAssociatedSquare.y, nextToRangeArray);
 				}
 				else if (unit->action == AI::ACTION_BUILD)
 				{
 					if (arg)
 					{
-						return WithinRangeArray((UnitType*) arg, x, y, (int) pos.x, (int) pos.y, nextToRangeArray);
+						return WithinRangeArray((UnitType*) arg, x, y, pos.x, pos.y, nextToRangeArray);
 					}
 					else
 					{
-						return WithinRangeArray(target->type, x, y, (int) target->pos.x, (int) target->pos.y, nextToRangeArray);
+						return WithinRangeArray(target->type, x, y, target->curAssociatedSquare.x, target->curAssociatedSquare.y, nextToRangeArray);
 					}
 				}
 				else
 				{
-					return (x == (int) pos.x) && (y == (int) pos.y);
+					return (x == pos.x) && (y == pos.y);
 				}
 			}
 			else
 			{
-				return (x == (int) pos.x) && (y == (int) pos.y);
+				return (x == pos.x) && (y == pos.y);
 			}
 		}		
 
@@ -2384,18 +2385,34 @@ namespace Game
 			
 			int old_big_x = unit->curAssociatedBigSquare.x;
 			int old_big_y = unit->curAssociatedBigSquare.y;
-			int new_big_x = new_x >> 5;
-			int new_big_y = new_y >> 5;
+			int new_big_x = new_x >> bigSquareRightShift;
+			int new_big_y = new_y >> bigSquareRightShift;
 
 			if (old_big_x != new_big_x || old_big_y != new_big_y)
 			{
 				if (old_big_x > -1 && old_big_y > -1)
 				{
-					unitsInBigSquaresPerPlayer[unit->owner->index][old_big_y][old_big_x]->erase(unit);
-					unitsInBigSquares[old_big_y][old_big_x]->erase(unit);
+					vector<Unit*> *unit_vector = unitsInBigSquaresPerPlayer[unit->owner->index][old_big_y][old_big_x];
+					for (vector<Unit*>::iterator it = unit_vector->begin(); it != unit_vector->end(); it++)
+					{
+						if (*it == unit)
+						{
+							unit_vector->erase(it);
+							break;
+						}
+					}
+					unit_vector = unitsInBigSquares[old_big_y][old_big_x];
+					for (vector<Unit*>::iterator it = unit_vector->begin(); it != unit_vector->end(); it++)
+					{
+						if (*it == unit)
+						{
+							unit_vector->erase(it);
+							break;
+						}
+					}
 				}
-				unitsInBigSquaresPerPlayer[unit->owner->index][new_big_y][new_big_x]->insert(unit);
-				unitsInBigSquares[new_big_y][new_big_x]->insert(unit);
+				unitsInBigSquaresPerPlayer[unit->owner->index][new_big_y][new_big_x]->push_back(unit);
+				unitsInBigSquares[new_big_y][new_big_x]->push_back(unit);
 				unit->curAssociatedBigSquare.x = new_big_x;
 				unit->curAssociatedBigSquare.y = new_big_y;
 			}
@@ -2495,7 +2512,7 @@ namespace Game
 			return time;
 		}
 
-		void ChangePath(Unit* pUnit, float goal_x, float goal_y, AI::UnitAction action, Unit* target, void* arg)
+		void ChangePath(Unit* pUnit, int goal_x, int goal_y, AI::UnitAction action, Unit* target, void* arg)
 		{
 			if (pUnit->type->isMobile)
 			{
@@ -2764,7 +2781,7 @@ namespace Game
 										{
 											cout << "Move " << curUnit << " " << goto_new_x << " " << goto_new_y << " " << flags[j] << " " << i << endl;
 											numSentCommands++;
-											CommandUnit(curUnit, goto_new_x+0.5, goto_new_y+0.5, AI::ACTION_GOTO, NULL, true, true);
+											CommandUnit(curUnit, goto_new_x, goto_new_y, AI::ACTION_GOTO, NULL, true, true);
 											curUnit->isPushed = true;
 											if (pUnit->pushID)
 											{
@@ -2828,8 +2845,8 @@ namespace Game
 			{
 				if ((action == AI::ACTION_FOLLOW || action == AI::ACTION_ATTACK) && pUnit->owner->type != PLAYER_TYPE_REMOTE)
 				{
-					if (pUnit->pMovementData->action.goal.unit->lastSeenPositions[pUnit->owner->index].x != (int)pUnit->pMovementData->action.goal.pos.x ||
-					    pUnit->pMovementData->action.goal.unit->lastSeenPositions[pUnit->owner->index].y != (int)pUnit->pMovementData->action.goal.pos.y)
+					if (pUnit->pMovementData->action.goal.unit->lastSeenPositions[pUnit->owner->index].x != pUnit->pMovementData->action.goal.pos.x ||
+					    pUnit->pMovementData->action.goal.unit->lastSeenPositions[pUnit->owner->index].y != pUnit->pMovementData->action.goal.pos.y)
 					{
 						ChangePath(pUnit, pUnit->pMovementData->action.goal.unit->lastSeenPositions[pUnit->owner->index].x, pUnit->pMovementData->action.goal.unit->lastSeenPositions[pUnit->owner->index].y, pUnit->action, pUnit->pMovementData->action.goal.unit, pUnit->pMovementData->action.arg);
 					}
@@ -3242,7 +3259,7 @@ namespace Game
 				unit = *it;
 				if (UnitIsRendered(unit, currentPlayerView))
 				{
-					if (unit->pos.x > map_x-3 && unit->pos.x < map_x+3 && unit->pos.y < map_y+3 && unit->pos.y < map_y+3)
+					if (unit->curAssociatedSquare.x > map_x-3 && unit->curAssociatedSquare.x < map_x+3 && unit->curAssociatedSquare.y < map_y+3 && unit->curAssociatedSquare.y < map_y+3)
 					{
 						if (Dimension::DoesHitUnit(unit, clickx, clicky, dist))
 						{
@@ -3460,8 +3477,24 @@ namespace Game
 
 			if (unit->curAssociatedBigSquare.y > -1)
 			{
-				unitsInBigSquaresPerPlayer[unit->owner->index][unit->curAssociatedBigSquare.y][unit->curAssociatedBigSquare.x]->erase(unit);
-				unitsInBigSquares[unit->curAssociatedBigSquare.y][unit->curAssociatedBigSquare.x]->erase(unit);
+				vector<Unit*> *unit_vector = unitsInBigSquaresPerPlayer[unit->owner->index][unit->curAssociatedBigSquare.y][unit->curAssociatedBigSquare.x];
+				for (vector<Unit*>::iterator it = unit_vector->begin(); it != unit_vector->end(); it++)
+				{
+					if (*it == unit)
+					{
+						unit_vector->erase(it);
+						break;
+					}
+				}
+				unit_vector = unitsInBigSquares[unit->curAssociatedBigSquare.y][unit->curAssociatedBigSquare.x];
+				for (vector<Unit*>::iterator it = unit_vector->begin(); it != unit_vector->end(); it++)
+				{
+					if (*it == unit)
+					{
+						unit_vector->erase(it);
+						break;
+					}
+				}
 			}
 
 		}
@@ -3568,8 +3601,24 @@ namespace Game
 			
 			if (unit->curAssociatedBigSquare.y > -1)
 			{
-				unitsInBigSquaresPerPlayer[unit->owner->index][unit->curAssociatedBigSquare.y][unit->curAssociatedBigSquare.x]->erase(unit);
-				unitsInBigSquares[unit->curAssociatedBigSquare.y][unit->curAssociatedBigSquare.x]->erase(unit);
+				vector<Unit*> *unit_vector = unitsInBigSquaresPerPlayer[unit->owner->index][unit->curAssociatedBigSquare.y][unit->curAssociatedBigSquare.x];
+				for (vector<Unit*>::iterator it = unit_vector->begin(); it != unit_vector->end(); it++)
+				{
+					if (*it == unit)
+					{
+						unit_vector->erase(it);
+						break;
+					}
+				}
+				unit_vector = unitsInBigSquares[unit->curAssociatedBigSquare.y][unit->curAssociatedBigSquare.x];
+				for (vector<Unit*>::iterator it = unit_vector->begin(); it != unit_vector->end(); it++)
+				{
+					if (*it == unit)
+					{
+						unit_vector->erase(it);
+						break;
+					}
+				}
 			}
 
 			if (unit->usedInAreaMaps)
@@ -3864,30 +3913,30 @@ namespace Game
 			a_seed = 23467;
 			r_seed = 23467;
 
-			bigSquareWidth = (pWorld->width>>5)+1;
-			bigSquareHeight = (pWorld->height>>5)+1;
+			bigSquareWidth = (pWorld->width>>bigSquareRightShift)+1;
+			bigSquareHeight = (pWorld->height>>bigSquareRightShift)+1;
 
-			unitsInBigSquaresPerPlayer = new set<Unit*>***[pWorld->vPlayers.size()];
+			unitsInBigSquaresPerPlayer = new vector<Unit*>***[pWorld->vPlayers.size()];
 			for (unsigned i = 0; i < pWorld->vPlayers.size(); i++)
 			{
-				unitsInBigSquaresPerPlayer[i] = new set<Unit*>**[bigSquareHeight];
+				unitsInBigSquaresPerPlayer[i] = new vector<Unit*>**[bigSquareHeight];
 				for (int y = 0; y < bigSquareHeight; y++)
 				{
-					unitsInBigSquaresPerPlayer[i][y] = new set<Unit*>*[bigSquareWidth];
+					unitsInBigSquaresPerPlayer[i][y] = new vector<Unit*>*[bigSquareWidth];
 					for (int x = 0; x < bigSquareWidth; x++)
 					{
-						unitsInBigSquaresPerPlayer[i][y][x] = new set<Unit*>;
+						unitsInBigSquaresPerPlayer[i][y][x] = new vector<Unit*>;
 					}
 				}
 			}
 			
-			unitsInBigSquares = new set<Unit*>**[bigSquareHeight];
+			unitsInBigSquares = new vector<Unit*>**[bigSquareHeight];
 			for (int y = 0; y < bigSquareHeight; y++)
 			{
-				unitsInBigSquares[y] = new set<Unit*>*[bigSquareWidth];
+				unitsInBigSquares[y] = new vector<Unit*>*[bigSquareWidth];
 				for (int x = 0; x < bigSquareWidth; x++)
 				{
-					unitsInBigSquares[y][x] = new set<Unit*>;
+					unitsInBigSquares[y][x] = new vector<Unit*>;
 				}
 			}
 

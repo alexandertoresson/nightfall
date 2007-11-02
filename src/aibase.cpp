@@ -589,7 +589,7 @@ namespace Game
 #endif				
 		}
 
-		bool ImmobilityCheck(Dimension::Unit* pUnit, UnitAction action, float x, float y)
+		bool ImmobilityCheck(Dimension::Unit* pUnit, UnitAction action, int x, int y)
 		{
 			if (action == AI::ACTION_MOVE_ATTACK ||
 				action == AI::ACTION_MOVE_ATTACK_UNIT ||
@@ -600,7 +600,7 @@ namespace Game
 					if (pUnit->type->canBuild.size() > 0)
 					{
 						if (pUnit->rallypoint == NULL)
-							pUnit->rallypoint = new Dimension::Position;
+							pUnit->rallypoint = new Dimension::IntPosition;
 
 						pUnit->rallypoint->x = x;
 						pUnit->rallypoint->y = y;
@@ -612,7 +612,7 @@ namespace Game
 			return false;
 		}
 
-		void CommandUnit(Dimension::Unit* pUnit, float x, float y, UnitAction action, void* argument, bool queue, bool insert)
+		void CommandUnit(Dimension::Unit* pUnit, int x, int y, UnitAction action, void* argument, bool queue, bool insert)
 		{
 			if (ImmobilityCheck(pUnit, action, x, y))
 				return;
@@ -660,7 +660,7 @@ namespace Game
 
 		void CommandUnit(Dimension::Unit* pUnit, Dimension::Unit* destination, UnitAction action, void* argument, bool queue, bool insert)
 		{
-			if (ImmobilityCheck(pUnit, action, destination->pos.x, destination->pos.y))
+			if (ImmobilityCheck(pUnit, action, destination->curAssociatedSquare.x, destination->curAssociatedSquare.y))
 				return;
 			
 			if (pUnit->owner != Dimension::currentPlayer)
@@ -701,7 +701,7 @@ namespace Game
 			}
 		}
 
-		void CommandUnits(vector<Dimension::Unit*> pUnits, float x, float y, UnitAction action, void* argument, bool queue, bool insert)
+		void CommandUnits(vector<Dimension::Unit*> pUnits, int x, int y, UnitAction action, void* argument, bool queue, bool insert)
 		{
 			for (vector<Dimension::Unit*>::iterator it = pUnits.begin(); it != pUnits.end(); it++)
 			{
@@ -853,7 +853,7 @@ namespace Game
 			}
 		}
 		
-		void ApplyAction(Dimension::Unit* pUnit, UnitAction action, float goal_x, float goal_y, Dimension::Unit* target, void* arg)
+		void ApplyAction(Dimension::Unit* pUnit, UnitAction action, int goal_x, int goal_y, Dimension::Unit* target, void* arg)
 		{
 			if (pUnit->action == AI::ACTION_DIE)
 			{
@@ -896,6 +896,25 @@ namespace Game
 			}
 			pUnit->faceTarget = Dimension::FACETARGET_NONE;
 			AI::SendUnitEventToLua_NewCommand(pUnit);
+				
+			if (!pUnit->actionQueue.size())
+			{
+				// When an AI executes a command, it does not go through CommandUnit().
+				// If you try to perform a 'collaboration-game' with the AI (to do that,
+				// make your own player an AI and hack the AI script to allow commanding)
+				// you will notice that if you give a command to a unit, it will cancel the
+				// last command even if you gave it a 'queueing' command. This fixes it,
+				// by ensuring that the AI's commands will be in the command queue too.
+				Dimension::ActionData* actiondata = new Dimension::ActionData;
+				actiondata->action = action;
+				actiondata->goal_pos.x = goal_x;
+				actiondata->goal_pos.y = goal_y;
+				actiondata->goal_unit = target;
+				actiondata->arg = arg;
+
+				pUnit->actionQueue.push_back(actiondata);
+			}
+
 		}
 	}
 }

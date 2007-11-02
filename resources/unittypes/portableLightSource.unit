@@ -19,11 +19,11 @@ ut.height = 1.0
 ut.buildTime = 60.0
 ut.buildCost = 200
 ut.researchTime = 120.0
-ut.researchCost = 400
+ut.researchCost = 800
 
-ut.lightRange = 10.0
+ut.lightRange = 15.0
 
-ut.powerUsage = 1.0
+ut.powerUsage = 1.5
 ut.lightPowerUsage = 4.0
 ut.movePowerUsage = 0.5
 	

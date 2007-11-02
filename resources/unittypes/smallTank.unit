@@ -24,7 +24,7 @@ ut.height = 1.0
 ut.buildTime = 60.0
 ut.buildCost = 300
 ut.researchTime = 120.0
-ut.researchCost = 600
+ut.researchCost = 1200
 
 ut.powerUsage = 4.0
 ut.movePowerUsage = 2.0

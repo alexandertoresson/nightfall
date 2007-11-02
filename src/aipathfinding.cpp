@@ -80,7 +80,7 @@ namespace Game
 		bool               setAreaCodes;
 		PreprocessState    preprocessState;
 		bool               hasBegunPathfinding;
-		Dimension::Position           oldGoal;
+		Dimension::IntPosition oldGoal;
 
 		unsigned char**    squareTypes;
 		int**              squareNums;
@@ -510,7 +510,7 @@ namespace Game
 #endif
 		}
 		
-		IPResult CommandPathfinding(Dimension::Unit* pUnit, float start_x, float start_y, float goal_x, float goal_y, AI::UnitAction action, Dimension::Unit* target, void* args)
+		IPResult CommandPathfinding(Dimension::Unit* pUnit, int start_x, int start_y, int goal_x, int goal_y, AI::UnitAction action, Dimension::Unit* target, void* args)
 		{
 			assert(pUnit != NULL);
 
@@ -1343,14 +1343,14 @@ namespace Game
 			Dimension::Unit* unit  = tdata->pUnit;
 			MovementData* md       = unit->pMovementData;
 
-			int start_x = (int) md->_action.startPos.x, start_y = (int) md->_action.startPos.y;
-			int target_x = (int) md->_action.changedGoalPos.x, target_y = (int) md->_action.changedGoalPos.y;
+			int start_x = md->_action.startPos.x, start_y = md->_action.startPos.y;
+			int target_x = md->_action.changedGoalPos.x, target_y = md->_action.changedGoalPos.y;
 
 			int y;
 
 			if (hasBegunPathfinding)
 			{
-				if ((int) oldGoal.x == (int) md->_action.changedGoalPos.x && (int) oldGoal.y == (int) md->_action.changedGoalPos.y)
+				if (oldGoal.x == md->_action.changedGoalPos.x && oldGoal.y == md->_action.changedGoalPos.y)
 				{
 					return PATHSTATE_OK;
 				}
@@ -1407,7 +1407,7 @@ namespace Game
 		{
 			Dimension::Unit* unit  = tdata->pUnit;
 			MovementData* md       = unit->pMovementData;
-			int target_x = (int) md->_action.changedGoalPos.x, target_y = (int) md->_action.changedGoalPos.y;
+			int target_x = md->_action.changedGoalPos.x, target_y = md->_action.changedGoalPos.y;
 			int x, y;
 			
 			int first_node;
@@ -1771,7 +1771,7 @@ namespace Game
 				{
 					if (preprocessState == PREPROCESSSTATE_NONE)
 					{
-						if (IsWalkable(unit, (int)md->_action.goal.pos.x, (int)md->_action.goal.pos.y) && areaMaps[unitSize][areaMapIndex][(int)md->_action.startPos.y][(int)md->_action.startPos.x] == areaMaps[unitSize][areaMapIndex][(int)md->_action.goal.pos.y][(int)md->_action.goal.pos.x])
+						if (IsWalkable(unit, md->_action.goal.pos.x, md->_action.goal.pos.y) && areaMaps[unitSize][areaMapIndex][md->_action.startPos.y][md->_action.startPos.x] == areaMaps[unitSize][areaMapIndex][md->_action.goal.pos.y][md->_action.goal.pos.x])
 						{
 							preprocessState = PREPROCESSSTATE_SKIPPED_TRACE; // Skip it for now
 							InitPathfinding(tdata);
@@ -1779,10 +1779,10 @@ namespace Game
 						else
 						{
 							preprocessState = PREPROCESSSTATE_PROCESSING_TRACE;
-							if (InitTrace(unit, (int)md->_action.startPos.x, (int)md->_action.startPos.y, (int)md->_action.goal.pos.x, (int)md->_action.goal.pos.y) == PATHSTATE_ERROR)
+							if (InitTrace(unit, md->_action.startPos.x, md->_action.startPos.y, md->_action.goal.pos.x, md->_action.goal.pos.y) == PATHSTATE_ERROR)
 							{
 								preprocessState = PREPROCESSSTATE_PROCESSING_FLOOD;
-								if (InitFloodfill(unit, (int)md->_action.startPos.x, (int)md->_action.startPos.y, FLOODFILL_FLAG_CALCULATE_NEAREST) == PATHSTATE_ERROR)
+								if (InitFloodfill(unit, md->_action.startPos.x, md->_action.startPos.y, FLOODFILL_FLAG_CALCULATE_NEAREST) == PATHSTATE_ERROR)
 								{
 									preprocessState = PREPROCESSSTATE_SKIPPED_FLOOD;
 									InitPathfinding(tdata);
@@ -1798,7 +1798,7 @@ namespace Game
 							steps++;
 							tsteps++;
 						
-							if (TraceStep(unit, md, (int)md->_action.startPos.x, (int)md->_action.startPos.x, (int)md->_action.goal.pos.x, (int)md->_action.goal.pos.y) == PATHSTATE_GOAL)
+							if (TraceStep(unit, md, md->_action.startPos.x, md->_action.startPos.x, md->_action.goal.pos.x, md->_action.goal.pos.y) == PATHSTATE_GOAL)
 							{
 								preprocessState = PREPROCESSSTATE_SKIPPED_FLOOD;
 								InitPathfinding(tdata);
@@ -1830,7 +1830,7 @@ namespace Game
 							steps++;
 							fsteps++;
 						
-							if (FloodfillStep(unit, md, (int)md->_action.goal.pos.x, (int)md->_action.goal.pos.y) == PATHSTATE_GOAL)
+							if (FloodfillStep(unit, md, md->_action.goal.pos.x, md->_action.goal.pos.y) == PATHSTATE_GOAL)
 							{
 								preprocessState = PREPROCESSSTATE_DONE;
 								InitPathfinding(tdata);
@@ -1876,7 +1876,7 @@ namespace Game
 
 						if (calcCount >= RECALC_TRACE_LIMIT && preprocessState == PREPROCESSSTATE_SKIPPED_TRACE)
 						{
-							if (InitTrace(unit, (int)md->_action.startPos.x, (int)md->_action.startPos.y, (int)md->_action.goal.pos.x, (int)md->_action.goal.pos.y) != PATHSTATE_ERROR)
+							if (InitTrace(unit, md->_action.startPos.x, md->_action.startPos.y, md->_action.goal.pos.x, md->_action.goal.pos.y) != PATHSTATE_ERROR)
 							{
 								preprocessState = PREPROCESSSTATE_PROCESSING_TRACE;
 								break;
@@ -1889,7 +1889,7 @@ namespace Game
 
 						if (calcCount >= RECALC_FLOODFILL_LIMIT && preprocessState == PREPROCESSSTATE_SKIPPED_FLOOD)
 						{
-							if (InitFloodfill(unit, (int)md->_action.startPos.x, (int)md->_action.startPos.y, FLOODFILL_FLAG_CALCULATE_NEAREST) != PATHSTATE_ERROR)
+							if (InitFloodfill(unit, md->_action.startPos.x, md->_action.startPos.y, FLOODFILL_FLAG_CALCULATE_NEAREST) != PATHSTATE_ERROR)
 							{
 								preprocessState = PREPROCESSSTATE_PROCESSING_FLOOD;
 								break;

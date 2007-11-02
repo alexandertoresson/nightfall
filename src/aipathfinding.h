@@ -117,15 +117,15 @@ namespace Game
 		struct UnitGoal
 		{
 			Dimension::Unit* unit;
-			Dimension::Position pos;
+			Dimension::IntPosition pos;
 			Uint16 goal_id;
 		};
 		
 		struct ActionData
 		{
-			Dimension::Position startPos;
+			Dimension::IntPosition startPos;
 			UnitGoal goal;
-			Dimension::Position changedGoalPos;
+			Dimension::IntPosition changedGoalPos;
 			void*    arg;
 			UnitAction action;
 		};
@@ -192,7 +192,7 @@ namespace Game
 		//            target - target unit. default NULL
 		//            args   - unit action arguments. default NULL
 		//
-		IPResult CommandPathfinding(Dimension::Unit* pUnit, float start_x, float start_y, float goal_x, float goal_y, AI::UnitAction action = AI::ACTION_GOTO, Dimension::Unit* target = NULL, void* args = NULL);
+		IPResult CommandPathfinding(Dimension::Unit* pUnit, int start_x, int start_y, int goal_x, int goal_y, AI::UnitAction action = AI::ACTION_GOTO, Dimension::Unit* target = NULL, void* args = NULL);
 		
 		//
 		// Get the internal path state, PATHSTATE_*

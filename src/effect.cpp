@@ -95,10 +95,11 @@ namespace Game
 				if(particleSystems[i] != NULL)
 				{
 					glPushMatrix();
-					particleSystems[i]->Render();
+					if (particleSystems[i]->Render() == DONE)
+					{
+						particleStats[i] = DONE;
+					}
 
-					if(particleStats[i] == DONE)
-						console << Console::imp << "Particle System Dead" << Console::nl;
 					glPopMatrix();
 				}
 			}

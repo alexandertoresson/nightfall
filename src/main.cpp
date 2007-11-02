@@ -107,7 +107,6 @@ int main(int argc, char** argv)
 			return NETWORK_ERROR_INIT;
 		}
 
-		Utilities::Scripting::StartVM();
 		loading->Increment(1.0f);
 		loading->SetMessage("Loading World");
 		loading->Update();

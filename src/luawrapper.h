@@ -17,7 +17,7 @@ extern "C" {
 //#endif
 }
 
-#define LUA_DEBUG
+//#define LUA_DEBUG
 #define LUA_FUNCTION
 #define LuaVM                  lua_State
 #define LuaNumResults          int

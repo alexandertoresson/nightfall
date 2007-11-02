@@ -12,7 +12,7 @@ ut.height = 2.0
 ut.buildTime = 90.0
 ut.buildCost = 400
 ut.researchTime = 180.0
-ut.researchCost = 800
+ut.researchCost = 3200
 
 ut.powerIncrement = 10.0
 ut.powerType = PowerType.TwentyFourSeven

@@ -10,6 +10,7 @@
 #include "environment.h"
 #include "networking.h"
 #include "aipathfinding.h"
+#include "saveandload.h"
 
 using namespace Window::GUI;
 
@@ -302,11 +303,11 @@ namespace Game
 					{
 						if (Dimension::unitsSelected.size() == 1)
 						{
-							AI::CommandUnit(Dimension::unitsSelected.at(0), ter_x+0.5, ter_y+0.5, AI::ACTION_BUILD, (void*) pGame->build_type, true, false);
+							AI::CommandUnit(Dimension::unitsSelected.at(0), ter_x, ter_y, AI::ACTION_BUILD, (void*) pGame->build_type, true, false);
 						}
 						else
 						{
-							AI::CommandUnits(Dimension::unitsSelected, ter_x+0.5, ter_y+0.5, AI::ACTION_BUILD, (void*) pGame->build_type, true, false);
+							AI::CommandUnits(Dimension::unitsSelected, ter_x, ter_y, AI::ACTION_BUILD, (void*) pGame->build_type, true, false);
 						}
 						pGame->build_type = NULL;
 					}
@@ -475,7 +476,7 @@ namespace Game
 					}
 					else if (clicked_on_ground)
 					{
-						AI::CommandUnit(Dimension::unitsSelected.at(0), ter_x+0.5, ter_y+0.5, action, arg, shift_pressed, false);
+						AI::CommandUnit(Dimension::unitsSelected.at(0), ter_x, ter_y, action, arg, shift_pressed, false);
 					}
 				}
 				else
@@ -486,7 +487,7 @@ namespace Game
 					}
 					else if (clicked_on_ground)
 					{
-						AI::CommandUnits(Dimension::unitsSelected, ter_x+0.5, ter_y+0.5, action, arg, shift_pressed, false);
+						AI::CommandUnits(Dimension::unitsSelected, ter_x, ter_y, action, arg, shift_pressed, false);
 					}
 				}
 			}
@@ -586,7 +587,7 @@ namespace Game
 									Dimension::Unit* p = Dimension::unitsSelected.at(i);
 
 									if (Networking::isNetworked)
-										Networking::PrepareDamaging(p, p->health+1);
+										Networking::PrepareDamaging(p, p->type->maxHealth+1);
 									else
 										Dimension::KillUnit(p);
 								}
@@ -729,12 +730,17 @@ namespace Game
 						{
 							if (Networking::isNetworked)
 							{
-								Networking::PrepareSell(Dimension::GetCurrentPlayer(), 100.0);
+								Networking::PrepareSell(Dimension::GetCurrentPlayer(), 100);
 							}
 							else
 							{
-								Dimension::SellPower(Dimension::GetCurrentPlayer(), 100.0);
+								Dimension::SellPower(Dimension::GetCurrentPlayer(), 100);
 							}
+							break;
+						}
+						case SDLK_w:
+						{
+							Dimension::SaveGame("save.xml");
 							break;
 						}
 						case SDLK_g:
