@@ -4,6 +4,8 @@
 #include <string>
 #include <fstream>
 #include <stack>
+#include <vector>
+#include <map>
 #include "sdlheader.h"
 
 #ifdef DEBUG_DEP
@@ -12,6 +14,7 @@
 
 namespace Utilities
 {
+	
 	class XMLWriter
 	{
 		private:
@@ -32,6 +35,61 @@ namespace Utilities
 		void Write(float f);
 		void Write(double d);
 		void EndTag();
+	};
+
+	enum XMLType
+	{
+		XMLTYPE_STRING,
+		XMLTYPE_DATA
+	};
+
+	struct XMLData;
+
+	union XMLItem
+	{
+		std::string *str;
+		XMLData *xmlData;
+	};
+
+	struct XMLData
+	{
+		unsigned index;
+		std::string tag;
+		std::vector<XMLType> types;
+		std::vector<XMLItem> items;
+		std::map<std::string, std::vector<XMLData*> > itemsByTag;
+		XMLData()
+		{
+			index = 0;
+		}
+	};
+
+	class XMLReader
+	{
+		private:
+		std::ifstream ifile;
+		std::stack<std::string> tags;
+		int level;
+		XMLData *data;
+
+		std::string ReadTag();
+		bool ReadDeclaration();
+		XMLData *ReadTagBlock();
+		XMLData *ReadText();
+		void Deallocate(XMLData *data);
+
+		public:
+		XMLReader();
+		~XMLReader();
+		bool Read(std::string filename);
+		void Iterate(XMLData *data, std::map<std::string, void (*)(XMLData *data)> tag_funcs, void (*text_func)(std::string text));
+		void Iterate(XMLData *data, std::string tag, void (*tag_func)(XMLData *data), void (*text_func)(std::string text));
+		void Iterate(XMLData *data, std::string tag, void (*tag_func)(XMLData *data));
+		void Iterate(XMLData *data, void (*text_func)(std::string text));
+		void Iterate(std::map<std::string, void (*)(XMLData *data)> tag_funcs, void (*text_func)(std::string text));
+		void Iterate(std::string tag, void (*tag_func)(XMLData *data), void (*text_func)(std::string text));
+		void Iterate(std::string tag, void (*tag_func)(XMLData *data));
+		void Deallocate();
 	};
 }
 

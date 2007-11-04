@@ -1,3 +1,7 @@
+#ifdef __CONFIG_H__
+#include "config.h"
+#endif
+
 #ifdef WIN32
 	#pragma warning(disable:4250)
 	#pragma warning(disable:4244) // << note!! Could be useful in some situations!

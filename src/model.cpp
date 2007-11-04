@@ -270,8 +270,8 @@ namespace  Utilities
 		Unit->attackSpeed = 0.0f;
 		Unit->size = 0.0f;
 		Unit->height = 0.0f;
-		Unit->buildTime = 0.0f;
-		Unit->researchTime = 0.0f;
+		Unit->buildTime = 0;
+		Unit->researchTime = 0;
 		Unit->Model = NULL;
 		Unit->canBuild = NULL;
 		Unit->canResearch = NULL;
@@ -366,7 +366,7 @@ namespace  Utilities
 				{
 					case Float: //Convert to float.
 					{
-						store.floating = atof((*Position).c_str());
+						store.floating = (float) atof((*Position).c_str());
 						break;
 					}
 					case Integer: //Convert to integer
@@ -408,7 +408,7 @@ namespace  Utilities
 					{
 						return false;
 					}
-					values[counter] = atof((*Position).c_str());
+					values[counter] = (float) atof((*Position).c_str());
 					counter++;
 				}
 				if(Position == tokens.end())
@@ -437,7 +437,7 @@ namespace  Utilities
 			{
 				CreateUnitData(current);
 				current->type = tTyp;
-				current->param.floating = atof((*Position).c_str());
+				current->param.floating = (float) atof((*Position).c_str());
 				break;
 			}
 			case Integer: //Convert to integer
@@ -491,7 +491,7 @@ namespace  Utilities
 				while(Position != tokens.end())
 				{
 					if(GetDataType(*Position) == Float)
-						current->param.floatArray->push_back(atof((*Position).c_str()));
+						current->param.floatArray->push_back((float) atof((*Position).c_str()));
 
 					if((*Position).at(0) == ']')
 						break;
@@ -695,7 +695,7 @@ namespace  Utilities
 		string::iterator tokensIterator;
 		for( tokensIterator = token.begin(); tokensIterator != token.end(); tokensIterator++ ) 
 		{
-			if((char)(*tokensIterator) >= '0' && (char)(*tokensIterator) <= '9' || (char)(*tokensIterator) == '-')
+			if((char)((*tokensIterator) >= '0' && (char)(*tokensIterator) <= '9') || (char)(*tokensIterator) == '-')
 			{
 				
 			}
@@ -1016,7 +1016,7 @@ namespace  Utilities
 											DataType typ = GetDataType(*tokensIterator);
 											if(typ == Float)
 											{
-												obj->value[c] = atof((*tokensIterator).c_str());
+												obj->value[c] = (float) atof((*tokensIterator).c_str());
 												c++;
 												if(c == 3)
 													break;
@@ -1090,7 +1090,7 @@ namespace  Utilities
 													{
 														for(int i = 0; i < 3; i++)
 														{
-															float coord = atof((*tokensIterator).c_str());
+															float coord = (float) atof((*tokensIterator).c_str());
 															coordStruct->points.push_back(coord);
 															tokensIterator++;	
 														}
@@ -1181,7 +1181,7 @@ namespace  Utilities
 											DataType dataType = GetDataType(*tokensIterator);
 											if(dataType == Float)
 											{
-												float nb = atof((*tokensIterator).c_str());
+												float nb = (float) atof((*tokensIterator).c_str());
 												
 												coords->points.push_back(nb);
 											}
@@ -1401,7 +1401,7 @@ namespace  Utilities
 												case Material_Ambient: //1 float
 												{
 													if(GetNextType(tokensIterator, tokens, Float) == true)
-														mat->ambientIntensity = atof((*tokensIterator).c_str());
+														mat->ambientIntensity = (float) atof((*tokensIterator).c_str());
 													else
 														return MODEL_ERROR_PARSE;
 													break;
@@ -1411,7 +1411,7 @@ namespace  Utilities
 													for(int i = 0; i < 3; i++)
 													{
 														if(GetNextType(tokensIterator, tokens, Float) == true)
-															mat->diffuseColor[i] = atof((*tokensIterator).c_str());
+															mat->diffuseColor[i] = (float) atof((*tokensIterator).c_str());
 														else
 															return MODEL_ERROR_PARSE;
 														tokensIterator++;
@@ -1423,7 +1423,7 @@ namespace  Utilities
 													for(int i = 0; i < 3; i++)
 													{
 														if(GetNextType(tokensIterator, tokens, Float) == true)
-															mat->specularColor[i] = atof((*tokensIterator).c_str());
+															mat->specularColor[i] = (float) atof((*tokensIterator).c_str());
 														else
 															return MODEL_ERROR_PARSE;
 														tokensIterator++;
@@ -1433,7 +1433,7 @@ namespace  Utilities
 												case Material_Transperency: //1 float
 												{
 													if(GetNextType(tokensIterator, tokens, Float) == true)
-														mat->transperency = atof((*tokensIterator).c_str());
+														mat->transperency = (float) atof((*tokensIterator).c_str());
 													else
 														return MODEL_ERROR_PARSE;
 														break;
@@ -1441,7 +1441,7 @@ namespace  Utilities
 												case Material_Shininess: //1 float
 												{
 													if(GetNextType(tokensIterator, tokens, Float) == true)
-														mat->shininess = atof((*tokensIterator).c_str());
+														mat->shininess = (float) atof((*tokensIterator).c_str());
 													else
 														return MODEL_ERROR_PARSE;
 												
@@ -1958,6 +1958,8 @@ namespace  Utilities
 						FETCH_UNIT_VALUE(WidthOnMap, widthOnMap, integer)
 						FETCH_UNIT_VALUE(BuildCost, buildCost, integer)
 						FETCH_UNIT_VALUE(ResearchCost, researchCost, integer)
+						FETCH_UNIT_VALUE(BuildTime, buildTime, integer)
+						FETCH_UNIT_VALUE(ResearchTime, researchTime, integer)
 						case IsMobile:
 						{
 							if(currentUnit->param.integer == 0)
@@ -2033,8 +2035,6 @@ namespace  Utilities
 						FETCH_UNIT_VALUE(MovementSpeed, movementSpeed, floating)
 						FETCH_UNIT_VALUE(Size, size, floating)
 						FETCH_UNIT_VALUE(Height, height, floating)
-						FETCH_UNIT_VALUE(BuildTime, buildTime, floating)
-						FETCH_UNIT_VALUE(ResearchTime, researchTime, floating)
 						FETCH_UNIT_VALUE(LightRange, lightRange, floating)	
 						FETCH_UNIT_VALUE(PowerIncrement, powerIncrement, floating)
 						FETCH_UNIT_VALUE(PowerUsage, powerUsage, floating)
@@ -2805,7 +2805,7 @@ namespace  Utilities
 								}
 								else if (strcmp("strength", token) == 0)
 								{
-									strength = atof(value);
+									strength = (float) atof(value);
 									
 									if (strength > 255.0f)
 										return MODEL_ERROR_INVALID_FORMAT;

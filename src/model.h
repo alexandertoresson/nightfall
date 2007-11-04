@@ -289,8 +289,8 @@ namespace Utilities
 				float       attackSpeed;   // in times per second
 				float       size;          // size of unit -- how to scale it
 				float       height;
-				float       buildTime;     // seconds to build
-				float       researchTime;     // seconds to research
+				int       buildTime;     // seconds to build
+				int       researchTime;     // seconds to research
 
 				UnitProjectileType *projectileType;
 				

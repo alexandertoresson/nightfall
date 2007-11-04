@@ -162,8 +162,8 @@ namespace Game
 
 			// Translate to the position of the terrain at the position of the unit
 			unit_y = GetTerrainHeight(unit_x, unit_z) + z;
-			glTranslatef(unit_x * 0.125 - terrainOffsetX, unit_y, unit_z * 0.125 - terrainOffsetY);
-			glScalef(0.0625*scale, 0.0625*scale, 0.0625*scale);
+			glTranslatef(unit_x * 0.125f - terrainOffsetX, unit_y, unit_z * 0.125f - terrainOffsetY);
+			glScalef(0.0625f*scale, 0.0625f*scale, 0.0625f*scale);
 		}
 
 		// Set the coordinate space of a unit, so you then can just render the unit and it will be placed at the appropriate
@@ -179,16 +179,16 @@ namespace Game
 
 				if ((type->widthOnMap >> 1) << 1 == type->widthOnMap)
 				{
-					unit_x -= 0.5;
+					unit_x -= 0.5f;
 				}
 				if ((type->heightOnMap >> 1) << 1 == type->heightOnMap)
 				{
-					unit_z -= 0.5;
+					unit_z -= 0.5f;
 				}
 				
 				// Translate to the position of the terrain at the position of the unit
 				unit_y = GetTerrainHeight(unit_x, unit_z);
-				glTranslatef(unit_x * 0.125 - terrainOffsetX, unit_y, unit_z * 0.125 - terrainOffsetY);
+				glTranslatef(unit_x * 0.125f - terrainOffsetX, unit_y, unit_z * 0.125f - terrainOffsetY);
 
 				// rotate so the unit will be placed correctly onto possibly leaning ground, by rotating by the difference between
 				// the up vector and the terrain normal (get degrees to rotate by with dot product, get axis with cross product)
@@ -198,7 +198,7 @@ namespace Game
 				rotate_axis = up_vector;
 				rotate_axis.cross(normal);
 
-				degrees_to_rotate = acos(up_vector.dot(normal)) * (180 / PI);
+				degrees_to_rotate = acos(up_vector.dot(normal)) * (float) (180 / PI);
 
 				glRotatef(degrees_to_rotate, rotate_axis.x, rotate_axis.y, rotate_axis.z);
 
@@ -207,12 +207,12 @@ namespace Game
 				
 				// scale down
 				if (ignoreCompleteness)
-					glScalef(0.0625*type->size, 0.0625*type->size, 0.0625*type->size);
+					glScalef(0.0625f*type->size, 0.0625f*type->size, 0.0625f*type->size);
 				else
-					glScalef(0.0625*type->size * unit->completeness / 100.0, 0.0625*type->size * unit->completeness / 100.0, 0.0625*type->size * unit->completeness / 100.0);
+					glScalef(0.0625f*type->size * unit->completeness / 100.0f, 0.0625f*type->size * unit->completeness / 100.0f, 0.0625f*type->size * unit->completeness / 100.0f);
 				
 				// translate upwards (in the direction of the terrain normal, because of the rotation before)
-				glTranslatef(0.0, 1.05, 0.0);
+				glTranslatef(0.0f, 1.05f, 0.0f);
 				
 		}
 
@@ -232,7 +232,7 @@ namespace Game
 			rotate_axis = up_vector;
 			rotate_axis.cross(normal);
 
-			degrees_to_rotate = acos(up_vector.dot(normal)) * (180 / PI);
+			degrees_to_rotate = acos(up_vector.dot(normal)) * (float) (180 / PI);
 
 			glRotatef(-degrees_to_rotate, rotate_axis.x, rotate_axis.y, rotate_axis.z);
 
@@ -292,12 +292,12 @@ namespace Game
 				rotate_axis = up_vector;
 				rotate_axis.cross(proj->direction);
 
-				degrees_to_rotate = acos(up_vector.dot(proj->direction)) * (180 / PI);
+				degrees_to_rotate = acos(up_vector.dot(proj->direction)) * (float) (180 / PI);
 
 				glRotatef(degrees_to_rotate, rotate_axis.x, rotate_axis.y, rotate_axis.z);
 
 				// scale down
-				glScalef(0.0625*type->size, 0.0625*type->size, 0.0625*type->size);
+				glScalef(0.0625f*type->size, 0.0625f*type->size, 0.0625f*type->size);
 				
 		}
 
@@ -306,10 +306,25 @@ namespace Game
 			return validUnitPointers[unit];
 		}
 
+		Unit *GetUnitByID(unsigned id)
+		{
+			if (id < 65536)
+			{
+				return unitByID[id];
+			}
+			return NULL;
+		}
+
 		void GetSizeUpperLeftCorner(int size, float mx, float my, int& lx, int& uy)
 		{
 			lx = (int) mx - (size>>1);
 			uy = (int) my - (size>>1);
+		}
+
+		void GetSizeUpperLeftCorner(int size, int mx, int my, int& lx, int& uy)
+		{
+			lx = mx - (size>>1);
+			uy = my - (size>>1);
 		}
 
 		void GetTypeUpperLeftCorner(UnitType* type, int mx, int my, int& lx, int& uy)
@@ -326,8 +341,8 @@ namespace Game
 
 		void GetTypeUpperLeftCorner(UnitType* type, float mx, float my, float& lx, float& uy)
 		{
-			lx = floor(mx) - (type->widthOnMap>>1);
-			uy = floor(my) - (type->heightOnMap>>1);
+			lx = floor(mx) - (float) (type->widthOnMap>>1);
+			uy = floor(my) - (float) (type->heightOnMap>>1);
 		}
 
 		void GetUnitUpperLeftCorner(Unit* unit, int& lx, int& uy)
@@ -405,7 +420,7 @@ namespace Game
 				}
 				else
 				{
-					distance = sqrt(dist_x * dist_x + dist_y * dist_y);
+					distance = (float) sqrt(dist_x * dist_x + dist_y * dist_y);
 					if (distance >= minrange)
 					{
 						return true;
@@ -414,7 +429,7 @@ namespace Game
 			}
 			else if (abs_int(dist_x) <= maxrange && abs_int(dist_y) <= maxrange && dist_both + (dist_both >> 1) <= maxrange)
 			{
-				distance = sqrt(dist_x * dist_x + dist_y * dist_y);
+				distance = (float) sqrt(dist_x * dist_x + dist_y * dist_y);
 				if ((distance <= maxrange) && (distance >= minrange))
 				{
 					return true;
@@ -493,6 +508,11 @@ namespace Game
 			return sqrt(pow(x, 2) + pow(y, 2));
 		}
 
+		float Distance2D(int x, int y)
+		{
+			return sqrt(float(x * x + y * y));
+		}
+
 		RangeScanlines *GenerateRangeScanlines(float maxrange)
 		{
 			RangeScanlines *ret = new RangeScanlines;
@@ -539,7 +559,7 @@ namespace Game
 				ret->array[y] = new char[size];
 				for (int x = 0; x < size; x++)
 				{
-					float distance = Distance2D(x - offset, y - offset);
+					float distance = Distance2D(float(x - offset), float(y - offset));
 					ret->array[y][x] = distance <= maxrange && distance >= minrange;
 				}
 			}
@@ -784,10 +804,10 @@ namespace Game
 			int dist_x, dist_y, dist_both;
 			float range = type->lightRange;
 
-			start_x = x - type->lightRange < 0 ? 0 : (int) (x - type->lightRange);
-			start_y = y - type->lightRange < 0 ? 0 : (int) (y - type->lightRange);
-			end_x = x + type->lightRange >= pWorld->width ? pWorld->width-1 : (int) (x + type->lightRange);
-			end_y = y + type->lightRange >= pWorld->height ? pWorld->height-1 : (int) (y + type->lightRange);
+			start_x = (float) x - type->lightRange < 0 ? 0 : x - (int) type->lightRange;
+			start_y = (float) y - type->lightRange < 0 ? 0 : y - (int) type->lightRange;
+			end_x = (float) x + type->lightRange >= pWorld->width ? pWorld->width-1 : x + (int) type->lightRange;
+			end_y = (float) y + type->lightRange >= pWorld->height ? pWorld->height-1 : y + (int) type->lightRange;
 
 			dist_y = start_y - y;
 
@@ -942,7 +962,7 @@ namespace Game
 
 		double GetIncomeAtNoon(Player* player)
 		{
-			float income = 0;
+			double income = 0;
 			for (vector<Unit*>::iterator it = player->vUnits.begin(); it != player->vUnits.end(); it++)
 			{
 				UnitType* unittype = (*it)->type;
@@ -954,7 +974,7 @@ namespace Game
 
 		double GetIncomeAtNight(Player* player)
 		{
-			float income = 0;
+			double income = 0;
 			for (vector<Unit*>::iterator it = player->vUnits.begin(); it != player->vUnits.end(); it++)
 			{
 				UnitType* unittype = (*it)->type;
@@ -1123,7 +1143,7 @@ namespace Game
 			direction.set(pos.x - unit->pos.x, 0.0, pos.y - unit->pos.y);
 			direction.normalize();
 			zero_rot.set(-1.0, 0.0, 0.0);
-			unit->rotation = acos(zero_rot.dot(direction)) * (180 / PI);
+			unit->rotation = acos(zero_rot.dot(direction)) * (float) (180 / PI);
 			if (direction.z < 0) unit->rotation = 180 - unit->rotation + 180;
 		}
 
@@ -1248,7 +1268,7 @@ namespace Game
 				unit->faceTarget = FACETARGET_TARGET;
 			}
 
-			build_cost = unit->pMovementData->action.goal.unit->type->buildCost / (unit->pMovementData->action.goal.unit->type->buildTime * AI::aiFps);
+			build_cost = (float) unit->pMovementData->action.goal.unit->type->buildCost / (float) (unit->pMovementData->action.goal.unit->type->buildTime * AI::aiFps);
 
 			if (unit->owner->resources.money < build_cost)
 			{
@@ -1266,12 +1286,12 @@ namespace Game
 
 			unit->owner->resources.money -= build_cost;
 
-			unit->pMovementData->action.goal.unit->completeness += 100.0 / (unit->pMovementData->action.goal.unit->type->buildTime * AI::aiFps);
-			unit->pMovementData->action.goal.unit->health += unit->pMovementData->action.goal.unit->type->maxHealth / (unit->pMovementData->action.goal.unit->type->buildTime * AI::aiFps);
+			unit->pMovementData->action.goal.unit->completeness += 100.0f / float(unit->pMovementData->action.goal.unit->type->buildTime * AI::aiFps);
+			unit->pMovementData->action.goal.unit->health += (float) unit->pMovementData->action.goal.unit->type->maxHealth / float(unit->pMovementData->action.goal.unit->type->buildTime * AI::aiFps);
 
 			if (unit->pMovementData->action.goal.unit->health >= unit->pMovementData->action.goal.unit->type->maxHealth)
 			{
-				unit->pMovementData->action.goal.unit->health = unit->pMovementData->action.goal.unit->type->maxHealth;
+				unit->pMovementData->action.goal.unit->health = (float) unit->pMovementData->action.goal.unit->type->maxHealth;
 			}
 
 			if (unit->pMovementData->action.goal.unit->completeness >= 100.0)
@@ -1352,7 +1372,7 @@ namespace Game
 
 			unit->owner->resources.money -= research_cost;
 
-			unit->action_completeness += 100.0 / (research_type->buildTime * AI::aiFps);
+			unit->action_completeness += 100.0f / float(research_type->buildTime * AI::aiFps);
 
 			if (unit->action_completeness >= 100.0)
 			{
@@ -1374,7 +1394,7 @@ namespace Game
 			if (pUnit->pMovementData->action.arg == NULL)
 				return;
 
-			float cost;
+			int cost;
 			Dimension::UnitType* build_type = (Dimension::UnitType*) pUnit->pMovementData->action.arg;
 
 			if (pUnit->pMovementData->action.goal.unit && pUnit->pMovementData->action.goal.unit->action != AI::ACTION_DIE)
@@ -1385,7 +1405,7 @@ namespace Game
 					int new_x = pUnit->curAssociatedSquare.x, new_y = pUnit->curAssociatedSquare.y;
 
 					cost = build_type->buildCost;
-					pUnit->owner->resources.money += cost * target->completeness / 200;
+					pUnit->owner->resources.money += (float) cost * target->completeness / 200;
 
 					// The following is needed because DeleteUnit() expects the unit to be complete and visible.
 					GetNearestUnoccupiedPosition(target->type, new_x, new_y);
@@ -1403,17 +1423,17 @@ namespace Game
 
 		void CancelResearch(Dimension::Unit* pUnit)
 		{
-			float cost;
+			int cost;
 			Dimension::UnitType* research_type = (Dimension::UnitType*) pUnit->pMovementData->action.arg;
 			cost = research_type->researchCost;
-			pUnit->owner->resources.money += cost * pUnit->action_completeness / 200;
+			pUnit->owner->resources.money += (float)cost * pUnit->action_completeness / 200;
 			AI::SendUnitEventToLua_ResearchCancelled(pUnit);
 		}
 
 		// returns true when the unit can attack at the current time
 		bool CanAttack(Unit* attacker)
 		{
-			if (AI::currentFrame - attacker->lastAttack >= (AI::aiFps / attacker->type->attackSpeed))
+			if (AI::currentFrame - attacker->lastAttack >= ((float)AI::aiFps / attacker->type->attackSpeed))
 			{
 				return true;
 			}
@@ -1448,14 +1468,14 @@ namespace Game
 		Uint16 a_seed = 23467;
 		float attack_rand()
 		{
-			a_seed = (a_seed + 82473) ^ 53672;
-			return (a_seed / 65535.0);
+			a_seed = (Uint16) ( ((int) a_seed + 82473) ^ 53672);
+			return ((float)a_seed / 65535.0f);
 		}
 
 		// calculate how much damage a unit does
 		float CalcUnitDamage(Unit* unit)
 		{
-			return unit->type->minAttack + (unit->type->maxAttack - unit->type->minAttack) * attack_rand();
+			return (float) unit->type->minAttack + float(unit->type->maxAttack - unit->type->minAttack) * attack_rand();
 		}
 
 		void InitiateAttack(Unit* attacker, Unit* target)
@@ -1497,7 +1517,7 @@ namespace Game
 			{
 				goto_pos = target->pos;
 				goal_pos = Dimension::GetTerrainCoordHighestLevel(goto_pos.x, goto_pos.y);
-				goal_pos.y += target->type->height * 0.25 * 0.0625;
+				goal_pos.y += target->type->height * 0.25f * 0.0625f;
 				Projectile *proj = CreateProjectile(attacker->type->projectileType, Dimension::GetTerrainCoordHighestLevel(attacker->pos.x, attacker->pos.y), goal_pos);
 				proj->goalUnit = target;
 				attacker->projectiles.push_back(proj);
@@ -1611,7 +1631,7 @@ namespace Game
 #ifdef CHECKSUM_DEBUG_HIGH
 					Networking::checksum_output << "MOVE " << proj->direction.x << ", " << proj->direction.y << ", " << proj->direction.z << "\n";
 #endif
-					proj->pos += proj->direction * proj->type->speed * (1.0 / AI::aiFps);
+					proj->pos += proj->direction * proj->type->speed * (1.0f / (float) AI::aiFps);
 					index++;
 				}
 			}
@@ -1738,12 +1758,12 @@ namespace Game
 					if (x >= 0 && y >= 0 && x < pWorld->width && y < pWorld->height)
 					{
 						is_lighted = pWorld->NumLightsOnSquare[y][x] > 0 ? 1 : 0;
-						temp += is_lighted;
+						temp += (float) is_lighted;
 						num++;
 					}
 				}
 			}
-			return temp / num;
+			return temp / (float) num;
 		}
 
 		bool UnitIsVisible(Unit *unit, Player *player)
@@ -2984,8 +3004,8 @@ namespace Game
 
 			if (should_move)
 			{
-				goto_pos.x = pUnit->pMovementData->pCurGoalNode->x + 0.5;
-				goto_pos.y = pUnit->pMovementData->pCurGoalNode->y + 0.5;
+				goto_pos.x = (float) pUnit->pMovementData->pCurGoalNode->x + 0.5f;
+				goto_pos.y = (float) pUnit->pMovementData->pCurGoalNode->y + 0.5f;
 
 				if (!pUnit->pMovementData->pCurGoalNode->pParent)
 				{
@@ -2993,13 +3013,13 @@ namespace Game
 					return true;
 				}
 
-				distance_per_frame = pUnit->type->movementSpeed / AI::aiFps / 
-				                     (GetTraversalTime(pUnit,
+				distance_per_frame = pUnit->type->movementSpeed / (float) AI::aiFps / 
+				                     ((float)GetTraversalTime(pUnit,
 						                       pUnit->pMovementData->pCurGoalNode->pParent->x,
 								       pUnit->pMovementData->pCurGoalNode->pParent->y,
 								       pUnit->pMovementData->pCurGoalNode->x - pUnit->pMovementData->pCurGoalNode->pParent->x,
 								       pUnit->pMovementData->pCurGoalNode->y - pUnit->pMovementData->pCurGoalNode->pParent->y)
-				                      / 10.0);
+				                      / 10.0f);
 
 				distance = Distance2D(goto_pos.x - pUnit->pos.x, goto_pos.y - pUnit->pos.y);
 
@@ -3017,10 +3037,10 @@ namespace Game
 				}
 
 				if (!pUnit->pMovementData->switchedSquare &&
-				    Distance2D(pUnit->pos.x + move.x - pUnit->pMovementData->pCurGoalNode->pParent->x - 0.5,
-					       pUnit->pos.y + move.y - pUnit->pMovementData->pCurGoalNode->pParent->y - 0.5) > 
-				    Distance2D(pUnit->pos.x + move.x - pUnit->pMovementData->pCurGoalNode->x - 0.5,
-					       pUnit->pos.y + move.y - pUnit->pMovementData->pCurGoalNode->y - 0.5))
+				    Distance2D(pUnit->pos.x + move.x - (float) pUnit->pMovementData->pCurGoalNode->pParent->x - 0.5f,
+					       pUnit->pos.y + move.y - (float) pUnit->pMovementData->pCurGoalNode->pParent->y - 0.5f) > 
+				    Distance2D(pUnit->pos.x + move.x - (float) pUnit->pMovementData->pCurGoalNode->x - 0.5f,
+					       pUnit->pos.y + move.y - (float) pUnit->pMovementData->pCurGoalNode->y - 0.5f))
 				{
 #ifdef CHECKSUM_DEBUG_HIGH
 					Networking::checksum_output << "ATTEMPT " << AI::currentFrame << ": " << pUnit->id << " " << pUnit->pMovementData->pCurGoalNode->x << " " << pUnit->pMovementData->pCurGoalNode->y << "\n";
@@ -3110,7 +3130,7 @@ namespace Game
 					{
 						zero_rot.set(-1.0, 0.0, 0.0);
 						move.normalize();
-						pUnit->rotation = acos(zero_rot.dot(move)) * (180 / PI);
+						pUnit->rotation = acos(zero_rot.dot(move)) * (float) (180 / PI);
 						if (move.z < 0) pUnit->rotation = 180 - pUnit->rotation + 180;
 						pUnit->faceTarget = FACETARGET_PATH;
 					}
@@ -3253,7 +3273,7 @@ namespace Game
 		{
 			Unit* unit;
 			Unit* cur_unit = 0;
-			float cur_dist = 1e23, dist;
+			float cur_dist = 1e10, dist;
 			for (vector<Dimension::Unit*>::iterator it = Dimension::pWorld->vUnits.begin(); it != Dimension::pWorld->vUnits.end(); it++)
 			{
 				unit = *it;
@@ -3278,17 +3298,17 @@ namespace Game
 		Uint16 r_seed = 23467;
 		float rotation_rand()
 		{
-			r_seed = (r_seed + 82473) ^ 53672;
-			return (r_seed / 65535.0);
+			r_seed = Uint16(((int) r_seed + 82473) ^ 53672);
+			return ((float)r_seed / 65535.0f);
 		}
 
 		// create a unit, but don't display it
-		Unit* CreateUnitNoDisplay(UnitType* type, Player* owner)
+		Unit* CreateUnitNoDisplay(UnitType* type, Player* owner, int id)
 		{
 			Unit* unit = new Unit;
 			unit->type = type;
-			unit->health = type->maxHealth;
-			unit->power = type->maxPower;
+			unit->health = (float) type->maxHealth;
+			unit->power = (float) type->maxPower;
 			unit->owner = owner;
 			unit->completeness = 100.0;
 			unit->isCompleted = true;
@@ -3326,6 +3346,11 @@ namespace Game
 
 			int tries = 0;
 
+			if (id != -1)
+			{
+				nextID = id;
+			}
+
 			while (unitByID[nextID])
 			{
 				nextID++;
@@ -3353,14 +3378,14 @@ namespace Game
 			return unit;
 		}
 		
-		bool DisplayUnit(Unit* unit, float x, float y)
+		bool DisplayUnit(Unit* unit, int x, int y)
 		{
 			if (pWorld->vUnits.size() >= 0xFFFF)
 			{
 				return false;
 			}
 
-			if (!SquaresAreWalkable(unit->type, (int) x, (int) y, SIW_ALLKNOWING))
+			if (!SquaresAreWalkable(unit->type, x, y, SIW_ALLKNOWING))
 			{
 				return false;
 			}
@@ -3368,8 +3393,8 @@ namespace Game
 			unit->pMovementData = new AI::MovementData;
  			AI::InitMovementData(unit);
 
-			unit->pos.x = x;
-			unit->pos.y = y;
+			unit->pos.x = (float) x;
+			unit->pos.y = (float) y;
 			SetAssociatedSquares(unit, (int)x, (int)y);
 			pWorld->vUnits.push_back(unit);
 			unit->owner->vUnits.push_back(unit);
@@ -3388,14 +3413,14 @@ namespace Game
 
 
 		// create a unit
-		Unit* CreateUnit(UnitType* type, Player* owner, float x, float y)
+		Unit* CreateUnit(UnitType* type, Player* owner, int x, int y, int id)
 		{
-			if (!SquaresAreWalkable(type, (int) x, (int) y, SIW_ALLKNOWING))
+			if (!SquaresAreWalkable(type, x, y, SIW_ALLKNOWING))
 			{
 //				cout << "buildfail" << endl;
 				return NULL;
 			}
-			Unit* unit = CreateUnitNoDisplay(type, owner);
+			Unit* unit = CreateUnitNoDisplay(type, owner, id);
 			DisplayUnit(unit, x, y);
 			return unit;
 		}
@@ -3744,7 +3769,7 @@ namespace Game
 			for (int i = 0; i < numKeyFrames; i++)
 			{
 				morphAnim->models[i] = LoadModel(va_arg(ap, char*));
-				morphAnim->keyFramePositions[i] = va_arg(ap, double);
+				morphAnim->keyFramePositions[i] = (float) va_arg(ap, double);
 			}
 
 			va_end(ap);
@@ -3799,7 +3824,7 @@ namespace Game
 			for (int i = 0; i < numKeyFrames; i++)
 			{
 				transAnim->transDatas[i] = va_arg(ap, TransformData*);
-				transAnim->keyFramePositions[i] = va_arg(ap, double);
+				transAnim->keyFramePositions[i] = (float) va_arg(ap, double);
 			}
 			
 			va_end(ap);
@@ -3903,7 +3928,7 @@ namespace Game
 						if (steepness > 255)
 							steepness = 255;
 
-						traversalTimeBySize[j][y][x] = 10 + (steepness >> 1);
+						traversalTimeBySize[j][y][x] = char(10 + (steepness >> 1));
 					}
 				}
 			}
@@ -4001,7 +4026,7 @@ namespace Game
 				}
 				pos_between_anim_frames[i] = (animPos - keyFramePositions[a_frames[i][1]]) / frameLength;
 				
-				pUnit->animData.sAnimData[i][animNum]->animPos += AI::aiFramesPerformedSinceLastRender / (float) AI::aiFps;
+				pUnit->animData.sAnimData[i][animNum]->animPos += (float) AI::aiFramesPerformedSinceLastRender / (float) AI::aiFps;
 //			}
 //			mix = Utilities::InterpolateCatmullRomBounded(0.0, 0.0, 1.0, 1.0, pUnit->animData.transitionPos / pUnit->animData.transitionLength);
 		}
@@ -4012,8 +4037,8 @@ namespace Game
 			int end_x, end_y;
 			bool outofbounds = false;
 			int start_x, start_y;
-			bool suitable = IsSuitableForBuilding(type, currentPlayerView, start_x, start_y);
 			GetTypeUpperLeftCorner(type, pos_x, pos_y, start_x, start_y);
+			bool suitable = IsSuitableForBuilding(type, currentPlayerView, start_x, start_y);
 			end_x = start_x + type->widthOnMap-1;
 			end_y = start_y + type->heightOnMap-1;
 
@@ -4041,10 +4066,10 @@ namespace Game
 					{
 						if (x >= 0 && y >= 0 && x < pWorld->width && y < pWorld->height)
 						{
-							ter[0][0] = Dimension::GetTerrainCoord(x, y);
-							ter[0][1] = Dimension::GetTerrainCoord(x+1, y);
-							ter[1][0] = Dimension::GetTerrainCoord(x, y+1);
-							ter[1][1] = Dimension::GetTerrainCoord(x+1, y+1);
+							ter[0][0] = Dimension::GetTerrainCoord((float)x, (float)y);
+							ter[0][1] = Dimension::GetTerrainCoord((float)x+1, (float)y);
+							ter[1][0] = Dimension::GetTerrainCoord((float)x, (float)y+1);
+							ter[1][1] = Dimension::GetTerrainCoord((float)x+1, (float)y+1);
 
 							if (outofbounds || !SquareIsWalkable(type, currentPlayerView, x, y, SIW_IGNORE_OWN_MOBILE_UNITS))
 							{
@@ -4156,7 +4181,7 @@ namespace Game
 			}
 			if (num)
 				for (int i = 0; i < 4; i++)
-					dest[i] = temp[i] / num;
+					dest[i] = temp[i] / (float) num;
 		}
 
 		void CalculateMaterial(Unit* unit, GLfloat& dest, GLfloat source, GLfloat (&mod)[2][2])
@@ -4181,7 +4206,7 @@ namespace Game
 				}
 			}
 			if (num)
-				dest = temp / num;
+				dest = temp / (float) num;
 		}
 
 		void RenderMorphAnim(Unit* unit, MorphAnim* morphAnim, int& animNum)
@@ -4193,12 +4218,12 @@ namespace Game
 			float pos_between_anim_frames[2];
 			float fade_out = 0.0f;
 			float mix = 0.0f;
-			GLfloat mixcol[] = {0.66, 0.66, 0.66, 1.0};
-			GLfloat ambient[4] = {0.0, 0.0, 0.0, 1.0};
-			GLfloat diffuse[4] = {0.1, 0.1, 0.1, 1.0};
-			GLfloat specular[4] = {0.0, 0.0, 0.0, 1.0};
-			GLfloat emission[4] = {0.0, 0.0, 0.0, 1.0};
-			GLfloat shininess = 10.0;
+			GLfloat mixcol[] = {0.66f, 0.66f, 0.66f, 1.0f};
+			GLfloat ambient[4] = {0.0f, 0.0f, 0.0f, 1.0f};
+			GLfloat diffuse[4] = {0.1f, 0.1f, 0.1f, 1.0f};
+			GLfloat specular[4] = {0.0f, 0.0f, 0.0f, 1.0f};
+			GLfloat emission[4] = {0.0f, 0.0f, 0.0f, 1.0f};
+			GLfloat shininess = 10.0f;
 
 //			glEnable(GL_NORMALIZE);
 
@@ -4224,7 +4249,7 @@ namespace Game
 
 			if (unit->action == AI::ACTION_DIE)
 			{
-				fade_out = 1.0f - (AI::currentFrame - unit->lastAttacked) / AI::aiFps;
+				fade_out = 1.0f - (float) (AI::currentFrame - unit->lastAttacked) / (float) AI::aiFps;
 				diffuse[3] = fade_out;
 				glDisable(GL_DEPTH_TEST);
 			}
@@ -4269,7 +4294,7 @@ namespace Game
 					a_models[i] = morphAnim->models[a_frames[0][i]];
 				}
 
-				float normal_scale_factor = 0.0625*unit->type->size * unit->completeness / 100.0;
+				float normal_scale_factor = 0.0625f*unit->type->size * unit->completeness / 100.0f;
 
 				for (int i = 0; i < tempModel->pointCount * 3; i++)
 				{
@@ -4315,7 +4340,7 @@ namespace Game
 
 				tempModel = morphAnim->tempModel;
 				
-				float normal_scale_factor = 0.0625*unit->type->size * unit->completeness / 100.0;
+				float normal_scale_factor = 0.0625f*unit->type->size * unit->completeness / 100.0f;
 
 				for (int i = 0; i < tempModel->pointCount * 3; i++)
 				{
@@ -4457,19 +4482,19 @@ namespace Game
 
 						SetUnitCoordSpace(unit, true);
 
-						glTranslatef(0.0, 0.625 * type->height, 0.0);
+						glTranslatef(0.0f, 0.625f * type->height, 0.0f);
 						SetBillBoardCoordSystem(unit);
 						
-						float scale_const = 1 / pow((double) type->size, 0.75);
+						float scale_const = 1.0f / pow((float) type->size, 0.75f);
 						glScalef(scale_const, scale_const, scale_const);
 						
 						// s = start
 						// e = end
 						// i = inner
-						float x_e = unit->type->widthOnMap / 2.0;
+						float x_e = (float) unit->type->widthOnMap / 2.0f;
 						float x_s = -x_e;
 						float y_s = 0.0;
-						float y_e = 0.2;
+						float y_e = 0.2f;
 						float progress = 0;
 
 /*
@@ -4481,7 +4506,7 @@ namespace Game
 
 						glBegin(GL_QUADS);
 						
-							progress = (float) (unit->health) / type->maxHealth * (x_e - x_s);
+							progress = (float) unit->health / (float) type->maxHealth * (x_e - x_s);
 
 							glColor4f(0.0f, 1.0f, 0.0f, 1.0f);
 							glVertex3f(x_s, y_s, 0.0);
@@ -4533,9 +4558,9 @@ namespace Game
 									Unit* target = unit->pMovementData->action.goal.unit;
 									if (!target->isCompleted)
 									{
-										y_s = -0.3;
-										y_e = -0.1;
-										progress = target->completeness / 100.0 * (x_e - x_s);
+										y_s = -0.3f;
+										y_e = -0.1f;
+										progress = target->completeness / 100.0f * (x_e - x_s);
 
 										glColor4f(1.0f, 0.75f, 0.0f, 1.0f);
 										glVertex3f(x_s, y_s, 0.0);
@@ -4590,9 +4615,9 @@ namespace Game
 							
 							if (unit->action == AI::ACTION_RESEARCH)
 							{
-								y_s = -0.3;
-								y_e = -0.1;
-								progress = unit->action_completeness / 100.0 * (x_e - x_s);
+								y_s = -0.3f;
+								y_e = -0.1f;
+								progress = unit->action_completeness / 100.0f * (x_e - x_s);
 
 								glColor4f(1.0f, 0.75f, 0.0f, 1.0f);
 								glVertex3f(x_s, y_s, 0.0);

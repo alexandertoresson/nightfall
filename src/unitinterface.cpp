@@ -79,7 +79,7 @@ namespace UnitLuaInterface
 
 	int LGetUnitMaxHealth(LuaVM* pVM)
 	{
-		float health = -1.0f;
+		int health = -1;
 		Unit* pUnit = _GetUnit(lua_touserdata(pVM, 1));
 
 		if (pUnit != NULL && IsValidUnitPointer(pUnit))
@@ -103,13 +103,13 @@ namespace UnitLuaInterface
 
 	int LGetUnitMaxPower(LuaVM* pVM)
 	{
-		float power = -1.0f;
+		int power = -1;
 		Unit* pUnit = _GetUnit(lua_touserdata(pVM, 1));
 
 		if (pUnit != NULL && IsValidUnitPointer(pUnit))
 			power = pUnit->type->maxPower;
 
-		lua_pushnumber(pVM, power);
+		lua_pushinteger(pVM, power);
 		return 1;
 	}
 
@@ -542,7 +542,7 @@ namespace UnitLuaInterface
 		float power = 0;
 
 		if (player)
-			power = GetPower(player);
+			power = (float) GetPower(player);
 
 		lua_pushnumber(pVM, power);
 		return 1;
@@ -554,7 +554,7 @@ namespace UnitLuaInterface
 		float money = 0;
 
 		if (player)
-			money = GetMoney(player);
+			money = (float) GetMoney(player);
 
 		lua_pushnumber(pVM, money);
 		return 1;
@@ -566,7 +566,7 @@ namespace UnitLuaInterface
 		float income = 0;
 
 		if (player)
-			income = GetIncomeAtNoon(player);
+			income = (float) GetIncomeAtNoon(player);
 
 		lua_pushnumber(pVM, income);
 		return 1;
@@ -578,7 +578,7 @@ namespace UnitLuaInterface
 		float income = 0;
 
 		if (player)
-			income = GetIncomeAtNight(player);
+			income = (float) GetIncomeAtNight(player);
 
 		lua_pushnumber(pVM, income);
 		return 1;
@@ -594,8 +594,8 @@ namespace UnitLuaInterface
 		if (pUnitType != NULL)
 		{
 			
-			income += pUnitType->powerIncrement;
-			income -= pUnitType->powerUsage + pUnitType->lightPowerUsage + (pUnitType->attackPowerUsage + pUnitType->movePowerUsage + pUnitType->buildPowerUsage) * 0.1;
+			income += (float) pUnitType->powerIncrement;
+			income -= float(pUnitType->powerUsage + pUnitType->lightPowerUsage + (pUnitType->attackPowerUsage + pUnitType->movePowerUsage + pUnitType->buildPowerUsage) * 0.1);
 		}
 
 		lua_pushnumber(pVM, income);
@@ -614,9 +614,9 @@ namespace UnitLuaInterface
 			
 			if (pUnitType->powerType == POWERTYPE_TWENTYFOURSEVEN)
 			{
-				income += pUnitType->powerIncrement;
+				income += (float) pUnitType->powerIncrement;
 			}
-			income -= pUnitType->powerUsage + pUnitType->lightPowerUsage + (pUnitType->attackPowerUsage + pUnitType->movePowerUsage + pUnitType->buildPowerUsage) * 0.1;
+			income -= float(pUnitType->powerUsage + pUnitType->lightPowerUsage + (pUnitType->attackPowerUsage + pUnitType->movePowerUsage + pUnitType->buildPowerUsage) * 0.1);
 		}
 
 		lua_pushnumber(pVM, income);
@@ -629,7 +629,7 @@ namespace UnitLuaInterface
 		float power = 0;
 
 		if (player)
-			power = GetPowerAtDawn(player);
+			power = (float) GetPowerAtDawn(player);
 
 		lua_pushnumber(pVM, power);
 		return 1;
@@ -641,7 +641,7 @@ namespace UnitLuaInterface
 		float power = 0;
 
 		if (player)
-			power = GetPowerAtDusk(player);
+			power = (float) GetPowerAtDusk(player);
 
 		lua_pushnumber(pVM, power);
 		return 1;
@@ -711,12 +711,12 @@ namespace UnitLuaInterface
 
 		CHECK_UNIT_PTR(pUnit)
 
-		float health = lua_tonumber(pVM, 2);
+		float health = (float) lua_tonumber(pVM, 2);
 		if (health < 0)
 			LUA_FAILURE("Health value lower than zero.")
 
 		if (health > pUnit->type->maxHealth)
-			health = pUnit->type->maxHealth;
+			health = (float) pUnit->type->maxHealth;
 
 		pUnit->health = health;
 
@@ -729,12 +729,12 @@ namespace UnitLuaInterface
 
 		CHECK_UNIT_PTR(pUnit)
 
-		float power = lua_tonumber(pVM, 2);
+		float power = (float) lua_tonumber(pVM, 2);
 		if (power < 0)
 			LUA_FAILURE("Power value lower than zero")
 
 		if (power > pUnit->type->maxPower)
-			power = pUnit->type->maxPower;
+			power = (float) pUnit->type->maxPower;
 
 		pUnit->power = power;
 
@@ -771,7 +771,7 @@ namespace UnitLuaInterface
 
 		CHECK_UNIT_PTR(pUnit)
 
-		float position[2] = { lua_tonumber(pVM, 2), lua_tonumber(pVM, 3) };
+		float position[2] = {(float) lua_tonumber(pVM, 2), (float) lua_tonumber(pVM, 3) };
 
 		if (SquaresAreWalkable(pUnit, (int)position[0], (int)position[1]) == false)
 			LUA_FAILURE("Designated goal isn't walkable")
@@ -788,7 +788,7 @@ namespace UnitLuaInterface
 
 		CHECK_UNIT_PTR(pUnit)
 
-		float rotation = lua_tonumber(pVM, 2);
+		float rotation = (float) lua_tonumber(pVM, 2);
 
 		while (rotation >= 360.0f)
 			rotation -= 360.0f;
@@ -897,12 +897,12 @@ namespace UnitLuaInterface
 		Vector3D location;
 		float x, y;
 
-		x = lua_tonumber(pVM, 2);
-		y = lua_tonumber(pVM, 3);
+		x = (float) lua_tonumber(pVM, 2);
+		y = (float) lua_tonumber(pVM, 3);
 
 		location = GetTerrainCoord(x, y);
 
-		location.z += 0.5;
+		location.z += 0.5f;
 
 		Projectile* p = CreateProjectile(pUnit->type->projectileType, 
 			                             GetTerrainCoord(pUnit->pos.x, pUnit->pos.y), 
@@ -946,24 +946,24 @@ namespace UnitLuaInterface
 	int LGetUnitTypeBuildCost(LuaVM* pVM)
 	{
 		UnitType* pUnitType = (UnitType*) lua_touserdata(pVM, 1);
-		float cost = 0;
+		int cost = 0;
 
 		if (pUnitType)
 			cost = pUnitType->buildCost;
 
-		lua_pushnumber(pVM, cost);
+		lua_pushinteger(pVM, cost);
 		return 1;
 	}
 	
 	int LGetUnitTypeResearchCost(LuaVM* pVM)
 	{
 		UnitType* pUnitType = (UnitType*) lua_touserdata(pVM, 1);
-		float cost = 0;
+		int cost = 0;
 
 		if (pUnitType)
 			cost = pUnitType->researchCost;
 
-		lua_pushnumber(pVM, cost);
+		lua_pushinteger(pVM, cost);
 		return 1;
 	}
 	
@@ -1084,11 +1084,11 @@ namespace UnitLuaInterface
 
 		if (Game::Networking::isNetworked)
 		{
-			Game::Networking::PrepareDamaging(pUnit, lua_tonumber(pVM, 2));
+			Game::Networking::PrepareDamaging(pUnit, (float) lua_tonumber(pVM, 2));
 		}
 		else
 		{
-			Attack(pUnit, lua_tonumber(pVM, 2));
+			Attack(pUnit, (float) lua_tonumber(pVM, 2));
 		}
 		return 0;
 	}
@@ -1308,8 +1308,6 @@ namespace UnitLuaInterface
 		MoveUnit(pUnit);
 		LUA_SUCCESS
 	}
-
-	bool IsValidUnitTypePointer(UnitType* unittype);
 
 	int LSetEventHandler(LuaVM* pVM)
 	{
@@ -1555,7 +1553,7 @@ namespace UnitLuaInterface
 		{
 			Unit* pUnit = CreateUnit(pUnitType, pOwner, position[0], position[1]);
 			if (pUnit)
-				pUnit->rotation = rotation;
+				pUnit->rotation = (float) rotation;
 		}
 
 		return 0;
@@ -1571,7 +1569,7 @@ namespace UnitLuaInterface
 		if (pOwner == NULL)
 			LUA_FAIL
 
-		float position[2] = { lua_tonumber(pVM, 3), lua_tonumber(pVM, 4) };
+		float position[2] = { (float) lua_tonumber(pVM, 3), (float) lua_tonumber(pVM, 4) };
 		if (position[0] < 0 || position[1] < 0)
 			LUA_FAIL
 
@@ -1612,7 +1610,7 @@ namespace UnitLuaInterface
 		Player* pPlayer = NULL;
 		for (it = pWorld->vPlayers.begin(); it != pWorld->vPlayers.end(); it++)
 		{
-			if (strcmp((*it)->name, name) == 0)
+			if (strcmp((*it)->name.c_str(), name) == 0)
 			{
 				pPlayer = *it;
 				break;
@@ -2203,8 +2201,8 @@ namespace UnitLuaInterface
 			LUA_FAILURE("LSetHours: Null pointer")
 		}
 		
-		p->hourBegin = lua_tonumber(pVM, 2);
-		p->hourEnd   = lua_tonumber(pVM, 3);
+		p->hourBegin = (float) lua_tonumber(pVM, 2);
+		p->hourEnd   = (float) lua_tonumber(pVM, 3);
 		
 		LUA_SUCCESS
 	}
@@ -2333,7 +2331,7 @@ namespace UnitLuaInterface
 		
 		for (int i = 0; i < 4; i++)
 		{
-			p->sunPos[i] = lua_tonumber(pVM, i + 2);
+			p->sunPos[i] = (float) lua_tonumber(pVM, i + 2);
 		}
 		
 		LUA_SUCCESS
@@ -2365,7 +2363,7 @@ namespace UnitLuaInterface
 		
 		for (int i = 0; i < 4; i++)
 		{
-			p->diffuse[i] = lua_tonumber(pVM, i + 2);
+			p->diffuse[i] = (float) lua_tonumber(pVM, i + 2);
 		}
 		
 		LUA_SUCCESS	
@@ -2397,7 +2395,7 @@ namespace UnitLuaInterface
 		
 		for (int i = 0; i < 4; i++)
 		{
-			p->ambient[i] = lua_tonumber(pVM, i + 2);
+			p->ambient[i] = (float) lua_tonumber(pVM, i + 2);
 		}
 		
 		LUA_SUCCESS
@@ -2427,9 +2425,9 @@ namespace UnitLuaInterface
 			LUA_FAILURE("LSetFogParams: Null pointer")
 		}
 		
-		p->fogBegin     = lua_tonumber(pVM, 2);
-		p->fogEnd       = lua_tonumber(pVM, 3);
-		p->fogIntensity = lua_tonumber(pVM, 4);
+		p->fogBegin     = (float) lua_tonumber(pVM, 2);
+		p->fogEnd       = (float) lua_tonumber(pVM, 3);
+		p->fogIntensity = (float) lua_tonumber(pVM, 4);
 		
 		LUA_SUCCESS
 	}
@@ -2460,7 +2458,7 @@ namespace UnitLuaInterface
 		
 		for (int i = 0; i < 4; i++)
 		{
-			p->fogColor[i] = lua_tonumber(pVM, i + 2);
+			p->fogColor[i] = (float) lua_tonumber(pVM, i + 2);
 		}
 		
 		LUA_SUCCESS
@@ -2559,7 +2557,7 @@ namespace UnitLuaInterface
 			LUA_FAILURE("LSetHourLength: Invalid value")
 		}
 		
-		Game::Dimension::Environment::FourthDimension::Instance()->SetHourLength((int)length);
+		Game::Dimension::Environment::FourthDimension::Instance()->SetHourLength((float)length);
 		
 		LUA_SUCCESS
 	}
@@ -2585,7 +2583,7 @@ namespace UnitLuaInterface
 			LUA_FAILURE("LSetCurrentHour: Invalid value")
 		}
 	
-		p->SetCurrentHour(n);
+		p->SetCurrentHour((float)n);
 		
 		LUA_SUCCESS
 	}
@@ -2904,7 +2902,7 @@ if (!lua_isnumber(pVM, -1)) \
 	lua_pop(pVM, 1); \
 	LUA_FAILURE("LCreateUnitType: Required field \"" field  "\" not found in unit description or is not a number") \
 } \
-dest = lua_tonumber(pVM, -1); \
+dest = (float) lua_tonumber(pVM, -1); \
 lua_pop(pVM, 1);
 
 #define	GET_FLOAT_FIELD_OPTIONAL(dest, field, def) \
@@ -2916,7 +2914,7 @@ if (!lua_isnumber(pVM, -1)) \
 } \
 else \
 { \
-	dest = lua_tonumber(pVM, -1); \
+	dest = (float) lua_tonumber(pVM, -1); \
 	lua_pop(pVM, 1); \
 }
 
@@ -2988,6 +2986,11 @@ else \
 		return validUnitTypePointers[unittype];
 	}
 
+	UnitType *GetUnitTypeByID(std::string str)
+	{
+		return unitTypeMap[str];
+	}
+
 	int LCreateUnitType(LuaVM* pVM)
 	{
 		UnitType *pUnitType;
@@ -3011,6 +3014,8 @@ else \
 		GET_INT_FIELD_OPTIONAL(pUnitType->widthOnMap, "widthOnMap", 0)
 		GET_INT_FIELD_OPTIONAL(pUnitType->buildCost, "buildCost", 0)
 		GET_INT_FIELD_OPTIONAL(pUnitType->researchCost, "researchCost", 0)
+		GET_INT_FIELD_OPTIONAL(pUnitType->buildTime, "buildTime", 0)
+		GET_INT_FIELD_OPTIONAL(pUnitType->researchTime, "researchTime", 0)
 
 		GET_ENUM_FIELD_OPTIONAL(pUnitType->powerType, "powerType", POWERTYPE_TWENTYFOURSEVEN, PowerType)
 		GET_ENUM_FIELD_OPTIONAL(pUnitType->movementType, "movementType", MOVEMENT_VEHICLE, MovementType)
@@ -3035,8 +3040,6 @@ else \
 		GET_FLOAT_FIELD_OPTIONAL(pUnitType->attackSpeed, "attackSpeed", 0.0)
 		GET_FLOAT_FIELD_OPTIONAL(pUnitType->size, "size", 0.0)
 		GET_FLOAT_FIELD_OPTIONAL(pUnitType->height, "height", 0.0)
-		GET_FLOAT_FIELD_OPTIONAL(pUnitType->buildTime, "buildTime", 0.0)
-		GET_FLOAT_FIELD_OPTIONAL(pUnitType->researchTime, "researchTime", 0.0)
 
 		bool isResearched = false;
 
@@ -3162,7 +3165,7 @@ else \
 				lua_gettable(pVM, -2);
 				if (lua_isnumber(pVM, -1))
 				{
-					pUnitType->projectileType->startPos.x = lua_tointeger(pVM, -1);
+					pUnitType->projectileType->startPos.x = (float) lua_tonumber(pVM, -1);
 				}
 				lua_pop(pVM, 1);
 				
@@ -3170,7 +3173,7 @@ else \
 				lua_gettable(pVM, -2);
 				if (lua_isnumber(pVM, -1))
 				{
-					pUnitType->projectileType->startPos.y = lua_tointeger(pVM, -1);
+					pUnitType->projectileType->startPos.y = (float) lua_tonumber(pVM, -1);
 				}
 				lua_pop(pVM, 1);
 				
@@ -3178,7 +3181,7 @@ else \
 				lua_gettable(pVM, -2);
 				if (lua_isnumber(pVM, -1))
 				{
-					pUnitType->projectileType->startPos.z = lua_tointeger(pVM, -1);
+					pUnitType->projectileType->startPos.z = (float) lua_tonumber(pVM, -1);
 				}
 				lua_pop(pVM, 1);
 			}

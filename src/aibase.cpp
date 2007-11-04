@@ -74,7 +74,7 @@ namespace Game
 			}
 		}
 
-		void SendCommandUnitToLua(Dimension::Unit* pUnit, float x, float y, UnitAction action, void* argument)
+		void SendCommandUnitToLua(Dimension::Unit* pUnit, int x, int y, UnitAction action, void* argument)
 		{
 			pUnit->lastCommand = SDL_GetTicks();
 			Utilities::Scripting::LuaVirtualMachine* pVM = Utilities::Scripting::GetPlayerVMInstance(pUnit->owner->index);
@@ -516,7 +516,7 @@ namespace Game
 			if (may_run_ai)
 			{
 				aiFramesPerformedSinceLastRender++;
-				Dimension::Environment::FourthDimension::Instance()->RotateWorld(1.00 / aiFps);
+				Dimension::Environment::FourthDimension::Instance()->RotateWorld(1.00f / (float) aiFps);
 
 				SDL_LockMutex(AI::GetMutex());
 
@@ -575,7 +575,7 @@ namespace Game
 						i--;
 					}
 				}
-				FX::pParticleSystems->Iterate(1.0f / aiFps);
+				FX::pParticleSystems->Iterate(1.0f / (float) aiFps);
 			}
 			else
 			{

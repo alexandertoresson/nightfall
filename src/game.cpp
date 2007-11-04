@@ -14,6 +14,8 @@
 #include "networking.h"
 #include "textures.h"
 #include "aipathfinding.h"
+#include "saveandload.h"
+#include "paths.h"
 #include <iostream>
 #include <fstream>
 #include <cmath>
@@ -185,6 +187,19 @@ namespace Game
 						}
 						break;
 					}
+					case LOADGAME:
+					{
+						mainWindow = GameWindow::Instance();
+						if (mainWindow->LoadGame() == SUCCESS)
+						{
+							nextState = GAME;
+						}
+						else
+						{
+							nextState = QUIT;
+						}
+						break;
+					}
 					case ENDGAME:
 					{
 						mainWindow = GameWindow::Instance();
@@ -284,7 +299,7 @@ namespace Game
 		GameWindow::GameWindow()
 		{
 			frames = 0;
-			time = 0;
+			last_status_time = 0;
 			start_drag_x = 0;
 			start_drag_y = 0;
 			end_drag_x = 0;
@@ -486,22 +501,33 @@ namespace Game
 			pLoading->SetMessage("Loading...");
 			pLoading->Update();
 
-			if (InitGame() != SUCCESS)
+			if (InitGame(true) != SUCCESS)
 			{
 				cout << "Failed to start game, see errors above to find out why." << endl;
 				gameRunning = false;
 				return ERROR_GENERAL;
 			}
 			
-			/*
-			SDL_Surface* img = Utilities::LoadImage("textures/terrain2.png");
-			Dimension::terraintexture = Utilities::CreateGLTexture(img);
-			
-			InitGUI(img);
-			
-			SDL_FreeSurface(img);
-			*/
+			delete pLoading;
+			gameRunning = true;
+			return SUCCESS;
+		}
 
+		int GameWindow::LoadGame()
+		{
+			pLoading = new Window::GUI::LoadWindow(1.0f); //90% Game, 10% GUI
+			pLoading->SetMessage("Loading...");
+			pLoading->Update();
+
+			if (InitGame(false) != SUCCESS)
+			{
+				cout << "Failed to start game, see errors above to find out why." << endl;
+				gameRunning = false;
+				return ERROR_GENERAL;
+			}
+
+			Dimension::LoadGame("save.xml");
+			
 			delete pLoading;
 			gameRunning = true;
 			return SUCCESS;
@@ -529,7 +555,7 @@ namespace Game
 			gameRunning = false;
 		}
 
-		int GameWindow::InitGame()
+		int GameWindow::InitGame(bool is_new_game)
 		{
 			input = new Dimension::InputController();
 			float increment = 0.9f / 11.0f; //0.9 (90%) divided on 11 updates...
@@ -612,10 +638,13 @@ namespace Game
 			pLoading->Increment(increment);
 
 			////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-			pVM->SetFunction("InitLevelUnits");
-			if (pVM->CallFunction(0, 1) != SUCCESS)
+			if (is_new_game)
 			{
-				return ERROR_GENERAL;
+				pVM->SetFunction("InitLevelUnits");
+				if (pVM->CallFunction(0, 1) != SUCCESS)
+				{
+					return ERROR_GENERAL;
+				}
 			}
 			pLoading->Increment(increment);
 			
@@ -767,7 +796,7 @@ namespace Game
 				glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
 				glBegin(GL_QUADS);
-					glColor4f(1.0f, 0.0f, 0.0f, 1.0 - (SDL_GetTicks() - goto_time) / 1000.0);
+					glColor4f(1.0f, 0.0f, 0.0f, 1.0f - (float) (SDL_GetTicks() - goto_time) / 1000.0f);
 					glNormal3f(0.0f, 1.0f, 0.0f);
 					glVertex3f(ter[0][0].x, ter[0][0].y, ter[0][0].z);
 					glVertex3f(ter[1][0].x, ter[1][0].y, ter[1][0].z);
@@ -847,17 +876,17 @@ namespace Game
 				last_frame = this_frame;
 			}
 			this_frame = SDL_GetTicks();
-			time_since_last_frame = (this_frame - last_frame) / 1000.0;
+			time_since_last_frame = (float) (this_frame - last_frame) / 1000.0f;
 
 			time_passed_since_last_ai_pass += time_since_last_frame;
 
 			if (!Game::Rules::noGraphics)
 			{
 				time_passed_since_last_water_pass += time_since_last_frame;
-				while (time_passed_since_last_water_pass >= (1.0 / 3))
+				while (time_passed_since_last_water_pass >= (1.0f / 3))
 				{
 					Dimension::CalculateWater();
-					time_passed_since_last_water_pass -= (1.0 / 3);
+					time_passed_since_last_water_pass -= (1.0f / 3);
 				}
 				
 				while (time_passed_since_last_ai_pass >= (1 / AI::aiFps))
@@ -866,7 +895,7 @@ namespace Game
 					Uint32 before_ai_pass = SDL_GetTicks();
 					AI::PerformAIFrame();
 					Uint32 after_ai_pass = SDL_GetTicks();
-					float time_ai_pass = (after_ai_pass - before_ai_pass) / 1000.0;
+					float time_ai_pass = (float) (after_ai_pass - before_ai_pass) / 1000.0f;
 
 					time_passed_since_last_ai_pass -= (1 / (float) AI::aiFps);
 					if (time_ai_pass > (1 / (float) AI::aiFps))
@@ -951,6 +980,8 @@ namespace Game
 
 		int GameWindow::RunLoop()
 		{
+			Uint32 last_save = SDL_GetTicks();
+
 			if (!Game::Rules::noGraphics)
 				glClearColor( 0.2f, 0.2f, 0.2f, 0.7f );
 
@@ -965,7 +996,7 @@ namespace Game
 			
 				frames++;
 
-				if (SDL_GetTicks() - time >= 1000)
+				if (SDL_GetTicks() - last_status_time >= 1000)
 				{
 					int avgcount = 0;
 					if (AI::numPaths)
@@ -973,9 +1004,9 @@ namespace Game
 						avgcount = AI::cCount / AI::numPaths;
 					}
 					if (Game::Rules::noGraphics)
-						cout << "Fps: " << (frames / (((float) (SDL_GetTicks() - time)) / 1000)) << " " << Dimension::pWorld->vUnits.size() << " " << AI::currentFrame << " c: " << AI::cCount << " t: " << AI::tCount << " f: " << AI::fCount << " p: " << AI::pCount << " n: " << AI::numPaths << " q: " << AI::GetQueueSize() << " f: " << AI::numFailed << " a: " << avgcount << " nrf: " << AI::notReachedFlood << " nrp: " << AI::notReachedPath << " nsc: " << Dimension::numSentCommands << " ngs1: " << AI::numGreatSuccess1 << " ngs2: " << AI::numGreatSuccess2 << endl;
+						cout << "Fps: " << ((float) frames / (((float) (SDL_GetTicks() - last_status_time)) / 1000.0f)) << " " << Dimension::pWorld->vUnits.size() << " " << AI::currentFrame << " c: " << AI::cCount << " t: " << AI::tCount << " f: " << AI::fCount << " p: " << AI::pCount << " n: " << AI::numPaths << " q: " << AI::GetQueueSize() << " f: " << AI::numFailed << " a: " << avgcount << " nrf: " << AI::notReachedFlood << " nrp: " << AI::notReachedPath << " nsc: " << Dimension::numSentCommands << " ngs1: " << AI::numGreatSuccess1 << " ngs2: " << AI::numGreatSuccess2 << endl;
 					else
-						console << "Fps: " << (frames / (((float) (SDL_GetTicks() - time)) / 1000)) << " " << Dimension::pWorld->vUnits.size() << Console::nl;
+						console << "Fps: " << ((float) frames / (((float) (SDL_GetTicks() - last_status_time)) / 1000.0f)) << " " << Dimension::pWorld->vUnits.size() << Console::nl;
 					AI::cCount = 0;
 					AI::tCount = 0;
 					AI::fCount = 0;
@@ -989,7 +1020,28 @@ namespace Game
 					AI::numGreatSuccess2 = 0;
 
 					frames = 0;
-					time = SDL_GetTicks();
+					last_status_time = SDL_GetTicks();
+				}
+				if (SDL_GetTicks() - last_save >= 300000)
+				{
+					bool exists;
+					time_t rawtime;
+
+					time(&rawtime);
+
+					char* time_string = ctime(&rawtime);
+					if (time_string[strlen(time_string)-1] == '\n')
+					{
+						time_string[strlen(time_string)-1] = '\0';
+					}
+
+					std::string filename = Utilities::GetWritableDataFile("autosaves/Autosave " + (std::string) time_string + ".xml", exists);
+					if (filename.length())
+					{
+						Dimension::SaveGame(filename);
+						system(("bzip2 \"" + filename + "\"").c_str());
+					}
+					last_save = SDL_GetTicks();
 				}
 
 			}

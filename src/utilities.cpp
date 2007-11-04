@@ -60,7 +60,7 @@ namespace Utilities
 
 		gluUnProject(winX, winY, winZ, modelview, projection, viewport, &posX, &posY, &posZ);
 
-		return Utilities::Vector3D(posX, posY, posZ);
+		return Utilities::Vector3D((float) posX, (float) posY, (float) posZ);
 	}		
 		
 	// Convert a coord in the current modelview coordinate space to a 2d position on screen
@@ -76,7 +76,7 @@ namespace Utilities
 		glGetDoublev (GL_PROJECTION_MATRIX, projmatrix);
 		
 		gluProject (world_coord.x, world_coord.y, world_coord.z, mvmatrix, projmatrix, viewport, &wx, &wy, &wz);
-		windows_coord.set(wx, Window::windowHeight - wy, wz);
+		windows_coord.set((float) wx, float(Window::windowHeight - wy), (float) wz);
 	}
 
 	// check whether a line {lp1, lp2} intersects with a triangle, and if so, where it hits the triangle.
@@ -151,9 +151,9 @@ namespace Utilities
 		clicky_fixed = double (Window::windowHeight - clicky); // OpenGL renders with (0,0) on bottom, mouse reports with (0,0) on top
 			
 		gluUnProject (clickx, clicky_fixed, 0.0, mvmatrix, projmatrix, viewport, &dX, &dY, &dZ);
-		v1.set(dX, dY, dZ);
+		v1.set((float) dX, (float) dY, (float) dZ);
 		gluUnProject (clickx, clicky_fixed, 1.0, mvmatrix, projmatrix, viewport, &dX, &dY, &dZ);
-		v2.set(dX, dY, dZ);
+		v2.set((float) dX, (float) dY, (float) dZ);
 		pos_vector_near = v1;
 		pos_vector_far = v2;
 	}
@@ -248,7 +248,7 @@ namespace Utilities
 	{
 		float x2 = x * x;
 		float x3 = x2 * x;
-		return 0.5 * ((2*v1) + (-v0 + v2) * x + (2*v0 - 5*v1 + 4*v2 - v3) * x2 + (-v0 + 3*v1 - 3*v2 + v3) * x3);
+		return 0.5f * ((2*v1) + (-v0 + v2) * x + (2*v0 - 5*v1 + 4*v2 - v3) * x2 + (-v0 + 3*v1 - 3*v2 + v3) * x3);
 	}
 
 	Vector3D InterpolateCatmullRom(Vector3D v0, Vector3D v1, Vector3D v2, Vector3D v3, float x)
@@ -286,8 +286,8 @@ namespace Utilities
 	{
 		float x2 = x * x;
 		float x3 = x2 * x;
-		float m1 = (v2 - v0) * 0.5;
-		float m2 = (v3 - v1) * 0.5;
+		float m1 = (v2 - v0) * 0.5f;
+		float m2 = (v3 - v1) * 0.5f;
 		m1 = BoundCheck(m1, 0.0, v2 - v1);
 		m1 = BoundCheck(m1, 0.0, v0 - v1);
 		m2 = BoundCheck(m2, 0.0, v1 - v2);
@@ -560,7 +560,7 @@ namespace Utilities
 		buffer.clear();
 
 		while (file.peek() != '\n' && file.peek() != '\r' && !file.eof())
-			buffer.push_back(file.get());
+			buffer.push_back((char) file.get());
 
 		while ((file.peek() == '\n' || file.peek() == '\r') && !file.eof())
 			file.get();

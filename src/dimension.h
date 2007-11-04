@@ -106,7 +106,7 @@ namespace Game
 
 		struct Player
 		{
-			const char*       name;
+			std::string       name;
 			PlayerType        type;
 			vector<Unit*>     vUnits;
 			vector<Projectile*> vProjectiles;
@@ -152,7 +152,7 @@ namespace Game
 		
 		void GetApproximateMapPosOfClick(int clickx, int clicky, int &map_x, int &map_y);
 		bool GetTerrainPosClicked(int clickx, int clicky, int map_x, int map_y, int &ter_x, int &ter_y);
-		Player* AddPlayer(const char* name, PlayerType playertype, const char* playertexture);
+		Player* AddPlayer(std::string name, PlayerType playertype, const char* playertexture);
 
 		// Ladda modell ur textfil
 		Model*  LoadModel(const char* file);

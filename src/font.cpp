@@ -95,8 +95,8 @@ namespace Window
 			TTF_SizeUTF8(font[fonttype],text.c_str(), &w, &h);
 
 			TextDimension dim;
-			dim.w = w * resolution;
-			dim.h = h * resolution;
+			dim.w = (float) w * resolution;
+			dim.h = (float) h * resolution;
 			return dim;
 		}
 
@@ -220,8 +220,8 @@ namespace Window
 
 				glTexImage2D( GL_TEXTURE_2D, 0, GL_RGBA, surface->w, surface->h, 0, GL_RGBA, GL_UNSIGNED_BYTE, surface->pixels);
 
-				float maxX = (float)text_surface->w / w2;
-				float maxY = (float)text_surface->h / h2;
+				float maxX = (float)text_surface->w / (float)w2;
+				float maxY = (float)text_surface->h / (float)h2;
 				fonttexture->texCoords = new GLfloat[8];
 				fonttexture->texCoords[0] = 0.0f;
 				fonttexture->texCoords[1] = 0.0f;

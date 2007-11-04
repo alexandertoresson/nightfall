@@ -88,7 +88,7 @@ namespace Game
 		int**              nodeNums;
 		Uint16****         areaMaps;
 		int                areaMapIndex;
-		int                areaCode;
+		Uint16             areaCode;
 		int                unitSize;
 		bool**             regenerateAreaCodes;
 		bool**             changedSinceLastRegen;
@@ -220,7 +220,7 @@ namespace Game
 						int start_y_path = start_y - ((i-1) << 1) - 1;
 						int end_x_path = end_x + (i << 1) + 1;
 						int end_y_path = end_y + (i << 1) + 1;
-						int last_found_area_code = 0;
+						Uint16 last_found_area_code = 0;
 						int x, y;
 						for (int k = 0; k < 2; k++)
 						{
@@ -403,7 +403,7 @@ namespace Game
 			}
 		}
 		
-		SDL_mutex* const GetMutex(void)
+		SDL_mutex* GetMutex(void)
 		{
 			return gpmxPathfinding;
 		}
@@ -1601,11 +1601,11 @@ namespace Game
 				Uint16 mixed_hconst;
 				if (nodes[cur_node].h && nodes[nearestNode].g - nodes[cur_node].g)
 				{
-					new_hconst = ((nodes[nearestNode].g - nodes[cur_node].g << 8) / nodes[cur_node].h);
-					mixed_hconst = (old_hconst * 15 + new_hconst)>>4;
+					new_hconst = Uint16(((nodes[nearestNode].g - nodes[cur_node].g) << 8) / nodes[cur_node].h);
+					mixed_hconst = Uint16(((int)old_hconst * 15 + (int) new_hconst)>>4);
 					if (old_hconst == mixed_hconst && new_hconst != mixed_hconst)
 					{
-						mixed_hconst += new_hconst < old_hconst ? -1 : 1;
+						mixed_hconst += new_hconst < old_hconst ? (Uint16) -1 : (Uint16) 1;
 					}
 					hConsts[unitSize][hConstYTarget][hConstXTarget][hConstYNode][hConstXNode] = mixed_hconst;
 				}

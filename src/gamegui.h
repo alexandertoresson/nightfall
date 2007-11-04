@@ -326,6 +326,7 @@ namespace Game
 		{
 		private:
 			Window::GUI::TextButton *pStart;
+			Window::GUI::TextButton *pLoad;
 			Window::GUI::TextButton *pQuit;
 			Window::GUI::TextButton *pCredits;
 			Window::GUI::TextButton *pMultiplayer;

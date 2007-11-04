@@ -26,6 +26,7 @@ namespace Game
 		struct TransData;
 		struct Animation;
 		
+		Unit *GetUnitByID(unsigned id);
 		bool IsValidUnitPointer(Unit* unit);
 
 		inline int GetTraversalTime(Unit *unit, int x, int y, int dx, int dy);
@@ -224,7 +225,7 @@ namespace Game
 
 		struct ActionData
 		{
-			Position goal_pos;
+			IntPosition goal_pos;
 			Unit* goal_unit;
 			AI::UnitAction action;
 			void* arg;
@@ -277,8 +278,8 @@ namespace Game
 			int         widthOnMap;
 			float       height;          // this affects the actual height of the unit on screen (before being scaled by this->size)
 			                             // and thus where the health meter should be placed
-			float       buildTime;       // seconds to build
-			float       researchTime;    // seconds to research
+			int         buildTime;       // seconds to build
+			int         researchTime;    // seconds to research
 			int         buildCost;       // cost to build
 			int         researchCost;    // cost to research
 			ProjectileType*     projectileType; // set to NULL to make the unit have normal, non-ranged attacks.
@@ -415,11 +416,11 @@ namespace Game
 		bool UnitIsVisible(Unit *unit, Player*);
 		bool UnitIsVisible(Unit *unit, Player *player);
 		Unit* GetUnitClicked(int clickx, int clicky, int map_x, int map_y);
-		Unit* CreateUnit(UnitType* type, Player* owner, float x, float y);
+		Unit* CreateUnit(UnitType* type, Player* owner, int x, int y, int id = -1);
 		void DeleteUnit(Unit* unit);
 		void KillUnit(Unit* unit);
-		Unit* CreateUnitNoDisplay(UnitType* type, Player* owner);
-		bool DisplayUnit(Unit* unit, float x, float y);
+		Unit* CreateUnitNoDisplay(UnitType* type, Player* owner, int id = -1);
+		bool DisplayUnit(Unit* unit, int x, int y);
 		void UpdateSeenSquares(Unit* unit, int x, int y, int operation);
 		void UpdateLightedSquares(Unit* unit, int x, int y, int operation);
 		void SetLightState(Unit* unit, LightState lightState);

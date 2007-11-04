@@ -33,6 +33,7 @@ namespace Game
 			INGAMEMENU,
 			GAME,
 			NEWGAME,
+			LOADGAME,
 			ENDGAME,
 			CREDITS,
 			MENU,
@@ -117,7 +118,7 @@ namespace Game
 
 				//Animation variables
 				int frames;
-				Uint32 time;
+				Uint32 last_status_time;
 
 				int start_drag_x, start_drag_y, end_drag_x, end_drag_y;
 				bool is_pressing_lmb;
@@ -145,12 +146,13 @@ namespace Game
 				bool ProcessEvents();
 				void DestroyGUI();
 
-				int InitGame();
+				int InitGame(bool is_new_game);
 			public:
 				static GameWindow* Instance();
 				static void Destroy();
 				static bool IsNull();
 				int NewGame();
+				int LoadGame();
 				void EndGame();
 				
 				int InitGUI(SDL_Surface* img);

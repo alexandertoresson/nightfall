@@ -159,7 +159,7 @@ namespace Game
 				m_hourLength = val;
 			}
 
-			const float FourthDimension::GetHourLength(void) const
+			float FourthDimension::GetHourLength(void) const
 			{
 				return m_hourLength;
 			}
@@ -169,7 +169,7 @@ namespace Game
 				m_dayLength = val;
 			}
 
-			const int FourthDimension::GetDayLength(void) const
+			int FourthDimension::GetDayLength(void) const
 			{
 				return m_dayLength;
 			}
@@ -181,7 +181,7 @@ namespace Game
 					ApplyEnvironmentalConditions();
 			}
 
-			const float FourthDimension::GetCurrentHour(void) const
+			float FourthDimension::GetCurrentHour(void) const
 			{
 				return m_currentHour;
 			}

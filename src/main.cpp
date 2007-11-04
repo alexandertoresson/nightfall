@@ -113,7 +113,7 @@ int main(int argc, char** argv)
 
 		if (strlen(configInterprt.GetValue("camera rotation speed")) > 0)
 		{
-			float value = atof(configInterprt.GetValue("camera rotation speed"));
+			float value = (float) atof(configInterprt.GetValue("camera rotation speed"));
 
 			if (value > 0 && value < 100.0f)
 				Game::Dimension::cameraRotationSpeed = value;
@@ -121,7 +121,7 @@ int main(int argc, char** argv)
 
 		if (strlen(configInterprt.GetValue("camera fly speed")) > 0)
 		{
-			float value = atof(configInterprt.GetValue("camera fly speed"));
+			float value = (float) atof(configInterprt.GetValue("camera fly speed"));
 
 			if (value > 0 && value < 100.0f)
 				Game::Dimension::cameraFlySpeed = value;
@@ -129,7 +129,7 @@ int main(int argc, char** argv)
 
 		if (strlen(configInterprt.GetValue("camera zoom speed")) > 0)
 		{
-			float value = atof(configInterprt.GetValue("camera zoom speed"));
+			float value = (float) atof(configInterprt.GetValue("camera zoom speed"));
 
 			if (value > 0 && value < 100.0f)
 				Game::Dimension::cameraZoomSpeed = value;
@@ -241,9 +241,9 @@ void KillAll(void)
 	SDLNet_Quit();
 	SDL_Quit();
 
-	cout << "attempted frames waiting percent: " << ((float) Game::Networking::attempted_frames_waited / (float) Game::Networking::attempted_frame_count) * 100 << endl;
+	cout << "attempted frames waiting percent: " << ((double) Game::Networking::attempted_frames_waited / Game::Networking::attempted_frame_count) * 100 << endl;
 	
-	cout << "average bytes sent per second: " << (float) Game::Networking::bytes_sent / (float) Game::Networking::attempted_frame_count * Game::AI::aiFps << endl;
+	cout << "average bytes sent per second: " << (double) Game::Networking::bytes_sent / Game::Networking::attempted_frame_count * Game::AI::aiFps << endl;
 
 	std::cout << "Goodbye!" << std::endl;
 }

@@ -253,7 +253,7 @@ namespace Game
 		//
 		// Get pathfinding thread mutex
 		//
-		SDL_mutex* const GetMutex(void);
+		SDL_mutex* GetMutex(void);
 		
 		//
 		// Internal thread method.

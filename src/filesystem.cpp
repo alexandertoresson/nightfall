@@ -77,7 +77,7 @@ namespace Utilities
 				
 				if (stat(file.c_str(), &info) == 0)
 				{
-					if (info.st_mode & S_IFMT == S_IFDIR)
+					if ((info.st_mode & S_IFMT) == S_IFDIR)
 						entry->isDirectory = true;
 						
 					entry->size = info.st_size;

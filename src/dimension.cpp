@@ -65,7 +65,7 @@ namespace Game
 			int start_y, end_y;
 			int start_x, end_x;
 			int cur_x = 0, cur_y = 0;
-			float cur_dist = 1e23, dist;
+			float cur_dist = 1e10, dist;
 			Utilities::Vector3D tp1, tp2, tp3, near_plane, far_plane, hit_pos;
 
 			start_y = map_y - 3 < 0 ? 0 : map_y - 3;
@@ -80,9 +80,9 @@ namespace Game
 			{
 				for (int x = start_x; x <= end_x; x++)
 				{
-					tp1 = GetTerrainCoord(x, y);
-					tp2 = GetTerrainCoord(x, y+1);
-					tp3 = GetTerrainCoord(x+1, y);
+					tp1 = GetTerrainCoord((float)x, (float)y);
+					tp2 = GetTerrainCoord((float)x, (float)y+1);
+					tp3 = GetTerrainCoord((float)x+1, (float)y);
 					if (CheckLineIntersectTri(tp1, tp3, tp2, near_plane, far_plane, hit_pos))
 					{
 						dist = near_plane.distance(hit_pos);
@@ -93,9 +93,9 @@ namespace Game
 							cur_dist = dist;
 						}
 					}
-					tp1 = GetTerrainCoord(x, y+1);
-					tp2 = GetTerrainCoord(x+1, y+1);
-					tp3 = GetTerrainCoord(x+1, y);
+					tp1 = GetTerrainCoord((float)x, (float)y+1);
+					tp2 = GetTerrainCoord((float)x+1, (float)y+1);
+					tp3 = GetTerrainCoord((float)x+1, (float)y);
 					if (CheckLineIntersectTri(tp1, tp3, tp2, near_plane, far_plane, hit_pos))
 					{
 						dist = near_plane.distance(hit_pos);
@@ -121,7 +121,7 @@ namespace Game
 		}
 
 		// add a player
-		Player* AddPlayer(const char* name, PlayerType playertype, const char* playertexture)
+		Player* AddPlayer(std::string name, PlayerType playertype, const char* playertexture)
 		{
 			Player* player = new Player;
 			player->name = name;
@@ -430,7 +430,7 @@ namespace Game
 				std::stringstream player;
 				texture << "textures/player_" << color << ".png";
 				player << "player_" << i;
-				Player* p = AddPlayer(player.str().c_str(), next_type, texture.str().c_str());
+				Player* p = AddPlayer(player.str(), next_type, texture.str().c_str());
 				if (!human)
 				{
 					human = p;
@@ -461,7 +461,7 @@ namespace Game
 				std::stringstream player;
 				texture << "textures/player_" << color << ".png";
 				player << "player_" << i+1;
-				Player* p = AddPlayer(player.str().c_str(), playertypes[i], texture.str().c_str());
+				Player* p = AddPlayer(player.str(), playertypes[i], texture.str().c_str());
 				if (!human)
 				{
 					human = p;

@@ -226,11 +226,11 @@ namespace Game
 					~FourthDimension(void);
 
 					void SetHourLength(const float);
-					const float GetHourLength(void) const;
+					float GetHourLength(void) const;
 					void SetDayLength(const int);
-					const int GetDayLength(void) const;
+					int GetDayLength(void) const;
 					void SetCurrentHour(const float);
-					const float GetCurrentHour(void) const;
+					float GetCurrentHour(void) const;
 
 					void SetDefaultSun(void) const;
 					void RotateWorld(float lastPass);

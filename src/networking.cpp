@@ -1242,7 +1242,7 @@ namespace Game
 						{
 							Dimension::UnitType* unittype = Dimension::pWorld->vUnitTypes.at(create->unittype_id);
 							Dimension::Player* owner = Dimension::pWorld->vPlayers.at(create->owner_id);
-							Dimension::Unit* unit = Dimension::CreateUnit(unittype, owner, create->x + 0.5, create->y + 0.5);
+							Dimension::Unit* unit = Dimension::CreateUnit(unittype, owner, create->x, create->y);
 							if (unit)
 							{
 								unit->rotation = create->rot;

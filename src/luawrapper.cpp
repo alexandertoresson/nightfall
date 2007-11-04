@@ -214,7 +214,7 @@ namespace Utilities
 			return ret;
 		}
 
-		LuaVM* const LuaVirtualMachine::GetVM() const
+		LuaVM* LuaVirtualMachine::GetVM() const
 		{
 			return m_pVM;
 		}

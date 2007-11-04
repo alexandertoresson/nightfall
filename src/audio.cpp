@@ -174,7 +174,7 @@ namespace Audio
 		}
 
 		// Get the audio format
-		int format = Utilities::StringToInt(musicConfig.GetValue("audio format"));
+		int format = (Uint16) Utilities::StringToInt(musicConfig.GetValue("audio format"));
 		const char* formatType;
 		if (format == 0 || format < 0 || format > 8)
 		{
@@ -220,7 +220,7 @@ namespace Audio
 			}
 		}
 
-		if (Mix_OpenAudio(rate, format, setup, chunksize) < 0)
+		if (Mix_OpenAudio(rate, (Uint16) format, setup, chunksize) < 0)
 		{
 			console << Console::err << "Audio Error: " << Mix_GetError() << Console::nl;
 			return ERROR_GENERAL;
@@ -617,8 +617,8 @@ namespace Audio
 			if (pNoice == NULL)
 				return ERROR_GENERAL;
 
-			if (volume >= 0)
-				pNoice->volume = volume;
+			if (volume >= 0 && volume < 256)
+				pNoice->volume = (Uint8) volume;
 
 			return PlayOnce(pNoice, channel);
 		}

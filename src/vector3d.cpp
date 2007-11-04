@@ -105,8 +105,7 @@ namespace Utilities
 
 	Vector3D Vector3D::operator /(float a) const
 	{
-		int value = (int)(1.0f / a);
-		assert(value > 0.0f); // << assert korrekt använt här?
+		float value = 1.0f / a;
 		return Vector3D(
 		                x * value,
 		                y * value,
@@ -196,7 +195,7 @@ namespace Utilities
 	void Vector3D::rotateX(float degrees)
 	{
 		Vector3D temp = *this;
-		float rad = degrees * (PI / 180);
+		float rad = degrees * float(PI / 180);
 
 		y = 	cos(rad)*temp.y-
 			sin(rad)*temp.z;
@@ -208,7 +207,7 @@ namespace Utilities
 	void Vector3D::rotateY(float degrees)
 	{
 		Vector3D temp = *this;
-		float rad = degrees * (PI / 180);
+		float rad = degrees * float(PI / 180);
 
 		x = 	cos(rad)*temp.x-
 			sin(rad)*temp.z;
@@ -220,7 +219,7 @@ namespace Utilities
 	void Vector3D::rotateZ(float degrees)
 	{
 		Vector3D temp = *this;
-		float rad = degrees * (PI / 180);
+		float rad = degrees * float(PI / 180);
 
 		x = 	cos(rad)*temp.x-
 			sin(rad)*temp.y;

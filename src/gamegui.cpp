@@ -22,17 +22,22 @@ namespace Game
 		{
 
 			pStart = new Window::GUI::TextButton();
-			pStart->SetText("Starta spelet");
+			pStart->SetText("Start the game");
 			pStart->SetTag((void*)new Internal(this, NEWGAME));
 			pStart->AttachHandler(&GameMenu::ActionSelect);
 
+			pLoad = new Window::GUI::TextButton();
+			pLoad->SetText("Load a game");
+			pLoad->SetTag((void*)new Internal(this, LOADGAME));
+			pLoad->AttachHandler(&GameMenu::ActionSelect);
+
 			pCredits = new Window::GUI::TextButton();
-			pCredits->SetText("Om oss");
+			pCredits->SetText("About");
 			pCredits->SetTag((void*)new Internal(this, CREDITS));
 			pCredits->AttachHandler(&GameMenu::ActionSelect);
 
 			pQuit = new Window::GUI::TextButton();
-			pQuit->SetText("Avsluta");
+			pQuit->SetText("Quit");
 			pQuit->SetTag((void*)new Internal(this, QUIT));
 			pQuit->AttachHandler(&GameMenu::ActionSelect);
 
@@ -45,10 +50,11 @@ namespace Game
 			SetPanel(pMainPanel);
 			pMainPanel->SetTexture(Utilities::LoadTexture("textures/nightfall.png"));
 
-			pMainPanel->SetConstraintPercent(pMainPanel->Add(pStart), 0.1f, 0.1f, 0.8f, 0.1f);
-			pMainPanel->SetConstraintPercent(pMainPanel->Add(pCredits), 0.1f, 0.2f, 0.8f, 0.1f);
-			pMainPanel->SetConstraintPercent(pMainPanel->Add(pMultiplayer), 0.1f, 0.3f, 0.8f, 0.1f);
-			pMainPanel->SetConstraintPercent(pMainPanel->Add(pQuit), 0.1f, 0.4f, 0.8f, 0.1f);
+			pMainPanel->SetConstraintPercent(pMainPanel->Add(pStart), 0.1f, 0.05f, 0.8f, 0.1f);
+			pMainPanel->SetConstraintPercent(pMainPanel->Add(pLoad), 0.1f, 0.15f, 0.8f, 0.1f);
+			pMainPanel->SetConstraintPercent(pMainPanel->Add(pCredits), 0.1f, 0.25f, 0.8f, 0.1f);
+			pMainPanel->SetConstraintPercent(pMainPanel->Add(pMultiplayer), 0.1f, 0.35f, 0.8f, 0.1f);
+			pMainPanel->SetConstraintPercent(pMainPanel->Add(pQuit), 0.1f, 0.45f, 0.8f, 0.1f);
 			returnState = QUIT;
 
 			sleep = true;
@@ -71,6 +77,11 @@ namespace Game
 				case NEWGAME:
 				{
 					pTag->parent->pStart->ResetFade();
+					break;
+				}
+				case LOADGAME:
+				{
+					pTag->parent->pLoad->ResetFade();
 					break;
 				}
 				case MULTIPLAYER:

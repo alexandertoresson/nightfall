@@ -13,8 +13,8 @@ namespace Game
 	namespace Dimension
 	{
 		float terrainOffsetX, terrainOffsetY;
-		float terrainHeight = 3.0;
-		float waterLevel = -1.35, waterHeight = 0.1;
+		float terrainHeight = 3.0f;
+		float waterLevel = -1.35f, waterHeight = 0.1f;
 
 		// overall quality of terrain; increase to increase terrain detail
 		float quality = 15000.0;
@@ -129,9 +129,9 @@ namespace Game
 			float t_u, t_v, t_w;
 
 			// weights for surrounding squares (weights[1][1] is the 'current square')
-			char weights[3][3] = {{1, 2, 1},
-					      {2, 4, 2},
-					      {1, 2, 1}};
+			float weights[3][3] = {{1.0f, 2.0f, 1.0f},
+					       {2.0f, 4.0f, 2.0f},
+					       {1.0f, 2.0f, 1.0f}};
 
 			// get the main heightmap
 			HeightMipmaps[0][0].ppHeights = pWorld->ppHeight;
@@ -316,36 +316,36 @@ namespace Game
 						if (x != new_width-1)
 						{
 							normals_2[y2][x2+1] = new SphereNormal;
-							normals_2[y2][x2+1]->phi = (normals_1[y][x]->phi + normals_1[y][x+1]->phi) * 0.5;
-							normals_2[y2][x2+1]->theta = (normals_1[y][x]->theta + normals_1[y][x+1]->theta) * 0.5;
+							normals_2[y2][x2+1]->phi = (normals_1[y][x]->phi + normals_1[y][x+1]->phi) * 0.5f;
+							normals_2[y2][x2+1]->theta = (normals_1[y][x]->theta + normals_1[y][x+1]->theta) * 0.5f;
 							texcoords_2[y2][x2+1] = new UVWCoord;
-							texcoords_2[y2][x2+1]->u = (texcoords_1[y][x]->u + texcoords_1[y][x+1]->u) * 0.5;
-							texcoords_2[y2][x2+1]->v = (texcoords_1[y][x]->v + texcoords_1[y][x+1]->v) * 0.5;
-							texcoords_2[y2][x2+1]->w = (texcoords_1[y][x]->w + texcoords_1[y][x+1]->w) * 0.5;
-							heights_2[y2][x2+1] = (heights_1[y][x] + heights_1[y][x+1]) * 0.5;
+							texcoords_2[y2][x2+1]->u = (texcoords_1[y][x]->u + texcoords_1[y][x+1]->u) * 0.5f;
+							texcoords_2[y2][x2+1]->v = (texcoords_1[y][x]->v + texcoords_1[y][x+1]->v) * 0.5f;
+							texcoords_2[y2][x2+1]->w = (texcoords_1[y][x]->w + texcoords_1[y][x+1]->w) * 0.5f;
+							heights_2[y2][x2+1] = (heights_1[y][x] + heights_1[y][x+1]) * 0.5f;
 
 							if (y != new_height-1)
 							{
 								normals_2[y2+1][x2+1] = new SphereNormal;
-								normals_2[y2+1][x2+1]->phi = (normals_1[y][x]->phi + normals_1[y+1][x]->phi + normals_1[y][x+1]->phi + normals_1[y][x+1]->phi) * 0.25;
-								normals_2[y2+1][x2+1]->theta = (normals_1[y][x]->theta + normals_1[y+1][x]->theta + normals_1[y][x+1]->theta + normals_1[y][x+1]->theta) * 0.25;
+								normals_2[y2+1][x2+1]->phi = (normals_1[y][x]->phi + normals_1[y+1][x]->phi + normals_1[y][x+1]->phi + normals_1[y][x+1]->phi) * 0.25f;
+								normals_2[y2+1][x2+1]->theta = (normals_1[y][x]->theta + normals_1[y+1][x]->theta + normals_1[y][x+1]->theta + normals_1[y][x+1]->theta) * 0.25f;
 								texcoords_2[y2+1][x2+1] = new UVWCoord;
-								texcoords_2[y2+1][x2+1]->u = (texcoords_1[y][x]->u + texcoords_1[y+1][x]->u + texcoords_1[y][x+1]->u + texcoords_1[y][x+1]->u) * 0.25;
-								texcoords_2[y2+1][x2+1]->v = (texcoords_1[y][x]->v + texcoords_1[y+1][x]->v + texcoords_1[y][x+1]->v + texcoords_1[y][x+1]->v) * 0.25;
-								texcoords_2[y2+1][x2+1]->w = (texcoords_1[y][x]->w + texcoords_1[y+1][x]->w + texcoords_1[y][x+1]->w + texcoords_1[y][x+1]->w) * 0.25;
-								heights_2[y2+1][x2+1] = (heights_1[y][x] + heights_1[y+1][x] + heights_1[y][x+1] + heights_1[y+1][x+1]) * 0.25;
+								texcoords_2[y2+1][x2+1]->u = (texcoords_1[y][x]->u + texcoords_1[y+1][x]->u + texcoords_1[y][x+1]->u + texcoords_1[y][x+1]->u) * 0.25f;
+								texcoords_2[y2+1][x2+1]->v = (texcoords_1[y][x]->v + texcoords_1[y+1][x]->v + texcoords_1[y][x+1]->v + texcoords_1[y][x+1]->v) * 0.25f;
+								texcoords_2[y2+1][x2+1]->w = (texcoords_1[y][x]->w + texcoords_1[y+1][x]->w + texcoords_1[y][x+1]->w + texcoords_1[y][x+1]->w) * 0.25f;
+								heights_2[y2+1][x2+1] = (heights_1[y][x] + heights_1[y+1][x] + heights_1[y][x+1] + heights_1[y+1][x+1]) * 0.25f;
 							}
 						}
 						if (y != new_height-1)
 						{
 							normals_2[y2+1][x2] = new SphereNormal;
-							normals_2[y2+1][x2]->phi = (normals_1[y][x]->phi + normals_1[y+1][x]->phi) * 0.5;
-							normals_2[y2+1][x2]->theta = (normals_1[y][x]->theta + normals_1[y+1][x]->theta) * 0.5;
+							normals_2[y2+1][x2]->phi = (normals_1[y][x]->phi + normals_1[y+1][x]->phi) * 0.5f;
+							normals_2[y2+1][x2]->theta = (normals_1[y][x]->theta + normals_1[y+1][x]->theta) * 0.5f;
 							texcoords_2[y2+1][x2] = new UVWCoord;
-							texcoords_2[y2+1][x2]->u = (texcoords_1[y][x]->u + texcoords_1[y+1][x]->u) * 0.5;
-							texcoords_2[y2+1][x2]->v = (texcoords_1[y][x]->v + texcoords_1[y+1][x]->v) * 0.5;
-							texcoords_2[y2+1][x2]->w = (texcoords_1[y][x]->w + texcoords_1[y+1][x]->w) * 0.5;
-							heights_2[y2+1][x2] = (heights_1[y][x] + heights_1[y+1][x]) * 0.5;
+							texcoords_2[y2+1][x2]->u = (texcoords_1[y][x]->u + texcoords_1[y+1][x]->u) * 0.5f;
+							texcoords_2[y2+1][x2]->v = (texcoords_1[y][x]->v + texcoords_1[y+1][x]->v) * 0.5f;
+							texcoords_2[y2+1][x2]->w = (texcoords_1[y][x]->w + texcoords_1[y+1][x]->w) * 0.5f;
+							heights_2[y2+1][x2] = (heights_1[y][x] + heights_1[y+1][x]) * 0.5f;
 						}
 					}
 				}
@@ -505,7 +505,7 @@ namespace Game
 					float S = sqrt(normal.x * normal.x + normal.y * normal.y);
 					if (normal.x < 0)
 					{
-						HeightMipmaps[0][0].ppNormals[y][x]->theta = PI - asin(normal.y / S);
+						HeightMipmaps[0][0].ppNormals[y][x]->theta = (float)PI - asin(normal.y / S);
 					}
 					else
 					{
@@ -558,29 +558,29 @@ namespace Game
 						HeightMipmaps[0][0].ppTexCoords[y][x]->u = 0.0;
 					}
 					// set v coordinate according to height
-					HeightMipmaps[0][0].ppTexCoords[y][x]->v = 1 - (pWorld->ppHeight[y][x] / terrainHeight + 0.5);
+					HeightMipmaps[0][0].ppTexCoords[y][x]->v = 1 - (pWorld->ppHeight[y][x] / terrainHeight + 0.5f);
 
-					HeightMipmaps[0][0].ppTexCoords[y][x]->u += ((float) rand() / RAND_MAX - 0.5) * 0.01;
-					HeightMipmaps[0][0].ppTexCoords[y][x]->v += ((float) rand() / RAND_MAX - 0.5) * 0.01;
+					HeightMipmaps[0][0].ppTexCoords[y][x]->u += (float) ((double) rand() / RAND_MAX - 0.5) * 0.01f;
+					HeightMipmaps[0][0].ppTexCoords[y][x]->v += (float) ((double) rand() / RAND_MAX - 0.5) * 0.01f;
 
 					// u and v must not be lower than 0.01 or 0.99 for artifacts to not happen
-					if (HeightMipmaps[0][0].ppTexCoords[y][x]->u > 0.99)
+					if (HeightMipmaps[0][0].ppTexCoords[y][x]->u > 0.99f)
 					{
-						HeightMipmaps[0][0].ppTexCoords[y][x]->u = 0.99;
+						HeightMipmaps[0][0].ppTexCoords[y][x]->u = 0.99f;
 					}
-					if (HeightMipmaps[0][0].ppTexCoords[y][x]->v > 0.99)
+					if (HeightMipmaps[0][0].ppTexCoords[y][x]->v > 0.99f)
 					{
-						HeightMipmaps[0][0].ppTexCoords[y][x]->v = 0.99;
+						HeightMipmaps[0][0].ppTexCoords[y][x]->v = 0.99f;
 					}
-					if (HeightMipmaps[0][0].ppTexCoords[y][x]->u < 0.01)
+					if (HeightMipmaps[0][0].ppTexCoords[y][x]->u < 0.01f)
 					{
-						HeightMipmaps[0][0].ppTexCoords[y][x]->u = 0.01;
+						HeightMipmaps[0][0].ppTexCoords[y][x]->u = 0.01f;
 					}
-					if (HeightMipmaps[0][0].ppTexCoords[y][x]->v < 0.01)
+					if (HeightMipmaps[0][0].ppTexCoords[y][x]->v < 0.01f)
 					{
-						HeightMipmaps[0][0].ppTexCoords[y][x]->v = 0.01;
+						HeightMipmaps[0][0].ppTexCoords[y][x]->v = 0.01f;
 					}
-					HeightMipmaps[0][0].ppTexCoords[y][x]->w = 0;
+					HeightMipmaps[0][0].ppTexCoords[y][x]->w = 0.0f;
 				}
 			}
 
@@ -617,7 +617,7 @@ namespace Game
 						}
 					}
 
-					val /= n-1; // to compensate for the middle point, which will always be 0
+					val /= (float) n-1; // to compensate for the middle point, which will always be 0
 
 					steepness = (int) (val * 1000);
 
@@ -758,7 +758,7 @@ namespace Game
 				int x = rand() % (width-1) + 1;
 				if (waterLevel > pWorld->ppHeight[y][x])
 				{
-					ppWater[water_cur_front][y][x] += ((float) rand() / RAND_MAX - 0.5) * (waterLevel - pWorld->ppHeight[y][x]) * 0.1;
+					ppWater[water_cur_front][y][x] += (float) ((double) rand() / RAND_MAX - 0.5) * (waterLevel - pWorld->ppHeight[y][x]) * 0.1f;
 				}
 			}
 
@@ -774,7 +774,7 @@ namespace Game
 										  ppWater[water_cur_back][y][x+1]) / 2 -
 										  ppWater[water_cur_front][y][x];
 
-						ppWater[water_cur_front][y][x] *= 0.95;
+						ppWater[water_cur_front][y][x] *= 0.95f;
 /*						if (waterLevel < pWorld->ppHeight[y][x])
 						{
 							if (waterLevel + ppWater[water_cur_front][y][x] < pWorld->ppHeight[y][x])
@@ -786,12 +786,12 @@ namespace Game
 						{*/
 							if (waterLevel + ppWater[water_cur_front][y][x] < pWorld->ppHeight[y][x])
 							{
-								ppWater[water_cur_front][y][x] = pWorld->ppHeight[y][x] - waterLevel + 0.01;
+								ppWater[water_cur_front][y][x] = pWorld->ppHeight[y][x] - waterLevel + 0.01f;
 							}
 //						}
-						if (waterLevel + 0.01 < pWorld->ppHeight[y][x])
+						if (waterLevel + 0.01f < pWorld->ppHeight[y][x])
 						{
-							ppWater[water_cur_front][y][x] = 0.0;
+							ppWater[water_cur_front][y][x] = 0.0f;
 						}
 /*						if (waterLevel + ppWater[water_cur_front][y-1][x] < pWorld->ppHeight[y-1][x] &&
 						    waterLevel + ppWater[water_cur_front][y+1][x] < pWorld->ppHeight[y+1][x] &&
@@ -823,7 +823,7 @@ namespace Game
 				file.get();
 			
 			while (file.peek() >= '0' && file.peek() < '9' && i < 16)
-				buffer[i++] = file.get();
+				buffer[i++] = (char) file.get();
 			buffer[i] = '\0';
 			
 			return atoi(buffer);
@@ -883,8 +883,8 @@ namespace Game
 
 			pWorld->height = height;
 			pWorld->width = width;
-			terrainOffsetY = height / 16;
-			terrainOffsetX = width / 16;
+			terrainOffsetY = float(height / 16);
+			terrainOffsetX = float(width / 16);
 			
 			pWorld->ppHeight = new float*[height];
 			
@@ -900,7 +900,7 @@ namespace Game
 					file.get();
 			
 					file >> temp;
-					pWorld->ppHeight[y][x] = ((float) temp / 255-0.5)*terrainHeight;
+					pWorld->ppHeight[y][x] = ((float) temp / 255-0.5f)*terrainHeight;
 		
 				}
 			}
@@ -1078,11 +1078,11 @@ namespace Game
 
 			heights = HeightMipmaps[0][level].ppHeights;
 
-			ssx = (int) floor((x - bsx * 32) / 32 * (32 >> level));
-			ssy = (int) floor((y - bsy * 32) / 32 * (32 >> level));
+			ssx = (int) floor((x - (float) bsx * 32) / float(1 << level));
+			ssy = (int) floor((y - (float) bsy * 32) / float(1 << level));
 
-			xmix = (x - bsx * 32 - (ssx << level)) / (1 << level);
-			ymix = (y - bsy * 32 - (ssy << level)) / (1 << level);
+			xmix = (x - float(bsx * 32 + (ssx << level))) / float(1 << level);
+			ymix = (y - float(bsy * 32 + (ssy << level))) / float(1 << level);
 
 			mx = bsx * (32 >> level) + ssx;
 			my = bsy * (32 >> level) + ssy;
@@ -1125,8 +1125,8 @@ namespace Game
 			int bsx, bsy;
 			int level;
 
-			bsx = (int) floor(x / 32.0f);
-			bsy = (int) floor(y / 32.0f);
+			bsx = (int) floor((float) x / 32.0f);
+			bsy = (int) floor((float) y / 32.0f);
 
 			if (x == pWorld->width-1)
 				bsx -= 1;
@@ -1176,11 +1176,11 @@ namespace Game
 
 			normals = HeightMipmaps[0][level].ppNormals;
 
-			ssx = (int) floor((x - bsx * 32) / 32 * (32 >> level));
-			ssy = (int) floor((y - bsy * 32) / 32 * (32 >> level));
+			ssx = (int) floor((x - (float) bsx * 32) / float(1 << level));
+			ssy = (int) floor((y - (float) bsy * 32) / float(1 << level));
 
-			xmix = (x - bsx * 32 - (ssx << level)) / (1 << level);
-			ymix = (y - bsy * 32 - (ssy << level)) / (1 << level);
+			xmix = (x - float(bsx * 32 + (ssx << level))) / float(1 << level);
+			ymix = (y - float(bsy * 32 + (ssy << level))) / float(1 << level);
 
 			mx = bsx * (32 >> level) + ssx;
 			my = bsy * (32 >> level) + ssy;
@@ -1232,11 +1232,11 @@ namespace Game
 
 			heights = HeightMipmaps[0][0].ppHeights;
 
-			ssx = (int) floor((x - bsx * 32) / 32 * 32);
-			ssy = (int) floor((y - bsy * 32) / 32 * 32);
+			ssx = (int) floor(x - float(bsx * 32));
+			ssy = (int) floor(y - float(bsy * 32));
 
-			xmix = (x - bsx * 32 - ssx);
-			ymix = (y - bsy * 32 - ssy);
+			xmix = (x - float(bsx * 32 + ssx));
+			ymix = (y - float(bsy * 32 + ssy));
 
 			mx = bsx * 32 + ssx;
 			my = bsy * 32 + ssy;
@@ -1277,12 +1277,12 @@ namespace Game
 
 		Utilities::Vector3D GetTerrainCoord(float x, float y)
 		{
-			return Utilities::Vector3D((x * 0.125) - terrainOffsetX, GetTerrainHeight(x, y), (y * 0.125) - terrainOffsetY);
+			return Utilities::Vector3D((x * 0.125f) - terrainOffsetX, GetTerrainHeight(x, y), (y * 0.125f) - terrainOffsetY);
 		}
 
 		Utilities::Vector3D GetTerrainCoordHighestLevel(float x, float y)
 		{
-			return Utilities::Vector3D((x * 0.125) - terrainOffsetX, GetTerrainHeightHighestLevel(x, y), (y * 0.125) - terrainOffsetY);
+			return Utilities::Vector3D((x * 0.125f) - terrainOffsetX, GetTerrainHeightHighestLevel(x, y), (y * 0.125f) - terrainOffsetY);
 		}
 
 		Dimension::Position GetPosition(Utilities::Vector3D* v)
@@ -1332,20 +1332,20 @@ namespace Game
 			float x2;
 			int x2_i;
 			// ratio between source size and dest size
-			ratio = (float) (source_size - 1) / (dest_size - 1);
+			ratio = (float) (source_size - 1) / (float) (dest_size - 1);
 			ratio_inv = 1 / ratio;
 			for (int x = 0; x < dest_size; x++)
 			{
-				x2 = x * ratio;
+				x2 = (float) x * ratio;
 				x2_i = (int) floor(x2);
 				if (x2_i == source_size)
 				{
 					x2_i = source_size-1;
-					x2 = source_size-1;
+					x2 = (float) source_size-1;
 				}
 				// mix: the weight of the last vs the next value.
 				// 0.0 means pure source [x2_i], 1.0 means pure source[x2_i+1]
-				mix = x2 - x2_i;
+				mix = x2 - (float) x2_i;
 				dest[x] = source[x2_i] * (1 - mix) + source[x2_i+1] * mix;
 			}
 		}
@@ -1363,14 +1363,14 @@ namespace Game
 			y2 = (y2 + terrainOffsetY) * 8 / 32;
 
 			// check for too big and too small coordinates
-			if (x1 < 0.0) x1 = 0.0;
-			if (x1 >= levelmap_width) x1 = levelmap_width-0.0001;
-			if (y1 < 0.0) y1 = 0.0;
-			if (y1 >= levelmap_height) y1 = levelmap_height-0.0001;
-			if (x2 < 0.0) x2 = 0.0;
-			if (x2 >= levelmap_width) x2 = levelmap_width-0.0001;
-			if (y2 < 0.0) y2 = 0.0;
-			if (y2 >= levelmap_height) y2 = levelmap_height-0.0001;
+			if (x1 < 0.0f) x1 = 0.0f;
+			if (x1 >= levelmap_width) x1 = (float) levelmap_width-0.0001f;
+			if (y1 < 0.0f) y1 = 0.0f;
+			if (y1 >= levelmap_height) y1 = (float) levelmap_height-0.0001f;
+			if (x2 < 0.0f) x2 = 0.0f;
+			if (x2 >= levelmap_width) x2 = (float) levelmap_width-0.0001f;
+			if (y2 < 0.0f) y2 = 0.0f;
+			if (y2 >= levelmap_height) y2 = (float) levelmap_height-0.0001f;
 
 			// convert to integers
 			x1_i = (int) floor(x1);
@@ -1425,7 +1425,7 @@ namespace Game
 
 				for (int y = y1_i; y != y2_i; y++)
 				{
-					newx = x1 + ((y+1) - y1) / delta; // calculate new x
+					newx = x1 + (float(y+1) - y1) / delta; // calculate new x
 					// (y+1) - y1 is the distance to the next integer y, 
 					// floor(y1+1)
 
@@ -1454,7 +1454,7 @@ namespace Game
 					}
 
 					x1 = newx;
-					y1 = y+1;
+					y1 = float(y+1);
 				}
 
 				// the last y must be handled in a special way, as the line
@@ -1767,7 +1767,7 @@ namespace Game
 				//for (int x=is_visible[0][y];x<=is_visible[1][y];x++)
 				{
 					// base quality levels on distance from viewer
-					new_q_levels[y][x] = cur_mod_pos.distance(GetSquareCoord(((float) x + 0.5) * q_square_size, ((float) y + 0.5) * q_square_size)) * 0.01;
+					new_q_levels[y][x] = cur_mod_pos.distance(GetSquareCoord(((float) x + 0.5f) * q_square_size, ((float) y + 0.5f) * q_square_size)) * 0.01f;
 				}
 			}
 
@@ -1888,7 +1888,7 @@ namespace Game
 						
 						if (q_levels[y][x] > highest_mipmap)
 						{
-							q_levels[y][x] = highest_mipmap;
+							q_levels[y][x] = (float) highest_mipmap;
 						}
 						if (q_levels[y][x] > 5)
 						{
@@ -1950,7 +1950,7 @@ namespace Game
 					
 					if (q_levels[y][x] > highest_mipmap)
 					{
-						q_levels[y][x] = highest_mipmap;
+						q_levels[y][x] = (float) highest_mipmap;
 					}
 					if (q_levels[y][x] > 5)
 					{
@@ -1961,7 +1961,7 @@ namespace Game
 					mipmap_levels[y][x] = (int) floor(q_levels[y][x] + 0.5);
 					if (mipmap_levels[y][x] > highest_mipmap)
 					{
-						mipmap_levels[y][x] = highest_mipmap;
+						mipmap_levels[y][x] = (int) highest_mipmap;
 					}
 					if (mipmap_levels[y][x] > 5)
 					{
@@ -1977,24 +1977,24 @@ namespace Game
 				{
 					if (y > 0 && x > 0)
 					{
-						if (floor(q_levels[y][x] - 0.0001) > floor(q_levels[y-1][x-1]))
+						if (floor(q_levels[y][x] - 0.0001f) > floor(q_levels[y-1][x-1]))
 							q_levels[y][x] = floor(q_levels[y-1][x-1])+1;
-						if (floor(q_levels[y][x]) < floor(q_levels[y-1][x-1] - 0.0001))
-							q_levels[y][x] = floor(q_levels[y-1][x-1] - 0.0001);
+						if (floor(q_levels[y][x]) < floor(q_levels[y-1][x-1] - 0.0001f))
+							q_levels[y][x] = floor(q_levels[y-1][x-1] - 0.0001f);
 					}
 					if (y > 0)
 					{
-						if (floor(q_levels[y][x] - 0.0001) > floor(q_levels[y-1][x]))
+						if (floor(q_levels[y][x] - 0.0001f) > floor(q_levels[y-1][x]))
 							q_levels[y][x] = floor(q_levels[y-1][x])+1;
-						if (floor(q_levels[y][x]) < floor(q_levels[y-1][x] - 0.0001))
-							q_levels[y][x] = floor(q_levels[y-1][x] - 0.0001);
+						if (floor(q_levels[y][x]) < floor(q_levels[y-1][x] - 0.0001f))
+							q_levels[y][x] = floor(q_levels[y-1][x] - 0.0001f);
 					}
 					if (x > 0)
 					{
-						if (floor(q_levels[y][x] - 0.0001) > floor(q_levels[y][x-1]))
+						if (floor(q_levels[y][x] - 0.0001f) > floor(q_levels[y][x-1]))
 							q_levels[y][x] = floor(q_levels[y][x-1])+1;
-						if (floor(q_levels[y][x]) < floor(q_levels[y][x-1] - 0.0001))
-							q_levels[y][x] = floor(q_levels[y][x-1] - 0.0001);
+						if (floor(q_levels[y][x]) < floor(q_levels[y][x-1] - 0.0001f))
+							q_levels[y][x] = floor(q_levels[y][x-1] - 0.0001f);
 					}
 				}
 			}
@@ -2043,7 +2043,7 @@ namespace Game
 					
 					for (int i = 0; i < 2; i++)
 						for (int j = 0; j < 2; j++)
-							qualities[i][j] -= base_quality;
+							qualities[i][j] -= (float) base_quality;
 					mipmap_level = base_quality;
 #else
 					mipmap_level = mipmap_levels[y][x];
@@ -2068,8 +2068,8 @@ namespace Game
 
 #ifdef TERRAIN_HIGH_QUALITY
 
-					float ssc = scaled_square_size;
-					float one_step = (1.00 / ssc);
+					float ssc = (float) scaled_square_size;
+					float one_step = (1.00f / ssc);
 					float low_x_q = qualities[0][0];// + (qualities[1][0] - qualities[0][0]) * interp_consts[y];
 					float high_x_q = qualities[0][1];// + (qualities[1][1] - qualities[0][1]) * interp_consts[y];
 					float low_x_q_diff = (qualities[1][0] - qualities[0][0]) * one_step;
