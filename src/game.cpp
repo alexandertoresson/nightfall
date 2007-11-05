@@ -519,6 +519,8 @@ namespace Game
 			pLoading->SetMessage("Loading...");
 			pLoading->Update();
 
+			Dimension::LoadGameSaveFile("save.xml");
+			
 			if (InitGame(false) != SUCCESS)
 			{
 				cout << "Failed to start game, see errors above to find out why." << endl;
@@ -526,7 +528,7 @@ namespace Game
 				return ERROR_GENERAL;
 			}
 
-			Dimension::LoadGame("save.xml");
+			Dimension::LoadGame_PostLoad();
 			
 			delete pLoading;
 			gameRunning = true;

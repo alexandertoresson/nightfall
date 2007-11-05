@@ -4,6 +4,8 @@
 #include "utilities.h"
 #include "minixml.h"
 #include "unitinterface.h"
+#include "game.h"
+#include "environment.h"
 #include <string>
 
 namespace Game
@@ -194,7 +196,6 @@ namespace Game
 					OutputIntPosition(xmlfile, "rallyPoint", *unit->rallypoint);
 				}
 				
-				OutputInt(xmlfile, "action", unit->action);
 				OutputInt(xmlfile, "faceTarget", unit->faceTarget);
 				
 				OutputFloat(xmlfile, "health", unit->health);
@@ -211,8 +212,6 @@ namespace Game
 				OutputBool(xmlfile, "isCompleted", unit->isCompleted);
 				OutputBool(xmlfile, "isDisplayed", unit->isDisplayed);
 				OutputBool(xmlfile, "isMoving", unit->isMoving);
-				OutputBool(xmlfile, "isLighted", unit->isLighted);
-				OutputBool(xmlfile, "hasSeen", unit->hasSeen);
 				
 				OutputFloat(xmlfile, "rotation", unit->rotation);
 
@@ -276,6 +275,16 @@ namespace Game
 			xmlfile.EndTag();
 		}
 				
+		void OutputCamera(Utilities::XMLWriter &xmlfile)
+		{
+			Camera* camera = Rules::GameWindow::Instance()->GetCamera();
+			xmlfile.BeginTag("camera");
+				OutputVector3D(xmlfile, "focus", camera->GetFocus());
+				OutputFloat(xmlfile, "zoom", camera->GetZoom());
+				OutputFloat(xmlfile, "rotation", camera->GetRotation());
+			xmlfile.EndTag();
+		}
+
 		void SaveGame(std::string filename)
 		{
 			Utilities::XMLWriter xmlfile;
@@ -285,9 +294,17 @@ namespace Game
 
 			xmlfile.BeginTag("nightfall_save_file");
 
+				OutputString(xmlfile, "level", Rules::CurrentLevel);
+
+				Environment::FourthDimension* pDimension = Environment::FourthDimension::Instance();
+
+				OutputFloat(xmlfile, "hour", pDimension->GetCurrentHour());
+
 				OutputUint32(xmlfile, "currentFrame", AI::currentFrame);
 
 				OutputUint32(xmlfile, "aiFps", AI::aiFps);
+
+				OutputCamera(xmlfile);
 
 				for (vector<Player*>::iterator it = pWorld->vPlayers.begin(); it != pWorld->vPlayers.end(); it++)
 				{
@@ -436,6 +453,7 @@ namespace Game
 		{
 			if (data->index > pWorld->vPlayers.size())
 			{
+				std::cout << "Invalid player index in ParseStances()" << std::endl;
 				return;
 			}
 
@@ -448,6 +466,7 @@ namespace Game
 		{
 			if (data->index > pWorld->vPlayers.size())
 			{
+				std::cout << "Invalid player index in ParsePlayer()" << std::endl;
 				return;
 			}
 
@@ -481,6 +500,7 @@ namespace Game
 
 			if ((unsigned) player >= pWorld->vPlayers.size())
 			{
+				std::cout << "Invalid player index in ParseLastSeenPosition()" << std::endl;
 				return;
 			}
 
@@ -501,6 +521,7 @@ namespace Game
 			
 			if ((unsigned) i >= 65535)
 			{
+				std::cout << "Invalid unit index (out of range) in ParseUnit_Pass1()" << std::endl;
 				return;
 			}
 
@@ -510,6 +531,7 @@ namespace Game
 
 			if ((unsigned) i >= pWorld->vPlayers.size())
 			{
+				std::cout << "Invalid unit index in ParseUnit_Pass1()" << std::endl;
 				return;
 			}
 
@@ -522,6 +544,7 @@ namespace Game
 
 			if (!type)
 			{
+				std::cout << "Invalid unit type name in ParseUnit_Pass1()" << std::endl;
 				return;
 			}
 
@@ -535,6 +558,7 @@ namespace Game
 
 				if (!unit)
 				{
+					std::cout << "Failed to create unit in ParseUnit_Pass1()" << std::endl;
 					return;
 				}
 
@@ -551,7 +575,7 @@ namespace Game
 				unit->isMoving = b;
 				
 				xmlfile.Iterate(data, "action_completeness", ParseDoubleBlock);
-				unit->action_completeness = b;
+				unit->action_completeness = d;
 
 				xmlfile.Iterate(data, "lastSeenPosition", ParseLastSeenPosition);
 
@@ -673,16 +697,26 @@ namespace Game
 			xmlfile.Iterate(data, "startPos", ParseIntPosition);
 			startPos = pos_int;
 
-			if (is_back)
+			if (action != AI::ACTION_NONE)
 			{
-				if (unit->owner->type != PLAYER_TYPE_REMOTE)
+				if (unit->isDisplayed)
 				{
-					AI::CommandPathfinding(unit, startPos.x, startPos.y, goal.pos.x, goal.pos.y, action, goal.unit, arg);
+					if (is_back)
+					{
+						if (unit->owner->type != PLAYER_TYPE_REMOTE)
+						{
+							AI::CommandPathfinding(unit, startPos.x, startPos.y, goal.pos.x, goal.pos.y, action, goal.unit, arg);
+						}
+					}
+					else
+					{
+						AI::ApplyAction(unit, action, goal.pos.x, goal.pos.y, goal.unit, arg);
+					}
 				}
-			}
-			else
-			{
-				AI::ApplyAction(unit, action, goal.pos.x, goal.pos.y, goal.unit, arg);
+				else
+				{
+					std::cout << "ParseActionData() detected a non-displayed unit with an action" << std::endl;
+				}
 			}
 		}
 
@@ -708,13 +742,11 @@ namespace Game
 
 			if (!unit)
 			{
+				std::cout << "Invalid unit index in ParseUnit_Pass2()" << std::endl;
 				return;
 			}
 
 			xmlfile.Iterate(data, "movementData", ParseMovementData);
-			
-			xmlfile.Iterate(data, "action", ParseIntBlock);
-			unit->action = (AI::UnitAction) i;
 			
 		}
 
@@ -728,6 +760,7 @@ namespace Game
 
 			if (!owner)
 			{
+				std::cout << "Invalid unit index in ParseProjectile()" << std::endl;
 				return;
 			}
 
@@ -750,10 +783,33 @@ namespace Game
 
 		}
 
+		void ParseCamera(Utilities::XMLData *data)
+		{
+			Utilities::Vector3D focus;
+			float zoom, rotation;
+			
+			xmlfile.Iterate(data, "focus", ParseVector3D);
+			focus = vec;
+			
+			xmlfile.Iterate(data, "zoom", ParseFloatBlock);
+			zoom = f;
+			
+			xmlfile.Iterate(data, "rotation", ParseFloatBlock);
+			rotation = f;
+
+			Rules::GameWindow::Instance()->GetCamera()->SetCamera(focus, zoom, rotation);
+		}
+
 		void ParseMain(Utilities::XMLData *data)
 		{
+			Environment::FourthDimension* pDimension = Environment::FourthDimension::Instance();
+			xmlfile.Iterate(data, "hour", ParseFloatBlock);
+			pDimension->SetCurrentHour(f);
+
 			xmlfile.Iterate(data, "currentFrame", ParseUint32Block);
 			AI::currentFrame = ui;
+			
+			xmlfile.Iterate(data, "camera", ParseCamera);
 			
 			xmlfile.Iterate(data, "aiFps", ParseIntBlock);
 			AI::aiFps = i;
@@ -766,10 +822,20 @@ namespace Game
 			xmlfile.Iterate(data, "projectile", ParseProjectile);
 		}
 
-		void LoadGame(std::string filename)
+		void ParseLevel(Utilities::XMLData *data)
+		{
+			xmlfile.Iterate(data, "level", ParseStringBlock);
+			Rules::CurrentLevel = str;
+		}
+
+		void LoadGameSaveFile(std::string filename)
 		{
 			xmlfile.Read(filename);
+			xmlfile.Iterate("nightfall_save_file", ParseLevel);
+		}
 
+		void LoadGame_PostLoad()
+		{
 			xmlfile.Iterate("nightfall_save_file", ParseMain);
 		}
 		

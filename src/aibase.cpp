@@ -94,7 +94,7 @@ namespace Game
 				case Dimension::PLAYER_TYPE_REMOTE:
 					break;
 			}
-			lua_pushlightuserdata(pVM->GetVM(), pUnit);
+			lua_pushlightuserdata(pVM->GetVM(), (void*) pUnit->id);
 			lua_pushnumber(pVM->GetVM(), x);
 			lua_pushnumber(pVM->GetVM(), y);
 			lua_pushnumber(pVM->GetVM(), action);
@@ -122,8 +122,8 @@ namespace Game
 				case Dimension::PLAYER_TYPE_REMOTE:
 					break;
 			}
-			lua_pushlightuserdata(pVM->GetVM(), pUnit);
-			lua_pushlightuserdata(pVM->GetVM(), destination);
+			lua_pushlightuserdata(pVM->GetVM(), (void*) pUnit->id);
+			lua_pushlightuserdata(pVM->GetVM(), (void*) destination->id);
 			lua_pushnumber(pVM->GetVM(), action);
 			lua_pushlightuserdata(pVM->GetVM(), argument);
 			pVM->CallFunction(4);
@@ -141,32 +141,55 @@ namespace Game
 
 			pVM->SetFunction(func);
 
-			lua_pushlightuserdata(pVM->GetVM(), pUnit);
-			lua_pushinteger(pVM->GetVM(), pUnit->action);
+			lua_pushlightuserdata(pVM->GetVM(), (void*) pUnit->id);
+			lua_pushinteger(pVM->GetVM(), pUnit->pMovementData->action.action);
 			lua_pushnumber(pVM->GetVM(), pUnit->pMovementData->action.goal.pos.x);
 			lua_pushnumber(pVM->GetVM(), pUnit->pMovementData->action.goal.pos.y);
-			lua_pushlightuserdata(pVM->GetVM(), pUnit->pMovementData->action.goal.unit);
+			if (pUnit->pMovementData->action.goal.unit)
+			{
+				lua_pushlightuserdata(pVM->GetVM(), (void*) pUnit->pMovementData->action.goal.unit->id);
+			}
+			else
+			{
+				lua_pushlightuserdata(pVM->GetVM(), (void*) 0);
+			}
 			lua_pushlightuserdata(pVM->GetVM(), pUnit->pMovementData->action.arg);
 			pVM->CallFunction(6);
 		}
 
 		void SendUnitEventToLua_CommandCompleted(Dimension::Unit* pUnit)
 		{
+			if (!pUnit->isDisplayed)
+			{
+				*(int*) 0 = 0;
+			}
 			SendActionUnitEventToLua(pUnit, pUnit->unitAIFuncs.commandCompleted);
 		}
 
 		void SendUnitEventToLua_CommandCancelled(Dimension::Unit* pUnit)
 		{
+			if (!pUnit->isDisplayed)
+			{
+				*(int*) 0 = 0;
+			}
 			SendActionUnitEventToLua(pUnit, pUnit->unitAIFuncs.commandCancelled);
 		}
 
 		void SendUnitEventToLua_NewCommand(Dimension::Unit* pUnit)
 		{
+			if (!pUnit->isDisplayed)
+			{
+				*(int*) 0 = 0;
+			}
 			SendActionUnitEventToLua(pUnit, pUnit->unitAIFuncs.newCommand);
 		}
 
 		void SendUnitEventToLua_BecomeIdle(Dimension::Unit* pUnit)
 		{
+			if (!pUnit->isDisplayed)
+			{
+				*(int*) 0 = 0;
+			}
 			Utilities::Scripting::LuaVirtualMachine* pVM = Utilities::Scripting::GetPlayerVMInstance(pUnit->owner->index);
 			
 			if (pUnit->unitAIFuncs.becomeIdle.length() == 0)
@@ -177,12 +200,20 @@ namespace Game
 
 			pVM->SetFunction(pUnit->unitAIFuncs.becomeIdle);
 
-			lua_pushlightuserdata(pVM->GetVM(), pUnit);
+			lua_pushlightuserdata(pVM->GetVM(), (void*) pUnit->id);
 			pVM->CallFunction(1);
 		}
 
 		void SendUnitEventToLua_IsAttacked(Dimension::Unit* pUnit, Dimension::Unit* attacker)
 		{
+			if (!pUnit->isDisplayed)
+			{
+				*(int*) 0 = 0;
+			}
+			if (!attacker->isDisplayed)
+			{
+				*(int*) 0 = 0;
+			}
 			Utilities::Scripting::LuaVirtualMachine* pVM = Utilities::Scripting::GetPlayerVMInstance(pUnit->owner->index);
 			
 			if (pUnit->unitAIFuncs.isAttacked.length() == 0)
@@ -193,13 +224,17 @@ namespace Game
 
 			pVM->SetFunction(pUnit->unitAIFuncs.isAttacked);
 
-			lua_pushlightuserdata(pVM->GetVM(), pUnit);
-			lua_pushlightuserdata(pVM->GetVM(), attacker);
+			lua_pushlightuserdata(pVM->GetVM(), (void*) pUnit->id);
+			lua_pushlightuserdata(pVM->GetVM(), (void*) attacker->id);
 			pVM->CallFunction(2);
 		}
 
 		void SendUnitEventToLua_UnitCreation(Dimension::Unit* pUnit)
 		{
+			if (!pUnit->isDisplayed)
+			{
+				*(int*) 0 = 0;
+			}
 			Utilities::Scripting::LuaVirtualMachine* pVM = Utilities::Scripting::GetPlayerVMInstance(pUnit->owner->index);
 			
 			if (pUnit->type->playerAIFuncs[pUnit->owner->index].unitCreation.length() == 0)
@@ -210,7 +245,7 @@ namespace Game
 
 			pVM->SetFunction(pUnit->type->playerAIFuncs[pUnit->owner->index].unitCreation);
 
-			lua_pushlightuserdata(pVM->GetVM(), pUnit);
+			lua_pushlightuserdata(pVM->GetVM(), (void*) pUnit->id);
 			lua_pushlightuserdata(pVM->GetVM(), pUnit->type);
 			lua_pushnumber(pVM->GetVM(), pUnit->pos.x);
 			lua_pushnumber(pVM->GetVM(), pUnit->pos.y);
@@ -219,6 +254,10 @@ namespace Game
 
 		void SendUnitEventToLua_UnitKilled(Dimension::Unit* pUnit)
 		{
+			if (!pUnit->isDisplayed)
+			{
+				*(int*) 0 = 0;
+			}
 			Utilities::Scripting::LuaVirtualMachine* pVM = Utilities::Scripting::GetPlayerVMInstance(pUnit->owner->index);
 			
 			if (pUnit->unitAIFuncs.unitKilled.length() == 0)
@@ -229,106 +268,8 @@ namespace Game
 
 			pVM->SetFunction(pUnit->unitAIFuncs.unitKilled);
 
-			lua_pushlightuserdata(pVM->GetVM(), pUnit);
+			lua_pushlightuserdata(pVM->GetVM(), (void*) pUnit->id);
 			pVM->CallFunction(1);
-		}
-
-		void SendUnitEventToLua_BuildComplete(Dimension::Unit* pUnit)
-		{
-			Utilities::Scripting::LuaVirtualMachine* pVM = Utilities::Scripting::GetPlayerVMInstance(pUnit->owner->index);
-			if (pUnit->owner->type == Dimension::PLAYER_TYPE_REMOTE)
-				return;
-			switch (pUnit->owner->type)
-			{
-				case Dimension::PLAYER_TYPE_HUMAN:
-					pVM->SetFunction("UnitEvent_BuildComplete_Human");
-					break;
-				case Dimension::PLAYER_TYPE_GAIA:
-					pVM->SetFunction("UnitEvent_BuildComplete_Gaia");
-					break;
-				case Dimension::PLAYER_TYPE_AI:
-					pVM->SetFunction("UnitEvent_BuildComplete_AI");
-					break;
-				case Dimension::PLAYER_TYPE_REMOTE:
-					break;
-			}
-			lua_pushlightuserdata(pVM->GetVM(), pUnit);
-			lua_pushlightuserdata(pVM->GetVM(), pUnit->pMovementData->action.arg);
-			lua_pushlightuserdata(pVM->GetVM(), pUnit->pMovementData->action.goal.unit);
-			pVM->CallFunction(3);
-		}
-
-		void SendUnitEventToLua_BuildCancelled(Dimension::Unit* pUnit)
-		{
-			Utilities::Scripting::LuaVirtualMachine* pVM = Utilities::Scripting::GetPlayerVMInstance(pUnit->owner->index);
-			if (pUnit->owner->type == Dimension::PLAYER_TYPE_REMOTE)
-				return;
-			switch (pUnit->owner->type)
-			{
-				case Dimension::PLAYER_TYPE_HUMAN:
-					pVM->SetFunction("UnitEvent_BuildCancelled_Human");
-					break;
-				case Dimension::PLAYER_TYPE_GAIA:
-					pVM->SetFunction("UnitEvent_BuildCancelled_Gaia");
-					break;
-				case Dimension::PLAYER_TYPE_AI:
-					pVM->SetFunction("UnitEvent_BuildCancelled_AI");
-					break;
-				case Dimension::PLAYER_TYPE_REMOTE:
-					break;
-			}
-			lua_pushlightuserdata(pVM->GetVM(), pUnit);
-			lua_pushlightuserdata(pVM->GetVM(), pUnit->pMovementData->action.arg);
-			lua_pushlightuserdata(pVM->GetVM(), pUnit->pMovementData->action.goal.unit);
-			pVM->CallFunction(3);
-		}
-
-		void SendUnitEventToLua_ResearchComplete(Dimension::Unit* pUnit)
-		{
-			Utilities::Scripting::LuaVirtualMachine* pVM = Utilities::Scripting::GetPlayerVMInstance(pUnit->owner->index);
-			if (pUnit->owner->type == Dimension::PLAYER_TYPE_REMOTE)
-				return;
-			switch (pUnit->owner->type)
-			{
-				case Dimension::PLAYER_TYPE_HUMAN:
-					pVM->SetFunction("UnitEvent_ResearchComplete_Human");
-					break;
-				case Dimension::PLAYER_TYPE_GAIA:
-					pVM->SetFunction("UnitEvent_ResearchComplete_Gaia");
-					break;
-				case Dimension::PLAYER_TYPE_AI:
-					pVM->SetFunction("UnitEvent_ResearchComplete_AI");
-					break;
-				case Dimension::PLAYER_TYPE_REMOTE:
-					break;
-			}
-			lua_pushlightuserdata(pVM->GetVM(), pUnit);
-			lua_pushlightuserdata(pVM->GetVM(), pUnit->pMovementData->action.arg);
-			pVM->CallFunction(2);
-		}
-
-		void SendUnitEventToLua_ResearchCancelled(Dimension::Unit* pUnit)
-		{
-			Utilities::Scripting::LuaVirtualMachine* pVM = Utilities::Scripting::GetPlayerVMInstance(pUnit->owner->index);
-			if (pUnit->owner->type == Dimension::PLAYER_TYPE_REMOTE)
-				return;
-			switch (pUnit->owner->type)
-			{
-				case Dimension::PLAYER_TYPE_HUMAN:
-					pVM->SetFunction("UnitEvent_ResearchCancelled_Human");
-					break;
-				case Dimension::PLAYER_TYPE_GAIA:
-					pVM->SetFunction("UnitEvent_ResearchCancelled_Gaia");
-					break;
-				case Dimension::PLAYER_TYPE_AI:
-					pVM->SetFunction("UnitEvent_ResearchCancelled_AI");
-					break;
-				case Dimension::PLAYER_TYPE_REMOTE:
-					break;
-			}
-			lua_pushlightuserdata(pVM->GetVM(), pUnit);
-			lua_pushlightuserdata(pVM->GetVM(), pUnit->pMovementData->action.arg);
-			pVM->CallFunction(2);
 		}
 
 		void PerformSimpleAI(Dimension::Unit* pUnit)
@@ -336,7 +277,7 @@ namespace Game
 			UnitAction action;
 			int should_move;
 			
-			action = pUnit->action;
+			action = pUnit->pMovementData->action.action;
 			
 			if (action == ACTION_GOTO || action == ACTION_FOLLOW || action == ACTION_ATTACK || action == ACTION_BUILD || action == ACTION_RESEARCH)
 			{
@@ -429,7 +370,7 @@ namespace Game
 		{
 			double power_usage;
 			HandleProjectiles(pUnit);
-			if (pUnit->isCompleted && pUnit->action != ACTION_DIE)
+			if (pUnit->isCompleted && pUnit->isDisplayed && pUnit->pMovementData->action.action != ACTION_DIE)
 			{
 
 				power_usage = (pUnit->type->powerUsage + pUnit->type->lightPowerUsage) / aiFps;
@@ -461,7 +402,7 @@ namespace Game
 					}
 				}
 
-				if (pUnit->action == AI::ACTION_NONE || pUnit->action == AI::ACTION_NETWORK_AWAITING_SYNC)
+				if (pUnit->pMovementData->action.action == AI::ACTION_NONE || pUnit->pMovementData->action.action == AI::ACTION_NETWORK_AWAITING_SYNC)
 				{
 					pUnit->isMoving = false;
 				}
@@ -481,7 +422,7 @@ namespace Game
 						{
 							pVM->SetFunction(pUnit->unitAIFuncs.performUnitAI);
 
-							lua_pushlightuserdata(pVM->GetVM(), pUnit);
+							lua_pushlightuserdata(pVM->GetVM(), (void*) pUnit->id);
 							pVM->CallFunction(1);
 						}
 						pUnit->aiFrame = 0;
@@ -523,7 +464,7 @@ namespace Game
 				for (set<Dimension::Unit*>::iterator it = doneUnits.begin(); it != doneUnits.end(); it++)
 				{
 					Dimension::Unit* pUnit = *it;
-					if (!Dimension::IsValidUnitPointer(pUnit) || pUnit->action == ACTION_DIE)
+					if (!Dimension::IsValidUnitPointer(pUnit) || pUnit->pMovementData->action.action == ACTION_DIE)
 					{
 						continue;
 					}
@@ -569,7 +510,7 @@ namespace Game
 				{
 					Dimension::Unit* pUnit = Dimension::pWorld->vUnits.at(i);
 					PerformAI(pUnit);
-					if (pUnit->action == ACTION_DIE && currentFrame - pUnit->lastAttacked > (unsigned) aiFps)
+					if (pUnit->pMovementData->action.action == ACTION_DIE && currentFrame - pUnit->lastAttacked > (unsigned) aiFps)
 					{
 						DeleteUnit(pUnit);
 						i--;
@@ -623,7 +564,7 @@ namespace Game
 			if (pUnit->owner != Dimension::currentPlayer)
 				return;
 
-			if (pUnit->isCompleted && pUnit->action != ACTION_DIE)
+			if (pUnit->isCompleted && pUnit->pMovementData->action.action != ACTION_DIE)
 			{
 				if (!queue)
 				{
@@ -666,7 +607,7 @@ namespace Game
 			if (pUnit->owner != Dimension::currentPlayer)
 				return;
 
-			if (pUnit->isCompleted && pUnit->action != ACTION_DIE)
+			if (pUnit->isCompleted && pUnit->pMovementData->action.action != ACTION_DIE)
 			{
 				if (!queue)
 				{
@@ -734,12 +675,12 @@ namespace Game
 		
 		void IssueNextAction(Dimension::Unit* pUnit)
 		{
-			if (pUnit->action == AI::ACTION_DIE)
+			if (pUnit->pMovementData->action.action == AI::ACTION_DIE)
 			{
 				return;
 			}
 
-			pUnit->action = ACTION_NONE;
+			pUnit->pMovementData->action.action = ACTION_NONE;
 			pUnit->pMovementData->action.goal.unit = NULL;
 			pUnit->pMovementData->action.goal.goal_id = 0xFFFF;
 			DeallocPathfindingNodes(pUnit);
@@ -772,16 +713,16 @@ namespace Game
 
 		void CancelAction(Dimension::Unit* pUnit)
 		{
-			if (pUnit->action == AI::ACTION_DIE)
+			if (pUnit->pMovementData->action.action == AI::ACTION_DIE)
 			{
 				return;
 			}
 
-			if (pUnit->action == ACTION_BUILD)
+			if (pUnit->pMovementData->action.action == ACTION_BUILD)
 			{
 				Game::Dimension::CancelBuild(pUnit);
 			}
-			else if (pUnit->action == ACTION_RESEARCH)
+			else if (pUnit->pMovementData->action.action == ACTION_RESEARCH)
 			{
 				Game::Dimension::CancelResearch(pUnit);
 			}
@@ -791,21 +732,21 @@ namespace Game
 		
 		void CancelAllActions(Dimension::Unit* pUnit)
 		{
-			if (pUnit->action == AI::ACTION_DIE)
+			if (pUnit->pMovementData->action.action == AI::ACTION_DIE)
 			{
 				return;
 			}
 
 			AI::SendUnitEventToLua_CommandCancelled(pUnit);
-			if (pUnit->action == ACTION_BUILD)
+			if (pUnit->pMovementData->action.action == ACTION_BUILD)
 			{
 				Game::Dimension::CancelBuild(pUnit);
 			}
-			else if (pUnit->action == ACTION_RESEARCH)
+			else if (pUnit->pMovementData->action.action == ACTION_RESEARCH)
 			{
 				Game::Dimension::CancelResearch(pUnit);
 			}
-			pUnit->action = ACTION_NONE;
+			pUnit->pMovementData->action.action = ACTION_NONE;
 			pUnit->pMovementData->action.goal.unit = NULL;
 			DeallocPathfindingNodes(pUnit);
 			pUnit->pMovementData->pCurGoalNode = NULL;
@@ -814,19 +755,11 @@ namespace Game
 		
 		void CompleteAction(Dimension::Unit* pUnit)
 		{
-			if (pUnit->action == AI::ACTION_DIE)
+			if (pUnit->pMovementData->action.action == AI::ACTION_DIE)
 			{
 				return;
 			}
 
-			if (pUnit->action == ACTION_BUILD)
-			{
-				AI::SendUnitEventToLua_BuildComplete(pUnit);
-			}
-			else if (pUnit->action == ACTION_RESEARCH)
-			{
-				AI::SendUnitEventToLua_ResearchComplete(pUnit);
-			}
 			AI::SendUnitEventToLua_CommandCompleted(pUnit);
 			IssueNextAction(pUnit);
 		}
@@ -855,20 +788,20 @@ namespace Game
 		
 		void ApplyAction(Dimension::Unit* pUnit, UnitAction action, int goal_x, int goal_y, Dimension::Unit* target, void* arg)
 		{
-			if (pUnit->action == AI::ACTION_DIE)
+			if (pUnit->pMovementData->action.action == AI::ACTION_DIE)
 			{
 				return;
 			}
 
-			if (pUnit->action == ACTION_BUILD)
+			if (pUnit->pMovementData->action.action == ACTION_BUILD)
 			{
 				Game::Dimension::CancelBuild(pUnit);
 			}
-			else if (pUnit->action == ACTION_RESEARCH)
+			else if (pUnit->pMovementData->action.action == ACTION_RESEARCH)
 			{
 				Game::Dimension::CancelResearch(pUnit);
 			}
-			if (pUnit->action != ACTION_NONE)
+			if (pUnit->pMovementData->action.action != ACTION_NONE)
 			{
 				AI::SendUnitEventToLua_CommandCancelled(pUnit);
 			}
@@ -876,7 +809,7 @@ namespace Game
 			DeallocPathfindingNodes(pUnit);
 			pUnit->pMovementData->pCurGoalNode = NULL;
 			
-			pUnit->action = action;
+			pUnit->pMovementData->action.action = action;
 			pUnit->pMovementData->action.goal.unit = target;
 			if (target)
 			{

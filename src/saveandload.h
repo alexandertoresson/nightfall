@@ -30,7 +30,8 @@ namespace Game
 	namespace Dimension
 	{
 		void SaveGame(std::string filename);
-		void LoadGame(std::string filename);
+		void LoadGameSaveFile(std::string filename);
+		void LoadGame_PostLoad();
 	}
 }
 

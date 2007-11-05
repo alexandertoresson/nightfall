@@ -23,16 +23,25 @@ function CommandUnit_TargetUnit_Human(Unit, target, action, argument)
 	CommandUnit_TargetUnit(Unit, target, action, argument)
 end
 
-function UnitEvent_BuildComplete_Human(Unit, UnitType, TargetUnit)
+function UnitEvent_UnitKilled_Human(Unit)
 end
 
-function UnitEvent_BuildCancelled_Human(Unit, UnitType, TargetUnit)
+function UnitEvent_UnitCreation_Human(Unit)
 end
 
-function UnitEvent_ResearchComplete_Human(Unit, UnitType, TargetUnit)
+function UnitEvent_BecomeIdle_Human(Unit)
 end
 
-function UnitEvent_ResearchCancelled_Human(Unit, UnitType, TargetUnit)
+function UnitEvent_CommandCompleted_Human(Unit, action, x, y, goal, arg)
+end
+
+function UnitEvent_CommandCancelled_Human(Unit, action, x, y, goal, arg)
+end
+
+function UnitEvent_NewCommand_Human(Unit, action, x, y, goal, arg)
+end
+
+function UnitEvent_IsAttacked_Human(Unit, attacker)
 end
 
 function UnitEvent_IsAttacked_Human(Unit, attacker)

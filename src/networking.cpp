@@ -16,7 +16,7 @@ namespace Game
 
 #define NETWORK_BUFFER 65536
 #define NETWORK_RECEIVE_CHUNK 4096
-#define NETWORK_MAX_CLIENTS 16
+#define NETWORK_MAX_CLIENTS 32
 #define PACKETTYPE(val) memcmp(packet->id, val, 4) == 0
 
 		bool isNetworked = false;
@@ -32,10 +32,7 @@ namespace Game
 
 		int netPort = 51500;
 		Uint32 netDelay = 5;
-		int packetLossResistanceLevel = 0;
 		unsigned queueLimit = 40;
-		int simulatedPacketLoss = -1;
-		bool preventiveRFRS = false; // doesn't seem to have any effect at all...
 		NETWORKTYPE networkType;
 		unsigned numClients = 1;
 
@@ -69,8 +66,16 @@ namespace Game
 		int netDestCount = 1; //indicates amout of server connections aswell
 		int numConnected = 0;
 		
+		enum NetworkNodeType
+		{
+			NETWORKNODETYPE_PLAYER = 0,
+			NETWORKNODETYPE_SPECTATOR,
+			NETWORKNODETYPE_DISCONNECTED
+		};
+
 		string netNickname[NETWORK_MAX_CLIENTS];
 		TCPsocket netDest[NETWORK_MAX_CLIENTS]; //clients connected to server.
+		NetworkNodeType nodeTypes[NETWORK_MAX_CLIENTS];
 		
 		Uint8 **netDestBufferIn;
 		int *netDataLeft;
@@ -442,8 +447,8 @@ namespace Game
 				waitingActions.push_back(actiondata_copy);
 			}
 			unsentActions.push_back(actiondata);
-			if (unit->action == AI::ACTION_NONE)
-				unit->action = AI::ACTION_NETWORK_AWAITING_SYNC;
+			if (unit->pMovementData->action.action == AI::ACTION_NONE)
+				unit->pMovementData->action.action = AI::ACTION_NETWORK_AWAITING_SYNC;
 		}
 
 		void PreparePath(Dimension::Unit* unit, AI::Node* pStart, AI::Node* pGoal)
@@ -883,9 +888,11 @@ namespace Game
 			
 			if (queueSize <= queueLimit)
 			{
+				bool nopackets = true;
 			
 				while ((packet = PopReceivedPacket()))
 				{
+					nopackets = true;
 					if (packet->id[0] == 'F' && packet->id[1] == 'R' && packet->id[2] == 'A' && packet->id[3] == 'M' && packet->frameLength == 6)
 					{
 						Uint32 frame = SDLNet_Read32(packet->frame);
@@ -893,7 +900,7 @@ namespace Game
 						Uint8 num_fragments = packet->frame[5];
 						int index = frame-AI::currentFrame+(netDelay<<1)-1;
 						bool accept = false;
-						if (fragment > 31 || num_fragments > 32)
+						if (fragment > 15 || num_fragments > 16)
 							break;
 						if (networkType == CLIENT)
 						{
@@ -944,7 +951,7 @@ namespace Game
 										bool all_recved = true;
 										for (unsigned i = 0; i < numClients; i++)
 										{
-											if (!individualFramePacketsReceived[index][i])
+											if (!individualFramePacketsReceived[index][i] && nodeTypes[i] == NETWORKNODETYPE_PLAYER)
 											{
 												all_recved = false;
 												break;
@@ -1094,65 +1101,22 @@ namespace Game
 					DeletePacket(packet);
 				}
 
-				Uint32 wait = 0;
-				if (packetLossResistanceLevel != -1)
-					wait = netDelay / (packetLossResistanceLevel+1);
-				
-				if (preventiveRFRS)
+				if (nopackets && !frameMayAdvance[netDelay])
 				{
-					for (int i = 0; i < packetLossResistanceLevel; i++)
+					int no_connections = true;
+					for (unsigned i = 0; i < numClients; i++)
 					{
-						int frame = (int) floor( netDelay * ((float) (i+1) / (float) (packetLossResistanceLevel+1)) + 0.5);
-						if (!framePacketsReceived[frame+netDelay] && attempted_frame_count - frameRFRSSentAt[frame+netDelay] >= wait)
+						if (nodeTypes[i] != NETWORKNODETYPE_DISCONNECTED)
 						{
-#ifdef NET_DEBUG
-							cout << "SEND RFRS " << AI::currentFrame+frame-netDelay+1 << endl;
-#endif
-							SendRFRSPacket(AI::currentFrame+frame-netDelay+1, -1);
-							frameRFRSSentAt[frame+netDelay] = attempted_frame_count;
+							no_connections = false;
 						}
+					}
+					if (no_connections)
+					{
+						frameMayAdvance[netDelay] = true;
 					}
 				}
 
-				if (networkType == SERVER)
-				{
-					for (int i = 0; i < packetLossResistanceLevel; i++)
-					{
-						int frame = (int) floor( netDelay * ((float) (i+1) / (float) (packetLossResistanceLevel+1)) + 0.5);
-						for (unsigned j = 0; j < numClients; j++)
-						{
-							if (framePacketsSent[netDelay+frame] && !individualFrameAcknowledged[netDelay+frame][j])
-							{
-#ifdef NET_DEBUG
-								cout << "NOACK => RESEND " << SDLNet_Read32(framePacketsSent[netDelay+frame]->frame) << endl;
-#endif
-								Packet* temp_packet = ClonePacket(framePacketsSent[netDelay+frame]);
-								temp_packet->node = j;
-								vector<Packet*> packets = SplitPacket(temp_packet);
-								for (unsigned i = 0; i < packets.size(); i++)
-									PushPacketToSend(packets.at(i));
-								DeletePacket(temp_packet);
-								packets.clear();
-							}
-						}
-					}
-				}
-				else
-				{
-					for (int i = 0; i < packetLossResistanceLevel; i++)
-					{
-						int frame = (int) floor( netDelay * ((float) (i+1) / (float) (packetLossResistanceLevel+1)) + 0.5);
-						if (framePacketsSent[netDelay+frame] && !frameAcknowledged[netDelay+frame])
-						{
-#ifdef NET_DEBUG
-							cout << "NOACK => RESEND " << SDLNet_Read32(framePacketsSent[netDelay+frame]->frame) << endl;
-#endif
-							vector<Packet*> packets = SplitPacket(framePacketsSent[netDelay+frame]);
-							for (unsigned i = 0; i < packets.size(); i++)
-								PushPacketToSend(packets.at(i));
-						}
-					}
-				}
 			}
 
 			if (networkType == SERVER)
@@ -1371,7 +1335,7 @@ namespace Game
 			}
 			else if (queueSize <= queueLimit)
 			{
-				if (attempted_frame_count - frameRFRSSentAt[netDelay] >= netDelay>>2)
+				if (SDL_GetTicks() - frameRFRSSentAt[netDelay] >= 250)
 				{
 #ifdef NET_DEBUG
 					cout << "SEND RFRS " << AI::currentFrame-netDelay+1 << endl;
@@ -1380,14 +1344,17 @@ namespace Game
 					{
 						for (unsigned i = 0; i < numClients; i++)
 						{
-							SendRFRSPacket(AI::currentFrame-netDelay+1, i);
+							if (nodeTypes[i] == NETWORKNODETYPE_PLAYER)
+							{
+								SendRFRSPacket(AI::currentFrame-netDelay+1, i);
+							}
 						}
 					}
 					else
 					{
 						SendRFRSPacket(AI::currentFrame-netDelay+1, -1);
 					}
-					frameRFRSSentAt[netDelay] = attempted_frame_count;
+					frameRFRSSentAt[netDelay] = SDL_GetTicks();
 				}
 			}
 			
@@ -1759,6 +1726,8 @@ namespace Game
 			Networking::clientConnected = false;
 			Networking::joinStatus = JOIN_WAITING;
 
+			nodeTypes[0] = NETWORKNODETYPE_PLAYER;
+
 			thrRecv = SDL_CreateThread(&_networkRecvThread, net);
 			thrSend = SDL_CreateThread(&_networkSendThread, net);
 			return SUCCESS;
@@ -1864,7 +1833,7 @@ namespace Game
 			}
 			if (networkType == SERVER)
 			{
-				for (unsigned i = 2; i < Dimension::pWorld->vPlayers.size(); i++)
+				for (unsigned i = 2; i < numClients+1; i++)
 				{
 					Dimension::pWorld->vPlayers.at(i)->type = Dimension::PLAYER_TYPE_REMOTE;
 				}
@@ -2091,6 +2060,7 @@ namespace Game
 					if(acceptSock != NULL)
 					{
 						netDest[numConnected] = acceptSock;
+						nodeTypes[numConnected] = NETWORKNODETYPE_PLAYER;
 						if(!SDLNet_TCP_AddSocket(net->set, acceptSock))
 						{
 							cout << "Failed to add to Set" << endl;
@@ -2212,30 +2182,36 @@ namespace Game
 		{
 			//TODO send to correct address and location.
 			int result = 0;
-			if (rand() % 100 >= simulatedPacketLoss)
-			{
-				if(packet->node == -1)
-				{
-					SDL_LockMutex(mutServerConnected);
-					int connectedClients = numConnected;
-					SDL_UnlockMutex(mutServerConnected);
 
-					//Broadcast
-					for(int i = 0; i < connectedClients; i++)
+			if(packet->node == -1)
+			{
+				SDL_LockMutex(mutServerConnected);
+				int connectedClients = numConnected;
+				SDL_UnlockMutex(mutServerConnected);
+
+				//Broadcast
+				for(int i = 0; i < connectedClients; i++)
+				{
+					if (nodeTypes[i] != NETWORKNODETYPE_DISCONNECTED)
 					{
 						result = SDLNet_TCP_Send(netDest[i], pBuffer, packetLen);
 						if(!result || result < packetLen) 
 						{
 							cout << "NetOUT Failed: " << SDLNet_GetError() << endl;
+							nodeTypes[i] = NETWORKNODETYPE_DISCONNECTED;
 						}
 					}
 				}
-				else
+			}
+			else
+			{
+				if (nodeTypes[packet->node] != NETWORKNODETYPE_DISCONNECTED)
 				{
 					result = SDLNet_TCP_Send(netDest[packet->node], pBuffer, packetLen);
 					if(!result || result < packetLen) 
 					{
 						cout << "NetOUT Failed: " << SDLNet_GetError() << endl;
+						nodeTypes[packet->node] = NETWORKNODETYPE_DISCONNECTED;
 					}
 #ifdef NET_DEBUG
 					if(packet->frameLength >= 4)
@@ -2255,24 +2231,22 @@ namespace Game
 		{
 			//TODO send to correct address and location.
 			int result = 0;
-			if (rand() % 100 >= simulatedPacketLoss)
+
+			result = SDLNet_TCP_Send(sock, pBuffer, packetLen);
+			if(!result || result < packetLen) 
 			{
-				result = SDLNet_TCP_Send(sock, pBuffer, packetLen);
-				if(!result || result < packetLen) 
-				{
-					cout << "NetOUT Failed: " << SDLNet_GetError() << endl;
-				}
-#ifdef NET_DEBUG
-				if(packet->frameLength >= 4)
-				{
-					cout << "CLIENT SEND Packet: " << packet->id[0] << packet->id[1] << packet->id[2] << packet->id[3] << " FrameData:" << SDLNet_Read32(packet->frame) << endl;
-				}
-				else
-				{
-					cout << "CLIENT SEND Packet: " << packet->id[0] << packet->id[1] << packet->id[2] << packet->id[3] << " Total packet len: " << packetLen - 2 << endl;
-				}
-#endif
+				cout << "NetOUT Failed: " << SDLNet_GetError() << endl;
 			}
+#ifdef NET_DEBUG
+			if(packet->frameLength >= 4)
+			{
+				cout << "CLIENT SEND Packet: " << packet->id[0] << packet->id[1] << packet->id[2] << packet->id[3] << " FrameData:" << SDLNet_Read32(packet->frame) << endl;
+			}
+			else
+			{
+				cout << "CLIENT SEND Packet: " << packet->id[0] << packet->id[1] << packet->id[2] << packet->id[3] << " Total packet len: " << packetLen - 2 << endl;
+			}
+#endif
 		}
 
 		int _networkServerSendThread(void* arg)

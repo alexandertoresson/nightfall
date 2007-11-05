@@ -69,6 +69,10 @@ namespace Game
 				void FlyHorizontally(GLfloat);
 				void Zoom(GLfloat);
 				void Rotate(GLfloat);
+		
+				Utilities::Vector3D GetFocus();
+				GLfloat GetZoom();
+				GLfloat GetRotation();
 				
 				void SetYMaximum(GLfloat value) { mYMax = value; }
 				void SetYMinimum(GLfloat value) { mYMin = value; }

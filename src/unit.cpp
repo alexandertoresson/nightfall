@@ -965,9 +965,12 @@ namespace Game
 			double income = 0;
 			for (vector<Unit*>::iterator it = player->vUnits.begin(); it != player->vUnits.end(); it++)
 			{
-				UnitType* unittype = (*it)->type;
-				income += unittype->powerIncrement;
-				income -= unittype->powerUsage + unittype->lightPowerUsage + (unittype->attackPowerUsage + unittype->movePowerUsage + unittype->buildPowerUsage) * 0.5;
+				if ((*it)->isDisplayed)
+				{
+					UnitType* unittype = (*it)->type;
+					income += unittype->powerIncrement;
+					income -= unittype->powerUsage + unittype->lightPowerUsage + (unittype->attackPowerUsage + unittype->movePowerUsage + unittype->buildPowerUsage) * 0.5;
+				}
 			}
 			return income;
 		}
@@ -977,12 +980,15 @@ namespace Game
 			double income = 0;
 			for (vector<Unit*>::iterator it = player->vUnits.begin(); it != player->vUnits.end(); it++)
 			{
-				UnitType* unittype = (*it)->type;
-				if (unittype->powerType == POWERTYPE_TWENTYFOURSEVEN)
+				if ((*it)->isDisplayed)
 				{
-					income += unittype->powerIncrement;
+					UnitType* unittype = (*it)->type;
+					if (unittype->powerType == POWERTYPE_TWENTYFOURSEVEN)
+					{
+						income += unittype->powerIncrement;
+					}
+					income -= unittype->powerUsage + unittype->lightPowerUsage + (unittype->attackPowerUsage + unittype->movePowerUsage + unittype->buildPowerUsage) * 0.5;
 				}
-				income -= unittype->powerUsage + unittype->lightPowerUsage + (unittype->attackPowerUsage + unittype->movePowerUsage + unittype->buildPowerUsage) * 0.5;
 			}
 			return income;
 		}
@@ -1213,7 +1219,6 @@ namespace Game
 					{
 						unit->pMovementData->action.goal.unit = cur_unit;
 //						cout << "assign" << endl;
-						AI::SendUnitEventToLua_BuildCancelled(unit);
 					}
 					else
 					{
@@ -1253,7 +1258,7 @@ namespace Game
 				}
 			}
 
-			if (unit->pMovementData->action.goal.unit->action == AI::ACTION_DIE)
+			if (unit->pMovementData->action.goal.unit->pMovementData->action.action == AI::ACTION_DIE)
 			{
 #ifdef CHECKSUM_DEBUG_HIGH
 				Networking::checksum_output << "BUILD CANCEL TARGETDYING " << AI::currentFrame << ": " << unit->id << "\n";
@@ -1297,16 +1302,19 @@ namespace Game
 			if (unit->pMovementData->action.goal.unit->completeness >= 100.0)
 			{
 				unit->pMovementData->action.goal.unit->completeness = 100.0;
-				unit->pMovementData->action.goal.unit->isCompleted = true;
-				if (!unit->pMovementData->action.goal.unit->isDisplayed)
+				if (unit->pMovementData->action.goal.unit->isCompleted == false)
 				{
-					int new_x = unit->curAssociatedSquare.x, new_y = unit->curAssociatedSquare.y;
-					GetNearestUnoccupiedPosition(unit->pMovementData->action.goal.unit->type, new_x, new_y);
-					DisplayUnit(unit->pMovementData->action.goal.unit, new_x, new_y);
-				}
-				else
-				{
-					Complete(unit->pMovementData->action.goal.unit);
+					unit->pMovementData->action.goal.unit->isCompleted = true;
+					if (!unit->pMovementData->action.goal.unit->isDisplayed)
+					{
+						int new_x = unit->curAssociatedSquare.x, new_y = unit->curAssociatedSquare.y;
+						GetNearestUnoccupiedPosition(unit->pMovementData->action.goal.unit->type, new_x, new_y);
+						DisplayUnit(unit->pMovementData->action.goal.unit, new_x, new_y);
+					}
+					else
+					{
+						Complete(unit->pMovementData->action.goal.unit);
+					}
 				}
 
 				Unit* newUnit = unit->pMovementData->action.goal.unit;
@@ -1397,7 +1405,7 @@ namespace Game
 			int cost;
 			Dimension::UnitType* build_type = (Dimension::UnitType*) pUnit->pMovementData->action.arg;
 
-			if (pUnit->pMovementData->action.goal.unit && pUnit->pMovementData->action.goal.unit->action != AI::ACTION_DIE)
+			if (pUnit->pMovementData->action.goal.unit && pUnit->pMovementData->action.goal.unit->pMovementData->action.action != AI::ACTION_DIE)
 			{
 				Unit* target = pUnit->pMovementData->action.goal.unit;
 				if (!pUnit->pMovementData->action.goal.unit->isDisplayed)
@@ -1418,7 +1426,6 @@ namespace Game
 					DeleteUnit(target);
 				}
 			}
-			AI::SendUnitEventToLua_BuildCancelled(pUnit);
 		}
 
 		void CancelResearch(Dimension::Unit* pUnit)
@@ -1427,7 +1434,6 @@ namespace Game
 			Dimension::UnitType* research_type = (Dimension::UnitType*) pUnit->pMovementData->action.arg;
 			cost = research_type->researchCost;
 			pUnit->owner->resources.money += (float)cost * pUnit->action_completeness / 200;
-			AI::SendUnitEventToLua_ResearchCancelled(pUnit);
 		}
 
 		// returns true when the unit can attack at the current time
@@ -1451,14 +1457,14 @@ namespace Game
 				target->lastAttacked = AI::currentFrame; // only update time of last attack if the unit is not already dead
 			}
 			target->health -= damage;
-			if (target->health <= 1e-3 && target->action != AI::ACTION_DIE)
+			if (target->health <= 1e-3 && target->pMovementData->action.action != AI::ACTION_DIE)
 			{
 #ifdef CHECKSUM_DEBUG_HIGH
 				Networking::checksum_output << "DIE" << "\n";
 #endif
 				KillUnit(target);
 			}
-			if (target->action == AI::ACTION_DIE)
+			if (target->pMovementData->action.action == AI::ACTION_DIE)
 			{
 				return true;
 			}
@@ -1505,7 +1511,7 @@ namespace Game
 			{
 				attacker->lastSeenPositions[target->owner->index] = attacker->curAssociatedSquare;
 
-				if (target->action != AI::ACTION_DIE)
+				if (target->pMovementData->action.action != AI::ACTION_DIE)
 					AI::SendUnitEventToLua_IsAttacked(target, attacker);
 
 				if (Attack(target, CalcUnitDamage(attacker)))
@@ -1608,7 +1614,7 @@ namespace Game
 						pUnit->lastSeenPositions[target->owner->index] = pUnit->curAssociatedSquare;
 						if (target->owner != pUnit->owner)
 						{
-							if (target->action != AI::ACTION_DIE)
+							if (target->pMovementData->action.action != AI::ACTION_DIE)
 								AI::SendUnitEventToLua_IsAttacked(target, pUnit);
 						}
 						if (Attack(target, CalcUnitDamage(pUnit)))
@@ -1688,7 +1694,7 @@ namespace Game
 							for (vector<Unit*>::iterator it_unit = unitsInBigSquaresPerPlayer[owner_index][y][x]->begin(); it_unit != unitsInBigSquaresPerPlayer[owner_index][y][x]->end(); it_unit++)
 							{
 								curUnit = *it_unit;
-								if (curUnit != unit)
+								if (curUnit != unit && curUnit->isDisplayed)
 								{
 									bool found = false;
 									if (rangeType == RANGE_SIGHT)
@@ -1727,6 +1733,10 @@ namespace Game
 		{
 			int start_x, start_y;
 			int** NumUnitsSeeingSquare = player->NumUnitsSeeingSquare;
+			if (!unit->isDisplayed)
+			{
+				return false;
+			}
 			GetUnitUpperLeftCorner(unit, start_x, start_y);
 			for (int y = start_y; y < start_y + unit->type->heightOnMap; y++)
 			{
@@ -1771,6 +1781,10 @@ namespace Game
 			int start_x, start_y;
 			int end_x, end_y;
 			int** NumUnitsSeeingSquare = player->NumUnitsSeeingSquare;
+			if (!unit->isDisplayed)
+			{
+				return false;
+			}
 			GetUnitUpperLeftCorner(unit, start_x, start_y);
 			end_x = start_x + unit->type->widthOnMap - 1;
 			end_y = start_y + unit->type->heightOnMap - 1;
@@ -2211,15 +2225,15 @@ namespace Game
 		
 			if(target)
 			{
-				if (unit->action == AI::ACTION_ATTACK || unit->action == AI::ACTION_MOVE_ATTACK_UNIT)
+				if (unit->pMovementData->action.action == AI::ACTION_ATTACK || unit->pMovementData->action.action == AI::ACTION_MOVE_ATTACK_UNIT)
 				{
 					return WouldBeAbleToReach(unit, x, y, target);
 				}
-				else if (unit->action == AI::ACTION_FOLLOW)
+				else if (unit->pMovementData->action.action == AI::ACTION_FOLLOW)
 				{
 					return WithinRangeArray(target->type, x, y, target->curAssociatedSquare.x, target->curAssociatedSquare.y, nextToRangeArray);
 				}
-				else if (unit->action == AI::ACTION_BUILD)
+				else if (unit->pMovementData->action.action == AI::ACTION_BUILD)
 				{
 					if (arg)
 					{
@@ -2261,7 +2275,6 @@ namespace Game
 			}
 			else if (operation == 1 && unit->hasSeen == true)
 			{
-				cout << "SEEN SQUARES MANAGEMENT WARNING: Attempted to add seen squares twice" << endl;
 				return;
 			}
 
@@ -2847,7 +2860,7 @@ namespace Game
 		bool MoveUnit(Unit* pUnit)
 		{
 			float distance, distance_per_frame;
-			AI::UnitAction action = pUnit->action;
+			AI::UnitAction action = pUnit->pMovementData->action.action;
 			Position goto_pos;
 			Utilities::Vector3D move; // abused to calculate movement per axis in 2d and the rotation of the model when going in a specific direction...
 			Utilities::Vector3D zero_rot;
@@ -2868,7 +2881,7 @@ namespace Game
 					if (pUnit->pMovementData->action.goal.unit->lastSeenPositions[pUnit->owner->index].x != pUnit->pMovementData->action.goal.pos.x ||
 					    pUnit->pMovementData->action.goal.unit->lastSeenPositions[pUnit->owner->index].y != pUnit->pMovementData->action.goal.pos.y)
 					{
-						ChangePath(pUnit, pUnit->pMovementData->action.goal.unit->lastSeenPositions[pUnit->owner->index].x, pUnit->pMovementData->action.goal.unit->lastSeenPositions[pUnit->owner->index].y, pUnit->action, pUnit->pMovementData->action.goal.unit, pUnit->pMovementData->action.arg);
+						ChangePath(pUnit, pUnit->pMovementData->action.goal.unit->lastSeenPositions[pUnit->owner->index].x, pUnit->pMovementData->action.goal.unit->lastSeenPositions[pUnit->owner->index].y, pUnit->pMovementData->action.action, pUnit->pMovementData->action.goal.unit, pUnit->pMovementData->action.arg);
 					}
 				}
 			
@@ -2921,12 +2934,12 @@ namespace Game
 							{
 								ChangePath(pUnit, pUnit->pMovementData->action.goal.unit->lastSeenPositions[pUnit->owner->index].x, 
 										  pUnit->pMovementData->action.goal.unit->lastSeenPositions[pUnit->owner->index].y,
-										  pUnit->action, pUnit->pMovementData->action.goal.unit, pUnit->pMovementData->action.arg);
+										  pUnit->pMovementData->action.action, pUnit->pMovementData->action.goal.unit, pUnit->pMovementData->action.arg);
 							}
 							else
 							{
 								ChangePath(pUnit, pUnit->pMovementData->action.goal.pos.x, pUnit->pMovementData->action.goal.pos.y,
-										  pUnit->action, pUnit->pMovementData->action.goal.unit, pUnit->pMovementData->action.arg);
+										  pUnit->pMovementData->action.action, pUnit->pMovementData->action.goal.unit, pUnit->pMovementData->action.arg);
 							}
 						}
 						pUnit->pMovementData->pCurGoalNode = NULL;
@@ -2953,7 +2966,7 @@ namespace Game
 							}
 							else
 							{
-								if (pUnit->action != AI::ACTION_BUILD)
+								if (pUnit->pMovementData->action.action != AI::ACTION_BUILD)
 								{
 #ifdef CHECKSUM_DEBUG_HIGH
 									Networking::checksum_output << "COMPLETE " << AI::currentFrame << ": " << pUnit->id << "\n";
@@ -2998,7 +3011,7 @@ namespace Game
 				pUnit->isMoving = false;
 				if (pUnit->owner->type != PLAYER_TYPE_REMOTE && !AI::IsUndergoingPathCalc(pUnit))
 				{
-					ChangePath(pUnit, pUnit->pMovementData->action.goal.pos.x, pUnit->pMovementData->action.goal.pos.y, pUnit->action, pUnit->pMovementData->action.goal.unit, pUnit->pMovementData->action.arg);
+					ChangePath(pUnit, pUnit->pMovementData->action.goal.pos.x, pUnit->pMovementData->action.goal.pos.y, pUnit->pMovementData->action.action, pUnit->pMovementData->action.goal.unit, pUnit->pMovementData->action.arg);
 				}
 			}
 
@@ -3083,12 +3096,12 @@ namespace Game
 									{
 										ChangePath(pUnit, pUnit->pMovementData->action.goal.unit->lastSeenPositions[pUnit->owner->index].x, 
 											  	  pUnit->pMovementData->action.goal.unit->lastSeenPositions[pUnit->owner->index].y,
-										  	  pUnit->action, pUnit->pMovementData->action.goal.unit, pUnit->pMovementData->action.arg);
+										  	  pUnit->pMovementData->action.action, pUnit->pMovementData->action.goal.unit, pUnit->pMovementData->action.arg);
 									}
 									else
 									{
 										ChangePath(pUnit, pUnit->pMovementData->action.goal.pos.x, pUnit->pMovementData->action.goal.pos.y,
-										  	  pUnit->action, pUnit->pMovementData->action.goal.unit, pUnit->pMovementData->action.arg);
+										  	  pUnit->pMovementData->action.action, pUnit->pMovementData->action.goal.unit, pUnit->pMovementData->action.arg);
 									}
 								}
 							}
@@ -3159,7 +3172,7 @@ namespace Game
 							}
 							else
 							{
-								if (pUnit->action != AI::ACTION_BUILD)
+								if (pUnit->pMovementData->action.action != AI::ACTION_BUILD)
 								{
 #ifdef CHECKSUM_DEBUG_HIGH
 									Networking::checksum_output << "COMPLETE " << AI::currentFrame << ": " << pUnit->id << "\n";
@@ -3322,7 +3335,6 @@ namespace Game
 			}
 			unit->pMovementData = NULL;
 			unit->lastAttack = 0;
-			unit->action = AI::ACTION_NONE;
 			unit->lastAttacked = 0;
 			unit->lastCommand = 0;
 			unit->isDisplayed = false;
@@ -3344,6 +3356,12 @@ namespace Game
 			unit->pushID = 0;
 			unit->pusher = NULL;
 
+			pWorld->vUnits.push_back(unit);
+			unit->owner->vUnits.push_back(unit);
+
+			unit->pMovementData = new AI::MovementData;
+ 			AI::InitMovementData(unit);
+			
 			int tries = 0;
 
 			if (id != -1)
@@ -3354,6 +3372,10 @@ namespace Game
 			while (unitByID[nextID])
 			{
 				nextID++;
+				if (nextID == 0)
+				{
+					nextID = 0;
+				}
 				if (tries++ == 0xFFFF)
 				{
 					return false;
@@ -3390,14 +3412,9 @@ namespace Game
 				return false;
 			}
 			
-			unit->pMovementData = new AI::MovementData;
- 			AI::InitMovementData(unit);
-
 			unit->pos.x = (float) x;
 			unit->pos.y = (float) y;
 			SetAssociatedSquares(unit, (int)x, (int)y);
-			pWorld->vUnits.push_back(unit);
-			unit->owner->vUnits.push_back(unit);
 			unit->isDisplayed = true;
 
 			if (unit->type->isMobile)
@@ -3435,7 +3452,7 @@ namespace Game
 			AI::SendUnitEventToLua_UnitKilled(unit);
 			
 			unit->health = 0;
-			unit->action = AI::ACTION_DIE;
+			unit->pMovementData->action.action = AI::ACTION_DIE;
 
 			PlayActionSound(unit, Audio::SFX_ACT_DEATH_FNF);
 
@@ -3534,7 +3551,7 @@ namespace Game
 				return;
 			}
 
-			if (unit->action != AI::ACTION_DIE)
+			if (unit->pMovementData->action.action != AI::ACTION_DIE)
 			{
 				AI::CancelAllActions(unit);
 
@@ -3621,7 +3638,7 @@ namespace Game
 					//}
 				}
 			}
-			
+
 			DeleteAssociatedSquares(unit, unit->curAssociatedSquare.x, unit->curAssociatedSquare.y);
 			
 			if (unit->curAssociatedBigSquare.y > -1)
@@ -3853,7 +3870,7 @@ namespace Game
 				unitByID[i] = NULL;
 				frameRemovedAt[i] = 0;
 			}
-			nextID = 0;
+			nextID = 1;
 
 			numUnitsPerAreaMap = new int*[4];
 
@@ -4247,7 +4264,7 @@ namespace Game
 			CalculateMaterial(unit, specular, model->Material_Specular, unitMaterialSpecular);
 			CalculateMaterial(unit, shininess, *model->Material_Shininess, unitMaterialShininess);
 
-			if (unit->action == AI::ACTION_DIE)
+			if (unit->pMovementData->action.action == AI::ACTION_DIE)
 			{
 				fade_out = 1.0f - (float) (AI::currentFrame - unit->lastAttacked) / (float) AI::aiFps;
 				diffuse[3] = fade_out;
@@ -4361,7 +4378,7 @@ namespace Game
 				glEnd();
 			}
 
-			if (unit->action == AI::ACTION_DIE)
+			if (unit->pMovementData->action.action == AI::ACTION_DIE)
 			{
 				glEnable(GL_DEPTH_TEST);
 			}
@@ -4440,13 +4457,13 @@ namespace Game
 						SetUnitCoordSpace(unit);
 
 	//					unit->animData.anim[0] =
-						if (type->animations[unit->action])
+						if (type->animations[unit->pMovementData->action.action])
 						{
-							for (int i = 0; i < type->animations[unit->action]->num_parts; i++)
+							for (int i = 0; i < type->animations[unit->pMovementData->action.action]->num_parts; i++)
 							{
 		//						animations[0] = unit->animData.anim[0]->transAnim;
 		//						animations[1] = unit->animData.anim[1]->transAnim;
-								RenderTransAnim(unit, type->animations[unit->action]->transAnim[i], animNum);
+								RenderTransAnim(unit, type->animations[unit->pMovementData->action.action]->transAnim[i], animNum);
 							}
 						}
 				
@@ -4551,7 +4568,7 @@ namespace Game
 							glVertex3f(x_e, y_e, 0.0);
 							glVertex3f(x_s_i + (float) (unit->health) / type->maxHealth * (x_e_i - x_s_i), y_e, 0.0);
 */
-							if (unit->action == AI::ACTION_BUILD)
+							if (unit->pMovementData->action.action == AI::ACTION_BUILD)
 							{
 								if (unit->pMovementData->action.goal.unit != NULL)
 								{
@@ -4613,7 +4630,7 @@ namespace Game
 								}
 							}
 							
-							if (unit->action == AI::ACTION_RESEARCH)
+							if (unit->pMovementData->action.action == AI::ACTION_RESEARCH)
 							{
 								y_s = -0.3f;
 								y_e = -0.1f;

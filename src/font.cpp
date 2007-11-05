@@ -62,9 +62,8 @@ namespace Window
 
 			cout << "Loading font file \"" << path << "\"" << endl;
 			//10 pt at 640 x 480, relative font calculation
-			float factor = (float)Window::windowHeight / 480.0f;
-			int pt = (int)floor((factor * 14.0f) + 0.5f) + 1;
-			cout << pt << endl;
+//			float factor = (float)Window::windowHeight / 480.0f;
+//			int pt = (int)floor((factor * 14.0f) + 0.5f) + 1;
 
 			this->font[2] = TTF_OpenFont(path.c_str(), GetPointSize(14));
 

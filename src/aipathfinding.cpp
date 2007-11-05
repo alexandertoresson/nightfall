@@ -474,7 +474,7 @@ namespace Game
 			md->action.changedGoalPos.x = 0;
 			md->action.changedGoalPos.y = 0;
 			md->action.arg = NULL;
-			md->action.action = ACTION_GOTO;
+			md->action.action = ACTION_NONE;
 			
 			md->_currentState = INTTHRSTATE_NONE;
 			md->_popFromQueue = false;
@@ -631,8 +631,6 @@ namespace Game
 
 			md->action = md->_action;
 
-			unit->action = md->_action.action;
-			
 			md->_start = NULL;
 			md->_goal = NULL;
 			
@@ -727,6 +725,7 @@ namespace Game
 				case DPN_FRONT:
 					goal = &md->pGoal;
 					start = &md->pStart;
+					md->pCurGoalNode = NULL;
 					break;
 				case DPN_BACK:
 					goal = &md->_goal;

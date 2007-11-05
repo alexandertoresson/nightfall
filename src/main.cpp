@@ -230,10 +230,9 @@ void KillAll(void)
 	{
 		if (Game::Dimension::pWorld != NULL)
 		{
-			for (unsigned int i = 0; i < Game::Dimension::pWorld->vUnits.size(); i++)
-			{
+			while(Game::Dimension::pWorld->vUnits.size() > 0)
 				Game::Dimension::DeleteUnit(Game::Dimension::pWorld->vUnits.at(0));
-			}
+
 			delete Game::Dimension::pWorld;
 		}
 	}

@@ -329,7 +329,6 @@ namespace Game
 			IntPosition         curAssociatedBigSquare;
 			float               rotation;  // how rotated the model is
 			UnitAnimData        animData;
-			AI::UnitAction      action;
 			deque<ActionData*>  actionQueue;
 			AI::MovementData*   pMovementData;
 			vector<Projectile*> projectiles;

@@ -445,43 +445,6 @@ function PerformAI_Player_AI(Player)
 	Cached_IncomeAtNight = nil
 end
 
-function UnitEvent_BuildComplete_AI(Unit, UnitType, TargetUnit)
---	if GetUnitTypeIncomeAtNoon(UnitType) < 0 then
---		TempNoonIncomeChanges = TempNoonIncomeChanges - GetUnitTypeIncomeAtNoon(UnitType)
---	end
---	if GetUnitTypeIncomeAtNight(UnitType) < 0 then
---		TempNightIncomeChanges = TempNightIncomeChanges - GetUnitTypeIncomeAtNight(UnitType)
---	end
---	TempMoneyReserved = TempMoneyReserved - GetUnitTypeBuildCost(UnitType)
---	Output("Complete Build: " .. GetUnitTypeName(UnitType) .. "\n")
---	Output("Reserved: " .. TempMoneyReserved .. " " .. TempNoonIncomeChanges .. " " .. TempNightIncomeChanges .. "\n")
-end
-
-function UnitEvent_BuildCancelled_AI(Unit, UnitType, TargetUnit)
---	if GetUnitTypeIncomeAtNoon(UnitType) < 0 then
---		TempNoonIncomeChanges = TempNoonIncomeChanges - GetUnitTypeIncomeAtNoon(UnitType)
---	end
---	if GetUnitTypeIncomeAtNight(UnitType) < 0 then
---		TempNightIncomeChanges = TempNightIncomeChanges - GetUnitTypeIncomeAtNight(UnitType)
---	end
---	TempMoneyReserved = TempMoneyReserved - GetUnitTypeBuildCost(UnitType)
---	DecNumBuilt(UnitType)
---	Output("Cancelled Build: " .. GetUnitTypeName(UnitType) .. "\n")
---	Output("Reserved: " .. TempMoneyReserved .. " " .. TempNoonIncomeChanges .. " " .. TempNightIncomeChanges .. "\n")
-end
-
-function UnitEvent_ResearchComplete_AI(Unit, UnitType)
---	TempMoneyReserved = TempMoneyReserved - GetUnitTypeResearchCost(UnitType)
---	Output("Complete Research: " .. GetUnitTypeName(UnitType) .. "\n")
---	Output("Reserved: " .. TempMoneyReserved .. " " .. TempNoonIncomeChanges .. " " .. TempNightIncomeChanges .. "\n")
-end
-
-function UnitEvent_ResearchCancelled_AI(Unit, UnitType)
---	TempMoneyReserved = TempMoneyReserved - GetUnitTypeResearchCost(UnitType)
---	Output("Cancelled Research: " .. GetUnitTypeName(UnitType) .. "\n")
---	Output("Reserved: " .. TempMoneyReserved .. " " .. TempNoonIncomeChanges .. " " .. TempNightIncomeChanges .. "\n")
-end
-
 function CommandUnit_TargetPos_AI(Unit, x, y, action, argument)
 	-- ignore received commands
 end
@@ -499,9 +462,15 @@ end
 
 function UnitEvent_UnitKilled_AI(Unit)
 	if GetUnitCanBuild(Unit) then
-		AvailableBuilders[GetUnitType(Unit)][Unit] = nil
+		if AvailableBuilders[GetUnitType(Unit)] ~= nil then
+			AvailableBuilders[GetUnitType(Unit)][Unit] = nil
+		end
+		if CheckedBuilders[GetUnitType(Unit)] ~= nil then
+			CheckedBuilders[GetUnitType(Unit)][Unit] = nil
+		end
 		AvailableBuilders[Unit] = nil
 		IdleList[Unit] = nil
+		CheckedIdleList[Unit] = nil
 	end
 	DecNumBuilt(GetUnitType(Unit))
 end

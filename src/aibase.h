@@ -104,11 +104,6 @@ namespace Game
 		void ScheduleNextAction(Dimension::Unit* pUnit);
 		void ApplyAction(Dimension::Unit* pUnit, UnitAction action, int goal_x, int goal_y, Dimension::Unit* target, void* arg);
 		
-		void SendUnitEventToLua_BuildComplete(Dimension::Unit* pUnit);
-		void SendUnitEventToLua_BuildCancelled(Dimension::Unit* pUnit);
-		void SendUnitEventToLua_ResearchComplete(Dimension::Unit* pUnit);
-		void SendUnitEventToLua_ResearchCancelled(Dimension::Unit* pUnit);
-		
 		void SendUnitEventToLua_IsAttacked(Dimension::Unit* pUnit, Dimension::Unit* attacker);
 		void SendUnitEventToLua_UnitCreation(Dimension::Unit* pUnit);
 		void SendUnitEventToLua_UnitKilled(Dimension::Unit* pUnit);

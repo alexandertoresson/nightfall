@@ -26,6 +26,21 @@ namespace Game
 			CheckPosition();
 		}
 
+		Utilities::Vector3D Camera::GetFocus()
+		{
+			return mFocus;
+		}
+
+		GLfloat Camera::GetZoom()
+		{
+			return mZoom;
+		}
+
+		GLfloat Camera::GetRotation()
+		{
+			return mRotation;
+		}
+
 		void Camera::SetCamera(Unit* unit, GLfloat zoom, GLfloat rotation)
 		{
 			mFocus = GetTerrainCoord(unit->pos.x, unit->pos.y);

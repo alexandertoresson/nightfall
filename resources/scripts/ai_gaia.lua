@@ -73,6 +73,21 @@ function UnitEvent_UnitCreation_Gaia(Unit)
 	end
 end
 
+function UnitEvent_BecomeIdle_Gaia(Unit)
+end
+
+function UnitEvent_CommandCompleted_Gaia(Unit, action, x, y, goal, arg)
+end
+
+function UnitEvent_CommandCancelled_Gaia(Unit, action, x, y, goal, arg)
+end
+
+function UnitEvent_NewCommand_Gaia(Unit, action, x, y, goal, arg)
+end
+
+function UnitEvent_IsAttacked_Gaia(Unit, attacker)
+end
+
 function CommandUnit_TargetPos_Gaia(Unit, x, y, action, argument)
 	-- ignore received commands
 end

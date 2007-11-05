@@ -1643,7 +1643,7 @@ namespace Game
 
 		void UnitBuild::GetBuildPercentage(int id, float& value, string& lbl)
 		{
-			if (pUnit->action == AI::ACTION_BUILD)
+			if (pUnit->pMovementData->action.action == AI::ACTION_BUILD)
 			{
 				if (pUnit->pMovementData->action.goal.unit != NULL)
 				{
@@ -1668,7 +1668,7 @@ namespace Game
 					}
 				}
 			}
-			else if (pUnit->action == AI::ACTION_RESEARCH)
+			else if (pUnit->pMovementData->action.action == AI::ACTION_RESEARCH)
 			{
 				Dimension::UnitType* research_type = (Dimension::UnitType*) pUnit->pMovementData->action.arg;
 				if((unsigned) id >= pUnit->type->canBuild.size() && pUnit->type->canResearch.at(id - pUnit->type->canBuild.size()) == research_type)
