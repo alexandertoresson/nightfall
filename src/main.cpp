@@ -242,7 +242,7 @@ void KillAll(void)
 
 	cout << "attempted frames waiting percent: " << ((double) Game::Networking::attempted_frames_waited / Game::Networking::attempted_frame_count) * 100 << endl;
 	
-	cout << "average bytes sent per second: " << (double) Game::Networking::bytes_sent / Game::Networking::attempted_frame_count * Game::AI::aiFps << endl;
+	cout << "average bytes sent per aiFrame: " << (double) Game::Networking::bytes_sent / Game::AI::currentFrame << endl;
 
 	std::cout << "Goodbye!" << std::endl;
 }

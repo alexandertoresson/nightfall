@@ -114,9 +114,7 @@ namespace Game
 		bool **individualFramePacketsReceived;
 		bool ***individualFrameFragmentsReceived;
 		Packet **framePacketsSent;
-		Uint32 *frameRFRSSentAt;
-		bool *frameAcknowledged;
-		bool **individualFrameAcknowledged;
+		Uint32 frameRFRSSentAt;
 		bool *frameMayAdvance;
 
 #ifdef CHECKSUM_DEBUG
@@ -534,7 +532,6 @@ namespace Game
 		void SendClientFramePacket();
 		void SendServerFramePacket(Uint32 frame);
 		void SendRFRSPacket(Uint32 frame, int node);
-		void SendAcknowledgePacket(Uint32 frame, int node);
 		Chunk *CreateActionChunk(NetActionData *actiondata);
 		int InterpretActionChunk(Chunk *chunk);
 		Chunk *CreatePathChunk(NetPath *path);
@@ -921,9 +918,7 @@ namespace Game
 								{
 									framePacketsReceived[index] = true;
 									frameMayAdvance[index] = true;
-									SendAcknowledgePacket(frame, packet->node);
 								}
-								frameAcknowledged[index] = true;
 							}
 						}
 						else if (networkType == SERVER)
@@ -946,8 +941,6 @@ namespace Game
 									if (all_fragments_received)
 									{
 										individualFramePacketsReceived[index][packet->node] = true;
-										individualFrameAcknowledged[index][packet->node] = true;
-										SendAcknowledgePacket(frame, packet->node);
 										bool all_recved = true;
 										for (unsigned i = 0; i < numClients; i++)
 										{
@@ -1051,52 +1044,6 @@ namespace Game
 							cout << "NACKOOB RFRS " << frame << endl;
 						}
 #endif
-					}
-					else if (packet->id[0] == 'A' && packet->id[1] == 'C' && packet->id[2] == 'K' && packet->id[3] == 'N' && packet->frameLength == 4)
-					{
-						Uint32 frame = SDLNet_Read32(packet->frame);
-						int index = frame-AI::currentFrame+(netDelay<<1)-1;
-						if (index >= 0 && index < (signed) (netDelay<<2))
-						{
-							if (networkType == CLIENT)
-							{
-								if (!frameAcknowledged[index])
-								{
-#ifdef NET_DEBUG
-									cout << "RECV ACKN " << frame << endl;
-#endif
-									frameAcknowledged[index] = true;
-								}
-								else
-								{
-#ifdef NET_DEBUG
-									cout << "RECV ACKN ALREADY " << frame << endl;
-#endif
-								}
-							}
-							else if (networkType == SERVER)
-							{
-								if (!individualFrameAcknowledged[index][packet->node])
-								{
-#ifdef NET_DEBUG
-									cout << "RECV ACKN " << frame << endl;
-#endif
-									individualFrameAcknowledged[index][packet->node] = true;
-								}
-								else
-								{
-#ifdef NET_DEBUG
-									cout << "RECV ACKN ALREADY " << frame << endl;
-#endif
-								}
-							}
-						}
-						else
-						{
-#ifdef NET_DEBUG
-							cout << "RECV ACKN OOB " << frame << " " << AI::currentFrame << " " << index << endl;
-#endif
-						}
 					}
 					DeletePacket(packet);
 				}
@@ -1270,14 +1217,11 @@ namespace Game
 					framePacketsReceived[i] = framePacketsReceived[i+1];
 					frameMayAdvance[i] = frameMayAdvance[i+1];
 					framePacketsSent[i] = framePacketsSent[i+1];
-					frameRFRSSentAt[i] = frameRFRSSentAt[i+1];
-					frameAcknowledged[i] = frameAcknowledged[i+1];
 					if (networkType == SERVER)
 					{
 						for (unsigned j = 0; j < numClients; j++)
 						{
 							individualFramePacketsReceived[i][j] = individualFramePacketsReceived[i+1][j];
-							individualFrameAcknowledged[i][j] = individualFrameAcknowledged[i+1][j];
 							for (unsigned k = 0; k < 16; k++)
 							{
 								individualFrameFragmentsReceived[i][j][k] = individualFrameFragmentsReceived[i+1][j][k];
@@ -1294,15 +1238,13 @@ namespace Game
 				framePacketsReceived[(netDelay<<2)-1] = false;
 				frameMayAdvance[(netDelay<<2)-1] = false;
 				framePacketsSent[(netDelay<<2)-1] = NULL;
-				frameRFRSSentAt[(netDelay<<2)-1] = 0;
-				frameAcknowledged[(netDelay<<2)-1] = false;
+				frameRFRSSentAt = SDL_GetTicks();
 				
 				if (networkType == SERVER)
 				{
 					for (unsigned j = 0; j < numClients; j++)
 					{
 						individualFramePacketsReceived[(netDelay<<2)-1][j] = false;
-						individualFrameAcknowledged[(netDelay<<2)-1][j] = false;
 						for (unsigned k = 0; k < 16; k++)
 						{
 							individualFrameFragmentsReceived[(netDelay<<2)-1][j][k] = false;
@@ -1335,7 +1277,7 @@ namespace Game
 			}
 			else if (queueSize <= queueLimit)
 			{
-				if (SDL_GetTicks() - frameRFRSSentAt[netDelay] >= 250)
+				if (SDL_GetTicks() - frameRFRSSentAt >= 100)
 				{
 #ifdef NET_DEBUG
 					cout << "SEND RFRS " << AI::currentFrame-netDelay+1 << endl;
@@ -1354,7 +1296,7 @@ namespace Game
 					{
 						SendRFRSPacket(AI::currentFrame-netDelay+1, -1);
 					}
-					frameRFRSSentAt[netDelay] = SDL_GetTicks();
+					frameRFRSSentAt = SDL_GetTicks();
 				}
 			}
 			
@@ -1697,23 +1639,6 @@ namespace Game
 			PushPacketToSend(packet);
 		}
 
-		void SendAcknowledgePacket(Uint32 frame, int node)
-		{
-			Packet* packet = new Packet;
-			packet->id[0] = 'A';
-			packet->id[1] = 'C';
-			packet->id[2] = 'K';
-			packet->id[3] = 'N';
-			packet->chunks = NULL;
-			packet->numChunks = 0;
-			packet->frame = new BUFFER[sizeof(Uint32)];
-			packet->frameLength = sizeof(Uint32);
-			SDLNet_Write32(frame, packet->frame);
-			packet->references = 0;
-			packet->node = node;
-			PushPacketToSend(packet);
-		}
-
 		int InitClient(NetworkSocket *net, int port)
 		{
 			clientID = 0;
@@ -1791,14 +1716,11 @@ namespace Game
 			frameFragmentsReceived = new bool*[netDelay<<2];
 			frameMayAdvance = new bool[netDelay<<2];
 			framePacketsSent = new Packet*[netDelay<<2];
-			frameRFRSSentAt = new Uint32[netDelay<<2];
-			frameAcknowledged = new bool[netDelay<<2];
 
 			if (networkType == SERVER)
 			{
 				individualFramePacketsReceived = new bool*[netDelay<<2];
 				individualFrameFragmentsReceived = new bool**[netDelay<<2];
-				individualFrameAcknowledged = new bool*[netDelay<<2];
 			}
 
 			for (unsigned i = 0; i < netDelay<<2; i++)
@@ -1806,19 +1728,15 @@ namespace Game
 				framePacketsReceived[i] = false;
 				frameMayAdvance[i] = (i < (netDelay<<1)-1);
 				framePacketsSent[i] = NULL;
-				frameRFRSSentAt[i] = 0;
-				frameAcknowledged[i] = (i < netDelay);
 
 				if (networkType == SERVER)
 				{
 					individualFramePacketsReceived[i] = new bool[numClients];
 					individualFrameFragmentsReceived[i] = new bool*[numClients];
-					individualFrameAcknowledged[i] = new bool[numClients];
 					for (unsigned j = 0; j < numClients; j++)
 					{
 						individualFramePacketsReceived[i][j] = false;
 						individualFrameFragmentsReceived[i][j] = new bool[16];
-						individualFrameAcknowledged[i][j] = (i < netDelay);
 						for (unsigned k = 0; k < 16; k++)
 						{
 							individualFrameFragmentsReceived[i][j][k] = false;
@@ -1861,6 +1779,8 @@ namespace Game
 					camera->SetCamera(unit, camera->GetZoom(), camera->GetRotation());
 				}
 			}
+			
+			frameRFRSSentAt = SDL_GetTicks();
 		}
 
 		int StartNetwork(NETWORKTYPE type)
@@ -2194,6 +2114,7 @@ namespace Game
 				{
 					if (nodeTypes[i] != NETWORKNODETYPE_DISCONNECTED)
 					{
+						bytes_sent += packetLen;
 						result = SDLNet_TCP_Send(netDest[i], pBuffer, packetLen);
 						if(!result || result < packetLen) 
 						{
@@ -2207,6 +2128,7 @@ namespace Game
 			{
 				if (nodeTypes[packet->node] != NETWORKNODETYPE_DISCONNECTED)
 				{
+					bytes_sent += packetLen;
 					result = SDLNet_TCP_Send(netDest[packet->node], pBuffer, packetLen);
 					if(!result || result < packetLen) 
 					{
@@ -2232,6 +2154,7 @@ namespace Game
 			//TODO send to correct address and location.
 			int result = 0;
 
+			bytes_sent += packetLen;
 			result = SDLNet_TCP_Send(sock, pBuffer, packetLen);
 			if(!result || result < packetLen) 
 			{
@@ -2277,7 +2200,7 @@ namespace Game
 					SDL_UnlockMutex(mutPacketFrameOutQueue);
 
 					int packetLen = CreatePacket(net->pBufferOut, packet);
-					bytes_sent += packetLen;
+//					bytes_sent += packetLen;
 
 					SendPacket(packet, net->pBufferOut, packetLen);
 
@@ -2302,7 +2225,7 @@ namespace Game
 
 					int packetLen = CreatePacket(net->pBufferOut, packet);
 
-					bytes_sent += packetLen;
+//					bytes_sent += packetLen;
 
 					SendPacket(packet, net->pBufferOut, packetLen);
 
@@ -2526,7 +2449,7 @@ namespace Game
 					SDL_UnlockMutex(mutPacketFrameOutQueue);
 					
 					int packetLen = CreatePacket(net->pBufferOut, packet);
-					bytes_sent += packetLen;
+//					bytes_sent += packetLen;
 					
 					SendPacket(net->socket, packet, net->pBufferOut, packetLen);
 
@@ -2551,7 +2474,7 @@ namespace Game
 
 					int packetLen = CreatePacket(net->pBufferOut, packet);
 
-					bytes_sent += packetLen;
+//					bytes_sent += packetLen;
 
 					SendPacket(net->socket, packet, net->pBufferOut, packetLen);
 
