@@ -1,6 +1,6 @@
 local ut = {}
-ut.id = "TankFactory"
-ut.name = "Tank Factory"
+ut.id = "LargeVehicleFactory"
+ut.name = "LargeVehicle Factory"
 ut.maxHealth = 7500
 ut.heightOnMap = 5
 ut.widthOnMap = 5
@@ -18,9 +18,9 @@ ut.researchCost = 500
 ut.powerUsage = 4.0
 	
 ut.model = "models/cube3.wrl#OB_Cube"
-ut.canBuild = {"SmallTank",
-	          "LargeTank"}
-ut.canResearch = {"SmallTank",
-	             "LargeTank"}
+ut.canBuild = {"SmallLargeVehicle",
+	          "LargeLargeVehicle"}
+ut.canResearch = {"SmallLargeVehicle",
+	             "LargeLargeVehicle"}
 
 CreateUnitType(ut)

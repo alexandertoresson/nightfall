@@ -19,7 +19,6 @@ namespace Game
 		vector<Unit*> unitGroups[10];
 		GLuint        genericTexture;
 		Unit**        unitByID;
-		Uint32*       frameRemovedAt;
 		unsigned short         nextID;
 		map<Unit*, bool> validUnitPointers;
 		int**         numUnitsPerAreaMap;
@@ -798,7 +797,7 @@ namespace Game
 
 		float PercentLightedAtPosition(UnitType* type, int x, int y)
 		{
-			int** NumLightsOnSquare = pWorld->NumLightsOnSquare;
+			Uint16** NumLightsOnSquare = pWorld->NumLightsOnSquare;
 			int covered = 0, total = 0;
 			int start_x, start_y, end_x, end_y;
 			int dist_x, dist_y, dist_both;
@@ -1195,23 +1194,15 @@ namespace Game
 					return;
 				}
 
-				if (unit->type->isMobile)
+				if (!unit->type->isMobile)
 				{
-					unit->pMovementData->action.goal.unit = CreateUnit(build_type, unit->owner, unit->pMovementData->action.goal.pos.x, unit->pMovementData->action.goal.pos.y);
-					if (unit->pMovementData->action.goal.unit)
-						Incomplete(unit->pMovementData->action.goal.unit);
+					unit->pMovementData->action.goal.unit = CreateUnitNoDisplay(build_type, unit->owner, -1, false);
 				}
 				else
 				{
-					unit->pMovementData->action.goal.unit = CreateUnitNoDisplay(build_type, unit->owner);
+					unit->pMovementData->action.goal.unit = CreateUnit(build_type, unit->owner, unit->pMovementData->action.goal.pos.x, unit->pMovementData->action.goal.pos.y, -1, false);
 				}
-				if (unit->pMovementData->action.goal.unit)
-				{
-					unit->pMovementData->action.goal.unit->completeness = 0.0;
-					unit->pMovementData->action.goal.unit->isCompleted = false;
-					unit->pMovementData->action.goal.unit->health = 0.0;
-				}
-				else
+				if (!unit->pMovementData->action.goal.unit)
 				{
 					Unit* cur_unit = pppElements[unit->pMovementData->action.goal.pos.y][unit->pMovementData->action.goal.pos.x];
 
@@ -1305,11 +1296,11 @@ namespace Game
 				if (unit->pMovementData->action.goal.unit->isCompleted == false)
 				{
 					unit->pMovementData->action.goal.unit->isCompleted = true;
-					if (!unit->pMovementData->action.goal.unit->isDisplayed)
+					if (unit->pMovementData->action.goal.unit->type->isMobile)
 					{
 						int new_x = unit->curAssociatedSquare.x, new_y = unit->curAssociatedSquare.y;
 						GetNearestUnoccupiedPosition(unit->pMovementData->action.goal.unit->type, new_x, new_y);
-						DisplayUnit(unit->pMovementData->action.goal.unit, new_x, new_y);
+						ScheduleDisplayUnit(unit->pMovementData->action.goal.unit, new_x, new_y);
 					}
 					else
 					{
@@ -1417,13 +1408,13 @@ namespace Game
 
 					// The following is needed because DeleteUnit() expects the unit to be complete and visible.
 					GetNearestUnoccupiedPosition(target->type, new_x, new_y);
-					DisplayUnit(target, new_x, new_y);
+					ScheduleDisplayUnit(target, new_x, new_y);
 
 					pUnit->pMovementData->action.goal.goal_id = 0xFFFF;
 					pUnit->pMovementData->action.goal.unit = NULL; // Zero out target unit before calling DeleteUnit,
 				                                        	// to prevent DeleteUnit from calling CancelAction which calls
 				                                        	// CancelBuild which calls DeleteUnit which calls CancelAction....
-					DeleteUnit(target);
+					ScheduleUnitDeletion(target);
 				}
 			}
 		}
@@ -1732,7 +1723,7 @@ namespace Game
 		bool UnitIsRendered(Unit *unit, Player *player)
 		{
 			int start_x, start_y;
-			int** NumUnitsSeeingSquare = player->NumUnitsSeeingSquare;
+			Uint16** NumUnitsSeeingSquare = player->NumUnitsSeeingSquare;
 			if (!unit->isDisplayed)
 			{
 				return false;
@@ -1780,7 +1771,7 @@ namespace Game
 		{
 			int start_x, start_y;
 			int end_x, end_y;
-			int** NumUnitsSeeingSquare = player->NumUnitsSeeingSquare;
+			Uint16** NumUnitsSeeingSquare = player->NumUnitsSeeingSquare;
 			if (!unit->isDisplayed)
 			{
 				return false;
@@ -1790,7 +1781,7 @@ namespace Game
 			end_y = start_y + unit->type->heightOnMap - 1;
 			for (int y = start_y; y <= end_y; y++)
 			{
-				int* row = NumUnitsSeeingSquare[y];
+				Uint16* row = NumUnitsSeeingSquare[y];
 				for (int x = start_x; x <= end_x; x++)
 				{
 					if (row[x])
@@ -1832,10 +1823,13 @@ namespace Game
 				case MOVEMENT_HUMAN:
 					return steepness < 72 && height > waterLevel;
 					break;
-				case MOVEMENT_VEHICLE:
-					return steepness < 63 && height > waterLevel;
+				case MOVEMENT_SMALLVEHICLE:
+					return steepness < 68 && height > waterLevel;
 					break;
-				case MOVEMENT_TANK:
+				case MOVEMENT_MEDIUMVEHICLE:
+					return steepness < 60 && height > waterLevel;
+					break;
+				case MOVEMENT_LARGEVEHICLE:
 					return steepness < 54 && height > waterLevel;
 					break;
 				case MOVEMENT_BUILDING:
@@ -1929,14 +1923,7 @@ namespace Game
 			bool walkable;
 			if (x >= 0 && y >= 0 && x < pWorld->width && y < pWorld->height)
 			{
-				if (type->isMobile)
-				{
-					walkable = UnitTypeCanWalkOnSquare_UnGuarded(type, x, y);
-				}
-				else
-				{
-					walkable = MovementTypeCanWalkOnSquare_NoPrecalc(type->movementType, x, y);
-				}
+				walkable = MovementTypeCanWalkOnSquare_NoPrecalc(type->movementType, x, y);
 				if (walkable && (flags & SIW_ALLKNOWING || SquareIsVisible_UnGuarded(player, x, y)))
 				{
 					if (pppElements[y][x] == NULL || pppElements[y][x] == unit)
@@ -2025,7 +2012,7 @@ namespace Game
 			UnitType* type = unit->type;
 			if (x >= 0 && y >= 0 && x < pWorld->width && y < pWorld->height)
 			{
-				if (unit->type->isMobile)
+				if (unit->type->isMobile && movementTypeWithSizeCanWalkOnSquare[unit->type->widthOnMap-1][unit->type->movementType])
 				{
 					if (UnitTypeCanWalkOnSquares(unit->type, x, y))
 					{
@@ -2079,7 +2066,7 @@ namespace Game
 			int end_x, end_y;
 			if (x >= 0 && y >= 0 && x < pWorld->width && y < pWorld->height)
 			{
-				if (type->isMobile)
+				if (type->isMobile && movementTypeWithSizeCanWalkOnSquare[type->widthOnMap-1][type->movementType])
 				{
 					if (UnitTypeCanWalkOnSquares(type, x, y))
 					{
@@ -2259,7 +2246,7 @@ namespace Game
 		void UpdateSeenSquares(Unit* unit, int x, int y, int operation)
 		{
 			int start_x, start_y, end_x, end_y;
-			int** NumUnitsSeeingSquare = unit->owner->NumUnitsSeeingSquare;
+			Uint16** NumUnitsSeeingSquare = unit->owner->NumUnitsSeeingSquare;
 			RangeScanlines* rangeScanlines = unit->type->sightRangeScanlines;
 
 			if (unit->owner->type == PLAYER_TYPE_REMOTE)
@@ -2270,11 +2257,11 @@ namespace Game
 			
 			if (operation == 0 && unit->hasSeen == false)
 			{
-				cout << "SEEN SQUARES MANAGEMENT WARNING: Attempted to delete seen squares twice" << endl;
 				return;
 			}
 			else if (operation == 1 && unit->hasSeen == true)
 			{
+				cout << "SEEN SQUARES MANAGEMENT WARNING: Attempted to add seen squares twice" << endl;
 				return;
 			}
 
@@ -2322,7 +2309,7 @@ namespace Game
 		void UpdateLightedSquares(Unit* unit, int x, int y, int operation)
 		{
 			int start_x, start_y, end_x, end_y;
-			int** NumLightsOnSquare = pWorld->NumLightsOnSquare;
+			Uint16** NumLightsOnSquare = pWorld->NumLightsOnSquare;
 			RangeScanlines* rangeScanlines = unit->type->lightRangeScanlines;
 
 			if (unit->type->lightRange < 1e-3)
@@ -2857,12 +2844,40 @@ namespace Game
 			return noloop;
 		}
 
+		void NewGoalNode(Unit* pUnit)
+		{
+			float distance, distance_per_frame;
+			Position goto_pos;
+			Utilities::Vector3D move; // abused to calculate movement per axis in 2d and the rotation of the model when going in a specific direction...
+			goto_pos.x = (float) pUnit->pMovementData->pCurGoalNode->x + 0.5f;
+			goto_pos.y = (float) pUnit->pMovementData->pCurGoalNode->y + 0.5f;
+
+			distance_per_frame = pUnit->type->movementSpeed / (float) AI::aiFps / 
+				             ((float)GetTraversalTime(pUnit,
+						               pUnit->pMovementData->pCurGoalNode->pParent->x,
+							       pUnit->pMovementData->pCurGoalNode->pParent->y,
+							       pUnit->pMovementData->pCurGoalNode->x - pUnit->pMovementData->pCurGoalNode->pParent->x,
+							       pUnit->pMovementData->pCurGoalNode->y - pUnit->pMovementData->pCurGoalNode->pParent->y)
+				              / 10.0f);
+
+			distance = Distance2D(goto_pos.x - pUnit->pos.x, goto_pos.y - pUnit->pos.y);
+
+			move.set(goto_pos.x - pUnit->pos.x, 0.0, goto_pos.y - pUnit->pos.y);
+			move.normalize();
+			move *= distance_per_frame;
+
+			pUnit->pMovementData->movementVector = move;
+			pUnit->pMovementData->distanceLeft = distance;
+			pUnit->pMovementData->distancePerFrame = distance_per_frame;
+			pUnit->faceTarget = FACETARGET_NONE;
+		}
+
 		bool MoveUnit(Unit* pUnit)
 		{
 			float distance, distance_per_frame;
-			AI::UnitAction action = pUnit->pMovementData->action.action;
 			Position goto_pos;
 			Utilities::Vector3D move; // abused to calculate movement per axis in 2d and the rotation of the model when going in a specific direction...
+			AI::UnitAction action = pUnit->pMovementData->action.action;
 			Utilities::Vector3D zero_rot;
 			Utilities::Vector3D goal_pos;
 			bool should_move = true;
@@ -2992,7 +3007,7 @@ namespace Game
 						}
 						else
 						{
-							pUnit->faceTarget = FACETARGET_NONE;
+							NewGoalNode(pUnit);
 /*							PushUnits(pUnit);
 							if (!pUnit->pMovementData->pStart)
 							{
@@ -3017,28 +3032,9 @@ namespace Game
 
 			if (should_move)
 			{
-				goto_pos.x = (float) pUnit->pMovementData->pCurGoalNode->x + 0.5f;
-				goto_pos.y = (float) pUnit->pMovementData->pCurGoalNode->y + 0.5f;
-
-				if (!pUnit->pMovementData->pCurGoalNode->pParent)
-				{
-					cout << "ERROR: !pCurGoalNode->pParent" << endl;
-					return true;
-				}
-
-				distance_per_frame = pUnit->type->movementSpeed / (float) AI::aiFps / 
-				                     ((float)GetTraversalTime(pUnit,
-						                       pUnit->pMovementData->pCurGoalNode->pParent->x,
-								       pUnit->pMovementData->pCurGoalNode->pParent->y,
-								       pUnit->pMovementData->pCurGoalNode->x - pUnit->pMovementData->pCurGoalNode->pParent->x,
-								       pUnit->pMovementData->pCurGoalNode->y - pUnit->pMovementData->pCurGoalNode->pParent->y)
-				                      / 10.0f);
-
-				distance = Distance2D(goto_pos.x - pUnit->pos.x, goto_pos.y - pUnit->pos.y);
-
-				move.set(goto_pos.x - pUnit->pos.x, 0.0, goto_pos.y - pUnit->pos.y);
-				move.normalize();
-				move *= distance_per_frame;
+				move = pUnit->pMovementData->movementVector;
+				distance_per_frame = pUnit->pMovementData->distancePerFrame;
+				distance = pUnit->pMovementData->distanceLeft;
 				
 #ifdef CHECKSUM_DEBUG_HIGH
 				Networking::checksum_output << "MOVE " << AI::currentFrame << ": " << pUnit->id << " " << pUnit->pos.x << " " << pUnit->pos.y << " " << move.x << " " << move.y << " " << pUnit->type->movementSpeed << " " << AI::aiFps << " " << GetTraversalTime(pUnit, pUnit->pMovementData->pCurGoalNode->pParent->x, pUnit->pMovementData->pCurGoalNode->pParent->y, pUnit->pMovementData->pCurGoalNode->x - pUnit->pMovementData->pCurGoalNode->pParent->x, pUnit->pMovementData->pCurGoalNode->y - pUnit->pMovementData->pCurGoalNode->pParent->y) << " " << distance_per_frame << " " << distance << " " << power_usage << "\n";
@@ -3150,6 +3146,7 @@ namespace Game
 
 					if (distance < distance_per_frame)
 					{
+						pUnit->pMovementData->distanceLeft = 0;
 						if (pUnit->pMovementData->pCurGoalNode->x == pUnit->pMovementData->pGoal->x &&
 						    pUnit->pMovementData->pCurGoalNode->y == pUnit->pMovementData->pGoal->y)
 						{
@@ -3204,15 +3201,18 @@ namespace Game
 							else
 							{
 								pUnit->pMovementData->pCurGoalNode = pUnit->pMovementData->pCurGoalNode->pChild;
+								NewGoalNode(pUnit);
 //								PushUnits(pUnit);
 							}
 #ifdef CHECKSUM_DEBUG_HIGH
 							Networking::checksum_output << "NEXT GOAL " << AI::currentFrame << ": " << pUnit->id << " " << pUnit->pMovementData->pCurGoalNode->x << " " << pUnit->pMovementData->pCurGoalNode->y << "\n";
 #endif
 							pUnit->pMovementData->switchedSquare = false;
-
-							pUnit->faceTarget = FACETARGET_NONE;
 						}
+					}
+					else
+					{
+						pUnit->pMovementData->distanceLeft -= distance_per_frame;
 					}
 				
 				}
@@ -3308,6 +3308,76 @@ namespace Game
 			return cur_unit;
 		}
 
+		void CheckPrecomputedArrays(Unit* unit)
+		{
+			if (unit->type->isMobile)
+			{
+				int j = unit->type->widthOnMap-1;
+				int i = unit->type->movementType;
+				
+				if (!movementTypeWithSizeCanWalkOnSquare[j][i])
+				{
+					movementTypeWithSizeCanWalkOnSquare[j][i] = new char*[pWorld->height];
+					for (int y = 0; y < pWorld->height; y++)
+					{
+						movementTypeWithSizeCanWalkOnSquare[j][i][y] = new char[pWorld->width];
+						for (int x = 0; x < pWorld->width; x++)
+						{
+							int start_x, start_y;
+							GetSizeUpperLeftCorner(j+1, x, y, start_x, start_y);
+							for (int y2 = start_y; y2 <= start_y + j; y2++)
+							{
+								for (int x2 = start_x; x2 <= start_x + j; x2++)
+								{
+									if (!MovementTypeCanWalkOnSquare_NoPrecalc((MovementType)i, x2, y2))
+									{
+										goto not_walkable;
+									}
+								}
+							}
+							movementTypeWithSizeCanWalkOnSquare[j][i][y][x] = 1;
+							continue;
+
+							not_walkable:
+							movementTypeWithSizeCanWalkOnSquare[j][i][y][x] = 0;
+						}
+					}
+				}
+
+				if (!traversalTimeBySize[j])
+				{
+					traversalTimeBySize[j] = new char*[pWorld->height];
+					for (int y = 0; y < pWorld->height; y++)
+					{
+						traversalTimeBySize[j][y] = new char[pWorld->width];
+						for (int x = 0; x < pWorld->width; x++)
+						{
+							int start_x, start_y;
+							int steepness = 0, num = 0;
+							GetSizeUpperLeftCorner(j+1, x, y, start_x, start_y);
+							for (int y2 = start_y; y2 <= start_y + j; y2++)
+							{
+								for (int x2 = start_x; x2 <= start_x + j; x2++)
+								{
+									if (x2 >= 0 && y2 >= 0 && x2 < pWorld->width && y2 < pWorld->height)
+									{
+										steepness += pWorld->ppSteepness[y2][x2];
+										num++;
+									}
+								}
+							}
+							steepness /= num;
+
+							if (steepness > 255)
+								steepness = 255;
+
+							traversalTimeBySize[j][y][x] = char(10 + (steepness >> 1));
+						}
+					}
+				}
+			}
+		}
+
 		Uint16 r_seed = 23467;
 		float rotation_rand()
 		{
@@ -3315,16 +3385,34 @@ namespace Game
 			return ((float)r_seed / 65535.0f);
 		}
 
+		set<Unit*> unitsScheduledForDeletion;
+		set<Unit*> unitsScheduledForDisplay;
+
 		// create a unit, but don't display it
-		Unit* CreateUnitNoDisplay(UnitType* type, Player* owner, int id)
+		Unit* CreateUnitNoDisplay(UnitType* type, Player* owner, int id, bool complete)
 		{
+			if (pWorld->vUnits.size() >= 0xFFFF)
+			{
+				return NULL;
+			}
+
 			Unit* unit = new Unit;
 			unit->type = type;
-			unit->health = (float) type->maxHealth;
 			unit->power = (float) type->maxPower;
 			unit->owner = owner;
-			unit->completeness = 100.0;
-			unit->isCompleted = true;
+
+			if (!complete)
+			{
+				unit->completeness = 0.0;
+				unit->isCompleted = false;
+				unit->health = 0.0;
+			}
+			else
+			{
+				unit->completeness = 100.0;
+				unit->isCompleted = true;
+				unit->health = (float) type->maxHealth;
+			}
 			unit->rotation = rotation_rand() * 360;
 			unit->animData.sAnimData[0] = new SingleAnimData*[10];
 			unit->animData.sAnimData[1] = new SingleAnimData*[10];
@@ -3355,9 +3443,9 @@ namespace Game
 			unit->usedInAreaMaps = false;
 			unit->pushID = 0;
 			unit->pusher = NULL;
-
-			pWorld->vUnits.push_back(unit);
-			unit->owner->vUnits.push_back(unit);
+			unit->faceTarget = FACETARGET_NONE;
+			unit->action_completeness = 0.0f;
+			unit->hasPower = false;
 
 			unit->pMovementData = new AI::MovementData;
  			AI::InitMovementData(unit);
@@ -3397,24 +3485,42 @@ namespace Game
 
  			validUnitPointers[unit] = true;
 
+			CheckPrecomputedArrays(unit);
+			
 			return unit;
 		}
 		
-		bool DisplayUnit(Unit* unit, int x, int y)
+		bool ScheduleDisplayUnit(Unit* unit, int x, int y)
 		{
-			if (pWorld->vUnits.size() >= 0xFFFF)
-			{
-				return false;
-			}
-
 			if (!SquaresAreWalkable(unit->type, x, y, SIW_ALLKNOWING))
 			{
 				return false;
 			}
+		
+			unit->pos.x = (float) x + 0.5;
+			unit->pos.y = (float) y + 0.5;
+
+			unitsScheduledForDisplay.insert(unit);
+
+			return true;
+		}
+
+		bool DisplayUnit(Unit* unit)
+		{
+			if (!SquaresAreWalkable(unit->type, (int) unit->pos.x, (int) unit->pos.y, SIW_ALLKNOWING))
+			{
+				return false;
+			}
 			
-			unit->pos.x = (float) x;
-			unit->pos.y = (float) y;
-			SetAssociatedSquares(unit, (int)x, (int)y);
+			pWorld->vUnits.push_back(unit);
+			unit->owner->vUnits.push_back(unit);
+
+			SetAssociatedSquares(unit, unit->pos.x, unit->pos.y);
+			if (!unit->isCompleted)
+			{
+				Incomplete(unit);
+			}
+
 			unit->isDisplayed = true;
 
 			if (unit->type->isMobile)
@@ -3430,21 +3536,30 @@ namespace Game
 
 
 		// create a unit
-		Unit* CreateUnit(UnitType* type, Player* owner, int x, int y, int id)
+		Unit* CreateUnit(UnitType* type, Player* owner, int x, int y, int id, bool complete)
 		{
 			if (!SquaresAreWalkable(type, x, y, SIW_ALLKNOWING))
 			{
 //				cout << "buildfail" << endl;
 				return NULL;
 			}
-			Unit* unit = CreateUnitNoDisplay(type, owner, id);
-			DisplayUnit(unit, x, y);
+			Unit* unit = CreateUnitNoDisplay(type, owner, id, complete);
+			ScheduleDisplayUnit(unit, x, y);
 			return unit;
+		}
+
+		void DisplayScheduledUnits()
+		{
+			for (set<Unit*>::iterator it = unitsScheduledForDisplay.begin(); it != unitsScheduledForDisplay.end(); it++)
+			{
+				DisplayUnit(*it);
+			}
+			unitsScheduledForDisplay.clear();
 		}
 
 		void KillUnit(Unit* unit)
 		{
-			unsigned int i, j;
+			unsigned int i;
 			Unit* curUnit;
 
 			AI::CancelAllActions(unit);
@@ -3465,26 +3580,6 @@ namespace Game
 				}
 			}
 
-			for (j = 0; j < 10; j++)
-			{
-				for (i = 0; i < unitGroups[j].size(); i++)
-				{
-					if (unitGroups[j].at(i) == unit)
-					{
-						unitGroups[j].erase(unitGroups[j].begin() + i);
-						break;
-					}
-				}
-			}
-			for (i = 0; i < unitsSelected.size(); i++)
-			{
-				if (unitsSelected.at(i) == unit)
-				{
-					unitsSelected.erase(unitsSelected.begin() + i);
-					break;
-				}
-			}
-			
 			for (i = 0; i < pWorld->vUnits.size(); i++)
 			{
 				curUnit = pWorld->vUnits.at(i);
@@ -3545,7 +3640,7 @@ namespace Game
 		{
 			Unit* curUnit;
 			unsigned int i, j;
-
+			
 			if (!IsValidUnitPointer(unit))
 			{
 				return;
@@ -3560,7 +3655,6 @@ namespace Game
 
  			validUnitPointers.erase(validUnitPointers.find(unit));
 
-			frameRemovedAt[unit->id] = AI::currentFrame;
 			unitByID[unit->id] = NULL;
 
 			for (i = 0; i < pWorld->vUnits.size(); i++)
@@ -3579,6 +3673,10 @@ namespace Game
 					break;
 				}
 			}
+			
+			if (unitsScheduledForDeletion.find(unit) != unitsScheduledForDeletion.end())
+				unitsScheduledForDeletion.erase(unitsScheduledForDeletion.find(unit));
+
 			for (j = 0; j < 10; j++)
 			{
 				for (i = 0; i < unitGroups[j].size(); i++)
@@ -3605,22 +3703,21 @@ namespace Game
 				{
 					AI::CancelAction(curUnit);
 				}
-				if (curUnit->pMovementData->_action.goal.unit == unit)
+				if (curUnit->pMovementData->_action.goal.unit == unit || curUnit->pMovementData->_newAction.goal.unit == unit)
 				{
 					SDL_LockMutex(AI::GetMutex());
-					
-					curUnit->pMovementData->_action.goal.unit = NULL;
-					curUnit->pMovementData->_action.action = AI::ACTION_GOTO;
-					
-					SDL_UnlockMutex(AI::GetMutex());
-				}
-				if (curUnit->pMovementData->_newAction.goal.unit == unit)
-				{
-					SDL_LockMutex(AI::GetMutex());
-					
-					curUnit->pMovementData->_newAction.goal.unit = NULL;
-					curUnit->pMovementData->_newAction.action = AI::ACTION_GOTO;
-					
+
+					if (curUnit->pMovementData->_action.goal.unit == unit)
+					{
+						curUnit->pMovementData->_action.goal.unit = NULL;
+						curUnit->pMovementData->_action.action = AI::ACTION_GOTO;
+					}
+					if (curUnit->pMovementData->_newAction.goal.unit == unit)
+					{
+						curUnit->pMovementData->_newAction.goal.unit = NULL;
+						curUnit->pMovementData->_newAction.action = AI::ACTION_GOTO;
+					}
+
 					SDL_UnlockMutex(AI::GetMutex());
 				}
 
@@ -3665,7 +3762,6 @@ namespace Game
 
 			if (unit->usedInAreaMaps)
 			{
-				cout << "delete from area map" << endl;
 				AI::DeleteUnitFromAreaMap(unit);
 			}
 			
@@ -3696,6 +3792,9 @@ namespace Game
 				}
 			}
 
+			if (unit->type->isMobile)
+				numUnitsPerAreaMap[unit->type->heightOnMap-1][unit->type->movementType]--;
+
 			if (AI::IsUndergoingPathCalc(unit))
 			{
 				AI::QuitUndergoingProc(unit);
@@ -3710,14 +3809,24 @@ namespace Game
 			if (unit->pMovementData->_start != NULL)
 				AI::DeallocPathfindingNodes(unit, AI::DPN_BACK);
 		
-			if (unit->type->isMobile)
-				numUnitsPerAreaMap[unit->type->heightOnMap-1][unit->type->movementType]--;
-
 			delete unit->pMovementData;
 
 			delete unit;
 			
 			unit = NULL;
+		}
+
+		void ScheduleUnitDeletion(Unit* unit)
+		{
+			unitsScheduledForDeletion.insert(unit);
+		}
+
+		void DeleteScheduledUnits()
+		{
+			while (unitsScheduledForDeletion.size())
+			{
+				DeleteUnit(*unitsScheduledForDeletion.begin());
+			}
 		}
 
 		// create a projectile type
@@ -3864,11 +3973,9 @@ namespace Game
 		{
 
 			unitByID = new Unit*[65535];
-			frameRemovedAt = new Uint32[65535];
 			for (int i = 0; i < 65535; i++)
 			{
 				unitByID[i] = NULL;
-				frameRemovedAt[i] = 0;
 			}
 			nextID = 1;
 
@@ -3889,65 +3996,14 @@ namespace Game
 				movementTypeWithSizeCanWalkOnSquare[j] = new char**[Game::Dimension::MOVEMENT_TYPES_NUM];
 				for (int i = 0; i < Game::Dimension::MOVEMENT_TYPES_NUM; i++)
 				{
-					movementTypeWithSizeCanWalkOnSquare[j][i] = new char*[pWorld->height];
-					for (int y = 0; y < pWorld->height; y++)
-					{
-						movementTypeWithSizeCanWalkOnSquare[j][i][y] = new char[pWorld->width];
-						for (int x = 0; x < pWorld->width; x++)
-						{
-							int start_x, start_y;
-							GetSizeUpperLeftCorner(j+1, x, y, start_x, start_y);
-							for (int y2 = start_y; y2 <= start_y + j; y2++)
-							{
-								for (int x2 = start_x; x2 <= start_x + j; x2++)
-								{
-									if (!MovementTypeCanWalkOnSquare_NoPrecalc((MovementType)i, x2, y2))
-									{
-										goto not_walkable;
-									}
-								}
-							}
-							movementTypeWithSizeCanWalkOnSquare[j][i][y][x] = 1;
-							continue;
-
-							not_walkable:
-							movementTypeWithSizeCanWalkOnSquare[j][i][y][x] = 0;
-						}
-					}
+					movementTypeWithSizeCanWalkOnSquare[j][i] = NULL;
 				}
 			}
 			
 			traversalTimeBySize = new char**[4];
 			for (int j = 0; j < 4; j++)
 			{
-				traversalTimeBySize[j] = new char*[pWorld->height];
-				for (int y = 0; y < pWorld->height; y++)
-				{
-					traversalTimeBySize[j][y] = new char[pWorld->width];
-					for (int x = 0; x < pWorld->width; x++)
-					{
-						int start_x, start_y;
-						int steepness = 0, num = 0;
-						GetSizeUpperLeftCorner(j+1, x, y, start_x, start_y);
-						for (int y2 = start_y; y2 <= start_y + j; y2++)
-						{
-							for (int x2 = start_x; x2 <= start_x + j; x2++)
-							{
-								if (x2 >= 0 && y2 >= 0 && x2 < pWorld->width && y2 < pWorld->height)
-								{
-									steepness += pWorld->ppSteepness[y2][x2];
-									num++;
-								}
-							}
-						}
-						steepness /= num;
-
-						if (steepness > 255)
-							steepness = 255;
-
-						traversalTimeBySize[j][y][x] = char(10 + (steepness >> 1));
-					}
-				}
+				traversalTimeBySize[j] = NULL;
 			}
 			
 			genericTexture = Utilities::LoadGLTexture((char*) "models/textures/generic.png");
@@ -4180,7 +4236,7 @@ namespace Game
 			int num = 0;
 			int start_x, start_y;
 			int is_seen, is_lighted;
-			int** NumUnitsSeeingSquare = currentPlayerView->NumUnitsSeeingSquare;
+			Uint16** NumUnitsSeeingSquare = currentPlayerView->NumUnitsSeeingSquare;
 			GetUnitUpperLeftCorner(unit, start_x, start_y);
 			for (int y = start_y; y < start_y + unit->type->heightOnMap; y++)
 			{
@@ -4207,7 +4263,7 @@ namespace Game
 			int num = 0;
 			int start_x, start_y;
 			bool is_seen, is_lighted;
-			int** NumUnitsSeeingSquare = currentPlayerView->NumUnitsSeeingSquare;
+			Uint16** NumUnitsSeeingSquare = currentPlayerView->NumUnitsSeeingSquare;
 			GetUnitUpperLeftCorner(unit, start_x, start_y);
 			for (int y = start_y; y < start_y + unit->type->heightOnMap; y++)
 			{

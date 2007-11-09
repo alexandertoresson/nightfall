@@ -38,8 +38,9 @@ namespace Utilities
 
 			lua_newtable(L);
 			SetEnum(L, "Human", Game::Dimension::MOVEMENT_HUMAN);
-			SetEnum(L, "Vehicle", Game::Dimension::MOVEMENT_VEHICLE);
-			SetEnum(L, "Tank", Game::Dimension::MOVEMENT_TANK);
+			SetEnum(L, "SmallVehicle", Game::Dimension::MOVEMENT_SMALLVEHICLE);
+			SetEnum(L, "MediumVehicle", Game::Dimension::MOVEMENT_MEDIUMVEHICLE);
+			SetEnum(L, "LargeVehicle", Game::Dimension::MOVEMENT_LARGEVEHICLE);
 			SetEnum(L, "Building", Game::Dimension::MOVEMENT_BUILDING);
 			SetEnum(L, "Airborne", Game::Dimension::MOVEMENT_AIRBORNE);
 			SetEnum(L, "Sea", Game::Dimension::MOVEMENT_SEA);

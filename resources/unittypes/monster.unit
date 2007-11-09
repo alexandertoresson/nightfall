@@ -17,7 +17,7 @@ ut.attackAccuracy = 80.0
 
 ut.sightRange = 15.0
 ut.movementSpeed = 8.0
-ut.movementType = MovementType.Human
+ut.movementType = MovementType.SmallVehicle
 ut.attackSpeed = 1.0
 ut.size = 1.0
 ut.height = 1.0

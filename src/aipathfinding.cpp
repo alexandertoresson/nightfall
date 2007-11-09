@@ -345,11 +345,22 @@ namespace Game
 					areaMaps[j][i] = NULL;
 				}
 			}
-			nodes = (struct node*) malloc(width*height * sizeof(struct node));
-			scores = (Uint32*) malloc(width*height * sizeof(Uint32));
-			positions = (int*) malloc(width*height * sizeof(int));
-			openList = (int*) malloc(width*height * sizeof(int));
-			openListSize = width * height;
+			if (MAXIMUM_PATH_CALCULATIONS < width*height)
+			{
+				nodes = (struct node*) malloc(MAXIMUM_PATH_CALCULATIONS * sizeof(struct node));
+				scores = (Uint32*) malloc(MAXIMUM_PATH_CALCULATIONS * sizeof(Uint32));
+				positions = (int*) malloc(MAXIMUM_PATH_CALCULATIONS * sizeof(int));
+				openList = (int*) malloc(MAXIMUM_PATH_CALCULATIONS * sizeof(int));
+				openListSize = MAXIMUM_PATH_CALCULATIONS;
+			}
+			else
+			{
+				nodes = (struct node*) malloc(width*height * sizeof(struct node));
+				scores = (Uint32*) malloc(width*height * sizeof(Uint32));
+				positions = (int*) malloc(width*height * sizeof(int));
+				openList = (int*) malloc(width*height * sizeof(int));
+				openListSize = width * height;
+			}
 
 			scanlines = (struct scanline*) malloc(1024 * sizeof(struct scanline));
 			scanlineArraySize = 1024;
@@ -365,13 +376,13 @@ namespace Game
 			xShift = 0;
 			yShift = 0;
 
-			while (hConstWidth > 33)
+			while (hConstWidth > 25)
 			{
 				xShift++;
 				hConstWidth = (width >> xShift) + 1;
 			}
 			
-			while (hConstHeight > 33)
+			while (hConstHeight > 25)
 			{
 				yShift++;
 				hConstHeight = (height >> yShift) + 1;
@@ -1417,7 +1428,7 @@ namespace Game
 
 			num_steps++;
 
-			if (first_node == -1)
+			if (first_node == -1 /* || (circumTracking == 15 && nodes[first_node].h > highestH) */)
 			{
 	/*			printf("Did not reach target\n"); */
 				notReachedPath += psteps;

@@ -1135,6 +1135,31 @@ namespace UnitLuaInterface
 		LUA_SUCCESS
 	}
 
+	struct ScheduledAction
+	{
+		Unit *unit;
+		int x;
+		int y;
+		Unit *target;
+		Game::AI::UnitAction action;
+		void* arg;
+	};
+
+	vector<ScheduledAction*> scheduledActions;
+	SDL_mutex* scheduledActionsMutex = SDL_CreateMutex();
+
+	void ApplyScheduledActions()
+	{
+		for (vector<ScheduledAction*>::iterator it = scheduledActions.begin(); it != scheduledActions.end(); it++)
+		{
+			ScheduledAction *action = *it;
+			ApplyAction(action->unit, action->action, action->x, action->y, action->target, action->arg);
+			Game::Dimension::ChangePath(action->unit, action->x, action->y, action->action, action->target, action->arg);
+			delete action;
+		}
+		scheduledActions.clear();
+	}
+
 	void CommandUnit_TargetUnit(Unit* unit, Unit* target, UnitAction action, void* arg)
 	{
 		Game::AI::action_changes++;
@@ -1144,9 +1169,18 @@ namespace UnitLuaInterface
 		}
 		else
 		{
-			ApplyAction(unit, action, target->curAssociatedSquare.x, target->curAssociatedSquare.y, target, arg);
+			ScheduledAction *sAction = new ScheduledAction;
+			sAction->unit = unit;
+			sAction->action = action;
+			sAction->x = target->curAssociatedSquare.x;
+			sAction->y = target->curAssociatedSquare.y;
+			sAction->target = target;
+			sAction->arg = arg;
+
+			SDL_LockMutex(scheduledActionsMutex);
+			scheduledActions.push_back(sAction);
+			SDL_UnlockMutex(scheduledActionsMutex);
 		}
-		Game::Dimension::ChangePath(unit, target->curAssociatedSquare.x, target->curAssociatedSquare.y, action, target, arg);
 	}
 
 	void CommandUnit_TargetPos(Unit* unit, int x, int y, UnitAction action, void* arg)
@@ -1161,9 +1195,18 @@ namespace UnitLuaInterface
 		}
 		else
 		{
-			ApplyAction(unit, action, x, y, NULL, arg);
+			ScheduledAction *sAction = new ScheduledAction;
+			sAction->unit = unit;
+			sAction->action = action;
+			sAction->x = x;
+			sAction->y = y;
+			sAction->target = NULL;
+			sAction->arg = arg;
+
+			SDL_LockMutex(scheduledActionsMutex);
+			scheduledActions.push_back(sAction);
+			SDL_UnlockMutex(scheduledActionsMutex);
 		}
-		Game::Dimension::ChangePath(unit, x, y, action, NULL, arg);
 	}
 
 	int LCommandUnit_TargetUnit(LuaVM* pVM)
@@ -3022,7 +3065,7 @@ else \
 		GET_INT_FIELD_OPTIONAL(pUnitType->researchTime, "researchTime", 0)
 
 		GET_ENUM_FIELD_OPTIONAL(pUnitType->powerType, "powerType", POWERTYPE_TWENTYFOURSEVEN, PowerType)
-		GET_ENUM_FIELD_OPTIONAL(pUnitType->movementType, "movementType", MOVEMENT_VEHICLE, MovementType)
+		GET_ENUM_FIELD_OPTIONAL(pUnitType->movementType, "movementType", MOVEMENT_SMALLVEHICLE, MovementType)
 
 		GET_BOOL_FIELD_OPTIONAL(pUnitType->canAttack, "canAttack", false)
 		GET_BOOL_FIELD_OPTIONAL(pUnitType->canAttackWhileMoving, "canAttackWhileMoving", false)

@@ -55,6 +55,7 @@ namespace Game
 			std::string unitCreation;
 		};
 
+		void InitAIThreads();
 	}
 }
 

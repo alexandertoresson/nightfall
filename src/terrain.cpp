@@ -592,11 +592,11 @@ namespace Game
 			float val = 0;
 			int start_x, start_y;
 			int end_x, end_y;
-			pWorld->ppSteepness = new int*[pWorld->height];
+			pWorld->ppSteepness = new Uint16*[pWorld->height];
 			for (int y = 0; y < pWorld->height; y++)
 			{
 
-				pWorld->ppSteepness[y] = new int[pWorld->width];
+				pWorld->ppSteepness[y] = new Uint16[pWorld->width];
 
 				for (int x = 0; x < pWorld->width; x++)
 				{
@@ -621,6 +621,11 @@ namespace Game
 
 					steepness = (int) (val * 1000);
 
+					if (steepness > 65535)
+					{
+						steepness = 65535;
+					}
+
 					pWorld->ppSteepness[y][x] = steepness;
 
 				}
@@ -632,13 +637,13 @@ namespace Game
 		{
 			cout << "Initializing fog of war..." << endl;
 
-			int** NumUnitsSeeingSquare;
+			Uint16** NumUnitsSeeingSquare;
 			for (unsigned int i = 0; i < pWorld->vPlayers.size(); i++)
 			{
-				NumUnitsSeeingSquare = new int*[pWorld->height];
+				NumUnitsSeeingSquare = new Uint16*[pWorld->height];
 				for (int y = 0; y < pWorld->height; y++)
 				{
-					NumUnitsSeeingSquare[y] = new int[pWorld->width];
+					NumUnitsSeeingSquare[y] = new Uint16[pWorld->width];
 					for (int x = 0; x < pWorld->width; x++)
 					{
 						NumUnitsSeeingSquare[y][x] = 0;
@@ -652,11 +657,11 @@ namespace Game
 		{
 			cout << "Initializing light..." << endl;
 
-			int** NumLightsOnSquare;
-			NumLightsOnSquare = new int*[pWorld->height];
+			Uint16** NumLightsOnSquare;
+			NumLightsOnSquare = new Uint16*[pWorld->height];
 			for (int y = 0; y < pWorld->height; y++)
 			{
-				NumLightsOnSquare[y] = new int[pWorld->width];
+				NumLightsOnSquare[y] = new Uint16[pWorld->width];
 				for (int x = 0; x < pWorld->width; x++)
 				{
 					NumLightsOnSquare[y][x] = 0;
@@ -1526,7 +1531,7 @@ namespace Game
 
 			bool is_seen, is_lighted;
 
-			int** NumUnitsSeeingSquare = Dimension::currentPlayerView->NumUnitsSeeingSquare;
+			Uint16** NumUnitsSeeingSquare = Dimension::currentPlayerView->NumUnitsSeeingSquare;
 
 //			glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 		
@@ -2650,7 +2655,7 @@ namespace Game
 			int step_size;
 			XYZCoord* normal;
 			bool is_seen, is_lighted;
-			int** NumUnitsSeeingSquare = Dimension::currentPlayerView->NumUnitsSeeingSquare;
+			Uint16** NumUnitsSeeingSquare = Dimension::currentPlayerView->NumUnitsSeeingSquare;
 			
 			glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, waterMaterialSpecular);
 			glMaterialfv(GL_FRONT_AND_BACK, GL_EMISSION, waterMaterialEmission);
@@ -3016,7 +3021,7 @@ namespace Game
 			delete [] mipmap_levels;
 
 			
-			int** NumLightsOnSquare = pWorld->NumLightsOnSquare;
+			Uint16** NumLightsOnSquare = pWorld->NumLightsOnSquare;
 			for (int y = 0; y < pWorld->height; y++)
 			{
 				delete [] NumLightsOnSquare[y];

@@ -20,9 +20,6 @@ namespace Window
 {
 	namespace GUI 
 	{
-		Uint32 last_frame;
-		float time_since_last_frame;
-
 		inline void BilinearInterpolation(Uint8 *v, Uint8* result, float x, float y)
 		{
 			//r0 = 0, r1 = 3, r2 = 6, r3 = 9
@@ -305,7 +302,6 @@ namespace Window
 
 		int GUIWindow::RunLoop()
 		{
-			Window::GUI::last_frame = SDL_GetTicks();
 			glClearColor( 0.2f, 0.2f, 0.2f, 0.7f );
 			go = true;
 			while(go)
@@ -328,10 +324,6 @@ namespace Window
 					SDL_Delay(sleepms);
 				}
 
-				Uint32 this_frame = SDL_GetTicks();
-
-				Window::GUI::time_since_last_frame = (this_frame - last_frame) / 1000.0;
-				Window::GUI::last_frame = this_frame;
 			}
 			return returnValue;
 		}
@@ -2020,7 +2012,7 @@ namespace Window
 			{
 				if(mouseDown == false)
 				{
-					fadeValue -= 1.4 * Window::GUI::time_since_last_frame;
+					fadeValue -= 1.4 * (SDL_GetTicks() - lastPaint);
 					if(fadeValue < 0.0f)
 					{
 						fadeValue = 0.0f;
@@ -2034,6 +2026,7 @@ namespace Window
 					glVertex2f(0.0f, this->h);
 				glEnd();
 			}
+			lastPaint = SDL_GetTicks();
 			PaintBorderOverlay();
 		}
 

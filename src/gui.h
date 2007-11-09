@@ -80,9 +80,6 @@ namespace Window
 	namespace GUI 
 	{
 
-		extern Uint32 last_frame;
-		extern float time_since_last_frame;
-
 		float PixelAlign(float value, float unit);
 		GLuint CreateMap(SDL_Surface*,Game::Dimension::HeightMap*,int,int,int,int);
 
@@ -391,6 +388,7 @@ namespace Window
 				bool mouseDown;
 				bool mouseOver;
 				void* tag;
+				Uint32 lastPaint;
 				void PaintOverlay();
 				void PaintBorderOverlay();
 			public:

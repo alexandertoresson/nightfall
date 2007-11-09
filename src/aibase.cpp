@@ -17,6 +17,7 @@
 #include "luawrapper.h"
 #include "networking.h"
 #include "environment.h"
+#include "unitinterface.h"
 
 namespace Game
 {
@@ -129,147 +130,206 @@ namespace Game
 			pVM->CallFunction(4);
 		}
 
-		void SendActionUnitEventToLua(Dimension::Unit* pUnit, std::string func)
+		enum UnitEventType
 		{
-			Utilities::Scripting::LuaVirtualMachine* pVM = Utilities::Scripting::GetPlayerVMInstance(pUnit->owner->index);
+			UNITEVENTTYPE_ACTION,
+			UNITEVENTTYPE_SIMPLE,
+			UNITEVENTTYPE_ATTACK
+		};
 
-			if (func.length() == 0)
+		struct UnitEvent
+		{
+			UnitEventType eventType;
+			Dimension::Unit* unit;
+			UnitAction action;
+			int x, y;
+			int targetID;
+			void *arg;
+			std::string *func;
+		};
+
+		vector<UnitEvent*> scheduledUnitEvents;
+
+		void SendScheduledUnitEvents()
+		{
+			for (vector<UnitEvent*>::iterator it = scheduledUnitEvents.begin(); it != scheduledUnitEvents.end(); it++)
+			{
+				UnitEvent* event = *it;
+				if (Dimension::IsValidUnitPointer(event->unit))
+				{
+					Utilities::Scripting::LuaVirtualMachine* pVM = Utilities::Scripting::GetPlayerVMInstance(event->unit->owner->index);
+					pVM->SetFunction(*event->func);
+					switch (event->eventType)
+					{
+						case UNITEVENTTYPE_ACTION:
+							lua_pushlightuserdata(pVM->GetVM(), (void*) event->unit->id);
+							lua_pushinteger(pVM->GetVM(), event->action);
+							lua_pushnumber(pVM->GetVM(), event->x);
+							lua_pushnumber(pVM->GetVM(), event->y);
+							lua_pushlightuserdata(pVM->GetVM(), (void*) event->targetID);
+							lua_pushlightuserdata(pVM->GetVM(), event->arg);
+							pVM->CallFunction(6);
+							break;
+						case UNITEVENTTYPE_SIMPLE:
+							lua_pushlightuserdata(pVM->GetVM(), (void*) event->unit->id);
+							pVM->CallFunction(1);
+							break;
+						case UNITEVENTTYPE_ATTACK:
+							lua_pushlightuserdata(pVM->GetVM(), (void*) event->unit->id);
+							lua_pushlightuserdata(pVM->GetVM(), (void*) event->targetID);
+							pVM->CallFunction(2);
+							break;
+					}
+				}
+				delete event;
+			}
+			scheduledUnitEvents.clear();
+		}
+
+		void ScheduleActionUnitEvent(Dimension::Unit* pUnit, std::string *func)
+		{
+
+			if (func->length() == 0)
 				return;
 
 			if (pUnit->owner->type == Dimension::PLAYER_TYPE_REMOTE)
 				return;
 
-			pVM->SetFunction(func);
+			UnitEvent *event = new UnitEvent;
 
-			lua_pushlightuserdata(pVM->GetVM(), (void*) pUnit->id);
-			lua_pushinteger(pVM->GetVM(), pUnit->pMovementData->action.action);
-			lua_pushnumber(pVM->GetVM(), pUnit->pMovementData->action.goal.pos.x);
-			lua_pushnumber(pVM->GetVM(), pUnit->pMovementData->action.goal.pos.y);
+			event->unit = pUnit;
+			event->action = pUnit->pMovementData->action.action;
+			event->x = pUnit->pMovementData->action.goal.pos.x;
+			event->y = pUnit->pMovementData->action.goal.pos.y;
 			if (pUnit->pMovementData->action.goal.unit)
 			{
-				lua_pushlightuserdata(pVM->GetVM(), (void*) pUnit->pMovementData->action.goal.unit->id);
+				event->targetID = pUnit->pMovementData->action.goal.unit->id;
 			}
 			else
 			{
-				lua_pushlightuserdata(pVM->GetVM(), (void*) 0);
+				event->targetID = 0;
 			}
-			lua_pushlightuserdata(pVM->GetVM(), pUnit->pMovementData->action.arg);
-			pVM->CallFunction(6);
+			event->arg = pUnit->pMovementData->action.arg;
+			event->func = func;
+			event->eventType = UNITEVENTTYPE_ACTION;
+
+			scheduledUnitEvents.push_back(event);
+
+		}
+
+		void ScheduleSimpleUnitEvent(Dimension::Unit* pUnit, std::string *func)
+		{
+
+			if (func->length() == 0)
+				return;
+
+			if (pUnit->owner->type == Dimension::PLAYER_TYPE_REMOTE)
+				return;
+
+			UnitEvent *event = new UnitEvent;
+
+			event->unit = pUnit;
+			event->func = func;
+			event->eventType = UNITEVENTTYPE_SIMPLE;
+
+			scheduledUnitEvents.push_back(event);
 		}
 
 		void SendUnitEventToLua_CommandCompleted(Dimension::Unit* pUnit)
 		{
-			if (!pUnit->isDisplayed)
-			{
-				*(int*) 0 = 0;
-			}
-			SendActionUnitEventToLua(pUnit, pUnit->unitAIFuncs.commandCompleted);
+			ScheduleActionUnitEvent(pUnit, &pUnit->unitAIFuncs.commandCompleted);
 		}
 
 		void SendUnitEventToLua_CommandCancelled(Dimension::Unit* pUnit)
 		{
-			if (!pUnit->isDisplayed)
-			{
-				*(int*) 0 = 0;
-			}
-			SendActionUnitEventToLua(pUnit, pUnit->unitAIFuncs.commandCancelled);
+			ScheduleActionUnitEvent(pUnit, &pUnit->unitAIFuncs.commandCancelled);
 		}
 
 		void SendUnitEventToLua_NewCommand(Dimension::Unit* pUnit)
 		{
-			if (!pUnit->isDisplayed)
-			{
-				*(int*) 0 = 0;
-			}
-			SendActionUnitEventToLua(pUnit, pUnit->unitAIFuncs.newCommand);
+			ScheduleActionUnitEvent(pUnit, &pUnit->unitAIFuncs.newCommand);
 		}
 
 		void SendUnitEventToLua_BecomeIdle(Dimension::Unit* pUnit)
 		{
-			if (!pUnit->isDisplayed)
-			{
-				*(int*) 0 = 0;
-			}
-			Utilities::Scripting::LuaVirtualMachine* pVM = Utilities::Scripting::GetPlayerVMInstance(pUnit->owner->index);
-			
-			if (pUnit->unitAIFuncs.becomeIdle.length() == 0)
-				return;
-
-			if (pUnit->owner->type == Dimension::PLAYER_TYPE_REMOTE)
-				return;
-
-			pVM->SetFunction(pUnit->unitAIFuncs.becomeIdle);
-
-			lua_pushlightuserdata(pVM->GetVM(), (void*) pUnit->id);
-			pVM->CallFunction(1);
-		}
-
-		void SendUnitEventToLua_IsAttacked(Dimension::Unit* pUnit, Dimension::Unit* attacker)
-		{
-			if (!pUnit->isDisplayed)
-			{
-				*(int*) 0 = 0;
-			}
-			if (!attacker->isDisplayed)
-			{
-				*(int*) 0 = 0;
-			}
-			Utilities::Scripting::LuaVirtualMachine* pVM = Utilities::Scripting::GetPlayerVMInstance(pUnit->owner->index);
-			
-			if (pUnit->unitAIFuncs.isAttacked.length() == 0)
-				return;
-
-			if (pUnit->owner->type == Dimension::PLAYER_TYPE_REMOTE)
-				return;
-
-			pVM->SetFunction(pUnit->unitAIFuncs.isAttacked);
-
-			lua_pushlightuserdata(pVM->GetVM(), (void*) pUnit->id);
-			lua_pushlightuserdata(pVM->GetVM(), (void*) attacker->id);
-			pVM->CallFunction(2);
+			ScheduleSimpleUnitEvent(pUnit, &pUnit->unitAIFuncs.becomeIdle);
 		}
 
 		void SendUnitEventToLua_UnitCreation(Dimension::Unit* pUnit)
 		{
-			if (!pUnit->isDisplayed)
-			{
-				*(int*) 0 = 0;
-			}
-			Utilities::Scripting::LuaVirtualMachine* pVM = Utilities::Scripting::GetPlayerVMInstance(pUnit->owner->index);
-			
-			if (pUnit->type->playerAIFuncs[pUnit->owner->index].unitCreation.length() == 0)
-				return;
-
-			if (pUnit->owner->type == Dimension::PLAYER_TYPE_REMOTE)
-				return;
-
-			pVM->SetFunction(pUnit->type->playerAIFuncs[pUnit->owner->index].unitCreation);
-
-			lua_pushlightuserdata(pVM->GetVM(), (void*) pUnit->id);
-			lua_pushlightuserdata(pVM->GetVM(), pUnit->type);
-			lua_pushnumber(pVM->GetVM(), pUnit->pos.x);
-			lua_pushnumber(pVM->GetVM(), pUnit->pos.y);
-			pVM->CallFunction(4);
+			ScheduleSimpleUnitEvent(pUnit, &pUnit->type->playerAIFuncs[pUnit->owner->index].unitCreation);
 		}
 
 		void SendUnitEventToLua_UnitKilled(Dimension::Unit* pUnit)
 		{
-			if (!pUnit->isDisplayed)
-			{
-				*(int*) 0 = 0;
-			}
-			Utilities::Scripting::LuaVirtualMachine* pVM = Utilities::Scripting::GetPlayerVMInstance(pUnit->owner->index);
+			ScheduleSimpleUnitEvent(pUnit, &pUnit->unitAIFuncs.unitKilled);
+		}
+
+		void SendUnitEventToLua_IsAttacked(Dimension::Unit* pUnit, Dimension::Unit* attacker)
+		{
 			
-			if (pUnit->unitAIFuncs.unitKilled.length() == 0)
+			if (pUnit->type->unitAIFuncs[pUnit->owner->index].isAttacked.length() == 0)
 				return;
 
 			if (pUnit->owner->type == Dimension::PLAYER_TYPE_REMOTE)
 				return;
 
-			pVM->SetFunction(pUnit->unitAIFuncs.unitKilled);
+			UnitEvent *event = new UnitEvent;
 
-			lua_pushlightuserdata(pVM->GetVM(), (void*) pUnit->id);
-			pVM->CallFunction(1);
+			event->eventType = UNITEVENTTYPE_ATTACK;
+			event->unit = pUnit;
+			event->targetID = attacker->id;
+			event->func = &pUnit->type->unitAIFuncs[pUnit->owner->index].isAttacked;
+
+			scheduledUnitEvents.push_back(event);
+		}
+
+		void HandleUnitPower()
+		{
+			double power_usage;
+			for (vector<Dimension::Unit*>::iterator it = Dimension::pWorld->vUnits.begin(); it != Dimension::pWorld->vUnits.end(); it++)
+			{
+				Dimension::Unit* pUnit = *it;
+				if (pUnit->isCompleted && pUnit->isDisplayed && pUnit->pMovementData->action.action != ACTION_DIE)
+				{
+
+					power_usage = (pUnit->type->powerUsage + pUnit->type->lightPowerUsage) / aiFps;
+					
+					if (pUnit->owner->resources.power < power_usage)
+					{
+						pUnit->hasPower = false;
+						NotEnoughPowerForLight(pUnit);
+						continue;
+					}
+						
+					pUnit->hasPower = true;
+					EnoughPowerForLight(pUnit);
+
+					pUnit->owner->resources.power -= power_usage;
+					if (pUnit->type->powerIncrement > 0.0)
+					{
+						if (pUnit->type->powerType == Game::Dimension::POWERTYPE_DAYLIGHT)
+						{
+							Dimension::Environment::FourthDimension* pDimension = Dimension::Environment::FourthDimension::Instance();
+							double curh = pDimension->GetCurrentHour();
+							if (curh >= 6.0 && curh <= 18.0)
+							{
+								pUnit->owner->resources.power += (pUnit->type->powerIncrement / aiFps) * (pow(sin((curh-6.0)/12*PI), 1.0/3) * 0.8 + 0.2);
+
+							}
+						}
+						else
+						{
+							pUnit->owner->resources.power += pUnit->type->powerIncrement / aiFps;
+						}
+					}
+				}
+				else
+				{
+					pUnit->hasPower = false;
+				}
+			}
+			
 		}
 
 		void PerformSimpleAI(Dimension::Unit* pUnit)
@@ -368,39 +428,9 @@ namespace Game
 
 		void PerformAI(Dimension::Unit* pUnit)
 		{
-			double power_usage;
 			HandleProjectiles(pUnit);
-			if (pUnit->isCompleted && pUnit->isDisplayed && pUnit->pMovementData->action.action != ACTION_DIE)
+			if (pUnit->hasPower)
 			{
-
-				power_usage = (pUnit->type->powerUsage + pUnit->type->lightPowerUsage) / aiFps;
-				
-				if (pUnit->owner->resources.power < power_usage)
-				{
-					NotEnoughPowerForLight(pUnit);
-					return;
-				}
-					
-				EnoughPowerForLight(pUnit);
-
-				pUnit->owner->resources.power -= power_usage;
-				if (pUnit->type->powerIncrement > 0.0)
-				{
-					if (pUnit->type->powerType == Game::Dimension::POWERTYPE_DAYLIGHT)
-					{
-						Dimension::Environment::FourthDimension* pDimension = Dimension::Environment::FourthDimension::Instance();
-						double curh = pDimension->GetCurrentHour();
-						if (curh >= 6.0 && curh <= 18.0)
-						{
-							pUnit->owner->resources.power += (pUnit->type->powerIncrement / aiFps) * (pow(sin((curh-6.0)/12*PI), 1.0/3) * 0.8 + 0.2);
-
-						}
-					}
-					else
-					{
-						pUnit->owner->resources.power += pUnit->type->powerIncrement / aiFps;
-					}
-				}
 
 				if (pUnit->pMovementData->action.action == AI::ACTION_NONE || pUnit->pMovementData->action.action == AI::ACTION_NETWORK_AWAITING_SYNC)
 				{
@@ -410,28 +440,36 @@ namespace Game
 				if (pUnit->type->hasAI) // _I_ has an AI!
 				{
 
-					pUnit->aiFrame++;
-
 					PerformSimpleAI(pUnit);
 
-					if (pUnit->aiFrame >= pUnit->unitAIFuncs.unitAIDelay && pUnit->owner->type != Dimension::PLAYER_TYPE_REMOTE)
-					{
-						Utilities::Scripting::LuaVirtualMachine* pVM = Utilities::Scripting::GetPlayerVMInstance(pUnit->owner->index);
-
-						if (pUnit->unitAIFuncs.performUnitAI.length())
-						{
-							pVM->SetFunction(pUnit->unitAIFuncs.performUnitAI);
-
-							lua_pushlightuserdata(pVM->GetVM(), (void*) pUnit->id);
-							pVM->CallFunction(1);
-						}
-						pUnit->aiFrame = 0;
-					}
 				}
 			}
 			
 		}
 
+		void PerformLuaUnitAI(Dimension::Unit* pUnit)
+		{
+			if (pUnit->hasPower && pUnit->type->hasAI)
+			{
+
+				pUnit->aiFrame++;
+
+				if (pUnit->aiFrame >= pUnit->unitAIFuncs.unitAIDelay && pUnit->owner->type != Dimension::PLAYER_TYPE_REMOTE)
+				{
+					Utilities::Scripting::LuaVirtualMachine* pVM = Utilities::Scripting::GetPlayerVMInstance(pUnit->owner->index);
+
+					if (pUnit->unitAIFuncs.performUnitAI.length())
+					{
+						pVM->SetFunction(pUnit->unitAIFuncs.performUnitAI);
+
+						lua_pushlightuserdata(pVM->GetVM(), (void*) pUnit->id);
+						pVM->CallFunction(1);
+					}
+					pUnit->aiFrame = 0;
+				}
+			}
+			
+		}
 		void PerformAI(Dimension::Player* player)
 		{
 			player->oldResources = player->resources;
@@ -451,6 +489,148 @@ namespace Game
 			}
 		}
 
+		int numLuaAIThreads = 2;
+
+		SDL_cond **fireAIConds;
+		SDL_cond *simpleAIdoneCond;
+		SDL_cond **luaAIdoneConds;
+
+		SDL_mutex **mainAIWaitMutexes;
+		SDL_mutex *simpleAIWaitMutex;
+		SDL_mutex **luaAIWaitMutexes;
+
+		SDL_Thread *simpleAIThread;
+		SDL_Thread **luaAIThreads;
+
+		bool simpleAIThreadRunning = false;
+		bool *luaAIThreadsRunning;
+
+		vector<Dimension::Player*> *playersHandledPerLuaThread;
+		int* numUnitsPerLuaThread;
+		int threadsLeft;
+		int aiThreadsDone;
+
+		int _SimpleAIThread(void* arg)
+		{
+
+			SDL_LockMutex(simpleAIWaitMutex);
+
+			simpleAIThreadRunning = true;
+
+			while (1)
+			{
+
+				SDL_CondWait(fireAIConds[0], simpleAIWaitMutex);
+				
+				for (vector<Dimension::Unit*>::iterator it = Dimension::pWorld->vUnits.begin(); it != Dimension::pWorld->vUnits.end(); it++)
+				{
+					Dimension::Unit* pUnit = *it;
+					PerformAI(pUnit);
+					if (pUnit->pMovementData->action.action == ACTION_DIE && currentFrame - pUnit->lastAttacked > (unsigned) aiFps)
+					{
+						ScheduleUnitDeletion(pUnit);
+					}
+				}
+
+				SDL_LockMutex(mainAIWaitMutexes[0]); // Make sure that the main thread is waiting for the signal
+					aiThreadsDone++; // Hijack mutex to secure updating of aiThreadsDone
+				SDL_UnlockMutex(mainAIWaitMutexes[0]);
+
+				SDL_CondBroadcast(simpleAIdoneCond);
+			}
+
+			return 1;
+		}
+
+		int _LuaAIThread(void* arg)
+		{
+			int i = (int) arg;
+			SDL_LockMutex(luaAIWaitMutexes[i]);
+
+			luaAIThreadsRunning[i] = true;
+
+			while (1)
+			{
+
+				SDL_CondWait(fireAIConds[i+1], luaAIWaitMutexes[i]);
+				
+				for (vector<Dimension::Player*>::iterator it = playersHandledPerLuaThread[i].begin(); it != playersHandledPerLuaThread[i].end(); it++)
+				{
+					Dimension::Player* player = *it;
+					PerformAI(player);
+
+					for (vector<Dimension::Unit*>::iterator it2 = player->vUnits.begin(); it2 != player->vUnits.end(); it2++)
+					{
+						PerformLuaUnitAI(*it2);
+					}
+				}
+
+				SDL_LockMutex(mainAIWaitMutexes[i+1]); // Make sure that the main thread is waiting for the signal
+					aiThreadsDone++;
+				SDL_UnlockMutex(mainAIWaitMutexes[i+1]);
+
+				SDL_CondBroadcast(luaAIdoneConds[i]);
+			}
+
+			return 1;
+		}
+
+		void InitAIThreads()
+		{
+			if (numLuaAIThreads)
+			{
+				simpleAIdoneCond = SDL_CreateCond();
+				simpleAIWaitMutex = SDL_CreateMutex();
+
+				luaAIdoneConds = new SDL_cond*[numLuaAIThreads];
+				luaAIWaitMutexes = new SDL_mutex*[numLuaAIThreads];
+				luaAIThreadsRunning = new bool[numLuaAIThreads];
+				playersHandledPerLuaThread = new vector<Dimension::Player*>[numLuaAIThreads];
+				numUnitsPerLuaThread = new int[numLuaAIThreads];
+				for (int i = 0; i < numLuaAIThreads; i++)
+				{
+					luaAIdoneConds[i] = SDL_CreateCond();
+					luaAIWaitMutexes[i] = SDL_CreateMutex();
+					luaAIThreadsRunning[i] = false;
+					numUnitsPerLuaThread[i] = 0;
+				}
+
+				fireAIConds = new SDL_cond*[numLuaAIThreads+1];;
+				mainAIWaitMutexes = new SDL_mutex*[numLuaAIThreads+1];
+				for (int i = 0; i < numLuaAIThreads+1; i++)
+				{
+					fireAIConds[i] = SDL_CreateCond();
+					mainAIWaitMutexes[i] = SDL_CreateMutex();
+					SDL_LockMutex(mainAIWaitMutexes[i]);
+				}
+
+				aiThreadsDone = 0;
+
+				simpleAIThread = SDL_CreateThread(_SimpleAIThread, NULL);
+					
+				luaAIThreads = new SDL_Thread*[numLuaAIThreads];
+				for (int i = 0; i < numLuaAIThreads; i++)
+				{
+					luaAIThreads[i] = SDL_CreateThread(_LuaAIThread, (void*) i);
+				}
+
+				while (!simpleAIThreadRunning) // Make sure that the simple ai thread has started
+				{
+					SDL_Delay(1);
+				}
+
+				for (int i = 0; i < numLuaAIThreads; i++)
+				{
+					while (!luaAIThreadsRunning[i]) // Make sure that the lua ais have started
+					{
+						SDL_Delay(1);
+					}
+				}
+
+			}
+
+		}
+
 		void PerformAIFrame()
 		{
 			static bool may_run_ai = true;
@@ -458,6 +638,9 @@ namespace Game
 			{
 				aiFramesPerformedSinceLastRender++;
 				Dimension::Environment::FourthDimension::Instance()->RotateWorld(1.00f / (float) aiFps);
+
+				///////////////////////////////////////////////////////////////////////////
+				// Apply Paths
 
 				SDL_LockMutex(AI::GetMutex());
 
@@ -502,21 +685,110 @@ namespace Game
 
 				SDL_UnlockMutex(AI::GetMutex());
 
-				for (vector<Dimension::Player*>::iterator it = Dimension::pWorld->vPlayers.begin(); it != Dimension::pWorld->vPlayers.end(); it++)
+				///////////////////////////////////////////////////////////////////////////
+				// Handle power of every unit
+				
+				HandleUnitPower();
+
+				if (numLuaAIThreads)
 				{
-					PerformAI(*it);
-				}
-				for (unsigned int i = 0; i < Dimension::pWorld->vUnits.size(); i++)
-				{
-					Dimension::Unit* pUnit = Dimension::pWorld->vUnits.at(i);
-					PerformAI(pUnit);
-					if (pUnit->pMovementData->action.action == ACTION_DIE && currentFrame - pUnit->lastAttacked > (unsigned) aiFps)
+
+					///////////////////////////////////////////////////////////////////////////
+					// Balance out players over lua threads
+					
+					
+					for (int i = 0; i < numLuaAIThreads; i++)
 					{
-						DeleteUnit(pUnit);
-						i--;
+						playersHandledPerLuaThread[i].clear();
+						numUnitsPerLuaThread[i] = 0;
 					}
+
+					for (unsigned i = 0; i < Dimension::pWorld->vPlayers.size(); i++) // Try to divide units well between lua threads
+					{
+						int lowestUnitNum = 0;
+						for (int j = 1; j < numLuaAIThreads; j++)
+						{
+							if (numUnitsPerLuaThread[j] < numUnitsPerLuaThread[lowestUnitNum])
+							{
+								lowestUnitNum = j;
+							}
+						}
+						playersHandledPerLuaThread[lowestUnitNum].push_back(Dimension::pWorld->vPlayers[i]);
+						numUnitsPerLuaThread[lowestUnitNum] += 250 + Dimension::pWorld->vPlayers[i]->vUnits.size();
+					}
+
+					///////////////////////////////////////////////////////////////////////////
+					// Wake up simpleai and lua threads
+					
+					aiThreadsDone = 0;
+
+					SDL_LockMutex(simpleAIWaitMutex); // Make sure that the SimpleAI thread is waiting for the signal
+					SDL_UnlockMutex(simpleAIWaitMutex);
+
+					SDL_CondBroadcast(fireAIConds[0]); // Wake up SimpleAi thread
+
+					for (int i = 0; i < numLuaAIThreads; i++)
+					{
+						SDL_LockMutex(luaAIWaitMutexes[i]); // Make sure that the lua threads are waiting for the signal
+						SDL_UnlockMutex(luaAIWaitMutexes[i]);
+						SDL_CondBroadcast(fireAIConds[i+1]); // Wake up Lua threads
+					}
+
+					///////////////////////////////////////////////////////////////////////////
+					// Wait for the threads to be done
+					
+					while (aiThreadsDone != 1)
+					{
+						SDL_CondWait(simpleAIdoneCond, mainAIWaitMutexes[0]); // Wait for SimpleAI thread
+					}
+					
+					for (int i = 0; i < numLuaAIThreads; i++)
+					{
+						while (aiThreadsDone != i+2)
+						{
+							SDL_CondWait(luaAIdoneConds[i], mainAIWaitMutexes[i+1]); // Wait for lua ai threads
+						}
+					}
+					
 				}
+				else
+				{
+					///////////////////////////////////////////////////////////////////////////
+					// No threads? Do lua ai and simple ai the non-threaded way.
+					for (vector<Dimension::Player*>::iterator it = Dimension::pWorld->vPlayers.begin(); it != Dimension::pWorld->vPlayers.end(); it++)
+					{
+						PerformAI(*it);
+					}
+
+					for (vector<Dimension::Unit*>::iterator it = Dimension::pWorld->vUnits.begin(); it != Dimension::pWorld->vUnits.end(); it++)
+					{
+						Dimension::Unit* pUnit = *it;
+						PerformLuaUnitAI(pUnit);
+						PerformAI(pUnit);
+						if (pUnit->pMovementData->action.action == ACTION_DIE && currentFrame - pUnit->lastAttacked > (unsigned) aiFps)
+						{
+							ScheduleUnitDeletion(pUnit);
+						}
+					}
+
+				}
+
+				///////////////////////////////////////////////////////////////////////////
+				// Particle system!
+
 				FX::pParticleSystems->Iterate(1.0f / (float) aiFps);
+				
+				///////////////////////////////////////////////////////////////////////////
+				// Apply various stuff that cannot be applied while the lua and simpleai threads are running
+
+				SendScheduledUnitEvents();
+				Dimension::DisplayScheduledUnits();
+				UnitLuaInterface::ApplyScheduledActions();
+
+				// Apply deletions last, so it may 'undo' actions that have been applied before,
+				// otherwise if you apply actions after it, you may apply actions with targets
+				// that are deleted units.
+				Dimension::DeleteScheduledUnits(); 
 			}
 			else
 			{

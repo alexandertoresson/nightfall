@@ -7,14 +7,14 @@ typedef struct
 	int num_items;
 } binary_heap_t;
 
-#define BINARY_HEAP_PARENT(x) ((((x)+1)>>1)-1)
-#define BINARY_HEAP_CHILD1(x) ((x<<1)+1)
-#define BINARY_HEAP_CHILD2(x) ((x<<1)+2)
+#define BINARY_HEAP_PARENT(x) (x>>1)
+#define BINARY_HEAP_CHILD1(x) (x<<1)
+#define BINARY_HEAP_CHILD2(x) ((x<<1)+1)
 
 binary_heap_t *binary_heap_create(Uint32 *scores, BINARY_HEAP_DATATYPE *data, int *positions)
 {
 	binary_heap_t *heap = (binary_heap_t*) malloc(sizeof(binary_heap_t));
-	heap->scores = scores;
+	heap->scores = scores-1;
 	heap->data = data;
 	heap->positions = positions;
 	heap->num_items = 0;
@@ -33,12 +33,12 @@ void binary_heap_push_item(binary_heap_t *heap, BINARY_HEAP_DATATYPE new_data, U
 	BINARY_HEAP_DATATYPE *data = heap->data;
 	Uint32 *scores = heap->scores;
 	int *positions = heap->positions;
+	heap->num_items++;
 	pos = heap->num_items;
 	scores[pos] = score;
 	data[pos] = new_data;
 	positions[new_data] = pos;
-	heap->num_items++;
-	while (pos != 0 && scores[pos] < scores[BINARY_HEAP_PARENT(pos)])
+	while (pos != 1 && scores[pos] < scores[BINARY_HEAP_PARENT(pos)])
 	{
 		parent_pos = BINARY_HEAP_PARENT(pos);
 		temp_score = scores[parent_pos];
@@ -56,7 +56,7 @@ void binary_heap_push_item(binary_heap_t *heap, BINARY_HEAP_DATATYPE new_data, U
 BINARY_HEAP_DATATYPE binary_heap_pop_item(binary_heap_t *heap, BINARY_HEAP_DATATYPE def)
 {
 	BINARY_HEAP_DATATYPE ret = def;
-	int curpos = 0, lastpos;
+	int curpos = 1, lastpos;
 	int temp_score;
 	BINARY_HEAP_DATATYPE temp_data;
 	BINARY_HEAP_DATATYPE *data = heap->data;
@@ -65,9 +65,9 @@ BINARY_HEAP_DATATYPE binary_heap_pop_item(binary_heap_t *heap, BINARY_HEAP_DATAT
 
 	if (heap->num_items)
 	{
-		ret = data[0];
-		data[0] = data[heap->num_items-1];
-		scores[0] = scores[heap->num_items-1];
+		ret = data[curpos];
+		data[curpos] = data[heap->num_items];
+		scores[curpos] = scores[heap->num_items];
 		heap->num_items--;
 		if (heap->num_items)
 		{
@@ -76,7 +76,7 @@ BINARY_HEAP_DATATYPE binary_heap_pop_item(binary_heap_t *heap, BINARY_HEAP_DATAT
 				int child1 = BINARY_HEAP_CHILD1(curpos);
 				int child2 = BINARY_HEAP_CHILD2(curpos);
 				lastpos = curpos;
-				if (child2 < heap->num_items)
+				if (child2 <= heap->num_items)
 				{
 					if (scores[child2] >= scores[child1])
 					{
@@ -91,7 +91,7 @@ BINARY_HEAP_DATATYPE binary_heap_pop_item(binary_heap_t *heap, BINARY_HEAP_DATAT
 						curpos = lastpos;
 					}
 				}
-				else if (child1 < heap->num_items)
+				else if (child1 <= heap->num_items)
 				{
 					if (scores[curpos] >= scores[child1])
 					{
@@ -127,14 +127,9 @@ void binary_heap_lower_item_score(binary_heap_t *heap, BINARY_HEAP_DATATYPE alte
 	Uint32 *scores = heap->scores;
 	int *positions = heap->positions;
 	pos = positions[altered_data];
-/*	for (pos = 0; pos < heap->num_items; pos++)
-	{
-		if (heap->data[pos] == data)
-			break;
-	} */
 
 	scores[pos] = score;
-	while (pos != 0 && scores[pos] < scores[BINARY_HEAP_PARENT(pos)])
+	while (pos != 1 && scores[pos] < scores[BINARY_HEAP_PARENT(pos)])
 	{
 		parent_pos = BINARY_HEAP_PARENT(pos);
 		temp_score = scores[parent_pos];

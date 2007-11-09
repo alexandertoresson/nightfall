@@ -287,11 +287,28 @@ namespace Game
 
 		void GameInput::AddSelectedUnit(Dimension::Unit* unit)
 		{
-			for (vector<Dimension::Unit*>::iterator it = Dimension::unitsSelected.begin(); it != Dimension::unitsSelected.end(); it++)
+			if (unit->owner == Dimension::currentPlayerView)
 			{
-				if (unit == *it)
+				for (unsigned i = 0; i < Dimension::unitsSelected.size(); i++)
 				{
-					return;
+					if (Dimension::unitsSelected[i]->owner != Dimension::currentPlayerView)
+					{
+						Dimension::unitsSelected.erase(Dimension::unitsSelected.begin() + i--);
+					}
+					if (unit == Dimension::unitsSelected[i])
+					{
+						return;
+					}
+				}
+			}
+			else
+			{
+				for (vector<Dimension::Unit*>::iterator it = Dimension::unitsSelected.begin(); it != Dimension::unitsSelected.end(); it++)
+				{
+					if (unit == *it || (*it)->owner == Dimension::currentPlayerView)
+					{
+						return;
+					}
 				}
 			}
 			Dimension::unitsSelected.push_back(unit);
@@ -350,7 +367,7 @@ namespace Game
 					for (vector<Dimension::Unit*>::iterator it = Dimension::pWorld->vUnits.begin(); it != Dimension::pWorld->vUnits.end(); it++)
 					{
 						win_coord = Dimension::GetUnitWindowPos(*it);
-						if (win_coord.x >= pGame->start_drag_x && win_coord.x <= pGame->end_drag_x && win_coord.y >= pGame->start_drag_y && win_coord.y <= pGame->end_drag_y)
+						if (win_coord.x >= pGame->start_drag_x && win_coord.x <= pGame->end_drag_x && win_coord.y >= pGame->start_drag_y && win_coord.y <= pGame->end_drag_y && Dimension::UnitIsVisible(*it, Dimension::currentPlayerView))
 						{
 							AddSelectedUnit(*it);
 						}
@@ -376,7 +393,7 @@ namespace Game
 							for (vector<Dimension::Unit*>::iterator it = units.begin(); it != units.end(); it++)
 							{
 								win_coord = Dimension::GetUnitWindowPos(*it);
-								if (win_coord.x >= 0 && win_coord.x <= Window::windowWidth && win_coord.y >= 0 && win_coord.y <= Window::windowHeight && (*it)->type == unit->type)
+								if (((win_coord.x >= 0 && win_coord.x <= Window::windowWidth && win_coord.y >= 0 && win_coord.y <= Window::windowHeight) || pGame->input->GetKeyState(SDLK_LSHIFT)) && (*it)->type == unit->type)
 								{
 									AddSelectedUnit(*it);
 								}
@@ -580,10 +597,21 @@ namespace Game
 /*							console << "This feature has been disabled." << Console::nl;
 							break; */
 
+							int num = Dimension::currentPlayerView->index;
+
 							// switch player view
-							unsigned int num = Dimension::currentPlayerView->index + 1;
-							if (num >= Dimension::pWorld->vPlayers.size())
-								num = 0;
+							if (!pGame->input->GetKeyState(SDLK_LSHIFT))
+							{
+								num++;
+								if (num >= (int) Dimension::pWorld->vPlayers.size())
+									num = 0;
+							}
+							else
+							{
+								num++;
+								if (num < 0)
+									num = Dimension::pWorld->vPlayers.size()-1;
+							}
 							Dimension::currentPlayerView = Dimension::pWorld->vPlayers.at(num);
 							
 //							Window::SetTitle(Dimension::currentPlayerView->name);
@@ -597,10 +625,14 @@ namespace Game
 								{
 									Dimension::Unit* p = Dimension::unitsSelected.at(i);
 
-									if (Networking::isNetworked)
-										Networking::PrepareDamaging(p, p->type->maxHealth+1);
-									else
-										Dimension::KillUnit(p);
+									if (p->owner == Dimension::currentPlayer)
+									{
+
+										if (Networking::isNetworked)
+											Networking::PrepareDamaging(p, p->type->maxHealth+1);
+										else
+											Dimension::KillUnit(p);
+									}
 								}
 							}
 							break;

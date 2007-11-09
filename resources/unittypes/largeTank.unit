@@ -1,6 +1,6 @@
 local ut = {}
 ut.id = "LargeTank"
-ut.name = "Large Tank"
+ut.name = "Large LargeTank"
 ut.maxHealth = 1200
 ut.maxPower = 100
 ut.minAttack = 120
@@ -16,7 +16,7 @@ ut.attackAccuracy = 80.0
 
 ut.sightRange = 17.0
 ut.movementSpeed = 1.5
-ut.movementType = MovementType.Tank
+ut.movementType = MovementType.LargeVehicle
 ut.attackSpeed = 1.0
 ut.size = 4.0
 ut.height = 1.0

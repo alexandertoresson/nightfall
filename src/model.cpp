@@ -2601,10 +2601,10 @@ namespace  Utilities
 				
 				switch(pUnit->movementType)
 				{
-					SET_UNITTYPE_ENUM(MovementTypeVehicle, movementType, MOVEMENT_VEHICLE)
+					SET_UNITTYPE_ENUM(MovementTypeVehicle, movementType, MOVEMENT_MEDIUMVEHICLE)
 					SET_UNITTYPE_ENUM(MovementTypeSea, movementType, MOVEMENT_SEA)
 					SET_UNITTYPE_ENUM(MovementTypeBuilding, movementType, MOVEMENT_BUILDING)
-					SET_UNITTYPE_ENUM(MovementTypeTank, movementType, MOVEMENT_TANK)
+					SET_UNITTYPE_ENUM(MovementTypeTank, movementType, MOVEMENT_LARGEVEHICLE)
 					SET_UNITTYPE_ENUM(MovementTypeAirborne, movementType, MOVEMENT_AIRBORNE)
 					SET_UNITTYPE_ENUM(MovementTypeHuman, movementType, MOVEMENT_HUMAN)
 					default:

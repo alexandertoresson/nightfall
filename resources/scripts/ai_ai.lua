@@ -318,13 +318,6 @@ function PerformAI_Player_AI(Player)
 			if IsResearched(Player, UnitType) then
 				CommandBuild(builder, x, y, UnitType)
 
-				if GetUnitTypeIncomeAtNoon(UnitType) < 0 then
-					TempNoonIncomeChanges = TempNoonIncomeChanges + GetUnitTypeIncomeAtNoon(UnitType)
-				end
-				if GetUnitTypeIncomeAtNight(UnitType) < 0 then
-					TempNightIncomeChanges = TempNightIncomeChanges + GetUnitTypeIncomeAtNight(UnitType)
-				end
-				TempMoneyReserved = TempMoneyReserved + GetUnitTypeBuildCost(UnitType)
 				Need[UnitType] = false
 --					Output("Build ")
 --					Output(GetUnitTypeName(UnitType))
@@ -335,7 +328,6 @@ function PerformAI_Player_AI(Player)
 			else
 				CommandResearch(builder, UnitType)
 
-				TempMoneyReserved = TempMoneyReserved + GetUnitTypeResearchCost(UnitType)
 				Need[UnitType] = false
 --					Output("Research ")
 --					Output(GetUnitTypeName(UnitType))
@@ -453,10 +445,10 @@ function CommandUnit_TargetUnit_AI(Unit, target, action, argument)
 	-- ignore received commands
 end
 
-function UnitEvent_UnitCreation_AI(Unit, Type, x, y)
+function UnitEvent_UnitCreation_AI(Unit)
 	IncNumBuilt(GetUnitType(Unit))
 	if GetUnitCanBuild(Unit) then
-		SetUnitAvailableForBuilding(Unit, Type)
+		SetUnitAvailableForBuilding(Unit, GetUnitType(Unit))
 	end
 end
 
@@ -469,9 +461,9 @@ function UnitEvent_UnitKilled_AI(Unit)
 			CheckedBuilders[GetUnitType(Unit)][Unit] = nil
 		end
 		AvailableBuilders[Unit] = nil
-		IdleList[Unit] = nil
-		CheckedIdleList[Unit] = nil
 	end
+	IdleList[Unit] = nil
+	CheckedIdleList[Unit] = nil
 	DecNumBuilt(GetUnitType(Unit))
 end
 
@@ -515,7 +507,19 @@ end
 
 function UnitEvent_NewCommand_AI(Unit, action, x, y, goal, arg)
 	IdleList[Unit] = nil
+	CheckedIdleList[Unit] = nil
 	if (action == UnitAction.Build) or (action == UnitAction.Research) then
+		if action == UnitAction.Build then
+			if GetUnitTypeIncomeAtNoon(UnitType) < 0 then
+				TempNoonIncomeChanges = TempNoonIncomeChanges + GetUnitTypeIncomeAtNoon(UnitType)
+			end
+			if GetUnitTypeIncomeAtNight(UnitType) < 0 then
+				TempNightIncomeChanges = TempNightIncomeChanges + GetUnitTypeIncomeAtNight(UnitType)
+			end
+			TempMoneyReserved = TempMoneyReserved + GetUnitTypeBuildCost(UnitType)
+		else
+			TempMoneyReserved = TempMoneyReserved + GetUnitTypeResearchCost(UnitType)
+		end
 		SetUnitBuilding(Unit, GetUnitType(Unit))
 	end
 end

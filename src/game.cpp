@@ -41,7 +41,7 @@ namespace Game
 		std::string host = "localhost";
 		std::string checksumLog = "";
 
-		std::string CurrentLevel = "default";
+		std::string CurrentLevel = "aivsai";
 
 		GameWindow* GameWindow::pInstance = NULL;
 
@@ -560,7 +560,7 @@ namespace Game
 		int GameWindow::InitGame(bool is_new_game)
 		{
 			input = new Dimension::InputController();
-			float increment = 0.9f / 11.0f; //0.9 (90%) divided on 11 updates...
+			float increment = 0.9f / 12.0f; //0.9 (90%) divided on 12 updates...
 			Dimension::pWorld = new Dimension::World;
 
 			if (noGraphics)
@@ -633,6 +633,10 @@ namespace Game
 #ifdef USE_MULTITHREADED_CALCULATIONS
 			Game::AI::InitPathfindingThreading();
 #endif
+			pLoading->Increment(increment);
+			
+			////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+			Game::AI::InitAIThreads();
 			pLoading->Increment(increment);
 
 			////////////////////////////////////////////////////////////////////////////////////////////////////////////////

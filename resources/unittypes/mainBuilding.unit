@@ -28,7 +28,7 @@ ut.canBuild = {"Builder",
 	       "Explorer"}
 
 ut.canResearch = {"MainBuilding",
-		  "TankFactory",
+		  "LargeVehicleFactory",
 		  "MediumLightTower",
 		  "LargeLightTower",
 		  "SurfaceGeothermal",

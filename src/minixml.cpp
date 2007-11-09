@@ -109,6 +109,9 @@ namespace Utilities
 				Deallocate(data->items[i].xmlData);
 			}
 		}
+		data->items.clear();
+		data->types.clear();
+		data->itemsByTag.clear();
 		delete data;
 	}
 
@@ -117,6 +120,7 @@ namespace Utilities
 		if (data)
 		{
 			Deallocate(data);
+			data = NULL;
 		}
 	}
 
@@ -207,6 +211,7 @@ namespace Utilities
 				ifile >> c;
 				if (c == '/')
 				{
+					delete text;
 					return level != 0 ? data : NULL;
 				}
 				else
@@ -219,6 +224,7 @@ namespace Utilities
 					{
 						if (!item.xmlData)
 						{
+							delete text;
 							return NULL;
 						}
 						data->items.push_back(item);

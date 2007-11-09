@@ -19,7 +19,7 @@ ut.attackAccuracy = 80.0
 
 ut.sightRange = 7.0
 ut.movementSpeed = 4.0
-ut.movementType = MovementType.Vehicle
+ut.movementType = MovementType.MediumVehicle
 ut.attackSpeed = 2.0
 ut.size = 1.0
 ut.height = 1.0

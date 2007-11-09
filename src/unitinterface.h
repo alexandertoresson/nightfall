@@ -19,6 +19,7 @@ namespace UnitLuaInterface
 		EVENTTYPE_UNITKILLED,
 		EVENTTYPE_PERFORMPLAYERAI
 	};
+	void ApplyScheduledActions();
 }
 #define __UNITINTERFACE_H_PRE_END__
 

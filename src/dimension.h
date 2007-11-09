@@ -110,7 +110,7 @@ namespace Game
 			PlayerType        type;
 			vector<Unit*>     vUnits;
 			vector<Projectile*> vProjectiles;
-			int**             NumUnitsSeeingSquare;
+			Uint16**          NumUnitsSeeingSquare;
 			PlayerState*      states;
 			Resources         resources;
 			Resources         oldResources;
@@ -124,9 +124,9 @@ namespace Game
 		struct World
 		{
 			float**         ppHeight;
-			int**           ppSteepness;
+			Uint16**        ppSteepness;
 			float**         ppWater[3];
-			int**           NumLightsOnSquare;
+			Uint16**        NumLightsOnSquare;
 			vector<Unit*>   vUnits;
 			vector<UnitType*>   vUnitTypes;
 			vector<Player*> vPlayers;

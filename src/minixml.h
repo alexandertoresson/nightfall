@@ -53,8 +53,11 @@ namespace Utilities
 
 	struct XMLData
 	{
+		// public, feel free to read
 		unsigned index;
 		std::string tag;
+
+		// private; implementation-specific
 		std::vector<XMLType> types;
 		std::vector<XMLItem> items;
 		std::map<std::string, std::vector<XMLData*> > itemsByTag;

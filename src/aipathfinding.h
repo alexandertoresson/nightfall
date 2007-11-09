@@ -19,11 +19,13 @@ namespace Game
 
 #include "dimension.h"
 #include "unit.h"
+#include "utilities.h"
 
 #endif
 
 #ifdef __DIMENSION_H_END__
 #ifdef __UNIT_H_PRE_END__
+#ifdef __UTILITIES_H_END__
 
 #ifndef __AIPATHFINDING_H__
 #define __AIPATHFINDING_H__
@@ -132,6 +134,11 @@ namespace Game
 
 		struct MovementData
 		{
+			
+			Utilities::Vector3D movementVector;
+			float distanceLeft;
+			float distancePerFrame;
+
 			Node*        pStart;
 			Node*        pGoal;
 			
@@ -277,6 +284,8 @@ namespace Game
 #endif
 
 #define __AIPATHFINDING_H_END__
+
+#endif
 
 #endif
 

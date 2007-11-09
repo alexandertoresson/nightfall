@@ -10,7 +10,7 @@ ut.isMobile = true
 
 ut.sightRange = 10.0
 ut.movementSpeed = 12.0
-ut.movementType = MovementType.Human
+ut.movementType = MovementType.SmallVehicle
 
 ut.size = 1.0
 ut.height = 1.0

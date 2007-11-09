@@ -837,6 +837,7 @@ namespace Game
 		void LoadGame_PostLoad()
 		{
 			xmlfile.Iterate("nightfall_save_file", ParseMain);
+			xmlfile.Deallocate();
 		}
 		
 	}

@@ -17,7 +17,7 @@ ut.attackAccuracy = 80.0
 ut.sightRange = 6.0
 ut.attackRange = 1.5
 ut.movementSpeed = 6.0
-ut.movementType = MovementType.Human
+ut.movementType = MovementType.SmallVehicle
 ut.attackSpeed = 1.0
 ut.size = 1.0
 ut.buildTime = 10.0
@@ -37,7 +37,7 @@ ut.symbol = "textures/builder.png"
 
 ut.canBuild = {"MainBuilding",
                "Barracks",
-	       "TankFactory",
+	       "LargeVehicleFactory",
 	       "SmallLightTower",
 	       "MediumLightTower",
 	       "LargeLightTower",

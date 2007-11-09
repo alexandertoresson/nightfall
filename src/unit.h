@@ -83,13 +83,13 @@ namespace Game
 		
 		extern int PositionSearch_NumStepsTaken;
 		extern Unit** unitByID;
-		extern Uint32* frameRemovedAt;
 		
 		enum MovementType
 		{
 			MOVEMENT_HUMAN = 0,
-			MOVEMENT_VEHICLE,
-			MOVEMENT_TANK,
+			MOVEMENT_SMALLVEHICLE,
+			MOVEMENT_MEDIUMVEHICLE,
+			MOVEMENT_LARGEVEHICLE,
 			MOVEMENT_BUILDING,
 			MOVEMENT_AIRBORNE,
 			MOVEMENT_SEA,
@@ -344,6 +344,7 @@ namespace Game
 			bool                hasSeen;     // the unit has squares added that are marked as seen
 			bool                isWaiting;
 			bool                isPushed;
+			bool                hasPower;
 			LightState          lightState;
 			IntPosition*        rallypoint;
 			Uint16              id;
@@ -415,11 +416,16 @@ namespace Game
 		bool UnitIsVisible(Unit *unit, Player*);
 		bool UnitIsVisible(Unit *unit, Player *player);
 		Unit* GetUnitClicked(int clickx, int clicky, int map_x, int map_y);
-		Unit* CreateUnit(UnitType* type, Player* owner, int x, int y, int id = -1);
+
+		Unit* CreateUnitNoDisplay(UnitType* type, Player* owner, int id = -1, bool complete = true);
+		Unit* CreateUnit(UnitType* type, Player* owner, int x, int y, int id = -1, bool complete = true);
+		bool ScheduleDisplayUnit(Unit* unit, int x, int y);
+		void DisplayScheduledUnits();
 		void DeleteUnit(Unit* unit);
 		void KillUnit(Unit* unit);
-		Unit* CreateUnitNoDisplay(UnitType* type, Player* owner, int id = -1);
-		bool DisplayUnit(Unit* unit, int x, int y);
+		void ScheduleUnitDeletion(Unit* unit);
+		void DeleteScheduledUnits();
+
 		void UpdateSeenSquares(Unit* unit, int x, int y, int operation);
 		void UpdateLightedSquares(Unit* unit, int x, int y, int operation);
 		void SetLightState(Unit* unit, LightState lightState);
