@@ -543,7 +543,26 @@ namespace Game
 			{
 				if (!Dimension::IsValidUnitPointer(target))
 				{
-					*(int*) 0 = 0;
+					cout << "Invalid unit target, fixing up action" << std::endl;
+					action = ACTION_GOTO;
+				}
+			}
+
+			if (action == ACTION_BUILD)
+			{
+				if (!target && !args)
+				{
+					cout << "Invalid unit target and arg, fixing up action" << std::endl;
+					action = ACTION_GOTO;
+				}
+			}
+			
+			if (action == ACTION_RESEARCH)
+			{
+				if (!args)
+				{
+					cout << "Invalid action arg, fixing up action" << std::endl;
+					action = ACTION_GOTO;
 				}
 			}
 
@@ -569,6 +588,11 @@ namespace Game
 			md->_newAction.changedGoalPos.y = goal_y;
 			md->_newAction.arg = args;
 			md->_newAction.action = action;
+
+			if (start_x == 0 && start_y == 0 && goal_x == 0 && goal_y == 0)
+			{
+				cout << "blah" << endl;
+			}
 				
 			if (curState == INTTHRSTATE_PROCESSING)
 			{
@@ -651,7 +675,8 @@ namespace Game
 			{
 				if (!Dimension::IsValidUnitPointer(md->_action.goal.unit))
 				{
-					*(int*) 0 = 0;
+					std::cout << "Invalid action, needs target. Fixing up action." << std::endl;
+					md->_action.action = ACTION_GOTO;
 				}
 			}
 
@@ -659,7 +684,8 @@ namespace Game
 			{
 				if (!md->_action.goal.unit && !md->_action.arg)
 				{
-					*(int*) 0 = 0;
+					std::cout << "Invalid action, needs target or arg. Fixing up action." << std::endl;
+					md->_action.action = ACTION_GOTO;
 				}
 			}
 			
@@ -667,7 +693,8 @@ namespace Game
 			{
 				if (!md->_action.arg)
 				{
-					*(int*) 0 = 0;
+					std::cout << "Invalid action, needs arg. Fixing up action." << std::endl;
+					md->_action.action = ACTION_GOTO;
 				}
 			}
 

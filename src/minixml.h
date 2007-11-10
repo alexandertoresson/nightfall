@@ -1,12 +1,13 @@
 #ifndef __MINIXML_H__
 #define __MINIXML_H__
 
+#include "chunkallocator.h"
+#include "sdlheader.h"
 #include <string>
 #include <fstream>
 #include <stack>
 #include <vector>
 #include <map>
-#include "sdlheader.h"
 
 #ifdef DEBUG_DEP
 #warning "minixml.h"
@@ -74,12 +75,13 @@ namespace Utilities
 		std::stack<std::string> tags;
 		int level;
 		XMLData *data;
+		ChunkAllocator<XMLData> *xmlDataAlloc;
+		ChunkAllocator<std::string> *stringAlloc;
 
 		std::string ReadTag();
 		bool ReadDeclaration();
 		XMLData *ReadTagBlock();
 		XMLData *ReadText();
-		void Deallocate(XMLData *data);
 
 		public:
 		XMLReader();

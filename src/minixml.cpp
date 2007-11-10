@@ -88,40 +88,23 @@ namespace Utilities
 		
 	XMLReader::XMLReader()
 	{
+		xmlDataAlloc = new ChunkAllocator<XMLData>(65536);
+		stringAlloc = new ChunkAllocator<std::string>(65536);
 		data = NULL;
 	}
 
 	XMLReader::~XMLReader()
 	{
 		Deallocate();
-	}
-
-	void XMLReader::Deallocate(XMLData *data)
-	{
-		for (unsigned i = 0; i < data->items.size(); i++)
-		{
-			if (data->types[i] == XMLTYPE_STRING)
-			{
-				delete data->items[i].str;
-			}
-			else
-			{
-				Deallocate(data->items[i].xmlData);
-			}
-		}
-		data->items.clear();
-		data->types.clear();
-		data->itemsByTag.clear();
-		delete data;
+		delete xmlDataAlloc;
+		delete stringAlloc;
 	}
 
 	void XMLReader::Deallocate()
 	{
-		if (data)
-		{
-			Deallocate(data);
-			data = NULL;
-		}
+		stringAlloc->DeallocChunks();
+		xmlDataAlloc->DeallocChunks();
+		data = NULL;
 	}
 
 	std::string XMLReader::ReadTag()
@@ -192,8 +175,8 @@ namespace Utilities
 
 	XMLData *XMLReader::ReadText()
 	{
-		XMLData *data = new XMLData;
-		std::string *text = new std::string;
+		XMLData *data = xmlDataAlloc->New();
+		std::string *text = stringAlloc->New();
 		while (!ifile.eof())
 		{
 			char c;
@@ -206,12 +189,14 @@ namespace Utilities
 					item.str = text;
 					data->items.push_back(item);
 					data->types.push_back(XMLTYPE_STRING);
-					text = new std::string;
+					text = stringAlloc->New();
 				}
+				
 				ifile >> c;
+				
+				stringAlloc->PutBack();
 				if (c == '/')
 				{
-					delete text;
 					return level != 0 ? data : NULL;
 				}
 				else
@@ -224,7 +209,7 @@ namespace Utilities
 					{
 						if (!item.xmlData)
 						{
-							delete text;
+							stringAlloc->PutBack();
 							return NULL;
 						}
 						data->items.push_back(item);
@@ -243,6 +228,7 @@ namespace Utilities
 						}
 					}
 				}
+				text = stringAlloc->New();
 			}
 			else
 			{
@@ -255,11 +241,10 @@ namespace Utilities
 			item.str = text;
 			data->items.push_back(item);
 			data->types.push_back(XMLTYPE_STRING);
-			text = new std::string;
 		}
 		else
 		{
-			delete text;
+			stringAlloc->PutBack();
 		}
 		return data;
 	}

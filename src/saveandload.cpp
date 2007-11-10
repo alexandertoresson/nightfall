@@ -866,6 +866,7 @@ namespace Game
 
 		void LoadGameSaveFile(std::string filename)
 		{
+			std::cout << "Parsing save game file " << filename << "..." << std::endl;
 			xmlfile.Read(filename);
 			xmlfile.Iterate("nightfall_save_file", ParseLevel);
 		}
