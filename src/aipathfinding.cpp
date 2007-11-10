@@ -1458,6 +1458,11 @@ namespace Game
 			int *scanline_nums;
 			first_node = binary_heap_pop_item(heap, -1);
 
+			if (nextFreeNode >= MAXIMUM_PATH_CALCULATIONS)
+			{
+				return PATHSTATE_GOAL;
+			}
+
 			num_steps++;
 
 			if (first_node == -1 /* || (circumTracking == 15 && nodes[first_node].h > highestH) */)

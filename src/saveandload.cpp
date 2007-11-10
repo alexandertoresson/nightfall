@@ -567,8 +567,7 @@ namespace Game
 					return;
 				}
 
-				xmlfile.Iterate(data, "pos", ParsePosition);
-				unit->pos = pos;
+				Dimension::DisplayScheduledUnits();
 
 				xmlfile.Iterate(data, "rotation", ParseDoubleBlock);
 				unit->rotation = d;
@@ -581,7 +580,8 @@ namespace Game
 
 				xmlfile.Iterate(data, "lastSeenPosition", ParseLastSeenPosition);
 
-				Dimension::DisplayScheduledUnits();
+				xmlfile.Iterate(data, "pos", ParsePosition);
+				unit->pos = pos;
 
 			}
 			else
@@ -633,7 +633,7 @@ namespace Game
 
 		void ParsePath(Utilities::XMLData *data)
 		{
-			AI::Node *pStart = NULL, *pGoal = NULL, *pCur, *pLast = NULL;
+			AI::Node *pStart = NULL, *pGoal = NULL, *pCur = NULL, *pLast = NULL;
 
 			xmlfile.Iterate(data, "node", ParseNode);
 
@@ -702,6 +702,33 @@ namespace Game
 
 			xmlfile.Iterate(data, "startPos", ParseIntPosition);
 			startPos = pos_int;
+
+			if (action == AI::ACTION_ATTACK || action == AI::ACTION_FOLLOW || action == AI::ACTION_MOVE_ATTACK_UNIT)
+			{
+				if (!goal.unit)
+				{
+					std::cout << "ParseActionData() detected an action that needed a unit goal, but had none" << std::endl;
+					return;
+				}
+			}
+
+			if (action == AI::ACTION_BUILD)
+			{
+				if (!goal.unit && !arg)
+				{
+					std::cout << "ParseActionData() detected an action that needed a unit goal or an argument, but had neither" << std::endl;
+					return;
+				}
+			}
+			
+			if (action == AI::ACTION_RESEARCH)
+			{
+				if (!arg)
+				{
+					std::cout << "ParseActionData() detected an action that needed a an argument, but had none" << std::endl;
+					return;
+				}
+			}
 
 			if (action != AI::ACTION_NONE)
 			{

@@ -3497,15 +3497,8 @@ namespace Game
 				return false;
 			}
 		
-			unit->pos.x = (float) x + 0.5;
-			unit->pos.y = (float) y + 0.5;
-
-			SetAssociatedSquares(unit, x, y);
-
-			if (!unit->isCompleted)
-			{
-				Incomplete(unit);
-			}
+			unit->curAssociatedSquare.x = x;
+			unit->curAssociatedSquare.y = y;
 
 			if (unit->type->isMobile)
 				numUnitsPerAreaMap[unit->type->heightOnMap-1][unit->type->movementType]++;
@@ -3519,10 +3512,25 @@ namespace Game
 
 		bool DisplayUnit(Unit* unit)
 		{
+			if (!SquaresAreWalkable(unit->type, unit->curAssociatedSquare.x, unit->curAssociatedSquare.y, SIW_ALLKNOWING))
+			{
+				return false;
+			}
+		
 			pWorld->vUnits.push_back(unit);
 			unit->owner->vUnits.push_back(unit);
 
+			unit->pos.x = (float) unit->curAssociatedSquare.x + 0.5;
+			unit->pos.y = (float) unit->curAssociatedSquare.y + 0.5;
+
 			unit->isDisplayed = true;
+
+			SetAssociatedSquares(unit, (int) unit->pos.x, (int) unit->pos.y);
+
+			if (!unit->isCompleted)
+			{
+				Incomplete(unit);
+			}
 
 			AI::SendUnitEventToLua_UnitCreation(unit);
 			AI::SendUnitEventToLua_BecomeIdle(unit);
