@@ -3583,6 +3583,8 @@ namespace Game
 				}
 			}
 
+			SDL_LockMutex(AI::GetMutex());
+
 			for (i = 0; i < pWorld->vUnits.size(); i++)
 			{
 				curUnit = pWorld->vUnits.at(i);
@@ -3590,14 +3592,19 @@ namespace Game
 				{
 					AI::CancelAction(curUnit);
 				}
-				if (curUnit->pMovementData->_action.goal.unit == unit)
+				if (curUnit->pMovementData->_action.goal.unit == unit || curUnit->pMovementData->_newAction.goal.unit == unit)
 				{
-					SDL_LockMutex(AI::GetMutex());
-					
-					curUnit->pMovementData->_action.goal.unit = NULL;
-					curUnit->pMovementData->_action.action = AI::ACTION_GOTO;
-					
-					SDL_UnlockMutex(AI::GetMutex());
+					if (curUnit->pMovementData->_action.goal.unit == unit)
+					{
+						curUnit->pMovementData->_action.goal.unit = NULL;
+						curUnit->pMovementData->_action.action = AI::ACTION_GOTO;
+					}
+					if (curUnit->pMovementData->_newAction.goal.unit == unit)
+					{
+						curUnit->pMovementData->_newAction.goal.unit = NULL;
+						curUnit->pMovementData->_newAction.action = AI::ACTION_GOTO;
+					}
+
 				}
 
 				for (vector<Projectile*>::iterator it = curUnit->projectiles.begin(); it != curUnit->projectiles.end(); it++)
@@ -3614,6 +3621,8 @@ namespace Game
 					//}
 				}
 			}
+
+			SDL_UnlockMutex(AI::GetMutex());
 
 			if (unit->curAssociatedBigSquare.y > -1)
 			{
@@ -3699,6 +3708,9 @@ namespace Game
 					break;
 				}
 			}
+			
+			SDL_LockMutex(AI::GetMutex());
+
 			for (i = 0; i < pWorld->vUnits.size(); i++)
 			{
 				curUnit = pWorld->vUnits.at(i);
@@ -3708,8 +3720,6 @@ namespace Game
 				}
 				if (curUnit->pMovementData->_action.goal.unit == unit || curUnit->pMovementData->_newAction.goal.unit == unit)
 				{
-					SDL_LockMutex(AI::GetMutex());
-
 					if (curUnit->pMovementData->_action.goal.unit == unit)
 					{
 						curUnit->pMovementData->_action.goal.unit = NULL;
@@ -3721,7 +3731,6 @@ namespace Game
 						curUnit->pMovementData->_newAction.action = AI::ACTION_GOTO;
 					}
 
-					SDL_UnlockMutex(AI::GetMutex());
 				}
 
 				for (vector<Projectile*>::iterator it = curUnit->projectiles.begin(); it != curUnit->projectiles.end(); it++)
@@ -3738,6 +3747,8 @@ namespace Game
 					//}
 				}
 			}
+
+			SDL_UnlockMutex(AI::GetMutex());
 
 			DeleteAssociatedSquares(unit, unit->curAssociatedSquare.x, unit->curAssociatedSquare.y);
 			

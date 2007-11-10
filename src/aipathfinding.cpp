@@ -498,7 +498,6 @@ namespace Game
 			md->_action.goal.unit = NULL;
 			md->_action.changedGoalPos.x = 0;
 			md->_action.changedGoalPos.y = 0;
-			md->_action.goal.unit = NULL;
 			md->_action.goal.goal_id = 0xFFFF;
 			md->_action.arg = NULL;
 			md->_action.action = ACTION_GOTO;
