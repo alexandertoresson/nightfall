@@ -502,13 +502,13 @@ namespace Game
 		SDL_Thread *simpleAIThread;
 		SDL_Thread **luaAIThreads;
 
-		bool simpleAIThreadRunning = false;
-		bool *luaAIThreadsRunning;
+		volatile bool simpleAIThreadRunning = false;
+		volatile bool *luaAIThreadsRunning;
 
 		vector<Dimension::Player*> *playersHandledPerLuaThread;
 		int* numUnitsPerLuaThread;
-		int threadsLeft;
-		int aiThreadsDone;
+		volatile int aiThreadsDone;
+		volatile bool aiIsFired;
 
 		int _SimpleAIThread(void* arg)
 		{
@@ -520,7 +520,10 @@ namespace Game
 			while (1)
 			{
 
-				SDL_CondWait(fireAIConds[0], simpleAIWaitMutex);
+				do
+				{
+					SDL_CondWait(fireAIConds[0], simpleAIWaitMutex);
+				} while (!aiIsFired);
 				
 				for (vector<Dimension::Unit*>::iterator it = Dimension::pWorld->vUnits.begin(); it != Dimension::pWorld->vUnits.end(); it++)
 				{
@@ -552,7 +555,10 @@ namespace Game
 			while (1)
 			{
 
-				SDL_CondWait(fireAIConds[i+1], luaAIWaitMutexes[i]);
+				do
+				{
+					SDL_CondWait(fireAIConds[i+1], luaAIWaitMutexes[i]);
+				} while (!aiIsFired);
 				
 				for (vector<Dimension::Player*>::iterator it = playersHandledPerLuaThread[i].begin(); it != playersHandledPerLuaThread[i].end(); it++)
 				{
@@ -605,6 +611,7 @@ namespace Game
 				}
 
 				aiThreadsDone = 0;
+				aiIsFired = false;
 
 				simpleAIThread = SDL_CreateThread(_SimpleAIThread, NULL);
 					
@@ -721,6 +728,7 @@ namespace Game
 					// Wake up simpleai and lua threads
 					
 					aiThreadsDone = 0;
+					aiIsFired = true;
 
 					SDL_LockMutex(simpleAIWaitMutex); // Make sure that the SimpleAI thread is waiting for the signal
 					SDL_UnlockMutex(simpleAIWaitMutex);
@@ -749,6 +757,8 @@ namespace Game
 							SDL_CondWait(luaAIdoneConds[i], mainAIWaitMutexes[i+1]); // Wait for lua ai threads
 						}
 					}
+					
+					aiIsFired = false;
 					
 				}
 				else
@@ -781,9 +791,13 @@ namespace Game
 				///////////////////////////////////////////////////////////////////////////
 				// Apply various stuff that cannot be applied while the lua and simpleai threads are running
 
-				SendScheduledUnitEvents();
 				Dimension::DisplayScheduledUnits();
 				UnitLuaInterface::ApplyScheduledActions();
+
+				// DisplayScheduledUnits() and ApplyScheduledActions() will have queued up more 
+				// events, so we do this as the last thing before deleting units, to avoid that
+				// events survive onto the next frame.
+				SendScheduledUnitEvents();
 
 				// Apply deletions last, so it may 'undo' actions that have been applied before,
 				// otherwise if you apply actions after it, you may apply actions with targets
@@ -1063,6 +1077,30 @@ namespace Game
 			if (pUnit->pMovementData->action.action == AI::ACTION_DIE)
 			{
 				return;
+			}
+
+			if (action == ACTION_ATTACK || action == ACTION_FOLLOW || action == ACTION_MOVE_ATTACK_UNIT)
+			{
+				if (!target)
+				{
+					*(int*) 0 = 0;
+				}
+			}
+
+			if (action == ACTION_BUILD)
+			{
+				if (!arg && !target)
+				{
+					*(int*) 0 = 0;
+				}
+			}
+			
+			if (action == ACTION_RESEARCH)
+			{
+				if (!arg)
+				{
+					*(int*) 0 = 0;
+				}
 			}
 
 			if (pUnit->pMovementData->action.action == ACTION_BUILD)

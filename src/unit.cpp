@@ -3500,6 +3500,18 @@ namespace Game
 			unit->pos.x = (float) x + 0.5;
 			unit->pos.y = (float) y + 0.5;
 
+			SetAssociatedSquares(unit, x, y);
+
+			if (!unit->isCompleted)
+			{
+				Incomplete(unit);
+			}
+
+			if (unit->type->isMobile)
+				numUnitsPerAreaMap[unit->type->heightOnMap-1][unit->type->movementType]++;
+			else
+				AI::AddUnitToAreaMap(unit);
+
 			unitsScheduledForDisplay.insert(unit);
 
 			return true;
@@ -3507,33 +3519,16 @@ namespace Game
 
 		bool DisplayUnit(Unit* unit)
 		{
-			if (!SquaresAreWalkable(unit->type, (int) unit->pos.x, (int) unit->pos.y, SIW_ALLKNOWING))
-			{
-				return false;
-			}
-			
 			pWorld->vUnits.push_back(unit);
 			unit->owner->vUnits.push_back(unit);
 
-			SetAssociatedSquares(unit, unit->pos.x, unit->pos.y);
-			if (!unit->isCompleted)
-			{
-				Incomplete(unit);
-			}
-
 			unit->isDisplayed = true;
-
-			if (unit->type->isMobile)
-				numUnitsPerAreaMap[unit->type->heightOnMap-1][unit->type->movementType]++;
-			else
-				AI::AddUnitToAreaMap(unit);
 
 			AI::SendUnitEventToLua_UnitCreation(unit);
 			AI::SendUnitEventToLua_BecomeIdle(unit);
 
 			return true;
 		}
-
 
 		// create a unit
 		Unit* CreateUnit(UnitType* type, Player* owner, int x, int y, int id, bool complete)

@@ -540,6 +540,14 @@ namespace Game
 			if (goal_y >= height)
 				goal_y = height-1;
 
+			if (action == ACTION_ATTACK || action == ACTION_FOLLOW || action == ACTION_MOVE_ATTACK_UNIT)
+			{
+				if (!Dimension::IsValidUnitPointer(target))
+				{
+					*(int*) 0 = 0;
+				}
+			}
+
 			SDL_LockMutex(gpmxPathfinding);
 
 			IntThrState curState = pUnit->pMovementData->_currentState;
@@ -639,6 +647,30 @@ namespace Game
 				
 			md->pStart = md->_start;
 			md->pGoal  = md->_goal;
+
+			if (md->_action.action == ACTION_ATTACK || md->_action.action == ACTION_FOLLOW || md->_action.action == ACTION_MOVE_ATTACK_UNIT)
+			{
+				if (!Dimension::IsValidUnitPointer(md->_action.goal.unit))
+				{
+					*(int*) 0 = 0;
+				}
+			}
+
+			if (md->_action.action == ACTION_BUILD)
+			{
+				if (!md->_action.goal.unit && !md->_action.arg)
+				{
+					*(int*) 0 = 0;
+				}
+			}
+			
+			if (md->_action.action == ACTION_RESEARCH)
+			{
+				if (!md->_action.arg)
+				{
+					*(int*) 0 = 0;
+				}
+			}
 
 			md->action = md->_action;
 

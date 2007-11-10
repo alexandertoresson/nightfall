@@ -6,6 +6,8 @@
 #include "unitinterface.h"
 #include "game.h"
 #include "environment.h"
+#include "unit.h"
+#include "aibase.h"
 #include <string>
 
 namespace Game
@@ -510,7 +512,7 @@ namespace Game
 
 		void ParseUnit_Pass1(Utilities::XMLData *data)
 		{
-			bool isDisplayed;
+			bool isDisplayed, isCompleted;
 			int id;
 			Player *owner;
 			UnitType *type;
@@ -551,10 +553,13 @@ namespace Game
 			xmlfile.Iterate(data, "isDisplayed", ParseBoolBlock);
 			isDisplayed = b;
 
+			xmlfile.Iterate(data, "isCompleted", ParseBoolBlock);
+			isCompleted = b;
+
 			if (isDisplayed)
 			{
 				xmlfile.Iterate(data, "curAssociatedSquare", ParseIntPosition);
-				unit = CreateUnit(type, owner, pos_int.x, pos_int.y, id);
+				unit = CreateUnit(type, owner, pos_int.x, pos_int.y, id, isCompleted);
 
 				if (!unit)
 				{
@@ -568,9 +573,6 @@ namespace Game
 				xmlfile.Iterate(data, "rotation", ParseDoubleBlock);
 				unit->rotation = d;
 
-				xmlfile.Iterate(data, "isCompleted", ParseBoolBlock);
-				unit->isCompleted = b;
-
 				xmlfile.Iterate(data, "isMoving", ParseBoolBlock);
 				unit->isMoving = b;
 				
@@ -579,10 +581,12 @@ namespace Game
 
 				xmlfile.Iterate(data, "lastSeenPosition", ParseLastSeenPosition);
 
+				Dimension::DisplayScheduledUnits();
+
 			}
 			else
 			{
-				unit = CreateUnitNoDisplay(type, owner, id);
+				unit = CreateUnitNoDisplay(type, owner, id, isCompleted);
 			}
 			
 			xmlfile.Iterate(data, "health", ParseDoubleBlock);
@@ -593,7 +597,7 @@ namespace Game
 
 			xmlfile.Iterate(data, "completeness", ParseDoubleBlock);
 			unit->completeness = d;
-
+			
 		}
 
 		bool is_back;
@@ -682,6 +686,8 @@ namespace Game
 			}
 		}
 
+		bool isDisplayed;
+
 		void ParseActionData(Utilities::XMLData *data)
 		{
 			AI::UnitAction action;
@@ -699,7 +705,7 @@ namespace Game
 
 			if (action != AI::ACTION_NONE)
 			{
-				if (unit->isDisplayed)
+				if (isDisplayed)
 				{
 					if (is_back)
 					{
@@ -739,6 +745,9 @@ namespace Game
 			xmlfile.Iterate(data, "id", ParseIntBlock);
 
 			unit = GetUnitByID(i);
+
+			xmlfile.Iterate(data, "isDisplayed", ParseBoolBlock);
+			isDisplayed = b;
 
 			if (!unit)
 			{
@@ -838,6 +847,9 @@ namespace Game
 		{
 			xmlfile.Iterate("nightfall_save_file", ParseMain);
 			xmlfile.Deallocate();
+				
+			AI::SendScheduledUnitEvents();
+			UnitLuaInterface::ApplyScheduledActions();
 		}
 		
 	}

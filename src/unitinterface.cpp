@@ -1153,8 +1153,16 @@ namespace UnitLuaInterface
 		for (vector<ScheduledAction*>::iterator it = scheduledActions.begin(); it != scheduledActions.end(); it++)
 		{
 			ScheduledAction *action = *it;
-			ApplyAction(action->unit, action->action, action->x, action->y, action->target, action->arg);
-			Game::Dimension::ChangePath(action->unit, action->x, action->y, action->action, action->target, action->arg);
+			if (IsValidUnitPointer(action->unit))
+			{
+				if (action->target && !IsValidUnitPointer(action->target))
+				{
+					action->action = ACTION_GOTO;
+					action->target = NULL;
+				}
+				ApplyAction(action->unit, action->action, action->x, action->y, action->target, action->arg);
+				Game::Dimension::ChangePath(action->unit, action->x, action->y, action->action, action->target, action->arg);
+			}
 			delete action;
 		}
 		scheduledActions.clear();

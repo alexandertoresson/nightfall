@@ -56,6 +56,7 @@ namespace Game
 		};
 
 		void InitAIThreads();
+		void SendScheduledUnitEvents();
 	}
 }
 
