@@ -1484,11 +1484,6 @@ namespace Game
 			int *scanline_nums;
 			first_node = binary_heap_pop_item(heap, -1);
 
-			if (nextFreeNode >= MAXIMUM_PATH_CALCULATIONS)
-			{
-				return PATHSTATE_GOAL;
-			}
-
 			num_steps++;
 
 			if (first_node == -1 /* || (circumTracking == 15 && nodes[first_node].h > highestH) */)
@@ -1587,10 +1582,6 @@ namespace Game
 
 									if (new_g < nodes[node_num].g)
 									{
-										if (node_num == first_node)
-										{
-											printf("Ouch\n");
-										}
 										nodes[node_num].g = new_g;
 										nodes[node_num].f = nodes[node_num].h + new_g;
 										nodes[node_num].parent = first_node;
@@ -1603,16 +1594,12 @@ namespace Game
 								}
 								else
 								{
-									if (IsWalkable(unit, new_x, new_y))
+									if (IsWalkable(unit, new_x, new_y) && nextFreeNode < MAXIMUM_PATH_CALCULATIONS)
 									{
 										int new_g = nodes[first_node].g;
 										new_g += Dimension::GetTraversalTimeAdjusted(unit, node_x, node_y, x, y);
 
 										node_num = scanline_nums[new_x] = nextFreeNode++;
-										if (node_num == first_node)
-										{
-											printf("Ouch\n");
-										}
 										nodes[node_num].h = CalcH(new_x, new_y, target_x, target_y);
 										if (circumTracking != 15 || nodes[node_num].h <= lowestH)
 										{
