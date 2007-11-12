@@ -1226,7 +1226,7 @@ namespace Game
 									{
 										if (x >= 0 && y >= 0 && x < pWorld->width && y < pWorld->height && pppElements[y][x] && !pppElements[y][x]->isMoving)
 										{
-											if ((curtime - pppElements[y][x]->lastCommand) / 1000.0 > 1.0)
+											if (curtime - pppElements[y][x]->lastCommand > AI::aiFps)
 											{
 												int goto_x, goto_y;
 												NearestSquareFromBuildingPlace(pppElements[y][x], build_type, unit->pMovementData->action.goal.pos.x, unit->pMovementData->action.goal.pos.y, goto_x, goto_y);
@@ -1258,7 +1258,7 @@ namespace Game
 				return;
 			}
 
-			if (unit->faceTarget != FACETARGET_TARGET && unit->type->isMobile)
+			if (unit->type->isMobile && unit->faceTarget != FACETARGET_TARGET && unit->pMovementData->action.goal.unit->isDisplayed)
 			{
 				FaceUnit(unit, unit->pMovementData->action.goal.unit);
 				unit->faceTarget = FACETARGET_TARGET;
@@ -2611,7 +2611,7 @@ namespace Game
 						Dimension::Unit* curUnit = pppElements[y][x];
 						pUnit->isWaiting = true;
 						found = true;
-						if ((curtime - curUnit->lastCommand) / 1000.0 > 0.2 && !curUnit->isMoving && !curUnit->isPushed && !curUnit->isWaiting && !AI::IsUndergoingPathCalc(curUnit))
+						if (curtime - curUnit->lastCommand > (AI::aiFps >> 2) && !curUnit->isMoving && !curUnit->isPushed && !curUnit->isWaiting && !AI::IsUndergoingPathCalc(curUnit))
 						{
 							int diff_x = pUnit->pMovementData->pCurGoalNode->x - pUnit->curAssociatedSquare.x;
 							int diff_y = pUnit->pMovementData->pCurGoalNode->y - pUnit->curAssociatedSquare.y;

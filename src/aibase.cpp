@@ -23,8 +23,8 @@ namespace Game
 {
 	namespace AI
 	{
-		int aiFps = 30;
-		int resetFrame = 0;   // for determining when to reset Dimension::PositionSearch_NumStepsTaken
+		unsigned aiFps = 30;
+		unsigned resetFrame = 0;   // for determining when to reset Dimension::PositionSearch_NumStepsTaken
 		Uint32 currentFrame = 0; // for tracking the number of the current frame
 		int aiFramesPerformedSinceLastRender = 0;
 		int action_changes = 0;
@@ -287,9 +287,11 @@ namespace Game
 		void HandleUnitPower()
 		{
 			double power_usage;
-			for (vector<Dimension::Unit*>::iterator it = Dimension::pWorld->vUnits.begin(); it != Dimension::pWorld->vUnits.end(); it++)
+			vector<Dimension::Unit*>::iterator it_end = Dimension::pWorld->vUnits.end();
+			for (vector<Dimension::Unit*>::iterator it = Dimension::pWorld->vUnits.begin(); it != it_end; it++)
 			{
 				Dimension::Unit* pUnit = *it;
+				pUnit->hasPower = true;
 				if (pUnit->isCompleted && pUnit->isDisplayed && pUnit->pMovementData->action.action != ACTION_DIE)
 				{
 
@@ -429,9 +431,41 @@ namespace Game
 		void PerformAI(Dimension::Unit* pUnit)
 		{
 			HandleProjectiles(pUnit);
-			if (pUnit->hasPower)
+			double power_usage;
+			if (pUnit->isCompleted && pUnit->isDisplayed && pUnit->pMovementData->action.action != ACTION_DIE)
 			{
 
+				power_usage = (pUnit->type->powerUsage + pUnit->type->lightPowerUsage) / aiFps;
+				
+				if (pUnit->owner->resources.power < power_usage)
+				{
+					pUnit->hasPower = false;
+					NotEnoughPowerForLight(pUnit);
+					return;
+				}
+					
+				pUnit->hasPower = true;
+				EnoughPowerForLight(pUnit);
+
+				pUnit->owner->resources.power -= power_usage;
+				if (pUnit->type->powerIncrement > 0.0)
+				{
+					if (pUnit->type->powerType == Game::Dimension::POWERTYPE_DAYLIGHT)
+					{
+						Dimension::Environment::FourthDimension* pDimension = Dimension::Environment::FourthDimension::Instance();
+						double curh = pDimension->GetCurrentHour();
+						if (curh >= 6.0 && curh <= 18.0)
+						{
+							pUnit->owner->resources.power += (pUnit->type->powerIncrement / aiFps) * (pow(sin((curh-6.0)/12*PI), 1.0/3) * 0.8 + 0.2);
+
+						}
+					}
+					else
+					{
+						pUnit->owner->resources.power += pUnit->type->powerIncrement / aiFps;
+					}
+				}
+			
 				if (pUnit->pMovementData->action.action == AI::ACTION_NONE || pUnit->pMovementData->action.action == AI::ACTION_NETWORK_AWAITING_SYNC)
 				{
 					pUnit->isMoving = false;
@@ -439,10 +473,12 @@ namespace Game
 
 				if (pUnit->type->hasAI) // _I_ has an AI!
 				{
-
 					PerformSimpleAI(pUnit);
-
 				}
+			}
+			else
+			{
+				pUnit->hasPower = false;
 			}
 			
 		}
@@ -470,9 +506,9 @@ namespace Game
 			}
 			
 		}
-		void PerformAI(Dimension::Player* player)
+
+		void PerformLuaPlayerAI(Dimension::Player* player)
 		{
-			player->oldResources = player->resources;
 			player->aiFrame++;
 			if (player->aiFrame >= player->playerAIFuncs.playerAIDelay && player->type != Dimension::PLAYER_TYPE_REMOTE)
 			{
@@ -489,7 +525,7 @@ namespace Game
 			}
 		}
 
-		int numLuaAIThreads = 2;
+		int numLuaAIThreads = 16;
 
 		SDL_cond **fireAIConds;
 		SDL_cond *simpleAIdoneCond;
@@ -563,7 +599,7 @@ namespace Game
 				for (vector<Dimension::Player*>::iterator it = playersHandledPerLuaThread[i].begin(); it != playersHandledPerLuaThread[i].end(); it++)
 				{
 					Dimension::Player* player = *it;
-					PerformAI(player);
+					PerformLuaPlayerAI(player);
 
 					for (vector<Dimension::Unit*>::iterator it2 = player->vUnits.begin(); it2 != player->vUnits.end(); it2++)
 					{
@@ -692,10 +728,11 @@ namespace Game
 
 				SDL_UnlockMutex(AI::GetMutex());
 
-				///////////////////////////////////////////////////////////////////////////
-				// Handle power of every unit
-				
-				HandleUnitPower();
+				for (vector<Dimension::Player*>::iterator it = Dimension::pWorld->vPlayers.begin(); it != Dimension::pWorld->vPlayers.end(); it++)
+				{
+					Dimension::Player* player = *it;
+					player->oldResources = player->resources;
+				}
 
 				if (numLuaAIThreads)
 				{
@@ -767,7 +804,7 @@ namespace Game
 					// No threads? Do lua ai and simple ai the non-threaded way.
 					for (vector<Dimension::Player*>::iterator it = Dimension::pWorld->vPlayers.begin(); it != Dimension::pWorld->vPlayers.end(); it++)
 					{
-						PerformAI(*it);
+						PerformLuaPlayerAI(*it);
 					}
 
 					for (vector<Dimension::Unit*>::iterator it = Dimension::pWorld->vUnits.begin(); it != Dimension::pWorld->vUnits.end(); it++)

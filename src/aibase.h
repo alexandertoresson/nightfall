@@ -111,7 +111,7 @@ namespace Game
 		void SendUnitEventToLua_UnitKilled(Dimension::Unit* pUnit);
 		void SendUnitEventToLua_BecomeIdle(Dimension::Unit* pUnit);
 
-		extern int aiFps;
+		extern unsigned aiFps;
 		extern int aiFrame;
 	
 	}
