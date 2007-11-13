@@ -428,7 +428,7 @@ namespace Game
 			}
 		}
 
-		void PerformAI(Dimension::Unit* pUnit)
+		void PerformVerySimpleAI(Dimension::Unit* pUnit)
 		{
 			HandleProjectiles(pUnit);
 			double power_usage;
@@ -471,10 +471,6 @@ namespace Game
 					pUnit->isMoving = false;
 				}
 
-				if (pUnit->type->hasAI) // _I_ has an AI!
-				{
-					PerformSimpleAI(pUnit);
-				}
 			}
 			else
 			{
@@ -561,10 +557,15 @@ namespace Game
 					SDL_CondWait(fireAIConds[0], simpleAIWaitMutex);
 				} while (!aiIsFired);
 				
+				for (vector<Dimension::Unit*>::iterator it = Dimension::pWorld->vUnits.begin(); it != Dimension::pWorld->vUnits.end(); it++)
+				{
+					PerformVerySimpleAI(*it);
+				}
+
 				for (vector<Dimension::Unit*>::iterator it = Dimension::pWorld->vUnitsWithAI.begin(); it != Dimension::pWorld->vUnitsWithAI.end(); it++)
 				{
 					Dimension::Unit* pUnit = *it;
-					PerformAI(pUnit);
+					PerformSimpleAI(pUnit);
 					if (pUnit->pMovementData->action.action == ACTION_DIE && currentFrame - pUnit->lastAttacked > (unsigned) aiFps)
 					{
 						ScheduleUnitDeletion(pUnit);
@@ -812,10 +813,15 @@ namespace Game
 						}
 					}
 
+					for (vector<Dimension::Unit*>::iterator it = Dimension::pWorld->vUnits.begin(); it != Dimension::pWorld->vUnits.end(); it++)
+					{
+						PerformVerySimpleAI(*it);
+					}
+
 					for (vector<Dimension::Unit*>::iterator it = Dimension::pWorld->vUnitsWithAI.begin(); it != Dimension::pWorld->vUnitsWithAI.end(); it++)
 					{
 						Dimension::Unit* pUnit = *it;
-						PerformAI(pUnit);
+						PerformSimpleAI(pUnit);
 						if (pUnit->pMovementData->action.action == ACTION_DIE && currentFrame - pUnit->lastAttacked > (unsigned) aiFps)
 						{
 							ScheduleUnitDeletion(pUnit);
