@@ -10,14 +10,21 @@ end
 LastCheckForTarget = {}
 LastCommands = {}
 
+function GetAIFPS_Cached()
+	if AIFPS == nil then
+		AIFPS = GetAIFPS();
+	end
+	return AIFPS
+end
+
 function PerformAI_Unit_Generic(Unit)
 
 	if not (GetUnitType(Unit) == GetUnitTypeFromString("Builder")) then
 		action = GetUnitAction(Unit)
 
-		if action == UnitAction.None and (LastCheckForTarget[Unit] == nil or os.difftime(os.time(), LastCheckForTarget[Unit]) > 0.1) and GetUnitCanAttack(Unit) then
+		if action == UnitAction.None and (LastCheckForTarget[Unit] == nil or GetCurrentFrame() - LastCheckForTarget[Unit] > GetAIFPS() * 0.1) and GetUnitCanAttack(Unit) then
 			targetUnit = GetNearestUnitInRange(Unit, RangeType.Sight, PlayerState.Enemy)
-			LastCheckForTarget[Unit] = os.time()
+			LastCheckForTarget[Unit] = GetCurrentFrame()
 			if IsNonNull(targetUnit) then
 				CommandUnit_TargetUnit(Unit, targetUnit, UnitAction.Attack, Null())
 			end

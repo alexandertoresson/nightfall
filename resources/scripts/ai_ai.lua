@@ -195,6 +195,8 @@ function PerformAI_Player_AI(Player)
 
 	iterations = 0;
 
+	currentFrame = GetCurrentFrame()
+
 	for i = 1,table_maxn(ToBuild) do
 		iterations = iterations + 1
 		if not CanBuild[ToBuild[i]] then
@@ -366,12 +368,13 @@ function PerformAI_Player_AI(Player)
 		end
 	end
 
-	if LastMoveBackIdle == nil or os.difftime(os.time(), LastMoveBackIdle) > 1.00 then
+	if LastMoveBackIdle == nil or currentFrame - LastMoveBackIdle > GetAIFPS_Cached() then
 		MoveBackCheckedIdle()
+		LastMoveBackIdle = currentFrame
 	end
 
 	for Unit,value in pairs(IdleList) do
-		if LastCommands[Unit] == nil or os.difftime(os.time(), LastCommands[Unit]) > 3.00 then
+		if LastCommands[Unit] == nil or currentFrame - LastCommands[Unit] > 3 * GetAIFPS_Cached() then
 			if (GetUnitType(Unit) == GetUnitTypeFromString("Builder")) or not GetUnitCanAttack(Unit) or (lastAttacker == nil) then
 				if GetUnitAction(Unit) == UnitAction.None then
 					x, y = GetUnitPosition(Unit)
@@ -382,15 +385,15 @@ function PerformAI_Player_AI(Player)
 						new_x = x + math.floor(math.random(-100, 100))
 						new_y = y + math.floor(math.random(-100, 100))
 						CommandGoto(Unit, new_x, new_y)
-						LastCommands[Unit] = os.time()
+						LastCommands[Unit] = currentFrame
 					elseif SquaresAreLightedAround(Type, Player, new_x, new_y) then
 						CommandGoto(Unit, new_x, new_y)
-						LastCommands[Unit] = os.time()
+						LastCommands[Unit] = currentFrame
 					end
 				end
 			else
 				CommandAttack(Unit, lastAttacker)
-				LastCommands[Unit] = os.time()
+				LastCommands[Unit] = currentFrame
 			end
 		else
 			MoveUnitToIdleChecked(Unit)

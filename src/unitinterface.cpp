@@ -10,6 +10,7 @@
 #include "aibase.h"
 #include "camera.h"
 #include "gamegui.h"
+#include "aibase.h"
 
 namespace UnitLuaInterface
 {
@@ -391,145 +392,15 @@ namespace UnitLuaInterface
 		return 3;
 	}
 
-	int LGetUnitProjectileNum(LuaVM* pVM)
+	int LGetCurrentFrame(LuaVM* pVM)
 	{
-		Unit* pUnit = _GetUnit(lua_touserdata(pVM, 1));
-		int num = 0;
-
-		if (pUnit != NULL && IsValidUnitPointer(pUnit))
-			num = pUnit->projectiles.size();
-		
-		lua_pushinteger(pVM, num);
+		lua_pushinteger(pVM, Game::AI::currentFrame);
 		return 1;
 	}
 
-	int LGetUnitProjectileType(LuaVM* pVM)
+	int LGetAIFPS(LuaVM* pVM)
 	{
-		Unit* pUnit = _GetUnit(lua_touserdata(pVM, 1));
-		ProjectileType* projtype = NULL;
-
-		if (pUnit != NULL && IsValidUnitPointer(pUnit))
-			projtype = pUnit->type->projectileType;
-		
-		lua_pushlightuserdata(pVM, projtype);
-		return 1;
-	}
-
-	int LGetUnitProjectile(LuaVM* pVM)
-	{
-		Unit* pUnit = _GetUnit(lua_touserdata(pVM, 1));
-		unsigned int num = lua_tointeger(pVM, 2);
-		Projectile* proj = NULL;
-
-		if (pUnit != NULL && IsValidUnitPointer(pUnit))
-			if (num < pUnit->projectiles.size())
-				proj = pUnit->projectiles.at(num);
-		
-		lua_pushlightuserdata(pVM, proj);
-		return 1;
-	}
-
-	int LGetProjectileType(LuaVM* pVM)
-	{
-		Projectile* proj = (Projectile*) lua_touserdata(pVM, 1);
-		ProjectileType* projtype = NULL;
-
-		if (proj != NULL)
-			projtype = proj->type;
-		
-		lua_pushlightuserdata(pVM, projtype);
-		return 1;
-	}
-
-	int LGetProjectilePos(LuaVM* pVM)
-	{
-		Projectile* proj = (Projectile*) lua_touserdata(pVM, 1);
-		Vector3D pos;
-
-		if (proj != NULL)
-			pos = proj->pos;
-		
-		lua_pushnumber(pVM, pos.x);
-		lua_pushnumber(pVM, pos.y);
-		lua_pushnumber(pVM, pos.z);
-		return 3;
-	}
-
-	int LGetProjectileDirection(LuaVM* pVM)
-	{
-		Projectile* proj = (Projectile*) lua_touserdata(pVM, 1);
-		Vector3D direction;
-
-		if (proj != NULL)
-			direction = proj->direction;
-		
-		lua_pushnumber(pVM, direction.x);
-		lua_pushnumber(pVM, direction.y);
-		lua_pushnumber(pVM, direction.z);
-		return 3;
-	}
-
-	int LGetProjectileGoalPos(LuaVM* pVM)
-	{
-		Projectile* proj = (Projectile*) lua_touserdata(pVM, 1);
-		Vector3D goal_pos;
-
-		if (proj != NULL)
-			goal_pos = proj->goalPos;
-		
-		lua_pushnumber(pVM, goal_pos.x);
-		lua_pushnumber(pVM, goal_pos.y);
-		lua_pushnumber(pVM, goal_pos.z);
-		return 3;
-	}
-
-	int LGetProjectileGoalUnit(LuaVM* pVM)
-	{
-		Projectile* proj = (Projectile*) lua_touserdata(pVM, 1);
-		Unit* goal_unit = NULL;
-
-		if (proj != NULL)
-			goal_unit = proj->goalUnit;
-		
-		lua_pushlightuserdata(pVM, goal_unit);
-		return 1;
-	}
-
-	int LGetProjectileTypeStartPos(LuaVM* pVM)
-	{
-		ProjectileType* projtype = (ProjectileType*) lua_touserdata(pVM, 1);
-		Vector3D start_pos;
-
-		if (projtype != NULL)
-			start_pos = projtype->startPos;
-		
-		lua_pushnumber(pVM, start_pos.x);
-		lua_pushnumber(pVM, start_pos.y);
-		lua_pushnumber(pVM, start_pos.z);
-		return 3;
-	}
-
-	int LGetProjectileTypeAOE(LuaVM* pVM)
-	{
-		ProjectileType* projtype = (ProjectileType*) lua_touserdata(pVM, 1);
-		float aoe = 0.0;
-
-		if (projtype != NULL)
-			aoe = projtype->areaOfEffect;
-		
-		lua_pushnumber(pVM, aoe);
-		return 1;
-	}
-
-	int LGetProjectileTypeSpeed(LuaVM* pVM)
-	{
-		ProjectileType* projtype = (ProjectileType*) lua_touserdata(pVM, 1);
-		float speed = 0.0;
-
-		if (projtype != NULL)
-			speed = projtype->speed;
-		
-		lua_pushnumber(pVM, speed);
+		lua_pushinteger(pVM, Game::AI::aiFps);
 		return 1;
 	}
 
@@ -745,47 +616,6 @@ namespace UnitLuaInterface
 		LUA_SUCCESS
 	}
 
-	int LSetUnitAction(LuaVM* pVM)
-	{
-		Unit* pUnit = _GetUnit(lua_touserdata(pVM, 1));
-
-		CHECK_UNIT_PTR(pUnit)
-
-		UnitAction action = (UnitAction) lua_tointeger(pVM, 2);
-		
-		pUnit->pMovementData->action.action = action;
-
-		LUA_SUCCESS
-	}
-
-	int LSetUnitActionArg(LuaVM* pVM)
-	{
-		Unit* pUnit = _GetUnit(lua_touserdata(pVM, 1));
-
-		CHECK_UNIT_PTR(pUnit)
-
-		pUnit->pMovementData->action.arg = lua_touserdata(pVM, 2);
-		
-		LUA_SUCCESS
-	}
-
-	int LSetUnitPosition(LuaVM* pVM)
-	{
-		Unit* pUnit = _GetUnit(lua_touserdata(pVM, 1));
-
-		CHECK_UNIT_PTR(pUnit)
-
-		float position[2] = {(float) lua_tonumber(pVM, 2), (float) lua_tonumber(pVM, 3) };
-
-		if (SquaresAreWalkable(pUnit, (int)position[0], (int)position[1]) == false)
-			LUA_FAILURE("Designated goal isn't walkable")
-
-		pUnit->pos.x = position[0];
-		pUnit->pos.y = position[1];
-
-		LUA_SUCCESS
-	}
-
 	int LSetUnitRotation(LuaVM* pVM)
 	{
 		Unit* pUnit = _GetUnit(lua_touserdata(pVM, 1));
@@ -801,148 +631,6 @@ namespace UnitLuaInterface
 			rotation += 360.0f;
 		
 		pUnit->rotation = rotation;
-
-		LUA_SUCCESS
-	}
-
-	int LSetUnitType(LuaVM* pVM)
-	{
-		Unit* pUnit = _GetUnit(lua_touserdata(pVM, 1));
-		
-		CHECK_UNIT_PTR(pUnit)
-
-		UnitType* pUnitType = static_cast<UnitType*>(lua_touserdata(pVM, 2));
-		if (pUnitType == NULL)
-			LUA_FAILURE("Invalid unit type - null pointer")
-
-		pUnit->type = pUnitType;
-
-		LUA_SUCCESS
-	}
-
-	int LSetUnitOwner(LuaVM* pVM)
-	{
-		Unit* pUnit = _GetUnit(lua_touserdata(pVM, 1));
-
-		CHECK_UNIT_PTR(pUnit)
-
-		Player* pPlayer = static_cast<Player*>(lua_touserdata(pVM, 2));
-		if (pPlayer == NULL)
-			LUA_FAILURE("Invalid player type - null pointer")
-
-		pUnit->owner = pPlayer;
-
-		LUA_SUCCESS
-	}
-
-	int LSetUnitTargetUnit(LuaVM* pVM)
-	{
-		Unit* pUnit01 = _GetUnit(lua_touserdata(pVM, 1));
-		Unit* pUnit02 = _GetUnit(lua_touserdata(pVM, 2));
-
-		CHECK_UNIT_PTR(pUnit01)
-		CHECK_UNIT_PTR_NULL_VALID(pUnit02)
-
-		pUnit01->pMovementData->action.goal.unit = pUnit02;
-
-		LUA_SUCCESS
-	}
-
-	int LSetUnitTargetPos(LuaVM* pVM)
-	{
-		Unit* pUnit = _GetUnit(lua_touserdata(pVM, 1));
-		int x = lua_tointeger(pVM, 2);
-		int y = lua_tointeger(pVM, 3);
-
-		CHECK_UNIT_PTR(pUnit)
-
-		pUnit->pMovementData->action.goal.pos.x = x;
-		pUnit->pMovementData->action.goal.pos.y = y;
-		if (pUnit->type->isMobile)
-		{
-			pUnit->isMoving = true;
-		}
-
-		LUA_SUCCESS
-	}
-
-	int LSetUnitIsMoving(LuaVM* pVM)
-	{
-		Unit* pUnit = _GetUnit(lua_touserdata(pVM, 1));
-		bool isMoving = lua_toboolean(pVM, 2);
-
-		CHECK_UNIT_PTR(pUnit)
-		
-		pUnit->isMoving = isMoving;
-
-		LUA_SUCCESS
-	}
-
-	int LClearProjectiles(LuaVM* pVM)
-	{
-		Unit* pUnit = _GetUnit(lua_touserdata(pVM, 1));
-
-		CHECK_UNIT_PTR(pUnit)
-
-		std::vector<Projectile*>::iterator it;
-		for (it = pUnit->projectiles.begin(); it != pUnit->projectiles.end(); it++)
-			delete *it;
-		pUnit->projectiles.clear();
-
-		LUA_SUCCESS
-	}
-
-	int LFireProjectileAtLocation(LuaVM* pVM)
-	{
-		Unit* pUnit = _GetUnit(lua_touserdata(pVM, 1));
-
-		CHECK_UNIT_PTR(pUnit)
-
-		Vector3D location;
-		float x, y;
-
-		x = (float) lua_tonumber(pVM, 2);
-		y = (float) lua_tonumber(pVM, 3);
-
-		location = GetTerrainCoord(x, y);
-
-		location.z += 0.5f;
-
-		Projectile* p = CreateProjectile(pUnit->type->projectileType, 
-			                             GetTerrainCoord(pUnit->pos.x, pUnit->pos.y), 
-		                                 location);
-
-		pUnit->projectiles.push_back(p);
-
-		lua_pushlightuserdata(pVM, static_cast<void*>(p));
-		return 1;
-	}
-
-	int LFireProjectileAtTarget(LuaVM* pVM)
-	{
-		Unit* pUnit01 = _GetUnit(lua_touserdata(pVM, 1));
-		Unit* pUnit02 = _GetUnit(lua_touserdata(pVM, 2));
-
-		CHECK_UNIT_PTR(pUnit01)
-		CHECK_UNIT_PTR(pUnit02)
-
-		Projectile* p = CreateProjectile(pUnit01->type->projectileType, 
-			                             GetTerrainCoord(pUnit01->pos.x, pUnit01->pos.y), 
-		                                 pUnit02);
-
-		pUnit01->projectiles.push_back(p);
-
-		lua_pushlightuserdata(pVM, static_cast<void*>(p));
-		return 1;
-	}
-
-	int LHandleProjectiles(LuaVM* pVM)
-	{
-		Unit* pUnit = _GetUnit(lua_touserdata(pVM, 1));
-
-		CHECK_UNIT_PTR(pUnit)
-
-		HandleProjectiles(pUnit);
 
 		LUA_SUCCESS
 	}
@@ -1054,30 +742,6 @@ namespace UnitLuaInterface
 
 		lua_pushboolean(pVM, IsWithinRangeForBuilding(pUnit));
 		return 1;
-	}
-
-	int LBuild(LuaVM* pVM)
-	{
-		Unit* pUnit = _GetUnit(lua_touserdata(pVM, 1));
-
-		CHECK_UNIT_PTR(pUnit)
-
-		Build(pUnit);
-
-		LUA_SUCCESS
-	}
-
-	int LInitiateAttack(LuaVM* pVM)
-	{
-		Unit* pUnit01 = _GetUnit(lua_touserdata(pVM, 1));
-		Unit* pUnit02 = _GetUnit(lua_touserdata(pVM, 2));
-
-		CHECK_UNIT_PTR(pUnit01)
-		CHECK_UNIT_PTR(pUnit02)
-
-		InitiateAttack(pUnit01, pUnit02);
-
-		LUA_SUCCESS
 	}
 
 	int LAttack(LuaVM* pVM)
@@ -3320,26 +2984,11 @@ else \
 
 		pVM->RegisterFunction("SetUnitHealth", LSetUnitHealth);
 		pVM->RegisterFunction("SetUnitPower", LSetUnitPower);
-		pVM->RegisterFunction("SetUnitAction", LSetUnitAction);
-		pVM->RegisterFunction("SetUnitActionArg", LSetUnitActionArg);
-		pVM->RegisterFunction("SetUnitPosition", LSetUnitPosition);
-		pVM->RegisterFunction("SetUnitRotation", LSetUnitRotation);
-		pVM->RegisterFunction("SetUnitType", LSetUnitType);
-		pVM->RegisterFunction("SetUnitOwner", LSetUnitOwner);
-		pVM->RegisterFunction("SetUnitTargetUnit", LSetUnitTargetUnit);
-		pVM->RegisterFunction("SetUnitTargetPos", LSetUnitTargetPos);
-		pVM->RegisterFunction("SetUnitIsMoving", LSetUnitIsMoving);
-
-		pVM->RegisterFunction("ClearProjectiles", LClearProjectiles);
-		pVM->RegisterFunction("FireProjectileAtLocation", LFireProjectileAtLocation);
-		pVM->RegisterFunction("FireProjectileAtTarget", LFireProjectileAtTarget);
-		pVM->RegisterFunction("HandleProjectiles", LHandleProjectiles);
 		
 		pVM->RegisterFunction("IsResearched", LIsResearched);
 		pVM->RegisterFunction("GetResearcher", LGetResearcher);
 		pVM->RegisterFunction("GetBuilder", LGetBuilder);
 
-		pVM->RegisterFunction("Build", LBuild);
 		pVM->RegisterFunction("IsWithinRangeForBuilding", LIsWithinRangeForBuilding);
 
 //		pVM->RegisterFunction("InitiateAttack", LInitiateAttack);
@@ -3347,7 +2996,6 @@ else \
 		pVM->RegisterFunction("CalculateUnitDamage", LCalculateUnitDamage);
 		pVM->RegisterFunction("CanReach", LCanReach);
 		
-		pVM->RegisterFunction("ChangePath", LChangePath);
 		pVM->RegisterFunction("CommandUnit_TargetUnit", LCommandUnit_TargetUnit);
 		pVM->RegisterFunction("CommandUnit_TargetPos", LCommandUnit_TargetPos);
 		pVM->RegisterFunction("CommandGoto", LCommandGoto);
@@ -3360,7 +3008,6 @@ else \
 		pVM->RegisterFunction("CommandRepair", LCommandRepair);
 		pVM->RegisterFunction("CommandMoveAttackUnit", LCommandMoveAttackUnit);
 		
-		pVM->RegisterFunction("Move", LMove);
 		pVM->RegisterFunction("ClearAllActions", LClearAllActions);
 
 		pVM->RegisterFunction("CreateUnit", LCreateUnit);
@@ -3378,6 +3025,8 @@ else \
 		pVM->RegisterFunction("GetPlayerByName", LGetPlayerByName);
 		pVM->RegisterFunction("InitPlayers", LInitPlayers);
 		
+		pVM->RegisterFunction("GetCurrentFrame", LGetCurrentFrame);
+		pVM->RegisterFunction("GetAIFPS", LGetAIFPS);
 		pVM->RegisterFunction("GetTime", LGetTime);
 		pVM->RegisterFunction("GetPower", LGetPower);
 		pVM->RegisterFunction("GetMoney", LGetMoney);
