@@ -339,98 +339,103 @@ namespace Game
 			UnitAction action;
 			int should_move;
 			
-			action = pUnit->pMovementData->action.action;
-			
-			if (action == ACTION_GOTO || action == ACTION_FOLLOW || action == ACTION_ATTACK || action == ACTION_BUILD || action == ACTION_RESEARCH)
+			HandleProjectiles(pUnit);
+
+			if (pUnit->isCompleted && pUnit->hasPower && pUnit->isDisplayed && pUnit->pMovementData->action.action != ACTION_DIE)
 			{
-	
-				should_move = pUnit->type->isMobile;
-				if (!should_move)
+			
+				action = pUnit->pMovementData->action.action;
+				
+				if (action == ACTION_GOTO || action == ACTION_FOLLOW || action == ACTION_ATTACK || action == ACTION_BUILD || action == ACTION_RESEARCH)
+				{
+		
+					should_move = pUnit->type->isMobile;
+					if (!should_move)
+					{
+						pUnit->isWaiting = false;
+					}
+
+					if (action == ACTION_ATTACK)
+					{
+						Dimension::Unit* targetUnit = pUnit->pMovementData->action.goal.unit;
+						if (pUnit->owner == targetUnit->owner)
+						{
+							AI::CancelAction(pUnit);
+							should_move = false;
+						}
+						if (Dimension::CanReach(pUnit, targetUnit))
+						{
+							if (Dimension::CanAttack(pUnit))
+							{
+								Dimension::InitiateAttack(pUnit, targetUnit);
+							}
+							if (should_move)
+							{
+								pUnit->isWaiting = true;
+								should_move = false;
+							}
+						}
+						else if (!pUnit->type->isMobile)
+						{
+							AI::CancelAction(pUnit);
+						}
+					}
+
+					if (action == ACTION_BUILD)
+					{
+						if (IsWithinRangeForBuilding(pUnit))
+						{
+							Dimension::Build(pUnit);
+							AI::DeallocPathfindingNodes(pUnit);
+							if (should_move)
+							{
+								pUnit->isWaiting = true;
+								should_move = false;
+							}
+						}
+					}
+
+					if (action == ACTION_RESEARCH)
+					{
+						Dimension::Research(pUnit);
+					}
+
+					if (should_move)
+					{
+						Dimension::MoveUnit(pUnit);
+					}
+					else
+					{
+						pUnit->isMoving = false;
+					}
+					
+					if (pUnit->isMoving)
+					{
+						if (pUnit->soundNodes[Audio::SFX_ACT_MOVE_RPT] == NULL)
+						{
+							PlayRepeatingActionSound(pUnit, Audio::SFX_ACT_MOVE_RPT);
+						}
+					}
+					else
+					{
+						if (pUnit->soundNodes[Audio::SFX_ACT_MOVE_RPT] != NULL)
+						{
+							StopRepeatingActionSound(pUnit, Audio::SFX_ACT_MOVE_RPT);
+							PlayActionSound(pUnit, Audio::SFX_ACT_MOVE_DONE_FNF);
+						}
+					}
+
+				}
+				else
 				{
 					pUnit->isWaiting = false;
-				}
-
-				if (action == ACTION_ATTACK)
-				{
-					Dimension::Unit* targetUnit = pUnit->pMovementData->action.goal.unit;
-					if (pUnit->owner == targetUnit->owner)
-					{
-						AI::CancelAction(pUnit);
-						should_move = false;
-					}
-					if (Dimension::CanReach(pUnit, targetUnit))
-					{
-						if (Dimension::CanAttack(pUnit))
-						{
-							Dimension::InitiateAttack(pUnit, targetUnit);
-						}
-						if (should_move)
-						{
-							pUnit->isWaiting = true;
-							should_move = false;
-						}
-					}
-					else if (!pUnit->type->isMobile)
-					{
-						AI::CancelAction(pUnit);
-					}
-				}
-
-				if (action == ACTION_BUILD)
-				{
-					if (IsWithinRangeForBuilding(pUnit))
-					{
-						Dimension::Build(pUnit);
-						AI::DeallocPathfindingNodes(pUnit);
-						if (should_move)
-						{
-							pUnit->isWaiting = true;
-							should_move = false;
-						}
-					}
-				}
-
-				if (action == ACTION_RESEARCH)
-				{
-					Dimension::Research(pUnit);
-				}
-
-				if (should_move)
-				{
-					Dimension::MoveUnit(pUnit);
-				}
-				else
-				{
 					pUnit->isMoving = false;
 				}
-				
-				if (pUnit->isMoving)
-				{
-					if (pUnit->soundNodes[Audio::SFX_ACT_MOVE_RPT] == NULL)
-					{
-						PlayRepeatingActionSound(pUnit, Audio::SFX_ACT_MOVE_RPT);
-					}
-				}
-				else
-				{
-					if (pUnit->soundNodes[Audio::SFX_ACT_MOVE_RPT] != NULL)
-					{
-						StopRepeatingActionSound(pUnit, Audio::SFX_ACT_MOVE_RPT);
-						PlayActionSound(pUnit, Audio::SFX_ACT_MOVE_DONE_FNF);
-					}
-				}
-
-			}
-			else
-			{
-				pUnit->isWaiting = false;
-				pUnit->isMoving = false;
 			}
 		}
 
 		void PerformVerySimpleAI(Dimension::Unit* pUnit)
 		{
-			HandleProjectiles(pUnit);
 			double power_usage;
 			if (pUnit->isCompleted && pUnit->isDisplayed && pUnit->pMovementData->action.action != ACTION_DIE)
 			{
