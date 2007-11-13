@@ -8,6 +8,7 @@ ut.maxAttack = 120
 ut.heightOnMap = 3
 ut.widthOnMap = 3
 ut.hasAI = true
+ut.hasLuaAI = true
 ut.isMobile = true
 	
 ut.canAttack = true

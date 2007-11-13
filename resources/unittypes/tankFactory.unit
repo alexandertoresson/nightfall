@@ -1,6 +1,6 @@
 local ut = {}
-ut.id = "LargeVehicleFactory"
-ut.name = "LargeVehicle Factory"
+ut.id = "TankFactory"
+ut.name = "Tank Factory"
 ut.maxHealth = 7500
 ut.heightOnMap = 5
 ut.widthOnMap = 5

@@ -2743,6 +2743,7 @@ else \
 		GET_BOOL_FIELD_OPTIONAL(pUnitType->canAttackWhileMoving, "canAttackWhileMoving", false)
 		GET_BOOL_FIELD_OPTIONAL(pUnitType->isMobile, "isMobile", false)
 		GET_BOOL_FIELD_OPTIONAL(pUnitType->hasAI, "hasAI", false)
+		GET_BOOL_FIELD_OPTIONAL(pUnitType->hasLuaAI, "hasLuaAI", false)
 
 		GET_FLOAT_FIELD_OPTIONAL(pUnitType->attackAccuracy, "attackAccuracy", 0.0)
 		GET_FLOAT_FIELD_OPTIONAL(pUnitType->attackMinRange, "attackMinRange", 0.0)

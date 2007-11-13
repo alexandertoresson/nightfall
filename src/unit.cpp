@@ -3518,7 +3518,15 @@ namespace Game
 			}
 		
 			pWorld->vUnits.push_back(unit);
+			if (unit->type->hasAI)
+			{
+				pWorld->vUnitsWithAI.push_back(unit);
+			}
 			unit->owner->vUnits.push_back(unit);
+			if (unit->type->hasLuaAI)
+			{
+				unit->owner->vUnitsWithLuaAI.push_back(unit);
+			}
 
 			unit->pos.x = (float) unit->curAssociatedSquare.x + 0.5;
 			unit->pos.y = (float) unit->curAssociatedSquare.y + 0.5;
@@ -3669,20 +3677,43 @@ namespace Game
 
 			unitByID[unit->id] = NULL;
 
-			for (i = 0; i < pWorld->vUnits.size(); i++)
+			for (vector<Unit*>::iterator it = pWorld->vUnits.begin(); it != pWorld->vUnits.end(); it++)
 			{
-				if (pWorld->vUnits.at(i) == unit)
+				if (*it == unit)
 				{
-					pWorld->vUnits.erase(pWorld->vUnits.begin() + i);
+					pWorld->vUnits.erase(it);
 					break;
 				}
 			}
-			for (i = 0; i < unit->owner->vUnits.size(); i++)
+			if (unit->type->hasAI)
 			{
-				if (unit->owner->vUnits.at(i) == unit)
+				for (vector<Unit*>::iterator it = pWorld->vUnitsWithAI.begin(); it != pWorld->vUnitsWithAI.end(); it++)
 				{
-					unit->owner->vUnits.erase(unit->owner->vUnits.begin() + i);
+					if (*it == unit)
+					{
+						pWorld->vUnitsWithAI.erase(it);
+						break;
+					}
+				}
+			}
+
+			for (vector<Unit*>::iterator it = unit->owner->vUnits.begin(); it != unit->owner->vUnits.end(); it++)
+			{
+				if (*it == unit)
+				{
+					unit->owner->vUnits.erase(it);
 					break;
+				}
+			}
+			if (unit->type->hasLuaAI)
+			{
+				for (vector<Unit*>::iterator it = unit->owner->vUnitsWithLuaAI.begin(); it != unit->owner->vUnitsWithLuaAI.end(); it++)
+				{
+					if (*it == unit)
+					{
+						unit->owner->vUnitsWithLuaAI.erase(it);
+						break;
+					}
 				}
 			}
 			

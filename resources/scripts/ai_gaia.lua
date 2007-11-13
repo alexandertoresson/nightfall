@@ -4,7 +4,13 @@ NumMonsters = 0
 CreationTimes = {}
 LastCommands = {}
 
-function PerformAI_Unit_Gaia(Unit)
+function InitAI_Gaia(Player)
+
+	InitAI_Generic(Player)
+
+end
+
+function PerformAI_Unit_Gaia(Unit, action)
 
 	if GetUnitType(Unit) == GetUnitTypeFromString("Grue") then
 
@@ -40,7 +46,7 @@ function PerformAI_Unit_Gaia(Unit)
 		LastCommands[Unit] = os.time();
 	end
 
-	PerformAI_Unit_Generic(Unit)
+	PerformAI_Unit_Generic(Unit, action)
 end
 
 function PerformAI_Player_Gaia(Player)

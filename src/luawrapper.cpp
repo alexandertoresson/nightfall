@@ -252,6 +252,29 @@ namespace Utilities
 			}
 		}
 
+		void InitAI(void)
+		{
+			for (unsigned i = 0; i < Game::Dimension::pWorld->vPlayers.size(); i++)
+			{
+				switch (Game::Dimension::pWorld->vPlayers[i]->type)
+				{
+					case Game::Dimension::PLAYER_TYPE_HUMAN:
+						m_pPlayerInstances[i]->SetFunction("InitAI_Human");
+						break;
+					case Game::Dimension::PLAYER_TYPE_GAIA:
+						m_pPlayerInstances[i]->SetFunction("InitAI_Gaia");
+						break;
+					case Game::Dimension::PLAYER_TYPE_AI:
+						m_pPlayerInstances[i]->SetFunction("InitAI_AI");
+						break;
+					case Game::Dimension::PLAYER_TYPE_REMOTE:
+						break;
+				}
+				lua_pushlightuserdata(m_pPlayerInstances[i]->GetVM(), Game::Dimension::pWorld->vPlayers[i]);
+				m_pPlayerInstances[i]->CallFunction(1);
+			}
+		}
+
 		void StopVM(void)
 		{
 			LuaVirtualMachine::Destroy();

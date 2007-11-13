@@ -485,7 +485,7 @@ namespace Game
 
 		void PerformLuaUnitAI(Dimension::Unit* pUnit)
 		{
-			if (pUnit->hasPower && pUnit->type->hasAI)
+			if (pUnit->type->hasLuaAI && pUnit->hasPower)
 			{
 
 				pUnit->aiFrame++;
@@ -561,7 +561,7 @@ namespace Game
 					SDL_CondWait(fireAIConds[0], simpleAIWaitMutex);
 				} while (!aiIsFired);
 				
-				for (vector<Dimension::Unit*>::iterator it = Dimension::pWorld->vUnits.begin(); it != Dimension::pWorld->vUnits.end(); it++)
+				for (vector<Dimension::Unit*>::iterator it = Dimension::pWorld->vUnitsWithAI.begin(); it != Dimension::pWorld->vUnitsWithAI.end(); it++)
 				{
 					Dimension::Unit* pUnit = *it;
 					PerformAI(pUnit);
@@ -601,7 +601,7 @@ namespace Game
 					Dimension::Player* player = *it;
 					PerformLuaPlayerAI(player);
 
-					for (vector<Dimension::Unit*>::iterator it2 = player->vUnits.begin(); it2 != player->vUnits.end(); it2++)
+					for (vector<Dimension::Unit*>::iterator it2 = player->vUnitsWithLuaAI.begin(); it2 != player->vUnitsWithLuaAI.end(); it2++)
 					{
 						PerformLuaUnitAI(*it2);
 					}
@@ -804,13 +804,17 @@ namespace Game
 					// No threads? Do lua ai and simple ai the non-threaded way.
 					for (vector<Dimension::Player*>::iterator it = Dimension::pWorld->vPlayers.begin(); it != Dimension::pWorld->vPlayers.end(); it++)
 					{
-						PerformLuaPlayerAI(*it);
+						Dimension::Player* player = *it;
+						PerformLuaPlayerAI(player);
+						for (vector<Dimension::Unit*>::iterator it2 = player->vUnitsWithLuaAI.begin(); it2 != player->vUnitsWithLuaAI.end(); it2++)
+						{
+							PerformLuaUnitAI(*it2);
+						}
 					}
 
-					for (vector<Dimension::Unit*>::iterator it = Dimension::pWorld->vUnits.begin(); it != Dimension::pWorld->vUnits.end(); it++)
+					for (vector<Dimension::Unit*>::iterator it = Dimension::pWorld->vUnitsWithAI.begin(); it != Dimension::pWorld->vUnitsWithAI.end(); it++)
 					{
 						Dimension::Unit* pUnit = *it;
-						PerformLuaUnitAI(pUnit);
 						PerformAI(pUnit);
 						if (pUnit->pMovementData->action.action == ACTION_DIE && currentFrame - pUnit->lastAttacked > (unsigned) aiFps)
 						{

@@ -109,6 +109,7 @@ namespace Game
 			std::string       name;
 			PlayerType        type;
 			vector<Unit*>     vUnits;
+			vector<Unit*>     vUnitsWithLuaAI;
 			vector<Projectile*> vProjectiles;
 			Uint16**          NumUnitsSeeingSquare;
 			PlayerState*      states;
@@ -128,6 +129,7 @@ namespace Game
 			float**         ppWater[3];
 			Uint16**        NumLightsOnSquare;
 			vector<Unit*>   vUnits;
+			vector<Unit*>   vUnitsWithAI;
 			vector<UnitType*>   vUnitTypes;
 			vector<Player*> vPlayers;
 			int             width;

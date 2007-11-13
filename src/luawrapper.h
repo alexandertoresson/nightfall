@@ -32,6 +32,7 @@ namespace Utilities
 
 		void StartVM(void);
 		void StartPlayerVMs(void);
+		void InitAI(void);
 		void StopVM(void);
 		LuaVM* GetVM(void);
 		LuaVM* GetPlayerVM(unsigned player);

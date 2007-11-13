@@ -560,7 +560,7 @@ namespace Game
 		int GameWindow::InitGame(bool is_new_game)
 		{
 			input = new Dimension::InputController();
-			float increment = 0.9f / 12.0f; //0.9 (90%) divided on 12 updates...
+			float increment = 0.9f / 13.0f; //0.9 (90%) divided on 12 updates...
 			Dimension::pWorld = new Dimension::World;
 
 			if (noGraphics)
@@ -618,7 +618,7 @@ namespace Game
 			}
 			pLoading->Increment(increment);
 
-			Utilities::Scripting::StartPlayerVMs();			
+			Utilities::Scripting::StartPlayerVMs();
 			pLoading->Increment(increment);
 
 			////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -627,6 +627,10 @@ namespace Game
 			{
 				return ERROR_GENERAL;
 			}
+			pLoading->Increment(increment);
+			
+			////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+			Utilities::Scripting::InitAI();
 			pLoading->Increment(increment);
 			
 			////////////////////////////////////////////////////////////////////////////////////////////////////////////////

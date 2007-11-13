@@ -176,8 +176,8 @@ function MoveBackCheckedIdle(Unit)
 	CheckedIdleList = {}
 end
 
-function PerformAI_Unit_AI(Unit)
-	PerformAI_Unit_Generic(Unit)
+function PerformAI_Unit_AI(Unit, action)
+	PerformAI_Unit_Generic(Unit, action)
 end
 
 function Empty(table)
@@ -187,13 +187,36 @@ function Empty(table)
 	return false
 end
 
+function InitAI_AI(Player)
+
+	InitAI_Generic(Player)
+
+	AppendToBuildList(GetUnitTypeFromString("Builder"))
+	AppendToBuildList(GetUnitTypeFromString("SolarPanel"))
+	AppendToBuildList(GetUnitTypeFromString("SurfaceGeothermal"))
+	AppendToBuildList(GetUnitTypeFromString("DeepGeothermal"))
+	AppendToBuildList(GetUnitTypeFromString("SmallLightTower"))
+	AppendToBuildList(GetUnitTypeFromString("MediumLightTower"))
+	AppendToBuildList(GetUnitTypeFromString("LargeLightTower"))
+	AppendToBuildList(GetUnitTypeFromString("SmallAttackRobot"))
+	AppendToBuildList(GetUnitTypeFromString("LargeAttackRobot"))
+	AppendToBuildList(GetUnitTypeFromString("SmallTank"))
+	AppendToBuildList(GetUnitTypeFromString("LargeTank"))
+	AppendToBuildList(GetUnitTypeFromString("Barracks"))
+	AppendToBuildList(GetUnitTypeFromString("TankFactory"))
+	AppendToBuildList(GetUnitTypeFromString("MainBuilding"))
+	AppendToBuildList(GetUnitTypeFromString("DefenseTower"))
+	AppendToBuildList(GetUnitTypeFromString("Explorer"))
+end
+
+iterations = 0
+startframe = 0
+
 function PerformAI_Player_AI(Player)
 
 	CanBuild = {}
 
 	BuildList = {}
-
-	iterations = 0;
 
 	currentFrame = GetCurrentFrame()
 
@@ -264,7 +287,6 @@ function PerformAI_Player_AI(Player)
 	NeedForSurvival = {}
 
 	table.sort(BuildList, function(a,b) return a.NewWeight<b.NewWeight end)
-	iterations = 0;
 
 	for i = 1,table_maxn(BuildList) do
 		UnitType = BuildList[i].UnitType
@@ -360,68 +382,52 @@ function PerformAI_Player_AI(Player)
 --	Output(iterations)
 --	Output(" ")
 
-	iterations = 0
-
 	if not (lastAttacker == nil) then
 		if not IsValidUnit(lastAttacker) then
 			lastAttacker = nil
 		end
 	end
 
-	if LastMoveBackIdle == nil or currentFrame - LastMoveBackIdle > GetAIFPS_Cached() then
+	if LastMoveBackIdle == nil or currentFrame - LastMoveBackIdle > GetAIFPS_Cached() * 3 then
 		MoveBackCheckedIdle()
 		LastMoveBackIdle = currentFrame
 	end
 
 	for Unit,value in pairs(IdleList) do
-		if LastCommands[Unit] == nil or currentFrame - LastCommands[Unit] > 3 * GetAIFPS_Cached() then
-			if (GetUnitType(Unit) == GetUnitTypeFromString("Builder")) or not GetUnitCanAttack(Unit) or (lastAttacker == nil) then
-				if GetUnitAction(Unit) == UnitAction.None then
-					x, y = GetUnitPosition(Unit)
-					Type = GetUnitType(Unit)
-					new_x = x + math.floor(math.random(-10, 10))
-					new_y = y + math.floor(math.random(-10, 10))
-					if Type == GetUnitTypeFromString("Explorer") then 
-						new_x = x + math.floor(math.random(-100, 100))
-						new_y = y + math.floor(math.random(-100, 100))
-						CommandGoto(Unit, new_x, new_y)
-						LastCommands[Unit] = currentFrame
-					elseif SquaresAreLightedAround(Type, Player, new_x, new_y) then
-						CommandGoto(Unit, new_x, new_y)
-						LastCommands[Unit] = currentFrame
-					end
+		iterations = iterations + 1
+		if (GetUnitType(Unit) == GetUnitTypeFromString("Builder")) or not GetUnitCanAttack(Unit) or (lastAttacker == nil) then
+			if GetUnitAction(Unit) == UnitAction.None then
+				x, y = GetUnitPosition(Unit)
+				Type = GetUnitType(Unit)
+				new_x = x + math.floor(math.random(-10, 10))
+				new_y = y + math.floor(math.random(-10, 10))
+				if Type == GetUnitTypeFromString("Explorer") then 
+					new_x = x + math.floor(math.random(-100, 100))
+					new_y = y + math.floor(math.random(-100, 100))
+					CommandGoto(Unit, new_x, new_y)
+					LastCommands[Unit] = currentFrame
+				elseif SquaresAreLightedAround(Type, Player, new_x, new_y) then
+					CommandGoto(Unit, new_x, new_y)
+					LastCommands[Unit] = currentFrame
 				end
-			else
-				CommandAttack(Unit, lastAttacker)
-				LastCommands[Unit] = currentFrame
 			end
 		else
-			MoveUnitToIdleChecked(Unit)
+			CommandAttack(Unit, lastAttacker)
+			LastCommands[Unit] = currentFrame
 		end
+		MoveUnitToIdleChecked(Unit)
 	end
 
 --	Output(iterations)
 --	Output("\n")
 
-	if ToBuild[1] == nil then
---				Output("Replace\n")
-		AppendToBuildList(GetUnitTypeFromString("Builder"))
-		AppendToBuildList(GetUnitTypeFromString("SolarPanel"))
-		AppendToBuildList(GetUnitTypeFromString("SurfaceGeothermal"))
-		AppendToBuildList(GetUnitTypeFromString("DeepGeothermal"))
-		AppendToBuildList(GetUnitTypeFromString("SmallLightTower"))
-		AppendToBuildList(GetUnitTypeFromString("MediumLightTower"))
-		AppendToBuildList(GetUnitTypeFromString("LargeLightTower"))
-		AppendToBuildList(GetUnitTypeFromString("SmallAttackRobot"))
-		AppendToBuildList(GetUnitTypeFromString("LargeAttackRobot"))
-		AppendToBuildList(GetUnitTypeFromString("SmallTank"))
-		AppendToBuildList(GetUnitTypeFromString("LargeTank"))
-		AppendToBuildList(GetUnitTypeFromString("Barracks"))
-		AppendToBuildList(GetUnitTypeFromString("TankFactory"))
-		AppendToBuildList(GetUnitTypeFromString("MainBuilding"))
-		AppendToBuildList(GetUnitTypeFromString("DefenseTower"))
-		AppendToBuildList(GetUnitTypeFromString("Explorer"))
+	if currentFrame - startframe > GetAIFPS_Cached() * 10 then
+--		Output(iterations)
+--		Output("\n")
+		startframe = currentFrame
+		iterations = 0
 	end
+
 	if GetPowerAtDawnCached(Player) - TempMoneyReserved < 1000 or PowerQuote(Player) < 2.00 then
 --			Output("Lowpower\n")
 		NeedForPower[GetUnitTypeFromString("SolarPanel")] = true
@@ -465,13 +471,17 @@ function UnitEvent_UnitKilled_AI(Unit)
 		end
 		AvailableBuilders[Unit] = nil
 	end
-	IdleList[Unit] = nil
-	CheckedIdleList[Unit] = nil
+	if GetUnitIsMobile(Unit) then
+		IdleList[Unit] = nil
+		CheckedIdleList[Unit] = nil
+	end
 	DecNumBuilt(GetUnitType(Unit))
 end
 
 function UnitEvent_BecomeIdle_AI(Unit)
-	IdleList[Unit] = true
+	if GetUnitIsMobile(Unit) then
+		IdleList[Unit] = true
+	end
 end
 
 function UnitEvent_CommandCompleted_AI(Unit, action, x, y, goal, arg)
@@ -509,8 +519,10 @@ function UnitEvent_CommandCancelled_AI(Unit, action, x, y, goal, arg)
 end
 
 function UnitEvent_NewCommand_AI(Unit, action, x, y, goal, arg)
-	IdleList[Unit] = nil
-	CheckedIdleList[Unit] = nil
+	if GetUnitIsMobile(Unit) then
+		IdleList[Unit] = nil
+		CheckedIdleList[Unit] = nil
+	end
 	if (action == UnitAction.Build) or (action == UnitAction.Research) then
 		if action == UnitAction.Build then
 			if GetUnitTypeIncomeAtNoon(UnitType) < 0 then

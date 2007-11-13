@@ -5,6 +5,7 @@ ut.maxPower = 100
 ut.heightOnMap = 1
 ut.widthOnMap = 1
 ut.hasAI = true
+ut.hasLuaAI = true
 ut.isResearched = true
 ut.isMobile = true
 

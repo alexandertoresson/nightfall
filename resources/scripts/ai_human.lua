@@ -1,7 +1,13 @@
 loadfile(GetLUAScript("ai_generic.lua"))()
 
-function PerformAI_Unit_Human(Unit)
-	PerformAI_Unit_Generic(Unit)
+function InitAI_Human(Player)
+
+	InitAI_Generic(Player)
+
+end
+
+function PerformAI_Unit_Human(Unit, action)
+	PerformAI_Unit_Generic(Unit, action)
 end
 
 function PerformAI_Player_Human(Player)

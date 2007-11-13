@@ -270,6 +270,7 @@ namespace Game
 			vector<UnitType*> canBuild;  // vector of what the unit can build, if anything at all
 			vector<UnitType*> canResearch;// vector of what the unit can research, if anything at all
 			bool        hasAI;           // whether the unit has an AI
+			bool        hasLuaAI;        // whether the unit has a lua AI
 			bool*       isResearched;    // whether the unit is researched, for each player
 			bool        hurtByLight;
 			Unit**      isBeingResearchedBy;
