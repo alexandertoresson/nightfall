@@ -36,23 +36,33 @@ namespace Game
 			ACTION_NUM         // only here to check the number of actions, not used as an action
 		};
 
+		struct EventAIFunc
+		{
+			std::string func;
+		};
+
+		struct RegularAIFunc
+		{
+			std::string func;
+			bool enabled;
+			int delay;
+		};
+
 		struct UnitAIFuncs
 		{
-			std::string performUnitAI;
-			int unitAIDelay;
-			std::string commandCompleted;
-			std::string commandCancelled;
-			std::string newCommand;
-			std::string becomeIdle;
-			std::string isAttacked;
-			std::string unitKilled;
+			RegularAIFunc performUnitAI;
+			EventAIFunc commandCompleted;
+			EventAIFunc commandCancelled;
+			EventAIFunc newCommand;
+			EventAIFunc becomeIdle;
+			EventAIFunc isAttacked;
+			EventAIFunc unitKilled;
 		};
 
 		struct PlayerAIFuncs
 		{
-			std::string performPlayerAI;
-			int playerAIDelay;
-			std::string unitCreation;
+			RegularAIFunc performPlayerAI;
+			EventAIFunc unitCreation;
 		};
 
 		void InitAIThreads();

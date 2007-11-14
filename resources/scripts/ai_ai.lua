@@ -482,6 +482,7 @@ function UnitEvent_BecomeIdle_AI(Unit)
 	if GetUnitIsMobile(Unit) then
 		IdleList[Unit] = true
 	end
+	UnitEvent_BecomeIdle_Generic(Unit)
 end
 
 function UnitEvent_CommandCompleted_AI(Unit, action, x, y, goal, arg)
@@ -537,6 +538,7 @@ function UnitEvent_NewCommand_AI(Unit, action, x, y, goal, arg)
 		end
 		SetUnitBuilding(Unit, GetUnitType(Unit))
 	end
+	UnitEvent_NewCommand_Generic(Unit, action, x, y, goal, arg)
 end
 
 function UnitEvent_IsAttacked_AI(Unit, attacker)

@@ -186,11 +186,8 @@ namespace Game
 			scheduledUnitEvents.clear();
 		}
 
-		void ScheduleActionUnitEvent(Dimension::Unit* pUnit, std::string *func)
+		void ScheduleActionUnitEvent(Dimension::Unit* pUnit, EventAIFunc *aiEvent)
 		{
-
-			if (func->length() == 0)
-				return;
 
 			if (pUnit->owner->type == Dimension::PLAYER_TYPE_REMOTE)
 				return;
@@ -210,18 +207,15 @@ namespace Game
 				event->targetID = 0;
 			}
 			event->arg = pUnit->pMovementData->action.arg;
-			event->func = func;
+			event->func = &aiEvent->func;
 			event->eventType = UNITEVENTTYPE_ACTION;
 
 			scheduledUnitEvents.push_back(event);
 
 		}
 
-		void ScheduleSimpleUnitEvent(Dimension::Unit* pUnit, std::string *func)
+		void ScheduleSimpleUnitEvent(Dimension::Unit* pUnit, EventAIFunc *aiEvent)
 		{
-
-			if (func->length() == 0)
-				return;
 
 			if (pUnit->owner->type == Dimension::PLAYER_TYPE_REMOTE)
 				return;
@@ -229,7 +223,7 @@ namespace Game
 			UnitEvent *event = new UnitEvent;
 
 			event->unit = pUnit;
-			event->func = func;
+			event->func = &aiEvent->func;
 			event->eventType = UNITEVENTTYPE_SIMPLE;
 
 			scheduledUnitEvents.push_back(event);
@@ -268,9 +262,6 @@ namespace Game
 		void SendUnitEventToLua_IsAttacked(Dimension::Unit* pUnit, Dimension::Unit* attacker)
 		{
 			
-			if (pUnit->type->unitAIFuncs[pUnit->owner->index].isAttacked.length() == 0)
-				return;
-
 			if (pUnit->owner->type == Dimension::PLAYER_TYPE_REMOTE)
 				return;
 
@@ -279,7 +270,7 @@ namespace Game
 			event->eventType = UNITEVENTTYPE_ATTACK;
 			event->unit = pUnit;
 			event->targetID = attacker->id;
-			event->func = &pUnit->type->unitAIFuncs[pUnit->owner->index].isAttacked;
+			event->func = &pUnit->type->unitAIFuncs[pUnit->owner->index].isAttacked.func;
 
 			scheduledUnitEvents.push_back(event);
 		}
@@ -486,21 +477,22 @@ namespace Game
 
 		void PerformLuaUnitAI(Dimension::Unit* pUnit)
 		{
-			if (pUnit->type->hasLuaAI && pUnit->hasPower)
+			if (pUnit->hasPower)
 			{
 
 				pUnit->aiFrame++;
 
-				if (pUnit->aiFrame >= pUnit->unitAIFuncs.unitAIDelay && pUnit->owner->type != Dimension::PLAYER_TYPE_REMOTE)
+				if (pUnit->aiFrame >= pUnit->unitAIFuncs.performUnitAI.delay && pUnit->owner->type != Dimension::PLAYER_TYPE_REMOTE)
 				{
 					Utilities::Scripting::LuaVirtualMachine* pVM = Utilities::Scripting::GetPlayerVMInstance(pUnit->owner->index);
 
-					if (pUnit->unitAIFuncs.performUnitAI.length())
+					if (pUnit->unitAIFuncs.performUnitAI.enabled)
 					{
-						pVM->SetFunction(pUnit->unitAIFuncs.performUnitAI);
+						pVM->SetFunction(pUnit->unitAIFuncs.performUnitAI.func);
 
 						lua_pushlightuserdata(pVM->GetVM(), (void*) pUnit->id);
-						pVM->CallFunction(1);
+						lua_pushinteger(pVM->GetVM(), pUnit->pMovementData->action.action);
+						pVM->CallFunction(2);
 					}
 					pUnit->aiFrame = 0;
 				}
@@ -511,13 +503,13 @@ namespace Game
 		void PerformLuaPlayerAI(Dimension::Player* player)
 		{
 			player->aiFrame++;
-			if (player->aiFrame >= player->playerAIFuncs.playerAIDelay && player->type != Dimension::PLAYER_TYPE_REMOTE)
+			if (player->aiFrame >= player->playerAIFuncs.performPlayerAI.delay && player->type != Dimension::PLAYER_TYPE_REMOTE)
 			{
 				Utilities::Scripting::LuaVirtualMachine* pVM = Utilities::Scripting::GetPlayerVMInstance(player->index);
 
-				if (player->playerAIFuncs.performPlayerAI.length())
+				if (player->playerAIFuncs.performPlayerAI.enabled)
 				{
-					pVM->SetFunction(player->playerAIFuncs.performPlayerAI);
+					pVM->SetFunction(player->playerAIFuncs.performPlayerAI.func);
 
 					lua_pushlightuserdata(pVM->GetVM(), player);
 					pVM->CallFunction(1);
@@ -808,6 +800,12 @@ namespace Game
 				{
 					///////////////////////////////////////////////////////////////////////////
 					// No threads? Do lua ai and simple ai the non-threaded way.
+					
+					for (vector<Dimension::Unit*>::iterator it = Dimension::pWorld->vUnits.begin(); it != Dimension::pWorld->vUnits.end(); it++)
+					{
+						PerformVerySimpleAI(*it);
+					}
+
 					for (vector<Dimension::Player*>::iterator it = Dimension::pWorld->vPlayers.begin(); it != Dimension::pWorld->vPlayers.end(); it++)
 					{
 						Dimension::Player* player = *it;
@@ -816,11 +814,6 @@ namespace Game
 						{
 							PerformLuaUnitAI(*it2);
 						}
-					}
-
-					for (vector<Dimension::Unit*>::iterator it = Dimension::pWorld->vUnits.begin(); it != Dimension::pWorld->vUnits.end(); it++)
-					{
-						PerformVerySimpleAI(*it);
 					}
 
 					for (vector<Dimension::Unit*>::iterator it = Dimension::pWorld->vUnitsWithAI.begin(); it != Dimension::pWorld->vUnitsWithAI.end(); it++)

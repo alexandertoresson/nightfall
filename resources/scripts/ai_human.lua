@@ -36,6 +36,7 @@ function UnitEvent_UnitCreation_Human(Unit)
 end
 
 function UnitEvent_BecomeIdle_Human(Unit)
+	UnitEvent_BecomeIdle_Generic(Unit)
 end
 
 function UnitEvent_CommandCompleted_Human(Unit, action, x, y, goal, arg)
@@ -45,6 +46,7 @@ function UnitEvent_CommandCancelled_Human(Unit, action, x, y, goal, arg)
 end
 
 function UnitEvent_NewCommand_Human(Unit, action, x, y, goal, arg)
+	UnitEvent_NewCommand_Generic(Unit, action, x, y, goal, arg)
 end
 
 function UnitEvent_IsAttacked_Human(Unit, attacker)

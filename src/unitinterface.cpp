@@ -1052,25 +1052,25 @@ namespace UnitLuaInterface
 			switch (eventtype)
 			{
 				case EVENTTYPE_COMMANDCOMPLETED:
-					unit->unitAIFuncs.commandCompleted = handlerString;
+					unit->unitAIFuncs.commandCompleted.func = handlerString;
 					break;
 				case EVENTTYPE_COMMANDCANCELLED:
-					unit->unitAIFuncs.commandCancelled = handlerString;
+					unit->unitAIFuncs.commandCancelled.func = handlerString;
 					break;
 				case EVENTTYPE_NEWCOMMAND:
-					unit->unitAIFuncs.newCommand = handlerString;
+					unit->unitAIFuncs.newCommand.func = handlerString;
 					break;
 				case EVENTTYPE_BECOMEIDLE:
-					unit->unitAIFuncs.becomeIdle = handlerString;
+					unit->unitAIFuncs.becomeIdle.func = handlerString;
 					break;
 				case EVENTTYPE_ISATTACKED:
-					unit->unitAIFuncs.isAttacked = handlerString;
+					unit->unitAIFuncs.isAttacked.func = handlerString;
 					break;
 				case EVENTTYPE_UNITKILLED:
-					unit->unitAIFuncs.unitKilled = handlerString;
+					unit->unitAIFuncs.unitKilled.func = handlerString;
 					break;
 				case EVENTTYPE_PERFORMUNITAI:
-					unit->unitAIFuncs.performUnitAI = handlerString;
+					unit->unitAIFuncs.performUnitAI.func = handlerString;
 					break;
 				default:
 					LUA_FAILURE("LSetEventHandler: Event type not valid for unit")
@@ -1085,28 +1085,28 @@ namespace UnitLuaInterface
 				switch (eventtype)
 				{
 					case EVENTTYPE_COMMANDCOMPLETED:
-						unittype->unitAIFuncs[player->index].commandCompleted = handlerString;
+						unittype->unitAIFuncs[player->index].commandCompleted.func = handlerString;
 						break;
 					case EVENTTYPE_COMMANDCANCELLED:
-						unittype->unitAIFuncs[player->index].commandCancelled = handlerString;
+						unittype->unitAIFuncs[player->index].commandCancelled.func = handlerString;
 						break;
 					case EVENTTYPE_NEWCOMMAND:
-						unittype->unitAIFuncs[player->index].newCommand = handlerString;
+						unittype->unitAIFuncs[player->index].newCommand.func = handlerString;
 						break;
 					case EVENTTYPE_BECOMEIDLE:
-						unittype->unitAIFuncs[player->index].becomeIdle = handlerString;
+						unittype->unitAIFuncs[player->index].becomeIdle.func = handlerString;
 						break;
 					case EVENTTYPE_ISATTACKED:
-						unittype->unitAIFuncs[player->index].isAttacked = handlerString;
+						unittype->unitAIFuncs[player->index].isAttacked.func = handlerString;
 						break;
 					case EVENTTYPE_UNITKILLED:
-						unittype->unitAIFuncs[player->index].unitKilled = handlerString;
+						unittype->unitAIFuncs[player->index].unitKilled.func = handlerString;
 						break;
 					case EVENTTYPE_PERFORMUNITAI:
-						unittype->unitAIFuncs[player->index].performUnitAI = handlerString;
+						unittype->unitAIFuncs[player->index].performUnitAI.func = handlerString;
 						break;
 					case EVENTTYPE_UNITCREATION:
-						unittype->playerAIFuncs[player->index].unitCreation = handlerString;
+						unittype->playerAIFuncs[player->index].unitCreation.func = handlerString;
 						break;
 					default:
 						LUA_FAILURE("LSetEventHandler: Event type not valid for unit type")
@@ -1123,31 +1123,31 @@ namespace UnitLuaInterface
 			switch (eventtype)
 			{
 				case EVENTTYPE_COMMANDCOMPLETED:
-					player->unitAIFuncs.commandCompleted = handlerString;
+					player->unitAIFuncs.commandCompleted.func = handlerString;
 					break;
 				case EVENTTYPE_COMMANDCANCELLED:
-					player->unitAIFuncs.commandCancelled = handlerString;
+					player->unitAIFuncs.commandCancelled.func = handlerString;
 					break;
 				case EVENTTYPE_NEWCOMMAND:
-					player->unitAIFuncs.newCommand = handlerString;
+					player->unitAIFuncs.newCommand.func = handlerString;
 					break;
 				case EVENTTYPE_BECOMEIDLE:
-					player->unitAIFuncs.becomeIdle = handlerString;
+					player->unitAIFuncs.becomeIdle.func = handlerString;
 					break;
 				case EVENTTYPE_ISATTACKED:
-					player->unitAIFuncs.isAttacked = handlerString;
+					player->unitAIFuncs.isAttacked.func = handlerString;
 					break;
 				case EVENTTYPE_UNITKILLED:
-					player->unitAIFuncs.unitKilled = handlerString;
+					player->unitAIFuncs.unitKilled.func = handlerString;
 					break;
 				case EVENTTYPE_PERFORMUNITAI:
-					player->unitAIFuncs.performUnitAI = handlerString;
+					player->unitAIFuncs.performUnitAI.func = handlerString;
 					break;
 				case EVENTTYPE_UNITCREATION:
-					player->playerAIFuncs.unitCreation = handlerString;
+					player->playerAIFuncs.unitCreation.func = handlerString;
 					break;
 				case EVENTTYPE_PERFORMPLAYERAI:
-					player->playerAIFuncs.performPlayerAI = handlerString;
+					player->playerAIFuncs.performPlayerAI.func = handlerString;
 					break;
 				default:
 					LUA_FAILURE("LSetEventHandler: Event type not valid for player")
@@ -1177,7 +1177,7 @@ namespace UnitLuaInterface
 			Unit* unit = _GetUnit(context);
 			if (eventtype == EVENTTYPE_PERFORMUNITAI)
 			{
-				unit->unitAIFuncs.unitAIDelay = delay;
+				unit->unitAIFuncs.performUnitAI.delay = delay;
 			}
 			else
 			{
@@ -1192,7 +1192,7 @@ namespace UnitLuaInterface
 			{
 				if (eventtype == EVENTTYPE_PERFORMUNITAI)
 				{
-					unittype->unitAIFuncs[player->index].unitAIDelay = delay;
+					unittype->unitAIFuncs[player->index].performUnitAI.delay = delay;
 				}
 				else
 				{
@@ -1209,11 +1209,11 @@ namespace UnitLuaInterface
 			Player* player = (Player*) context;
 			if (eventtype == EVENTTYPE_PERFORMUNITAI)
 			{
-				player->unitAIFuncs.unitAIDelay = delay;
+				player->unitAIFuncs.performUnitAI.delay = delay;
 			}
 			else if (eventtype == EVENTTYPE_PERFORMPLAYERAI)
 			{
-				player->playerAIFuncs.playerAIDelay = delay;
+				player->playerAIFuncs.performPlayerAI.delay = delay;
 			}
 			else
 			{
@@ -1223,6 +1223,73 @@ namespace UnitLuaInterface
 		else
 		{
 			LUA_FAILURE("LSetRegularAIDelay: Invalid pointer received")
+		}
+
+		LUA_SUCCESS
+	}
+
+	int LSetRegularAIEnabled(LuaVM* pVM)
+	{
+		void* context = lua_touserdata(pVM, 1);
+		EventType eventtype = (EventType) lua_tointeger(pVM, 2);
+		bool enabled = lua_toboolean(pVM, 3);
+
+		if (!context)
+		{
+			LUA_FAILURE("LSetRegularAIEnabled: Null pointer context received")
+		}
+		
+		if (IsValidUnitPointer(_GetUnit(context)))
+		{
+			Unit* unit = _GetUnit(context);
+			if (eventtype == EVENTTYPE_PERFORMUNITAI)
+			{
+				unit->unitAIFuncs.performUnitAI.enabled = enabled;
+			}
+			else
+			{
+				LUA_FAILURE("LSetRegularAIEnabled: Event type not valid for unit")
+			}
+		}
+		else if (IsValidUnitTypePointer((UnitType*)context))
+		{
+			Player* player = (Player*) lua_touserdata(pVM, 4);
+			UnitType* unittype = (UnitType*) context;
+			if (IsValidPlayerPointer(player))
+			{
+				if (eventtype == EVENTTYPE_PERFORMUNITAI)
+				{
+					unittype->unitAIFuncs[player->index].performUnitAI.enabled = enabled;
+				}
+				else
+				{
+					LUA_FAILURE("LSetRegularAIEnabled: Event type not valid for unit type")
+				}
+			}
+			else
+			{
+				LUA_FAILURE("LSetEventHandler: Invalid player pointer received")
+			}
+		}
+		else if (IsValidPlayerPointer((Player*)context))
+		{
+			Player* player = (Player*) context;
+			if (eventtype == EVENTTYPE_PERFORMUNITAI)
+			{
+				player->unitAIFuncs.performUnitAI.enabled = enabled;
+			}
+			else if (eventtype == EVENTTYPE_PERFORMPLAYERAI)
+			{
+				player->playerAIFuncs.performPlayerAI.enabled = enabled;
+			}
+			else
+			{
+				LUA_FAILURE("LSetRegularAIEnabled: Event type not valid for player")
+			}
+		}
+		else
+		{
+			LUA_FAILURE("LSetRegularAIEnabled: Invalid pointer received")
 		}
 
 		LUA_SUCCESS
@@ -3100,5 +3167,6 @@ else \
 		
 		pVM->RegisterFunction("SetEventHandler", LSetEventHandler);
 		pVM->RegisterFunction("SetRegularAIDelay", LSetRegularAIDelay);
+		pVM->RegisterFunction("SetRegularAIEnabled", LSetRegularAIEnabled);
 	}
 }

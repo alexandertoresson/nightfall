@@ -18,17 +18,17 @@ function GetAIFPS_Cached()
 end
 
 function InitAI_Generic(Player)
-	SetEventHandler(GetUnitTypeFromString("Builder"), EventType.PerformUnitAI, "", Player)
-	SetEventHandler(GetUnitTypeFromString("MainBuilding"), EventType.PerformUnitAI, "", Player)
-	SetEventHandler(GetUnitTypeFromString("SolarPanel"), EventType.PerformUnitAI, "", Player)
-	SetEventHandler(GetUnitTypeFromString("SurfaceGeothermal"), EventType.PerformUnitAI, "", Player)
-	SetEventHandler(GetUnitTypeFromString("DeepGeothermal"), EventType.PerformUnitAI, "", Player)
-	SetEventHandler(GetUnitTypeFromString("SmallLightTower"), EventType.PerformUnitAI, "", Player)
-	SetEventHandler(GetUnitTypeFromString("MediumLightTower"), EventType.PerformUnitAI, "", Player)
-	SetEventHandler(GetUnitTypeFromString("LargeLightTower"), EventType.PerformUnitAI, "", Player)
-	SetEventHandler(GetUnitTypeFromString("Barracks"), EventType.PerformUnitAI, "", Player)
-	SetEventHandler(GetUnitTypeFromString("TankFactory"), EventType.PerformUnitAI, "", Player)
-	SetEventHandler(GetUnitTypeFromString("Explorer"), EventType.PerformUnitAI, "", Player)
+	SetRegularAIEnabled(GetUnitTypeFromString("Builder"), EventType.PerformUnitAI, false, Player)
+	SetRegularAIEnabled(GetUnitTypeFromString("MainBuilding"), EventType.PerformUnitAI, false, Player)
+	SetRegularAIEnabled(GetUnitTypeFromString("SolarPanel"), EventType.PerformUnitAI, false, Player)
+	SetRegularAIEnabled(GetUnitTypeFromString("SurfaceGeothermal"), EventType.PerformUnitAI, false, Player)
+	SetRegularAIEnabled(GetUnitTypeFromString("DeepGeothermal"), EventType.PerformUnitAI, false, Player)
+	SetRegularAIEnabled(GetUnitTypeFromString("SmallLightTower"), EventType.PerformUnitAI, false, Player)
+	SetRegularAIEnabled(GetUnitTypeFromString("MediumLightTower"), EventType.PerformUnitAI, false, Player)
+	SetRegularAIEnabled(GetUnitTypeFromString("LargeLightTower"), EventType.PerformUnitAI, false, Player)
+	SetRegularAIEnabled(GetUnitTypeFromString("Barracks"), EventType.PerformUnitAI, false, Player)
+	SetRegularAIEnabled(GetUnitTypeFromString("TankFactory"), EventType.PerformUnitAI, false, Player)
+	SetRegularAIEnabled(GetUnitTypeFromString("Explorer"), EventType.PerformUnitAI, false, Player)
 end
 
 function PerformAI_Unit_Generic(Unit, action)
@@ -59,5 +59,13 @@ function PerformAI_Unit_Generic(Unit, action)
 --			end
 --		end
 --	end
+end
+
+function UnitEvent_BecomeIdle_Generic(Unit)
+	SetRegularAIEnabled(Unit, EventType.PerformUnitAI, true)
+end
+
+function UnitEvent_NewCommand_Generic(Unit, action, x, y, goal, arg)
+	SetRegularAIEnabled(Unit, EventType.PerformUnitAI, false)
 end
 

@@ -135,53 +135,55 @@ namespace Game
 			player->oldResources.power = 1000;
 			player->aiFrame = 0;
 
-			player->playerAIFuncs.performPlayerAI = "PerformAI_Player";
-			player->playerAIFuncs.unitCreation = "UnitEvent_UnitCreation";
-			player->playerAIFuncs.playerAIDelay = 6;
+			player->playerAIFuncs.performPlayerAI.func = "PerformAI_Player";
+			player->playerAIFuncs.performPlayerAI.delay = 6;
+			player->playerAIFuncs.performPlayerAI.enabled = true;
+			player->playerAIFuncs.unitCreation.func = "UnitEvent_UnitCreation";
 					
-			player->unitAIFuncs.performUnitAI = "PerformAI_Unit";
-			player->unitAIFuncs.commandCompleted = "UnitEvent_CommandCompleted";
-			player->unitAIFuncs.commandCancelled = "UnitEvent_CommandCancelled";
-			player->unitAIFuncs.newCommand = "UnitEvent_NewCommand";
-			player->unitAIFuncs.becomeIdle = "UnitEvent_BecomeIdle";
-			player->unitAIFuncs.isAttacked = "UnitEvent_IsAttacked";
-			player->unitAIFuncs.unitKilled = "UnitEvent_UnitKilled";
-			player->unitAIFuncs.unitAIDelay = 6;
+			player->unitAIFuncs.performUnitAI.func = "PerformAI_Unit";
+			player->unitAIFuncs.performUnitAI.delay = 6;
+			player->unitAIFuncs.performUnitAI.enabled = true;
+			player->unitAIFuncs.commandCompleted.func = "UnitEvent_CommandCompleted";
+			player->unitAIFuncs.commandCancelled.func = "UnitEvent_CommandCancelled";
+			player->unitAIFuncs.newCommand.func = "UnitEvent_NewCommand";
+			player->unitAIFuncs.becomeIdle.func = "UnitEvent_BecomeIdle";
+			player->unitAIFuncs.isAttacked.func = "UnitEvent_IsAttacked";
+			player->unitAIFuncs.unitKilled.func = "UnitEvent_UnitKilled";
 
 			switch (playertype)
 			{
 				case PLAYER_TYPE_HUMAN:
-					player->playerAIFuncs.performPlayerAI += "_Human";
-					player->playerAIFuncs.unitCreation += "_Human";
-					player->unitAIFuncs.performUnitAI += "_Human";
-					player->unitAIFuncs.commandCompleted += "_Human";
-					player->unitAIFuncs.commandCancelled += "_Human";
-					player->unitAIFuncs.newCommand += "_Human";
-					player->unitAIFuncs.becomeIdle += "_Human";
-					player->unitAIFuncs.isAttacked += "_Human";
-					player->unitAIFuncs.unitKilled += "_Human";
+					player->playerAIFuncs.performPlayerAI.func += "_Human";
+					player->playerAIFuncs.unitCreation.func += "_Human";
+					player->unitAIFuncs.performUnitAI.func += "_Human";
+					player->unitAIFuncs.commandCompleted.func += "_Human";
+					player->unitAIFuncs.commandCancelled.func += "_Human";
+					player->unitAIFuncs.newCommand.func += "_Human";
+					player->unitAIFuncs.becomeIdle.func += "_Human";
+					player->unitAIFuncs.isAttacked.func += "_Human";
+					player->unitAIFuncs.unitKilled.func += "_Human";
 					break;
 				case PLAYER_TYPE_GAIA:
-					player->playerAIFuncs.performPlayerAI += "_Gaia";
-					player->playerAIFuncs.unitCreation += "_Gaia";
-					player->unitAIFuncs.performUnitAI += "_Gaia";
-					player->unitAIFuncs.commandCompleted += "_Gaia";
-					player->unitAIFuncs.commandCancelled += "_Gaia";
-					player->unitAIFuncs.newCommand += "_Gaia";
-					player->unitAIFuncs.becomeIdle += "_Gaia";
-					player->unitAIFuncs.isAttacked += "_Gaia";
-					player->unitAIFuncs.unitKilled += "_Gaia";
+					player->playerAIFuncs.performPlayerAI.func += "_Gaia";
+					player->playerAIFuncs.unitCreation.func += "_Gaia";
+					player->unitAIFuncs.performUnitAI.func += "_Gaia";
+					player->unitAIFuncs.commandCompleted.func += "_Gaia";
+					player->unitAIFuncs.commandCancelled.func += "_Gaia";
+					player->unitAIFuncs.newCommand.func += "_Gaia";
+					player->unitAIFuncs.becomeIdle.func += "_Gaia";
+					player->unitAIFuncs.isAttacked.func += "_Gaia";
+					player->unitAIFuncs.unitKilled.func += "_Gaia";
 					break;
 				case PLAYER_TYPE_AI:
-					player->playerAIFuncs.performPlayerAI += "_AI";
-					player->playerAIFuncs.unitCreation += "_AI";
-					player->unitAIFuncs.performUnitAI += "_AI";
-					player->unitAIFuncs.commandCompleted += "_AI";
-					player->unitAIFuncs.commandCancelled += "_AI";
-					player->unitAIFuncs.newCommand += "_AI";
-					player->unitAIFuncs.becomeIdle += "_AI";
-					player->unitAIFuncs.isAttacked += "_AI";
-					player->unitAIFuncs.unitKilled += "_AI";
+					player->playerAIFuncs.performPlayerAI.func += "_AI";
+					player->playerAIFuncs.unitCreation.func += "_AI";
+					player->unitAIFuncs.performUnitAI.func += "_AI";
+					player->unitAIFuncs.commandCompleted.func += "_AI";
+					player->unitAIFuncs.commandCancelled.func += "_AI";
+					player->unitAIFuncs.newCommand.func += "_AI";
+					player->unitAIFuncs.becomeIdle.func += "_AI";
+					player->unitAIFuncs.isAttacked.func += "_AI";
+					player->unitAIFuncs.unitKilled.func += "_AI";
 					break;
 				case PLAYER_TYPE_REMOTE:
 					return NULL;
