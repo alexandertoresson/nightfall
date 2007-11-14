@@ -37,7 +37,7 @@ ut.symbol = "textures/builder.png"
 
 ut.canBuild = {"MainBuilding",
                "Barracks",
-	       "LargeVehicleFactory",
+	       "TankFactory",
 	       "SmallLightTower",
 	       "MediumLightTower",
 	       "LargeLightTower",

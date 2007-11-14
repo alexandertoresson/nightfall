@@ -1,6 +1,6 @@
 local ut = {}
 ut.id = "LargeTank"
-ut.name = "Large LargeTank"
+ut.name = "Large Tank"
 ut.maxHealth = 1200
 ut.maxPower = 100
 ut.minAttack = 120

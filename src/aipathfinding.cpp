@@ -589,11 +589,6 @@ namespace Game
 			md->_newAction.arg = args;
 			md->_newAction.action = action;
 
-			if (start_x == 0 && start_y == 0 && goal_x == 0 && goal_y == 0)
-			{
-				cout << "blah" << endl;
-			}
-				
 			if (curState == INTTHRSTATE_PROCESSING)
 			{
 				md->_popFromQueue = true;
