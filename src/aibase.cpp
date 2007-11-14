@@ -556,17 +556,17 @@ namespace Game
 				
 				for (vector<Dimension::Unit*>::iterator it = Dimension::pWorld->vUnits.begin(); it != Dimension::pWorld->vUnits.end(); it++)
 				{
-					PerformVerySimpleAI(*it);
-				}
-
-				for (vector<Dimension::Unit*>::iterator it = Dimension::pWorld->vUnitsWithAI.begin(); it != Dimension::pWorld->vUnitsWithAI.end(); it++)
-				{
 					Dimension::Unit* pUnit = *it;
-					PerformSimpleAI(pUnit);
+					PerformVerySimpleAI(pUnit);
 					if (pUnit->pMovementData->action.action == ACTION_DIE && currentFrame - pUnit->lastAttacked > (unsigned) aiFps)
 					{
 						ScheduleUnitDeletion(pUnit);
 					}
+				}
+
+				for (vector<Dimension::Unit*>::iterator it = Dimension::pWorld->vUnitsWithAI.begin(); it != Dimension::pWorld->vUnitsWithAI.end(); it++)
+				{
+					PerformSimpleAI(*it);
 				}
 
 				SDL_LockMutex(mainAIWaitMutexes[0]); // Make sure that the main thread is waiting for the signal
@@ -801,11 +801,6 @@ namespace Game
 					///////////////////////////////////////////////////////////////////////////
 					// No threads? Do lua ai and simple ai the non-threaded way.
 					
-					for (vector<Dimension::Unit*>::iterator it = Dimension::pWorld->vUnits.begin(); it != Dimension::pWorld->vUnits.end(); it++)
-					{
-						PerformVerySimpleAI(*it);
-					}
-
 					for (vector<Dimension::Player*>::iterator it = Dimension::pWorld->vPlayers.begin(); it != Dimension::pWorld->vPlayers.end(); it++)
 					{
 						Dimension::Player* player = *it;
@@ -816,14 +811,19 @@ namespace Game
 						}
 					}
 
-					for (vector<Dimension::Unit*>::iterator it = Dimension::pWorld->vUnitsWithAI.begin(); it != Dimension::pWorld->vUnitsWithAI.end(); it++)
+					for (vector<Dimension::Unit*>::iterator it = Dimension::pWorld->vUnits.begin(); it != Dimension::pWorld->vUnits.end(); it++)
 					{
 						Dimension::Unit* pUnit = *it;
-						PerformSimpleAI(pUnit);
+						PerformVerySimpleAI(pUnit);
 						if (pUnit->pMovementData->action.action == ACTION_DIE && currentFrame - pUnit->lastAttacked > (unsigned) aiFps)
 						{
 							ScheduleUnitDeletion(pUnit);
 						}
+					}
+
+					for (vector<Dimension::Unit*>::iterator it = Dimension::pWorld->vUnitsWithAI.begin(); it != Dimension::pWorld->vUnitsWithAI.end(); it++)
+					{
+						PerformSimpleAI(*it);
 					}
 
 				}

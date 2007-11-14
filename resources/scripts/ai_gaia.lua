@@ -80,7 +80,6 @@ function UnitEvent_UnitCreation_Gaia(Unit)
 end
 
 function UnitEvent_BecomeIdle_Gaia(Unit)
-	UnitEvent_BecomeIdle_Generic(Unit)
 end
 
 function UnitEvent_CommandCompleted_Gaia(Unit, action, x, y, goal, arg)
@@ -90,7 +89,9 @@ function UnitEvent_CommandCancelled_Gaia(Unit, action, x, y, goal, arg)
 end
 
 function UnitEvent_NewCommand_Gaia(Unit, action, x, y, goal, arg)
-	UnitEvent_NewCommand_Generic(Unit, action, x, y, goal, arg)
+	-- Do not call the generic function to disable AI for grues;
+	-- that would cause them to _not_ get hurt while moving in
+	-- light.
 end
 
 function UnitEvent_IsAttacked_Gaia(Unit, attacker)
