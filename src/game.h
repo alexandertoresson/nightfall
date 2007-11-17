@@ -18,8 +18,6 @@ namespace Game
 		extern bool noGraphics;
 		extern bool graphicsLoaded;
 		extern bool noSound;
-		extern bool isServer;
-		extern bool isClient;
 		extern int numPlayersGoal;
 		extern std::string host;
 		extern std::string checksumLog;
@@ -40,9 +38,10 @@ namespace Game
 			MENU,
 			MULTIPLAYER,
 			NETWORKCREATE,
-			NETWORKJOIN,
-			NETWORKCREATE_DEDICATED
+			NETWORKJOIN
 		};
+
+		extern SwitchState startState;
 
 		class GameWindow;
 	}

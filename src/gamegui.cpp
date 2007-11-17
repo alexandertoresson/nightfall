@@ -2066,7 +2066,7 @@ namespace Game
 			}
 			else if(stat == Networking::JOIN_WAITING)
 			{
-				if (Game::Rules::isClient && Networking::isClientConnected() == false)
+				if (Game::Rules::startState == Game::Rules::NETWORKJOIN && Networking::isClientConnected() == false)
 				{
 					this->Connect(MOUSE_PRESS, this);
 				}

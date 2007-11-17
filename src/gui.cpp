@@ -317,7 +317,10 @@ namespace Window
 
 				PaintAll();
 				Utilities::RevertViewport();
-				SDL_GL_SwapBuffers();
+				if (!Window::noWindow)
+				{
+					SDL_GL_SwapBuffers();
+				}
 
 				if(sleep)
 				{

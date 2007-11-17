@@ -37,9 +37,11 @@ namespace Window
 
 	extern int windowWidth, windowHeight;
 	extern float guiWidth, guiHeight, guiResolution;
+
+	extern bool noWindow;
 	
 	// Initierar SDL
-	int   Init(int flags);
+	int   Init();
 	
 	// Event called when closing the window
 	void  OnClose(void (*fptr)(void));

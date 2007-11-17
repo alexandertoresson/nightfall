@@ -12,26 +12,37 @@ namespace Window
 	SDL_Surface* pWindow;
 	bool initialized = false;
 
+	bool noWindow = false;
+
 	int windowWidth, windowHeight;
 
 	float guiResolution, guiHeight, guiWidth;
 
-	int Init(int flags)
+	int Init()
 	{
+		int flags = SDL_INIT_AUDIO;
+		if (!noWindow)
+		{
+			flags |= SDL_INIT_VIDEO;
+		}
+
 		if (initialized)
 			return WINDOW_ERROR_ALREADY_INITIALIZED;
 	
 		if (SDL_Init(flags) < 0)
 			return WINDOW_ERROR_INIT_FAILURE;
-			
+	
+		if (!noWindow)
+		{
 #ifdef MAC		
-		SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 32);
+			SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 32);
 #else
-		SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
+			SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
 #endif
 		
-		// Begär double buffering
-		SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
+			// Begär double buffering
+			SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
+		}
 		
 		initialized = true;
 		
@@ -75,6 +86,18 @@ namespace Window
 		std::cout << "Using screen configuration: " << width << "x" << height << "x" << bpp << std::endl;
 		if (initialized == false)
 			return WINDOW_ERROR_NOT_INITIALIZED;
+
+		windowWidth  = width;
+		windowHeight = height;
+
+		guiResolution = 1.0f / (float)height;
+		guiWidth = (float)width / (float)height;
+		guiHeight = 1.0f;
+
+		if (noWindow)
+		{
+			return SUCCESS;
+		}
 
 		//  this holds some info about our display 
 		const SDL_VideoInfo *videoInfo;
@@ -187,13 +210,6 @@ namespace Window
 		//  Reset The View 
 		glLoadIdentity();
 
-		windowWidth  = width;
-		windowHeight = height;
-
-		guiResolution = 1.0f / (float)height;
-		guiWidth = (float)width / (float)height;
-		guiHeight = 1.0f;
-
 #ifndef WIN32
 		if (!Utilities::IsOGLExtensionSupported("GL_ARB_multitexture"))
 		{
@@ -262,15 +278,20 @@ namespace Window
 	
 	void SetTitle(const char* title)
 	{
-		if (initialized == false)
+		if (initialized == false || noWindow)
 			return;
-	
+
 		SDL_WM_SetCaption(title, NULL);
 	}
 
 	void  MakeScreenshot(void)
 	{
 		static int screenshotCount = 1;
+
+		if (noWindow)
+		{
+			return;
+		}
 
 		if (pWindow->format->BitsPerPixel != 32)
 		{

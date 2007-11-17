@@ -35,8 +35,7 @@ namespace Game
 		bool noGraphics = false;
 		bool graphicsLoaded = true;
 		bool noSound = false;
-		bool isServer = false;
-		bool isClient = false;
+		SwitchState startState = MENU;
 		int numPlayersGoal = 0;
 		std::string host = "localhost";
 		std::string checksumLog = "";
@@ -150,18 +149,12 @@ namespace Game
 		{
 			GameMenu *pMenu = new GameMenu();
 			GameInGameMenu *pInGameMenu = new GameInGameMenu();
-			SwitchState nextState = MENU;
+			SwitchState nextState = startState;
 			GameWindow *mainWindow = NULL;
 			//GameTest *mainTestin = new GameTest();
 			NetworkJoinOrCreate *multiplayer = new NetworkJoinOrCreate();
 			NetworkJoin *networkJoin = new NetworkJoin();
 			NetworkCreate *networkCreate = new NetworkCreate();
-
-			if (isServer)
-				nextState = NETWORKCREATE;
-
-			if (isClient)
-				nextState = NETWORKJOIN;
 
 			while(nextState != QUIT)
 			{

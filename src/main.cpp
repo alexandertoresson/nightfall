@@ -45,7 +45,7 @@ int main(int argc, char** argv)
 
 	ParseArguments(argc, argv);
 
-	int errCode = Window::Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO);
+	int errCode = Window::Init();
 	
 	if (errCode != SUCCESS)
 	{
@@ -153,26 +153,41 @@ void ParseArguments(int argc, char** argv)
 	{
 		if (!strcmp(argv[i], "--dedicated-server"))
 		{
-			Game::Rules::isServer = true;
+			Game::Rules::startState = Game::Rules::NETWORKCREATE;
+			Window::noWindow = true;
 			Game::Rules::noGraphics = true;
 			Game::Rules::noSound = true;
 		}
 		else if (!strcmp(argv[i], "--dedicated-client"))
 		{
-			Game::Rules::isClient = true;
+			Game::Rules::startState = Game::Rules::NETWORKJOIN;
+			Window::noWindow = true;
 			Game::Rules::noGraphics = true;
 			Game::Rules::noSound = true;
 		}
 		else if (!strcmp(argv[i], "--server"))
 		{
-			Game::Rules::isServer = true;
+			Game::Rules::startState = Game::Rules::NETWORKCREATE;
 		}
 		else if (!strcmp(argv[i], "--client"))
 		{
-			Game::Rules::isClient = true;
+			Game::Rules::startState = Game::Rules::NETWORKJOIN;
+		}
+		else if (!strcmp(argv[i], "--start-game"))
+		{
+			Game::Rules::startState = Game::Rules::NEWGAME;
+		}
+		else if (!strcmp(argv[i], "--load-game"))
+		{
+			Game::Rules::startState = Game::Rules::LOADGAME;
 		}
 		else if (!strcmp(argv[i], "--no-graphics"))
 		{
+			Game::Rules::noGraphics = true;
+		}
+		else if (!strcmp(argv[i], "--no-window"))
+		{
+			Window::noWindow = true;
 			Game::Rules::noGraphics = true;
 		}
 		else if (!strcmp(argv[i], "--no-sound"))
@@ -207,6 +222,14 @@ void ParseArguments(int argc, char** argv)
 			{
 				std::stringstream ss(argv[i]);
 				ss >> Game::Rules::numPlayersGoal;
+			}
+		}
+		else if (!strcmp(argv[i], "--lua-threads"))
+		{
+			if (++i < argc)
+			{
+				std::stringstream ss(argv[i]);
+				ss >> Game::AI::numLuaAIThreads;
 			}
 		}
 	}

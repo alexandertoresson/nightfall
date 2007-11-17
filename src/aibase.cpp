@@ -838,6 +838,7 @@ namespace Game
 
 				Dimension::DisplayScheduledUnits();
 				UnitLuaInterface::ApplyScheduledActions();
+				UnitLuaInterface::ApplyScheduledDamagings();
 
 				// DisplayScheduledUnits() and ApplyScheduledActions() will have queued up more 
 				// events, so we do this as the last thing before deleting units, to avoid that

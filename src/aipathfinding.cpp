@@ -1989,7 +1989,7 @@ namespace Game
 						{
 //							cout << calcCount << " total, " << tsteps << " trace, " << fsteps << " flood, " << psteps << " a*, " << unit << endl;
 							done = true;
-							quit = true;
+							quit = false;
 							break;
 						}
 					

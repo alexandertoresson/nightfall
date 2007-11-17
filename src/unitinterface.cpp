@@ -744,6 +744,29 @@ namespace UnitLuaInterface
 		return 1;
 	}
 
+	struct ScheduledDamaging
+	{
+		Unit* unit;
+		float damage;
+	};
+
+	vector<ScheduledDamaging*> scheduledDamagings;
+	SDL_mutex* scheduledDamagingsMutex = SDL_CreateMutex();
+
+	void ApplyScheduledDamagings()
+	{
+		for (vector<ScheduledDamaging*>::iterator it = scheduledDamagings.begin(); it != scheduledDamagings.end(); it++)
+		{
+			ScheduledDamaging *damaging = *it;
+			if (IsValidUnitPointer(damaging->unit))
+			{
+				Attack(damaging->unit, damaging->damage);
+			}
+			delete damaging;
+		}
+		scheduledDamagings.clear();
+	}
+
 	int LAttack(LuaVM* pVM)
 	{
 		Unit* pUnit = _GetUnit(lua_touserdata(pVM, 1));
@@ -756,7 +779,12 @@ namespace UnitLuaInterface
 		}
 		else
 		{
-			Attack(pUnit, (float) lua_tonumber(pVM, 2));
+			ScheduledDamaging *damaging = new ScheduledDamaging;
+			damaging->unit = pUnit;
+			damaging->damage = (float) lua_tonumber(pVM, 2);
+			SDL_LockMutex(scheduledDamagingsMutex);
+			scheduledDamagings.push_back(damaging);
+			SDL_UnlockMutex(scheduledDamagingsMutex);
 		}
 		return 0;
 	}

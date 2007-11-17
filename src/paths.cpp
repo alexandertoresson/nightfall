@@ -26,26 +26,30 @@ namespace Utilities
 			path_from_argv0 = "../";
 		}
 
-#if !defined(WIN32) && !defined(MAC)
+#if defined(__unix__)
 		const char* data_paths = getenv("XDG_DATA_DIRS");
 
-		paths_split.push_back("");
-
-		for (unsigned i = 0; i < strlen(data_paths); i++)
+		if (data_paths)
 		{
-			if (data_paths[i] == ':')
-			{
-				paths_split.push_back("");
-			}
-			else
-			{
-				paths_split.back().push_back(data_paths[i]);
-			}
-		}
 
-		for (unsigned i = 0; i < paths_split.size(); i++)
-		{
-			paths_split[i] += "/nightfall/";
+			paths_split.push_back("");
+
+			for (unsigned i = 0; i < strlen(data_paths); i++)
+			{
+				if (data_paths[i] == ':')
+				{
+					paths_split.push_back("");
+				}
+				else
+				{
+					paths_split.back().push_back(data_paths[i]);
+				}
+			}
+
+			for (unsigned i = 0; i < paths_split.size(); i++)
+			{
+				paths_split[i] += "/nightfall/";
+			}
 		}
 #endif
 	}

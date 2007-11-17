@@ -18,6 +18,8 @@ namespace Game
 		extern int paths;
 		extern int aiFramesPerformedSinceLastRender;
 		
+		extern int numLuaAIThreads;
+
 		enum UnitAction // different actions
 		{
 			ACTION_NONE = 0,

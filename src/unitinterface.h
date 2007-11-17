@@ -20,6 +20,7 @@ namespace UnitLuaInterface
 		EVENTTYPE_PERFORMPLAYERAI
 	};
 	void ApplyScheduledActions();
+	void ApplyScheduledDamagings();
 }
 #define __UNITINTERFACE_H_PRE_END__
 
