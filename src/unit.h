@@ -27,7 +27,8 @@ namespace Game
 		struct Animation;
 		
 		Unit *GetUnitByID(unsigned id);
-		bool IsValidUnitPointer(Unit* unit);
+		bool IsValidUnitPointer(Unit* unit); // May not be called from another thread
+		bool IsDisplayedUnitPointer(Unit* unit); // May be calle from synced threads
 
 		inline int GetTraversalTime(Unit *unit, int x, int y, int dx, int dy);
 		int GetTraversalTimeAdjusted(Unit *unit, int x, int y, int dx, int dy);

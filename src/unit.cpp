@@ -21,6 +21,7 @@ namespace Game
 		Unit**        unitByID;
 		unsigned short         nextID;
 		map<Unit*, bool> validUnitPointers;
+		map<Unit*, bool> displayedUnitPointers;
 		int**         numUnitsPerAreaMap;
 		char****      movementTypeWithSizeCanWalkOnSquare;
 		char***       traversalTimeBySize;
@@ -303,6 +304,11 @@ namespace Game
 		bool IsValidUnitPointer(Unit* unit)
 		{
 			return validUnitPointers[unit];
+		}
+
+		bool IsDisplayedUnitPointer(Unit* unit)
+		{
+			return displayedUnitPointers[unit];
 		}
 
 		Unit *GetUnitByID(unsigned id)
@@ -1926,23 +1932,24 @@ namespace Game
 				walkable = MovementTypeCanWalkOnSquare_NoPrecalc(type->movementType, x, y);
 				if (walkable && (flags & SIW_ALLKNOWING || SquareIsVisible_UnGuarded(player, x, y)))
 				{
-					if (pppElements[y][x] == NULL || pppElements[y][x] == unit)
+					Unit* curUnit = pppElements[y][x];
+					if (curUnit == NULL || curUnit == unit)
 					{
 						return true;
 					}
-					if (flags & SIW_CONSIDER_WAITING && pppElements[y][x]->isWaiting)
+					if (flags & SIW_CONSIDER_WAITING && curUnit->isWaiting)
 					{
 						return false;
 					}
-					if (flags & SIW_CONSIDER_PUSHED && pppElements[y][x]->isPushed)
+					if (flags & SIW_CONSIDER_PUSHED && curUnit->isPushed)
 					{
 						return false;
 					}
-					if (flags & SIW_IGNORE_MOVING && pppElements[y][x]->isMoving)
+					if (flags & SIW_IGNORE_MOVING && curUnit->isMoving)
 					{
 						return true;
 					}
-					if (flags & SIW_IGNORE_OWN_MOBILE_UNITS && pppElements[y][x]->owner == player && pppElements[y][x]->type->isMobile)
+					if (flags & SIW_IGNORE_OWN_MOBILE_UNITS && curUnit->owner == player && curUnit->type->isMobile)
 					{
 						return true;
 					}
@@ -1960,23 +1967,24 @@ namespace Game
 		{
 			if (flags & SIW_ALLKNOWING || SquareIsVisible_UnGuarded(player, x, y))
 			{
-				if (pppElements[y][x] == NULL || pppElements[y][x] == unit)
+				Unit* curUnit = pppElements[y][x];
+				if (curUnit == NULL || curUnit == unit)
 				{
 					return true;
 				}
-				if (flags & SIW_CONSIDER_WAITING && pppElements[y][x]->isWaiting)
+				if (flags & SIW_CONSIDER_WAITING && curUnit->isWaiting)
 				{
 					return false;
 				}
-				if (flags & SIW_CONSIDER_PUSHED && pppElements[y][x]->isPushed)
+				if (flags & SIW_CONSIDER_PUSHED && curUnit->isPushed)
 				{
 					return false;
 				}
-				if (flags & SIW_IGNORE_MOVING && pppElements[y][x]->isMoving)
+				if (flags & SIW_IGNORE_MOVING && curUnit->isMoving)
 				{
 					return true;
 				}
-				if (flags & SIW_IGNORE_OWN_MOBILE_UNITS && pppElements[y][x]->owner == player && pppElements[y][x]->type->isMobile)
+				if (flags & SIW_IGNORE_OWN_MOBILE_UNITS && curUnit->owner == player && curUnit->type->isMobile)
 				{
 					return true;
 				}
@@ -3540,6 +3548,8 @@ namespace Game
 				Incomplete(unit);
 			}
 
+ 			displayedUnitPointers[unit] = true;
+
 			AI::SendUnitEventToLua_UnitCreation(unit);
 			AI::SendUnitEventToLua_BecomeIdle(unit);
 
@@ -3674,6 +3684,7 @@ namespace Game
 			}
 
  			validUnitPointers.erase(validUnitPointers.find(unit));
+ 			displayedUnitPointers.erase(displayedUnitPointers.find(unit));
 
 			unitByID[unit->id] = NULL;
 
