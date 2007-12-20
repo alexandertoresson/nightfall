@@ -152,10 +152,10 @@ namespace Game
 
 			if (areaMaps[size][mt] == NULL)
 			{
-				areaMaps[size][mt] = (Uint16**) malloc(height * sizeof(Uint16*));
+				areaMaps[size][mt] = new Uint16*[height];
 				for (y = 0; y < height; y++)
 				{
-					areaMaps[size][mt][y] = (Uint16*) calloc(width, sizeof(Uint16));
+					areaMaps[size][mt][y] = new Uint16[width];
 				}
 			}
 
@@ -327,16 +327,16 @@ namespace Game
 				nodeTypes[y] = (unsigned char*) calloc(width, sizeof(unsigned char));
 				nodeNums[y] = (int*) calloc(width, sizeof(int));
 			}
-			numNotReached = (int**) malloc(4 * sizeof(int*));
-			changedSinceLastRegen = (bool**) malloc(4 * sizeof(bool*));
-			regenerateAreaCodes = (bool**) malloc(4 * sizeof(bool*));
-			areaMaps = (Uint16****) malloc(4 * sizeof(Uint16***));
+			numNotReached = new int*[4];
+			changedSinceLastRegen = new bool*[4];
+			regenerateAreaCodes = new bool*[4];
+			areaMaps = new Uint16***[4];
 			for (int j = 0; j < 4; j++)
 			{
-				numNotReached[j] = (int*) malloc(Game::Dimension::MOVEMENT_TYPES_NUM * sizeof(int));
-				changedSinceLastRegen[j] = (bool*) malloc(Game::Dimension::MOVEMENT_TYPES_NUM * sizeof(bool));
-				regenerateAreaCodes[j] = (bool*) malloc(Game::Dimension::MOVEMENT_TYPES_NUM * sizeof(bool));
-				areaMaps[j] = (Uint16***) malloc(Game::Dimension::MOVEMENT_TYPES_NUM * sizeof(Uint16**));
+				numNotReached[j] = new int[Game::Dimension::MOVEMENT_TYPES_NUM];;
+				changedSinceLastRegen[j] = new bool[Game::Dimension::MOVEMENT_TYPES_NUM];
+				regenerateAreaCodes[j] = new bool[Game::Dimension::MOVEMENT_TYPES_NUM];
+				areaMaps[j] = new Uint16**[Game::Dimension::MOVEMENT_TYPES_NUM];
 				for (int i = 0; i < Game::Dimension::MOVEMENT_TYPES_NUM; i++)
 				{
 					numNotReached[j][i] = 0;
@@ -347,25 +347,21 @@ namespace Game
 			}
 			if (MAXIMUM_PATH_CALCULATIONS < width*height)
 			{
-				nodes = (struct node*) malloc(MAXIMUM_PATH_CALCULATIONS * sizeof(struct node));
-				scores = (Uint32*) malloc(MAXIMUM_PATH_CALCULATIONS * sizeof(Uint32));
-				positions = (int*) malloc(MAXIMUM_PATH_CALCULATIONS * sizeof(int));
-				openList = (int*) malloc(MAXIMUM_PATH_CALCULATIONS * sizeof(int));
 				openListSize = MAXIMUM_PATH_CALCULATIONS;
 			}
 			else
 			{
-				nodes = (struct node*) malloc(width*height * sizeof(struct node));
-				scores = (Uint32*) malloc(width*height * sizeof(Uint32));
-				positions = (int*) malloc(width*height * sizeof(int));
-				openList = (int*) malloc(width*height * sizeof(int));
 				openListSize = width * height;
 			}
+			nodes = new node[openListSize];
+			scores = new Uint32[openListSize];
+			positions = new int[openListSize];
+			openList = new int[openListSize];
 
-			scanlines = (struct scanline*) malloc(1024 * sizeof(struct scanline));
+			scanlines = new scanline[1024];
 			scanlineArraySize = 1024;
 			
-			scanlineQueue = (int*) malloc((width + height) * sizeof(int));
+			scanlineQueue = new int[width + height];
 			scanlineQueueSize = width + height;
 
 			heap = binary_heap_create(scores, openList, positions);
@@ -388,7 +384,7 @@ namespace Game
 				hConstHeight = (height >> yShift) + 1;
 			}
 
-			hConsts = (Uint16*****) malloc(4 * sizeof(Uint16****));
+			hConsts = new Uint16****[4];
 			for (int i = 0; i < 4; i++)
 			{
 				hConsts[i] = NULL;
@@ -1589,7 +1585,7 @@ namespace Game
 								}
 								else
 								{
-									if (IsWalkable(unit, new_x, new_y) && nextFreeNode < MAXIMUM_PATH_CALCULATIONS)
+									if (IsWalkable(unit, new_x, new_y) && nextFreeNode < openListSize)
 									{
 										int new_g = nodes[first_node].g;
 										new_g += Dimension::GetTraversalTimeAdjusted(unit, node_x, node_y, x, y);
@@ -1779,16 +1775,16 @@ namespace Game
 					
 					if (!hConsts[unitSize])
 					{
-						hConsts[unitSize] = (Uint16****) malloc(hConstHeight * sizeof(Uint16***));
+						hConsts[unitSize] = new Uint16***[hConstHeight];
 						for (int y1 = 0; y1 < hConstHeight; y1++)
 						{
-							hConsts[unitSize][y1] = (Uint16***) malloc(hConstWidth * sizeof(Uint16**));
+							hConsts[unitSize][y1] = new Uint16**[hConstWidth];
 							for (int x1 = 0; x1 < hConstWidth; x1++)
 							{
-								hConsts[unitSize][y1][x1] = (Uint16**) malloc(hConstHeight * sizeof(Uint16*));
+								hConsts[unitSize][y1][x1] = new Uint16*[hConstHeight];
 								for (int y2 = 0; y2 < hConstHeight; y2++)
 								{
-									hConsts[unitSize][y1][x1][y2] = (Uint16*) malloc(hConstHeight * sizeof(Uint16));
+									hConsts[unitSize][y1][x1][y2] = new Uint16[hConstHeight];
 									for (int x2 = 0; x2 < hConstWidth; x2++)
 									{
 										hConsts[unitSize][y1][x1][y2][x2] = 0x100;

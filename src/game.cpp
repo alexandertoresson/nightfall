@@ -227,9 +227,8 @@ namespace Game
 					{
 						Networking::isNetworked = true;
 						mainWindow = GameWindow::Instance();
-						if (mainWindow->NewGame() == SUCCESS)
+						if (mainWindow->NewGame(true, Networking::SERVER) == SUCCESS)
 						{
-							Networking::StartNetwork(Networking::SERVER);
 							nextState = (SwitchState)networkCreate->RunLoop();
 							if(nextState == MENU)
 								mainWindow->EndGame();
@@ -244,9 +243,8 @@ namespace Game
 					{
 						Networking::isNetworked = true;
 						mainWindow = GameWindow::Instance();
-						if (mainWindow->NewGame() == SUCCESS)
+						if (mainWindow->NewGame(true, Networking::CLIENT) == SUCCESS)
 						{
-							Networking::StartNetwork(Networking::CLIENT);
 							nextState = (SwitchState)networkJoin->RunLoop();
 							if(nextState == MENU)
 								mainWindow->EndGame();
@@ -488,13 +486,13 @@ namespace Game
 				DestroyGUI();
 		}
 		
-		int GameWindow::NewGame()
+		int GameWindow::NewGame(bool isNetworked, Networking::NETWORKTYPE ntype)
 		{
 			pLoading = new Window::GUI::LoadWindow(1.0f); //90% Game, 10% GUI
 			pLoading->SetMessage("Loading...");
 			pLoading->Update();
 
-			if (InitGame(true) != SUCCESS)
+			if (InitGame(true, isNetworked, ntype) != SUCCESS)
 			{
 				cout << "Failed to start game, see errors above to find out why." << endl;
 				gameRunning = false;
@@ -506,7 +504,7 @@ namespace Game
 			return SUCCESS;
 		}
 
-		int GameWindow::LoadGame()
+		int GameWindow::LoadGame(bool isNetworked, Networking::NETWORKTYPE ntype)
 		{
 			pLoading = new Window::GUI::LoadWindow(1.0f); //90% Game, 10% GUI
 			pLoading->SetMessage("Loading...");
@@ -514,7 +512,7 @@ namespace Game
 
 			Dimension::LoadGameSaveFile("save.xml");
 			
-			if (InitGame(false) != SUCCESS)
+			if (InitGame(false, isNetworked, ntype) != SUCCESS)
 			{
 				cout << "Failed to start game, see errors above to find out why." << endl;
 				gameRunning = false;
@@ -550,7 +548,7 @@ namespace Game
 			gameRunning = false;
 		}
 
-		int GameWindow::InitGame(bool is_new_game)
+		int GameWindow::InitGame(bool is_new_game, bool isNetworked, Networking::NETWORKTYPE ntype)
 		{
 			input = new Dimension::InputController();
 			float increment = 0.9f / 13.0f; //0.9 (90%) divided on 12 updates...
@@ -640,8 +638,13 @@ namespace Game
 			Dimension::InitUnits();
 			pLoading->Increment(increment);
 
+			if (isNetworked)
+			{
+				Networking::StartNetwork(ntype);
+			}
+
 			////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-			if (is_new_game)
+			if (is_new_game && (!Networking::isNetworked || Networking::networkType == Networking::SERVER))
 			{
 				pVM->SetFunction("InitLevelUnits");
 				if (pVM->CallFunction(0, 1) != SUCCESS)

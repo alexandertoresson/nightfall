@@ -2805,10 +2805,15 @@ namespace Game
 			Uint32 checksum = 0;
 			Checksum *checksum_struct = new Checksum;
 			std::stringstream sstr;
+			int index = 0;
 
 			for (vector<Dimension::Unit*>::iterator it = Dimension::pWorld->vUnits.begin(); it != Dimension::pWorld->vUnits.end(); it++)
 			{
 				Dimension::Unit* unit = *it;
+				checksum ^= index | unit->id << (index % 15); // To get a number that is different for different index/id combos.
+#ifdef CHECKSUM_DEBUG
+				sstr << index << " ";
+#endif
 				checksum ^= unit->id;
 #ifdef CHECKSUM_DEBUG
 				sstr << unit->id << " ";
@@ -2846,6 +2851,7 @@ namespace Game
 				sstr << unit->isLighted << " ";
 				sstr << endl;
 #endif
+				index++;
 
 			}
 
@@ -2966,7 +2972,11 @@ namespace Game
 							if (!scheduleShutdown)
 							{
 								scheduleShutdown = true;
+#ifdef CHECKSUM_DEBUG_HIGH
 								shutdownFrame = AI::currentFrame + netDelay;
+#else
+								shutdownFrame = AI::currentFrame + netDelay > 20 ? netDelay : 20;
+#endif
 							}
 
 							cout << "Checksum failed on frame " << waitingChecksums.at(j)->frame << "!" << endl;

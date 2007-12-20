@@ -1,3 +1,5 @@
+#include "memfragdebug.h" // Enable for memory fragmentation debugging
+
 #ifdef __CONFIG_H__
 #include "config.h"
 #endif

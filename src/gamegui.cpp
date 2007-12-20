@@ -786,6 +786,13 @@ namespace Game
 							Dimension::SaveGame("save.xml");
 							break;
 						}
+#ifdef FRAGREPORT
+						case SDLK_f:
+						{
+							WriteFragmentationReport();
+							break;
+						}
+#endif
 						case SDLK_g:
 						{
 							if (graphicsLoaded)

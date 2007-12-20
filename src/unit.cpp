@@ -301,6 +301,7 @@ namespace Game
 				
 		}
 
+		// May _ONLY_ be called from the main thread
 		bool IsValidUnitPointer(Unit* unit)
 		{
 			return validUnitPointers[unit];
@@ -1301,6 +1302,7 @@ namespace Game
 				unit->pMovementData->action.goal.unit->completeness = 100.0;
 				if (unit->pMovementData->action.goal.unit->isCompleted == false)
 				{
+					Networking::checksum_output << "BUILD DONE " << AI::currentFrame << ": " << unit->id << " " << unit->pMovementData->action.goal.unit->id << "\n";
 					unit->pMovementData->action.goal.unit->isCompleted = true;
 					if (unit->pMovementData->action.goal.unit->type->isMobile)
 					{
@@ -2068,12 +2070,15 @@ namespace Game
 			return SquaresAreWalkable(unit, x, y, SIW_DEFAULT);
 		}
 
+		void CheckPrecomputedArrays(UnitType* type);
+
 		bool SquaresAreWalkable(UnitType *type, Player *player, int x, int y, int flags)
 		{
 			int start_x, start_y;
 			int end_x, end_y;
 			if (x >= 0 && y >= 0 && x < pWorld->width && y < pWorld->height)
 			{
+//				CheckPrecomputedArrays(type);
 				if (type->isMobile && movementTypeWithSizeCanWalkOnSquare[type->widthOnMap-1][type->movementType])
 				{
 					if (UnitTypeCanWalkOnSquares(type, x, y))
@@ -3316,12 +3321,12 @@ namespace Game
 			return cur_unit;
 		}
 
-		void CheckPrecomputedArrays(Unit* unit)
+		void CheckPrecomputedArrays(UnitType* type)
 		{
-			if (unit->type->isMobile)
+			if (type->isMobile)
 			{
-				int j = unit->type->widthOnMap-1;
-				int i = unit->type->movementType;
+				int j = type->widthOnMap-1;
+				int i = type->movementType;
 				
 				if (!movementTypeWithSizeCanWalkOnSquare[j][i])
 				{
@@ -3394,11 +3399,14 @@ namespace Game
 		}
 
 		set<Unit*> unitsScheduledForDeletion;
-		set<Unit*> unitsScheduledForDisplay;
+		list<Unit*> unitsScheduledForDisplay;
+
+		SDL_mutex* unitCreationMutex = SDL_CreateMutex();
 
 		// create a unit, but don't display it
 		Unit* CreateUnitNoDisplay(UnitType* type, Player* owner, int id, bool complete)
 		{
+			SDL_LockMutex(unitCreationMutex);
 			if (pWorld->vUnits.size() >= 0xFFFF)
 			{
 				return NULL;
@@ -3477,6 +3485,10 @@ namespace Game
 					return false;
 				}
 			}
+
+#ifdef CHECKSUM_DEBUG_HIGH
+			Networking::checksum_output << "CREATEUNIT " << type->id << " " << nextID << "\n";
+#endif
 			
 			unit->id = nextID;
 
@@ -3493,11 +3505,15 @@ namespace Game
 
  			validUnitPointers[unit] = true;
 
-			CheckPrecomputedArrays(unit);
+			CheckPrecomputedArrays(type);
 			
+			SDL_UnlockMutex(unitCreationMutex);
+
 			return unit;
 		}
 		
+		SDL_mutex* unitsScheduledForDisplayMutex = SDL_CreateMutex();
+
 		bool ScheduleDisplayUnit(Unit* unit, int x, int y)
 		{
 			if (!SquaresAreWalkable(unit->type, x, y, SIW_ALLKNOWING))
@@ -3513,7 +3529,9 @@ namespace Game
 			else
 				AI::AddUnitToAreaMap(unit);
 
-			unitsScheduledForDisplay.insert(unit);
+			SDL_LockMutex(unitsScheduledForDisplayMutex);
+			unitsScheduledForDisplay.push_back(unit);
+			SDL_UnlockMutex(unitsScheduledForDisplayMutex);
 
 			return true;
 		}
@@ -3571,7 +3589,8 @@ namespace Game
 
 		void DisplayScheduledUnits()
 		{
-			for (set<Unit*>::iterator it = unitsScheduledForDisplay.begin(); it != unitsScheduledForDisplay.end(); it++)
+			unitsScheduledForDisplay.sort(UnitBinPred);
+			for (list<Unit*>::iterator it = unitsScheduledForDisplay.begin(); it != unitsScheduledForDisplay.end(); it++)
 			{
 				DisplayUnit(*it);
 			}

@@ -66,6 +66,12 @@ namespace Game
 			JOIN_FAILED      // error while processing.
 		};
 
+		enum NETWORKTYPE
+		{
+			CLIENT,
+			SERVER
+		};
+
 		bool PerformIngameNetworking();
 		void PerformPregameNetworking();
 		void InitIngameNetworking();
@@ -198,12 +204,6 @@ namespace Game
 			Uint8 *pBufferOut;
 			TCPsocket socket; //Client or Server socket
 			SDLNet_SocketSet set;
-		};
-
-		enum NETWORKTYPE
-		{
-			CLIENT,
-			SERVER
 		};
 
 		extern NETWORKTYPE networkType;

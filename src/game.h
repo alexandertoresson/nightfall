@@ -56,6 +56,7 @@ namespace Game
 #include "effect.h"
 #include "camera.h"
 #include "gamegui.h"
+#include "networking.h"
 
 #endif
 
@@ -66,6 +67,7 @@ namespace Game
 #ifdef __GUI_H_END__
 #ifdef __GAMEGUI_H_END__
 #ifdef __CAMERA_H_PRE_END__
+#ifdef __NETWORKING_H_PRE_END__
 
 #ifndef __GAME_H__
 #define __GAME_H__
@@ -146,13 +148,13 @@ namespace Game
 				bool ProcessEvents();
 				void DestroyGUI();
 
-				int InitGame(bool is_new_game);
+				int InitGame(bool is_new_game = true, bool isNetworked = false, Networking::NETWORKTYPE ntype = Networking::CLIENT);
 			public:
 				static GameWindow* Instance();
 				static void Destroy();
 				static bool IsNull();
-				int NewGame();
-				int LoadGame();
+				int NewGame(bool isNetworked = false, Networking::NETWORKTYPE ntype = Networking::CLIENT);
+				int LoadGame(bool isNetworked = false, Networking::NETWORKTYPE ntype = Networking::CLIENT);
 				void EndGame();
 				
 				int InitGUI(SDL_Surface* img);
@@ -186,6 +188,8 @@ namespace Game
 #define __GAME_H_END__
 
 #include "luawrapper.h" // << needed for loading missions.
+
+#endif
 
 #endif
 

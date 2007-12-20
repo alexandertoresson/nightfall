@@ -23,7 +23,8 @@ namespace Utilities
 		ChunkAllocator(unsigned itemsPerChunk)
 		{
 			this->itemsPerChunk = itemsPerChunk;
-			NewChunk();
+			itemsHandedOut = itemsPerChunk;
+			curChunk = NULL;
 		}
 
 		T* New()
