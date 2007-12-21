@@ -357,6 +357,7 @@ namespace Game
 			Uint32              pushID;
 			Unit*               pusher;
 			FaceTarget          faceTarget;
+			Uint32              pathfindingStartingFrame;
 		};
 
 		extern vector<Unit*> **unitBigSquares;

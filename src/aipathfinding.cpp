@@ -19,21 +19,19 @@
  * blocked it is impossible to reach the other square (at least
  * when action is ACTION_GOTO).
  *
- * When it thinks that it is impossible to reach the target square, 
- * a special flood fill algorithm is used to find the nearest square
- * of the target square that you can actually go to from the
- * start square, and when that is determined, the path finding is
- * used normally to search from the start square to the nearest
- * reachable square from the target.
+ * When it thinks that it is impossible to reach the target square,
+ * it uses a special 'tracing' algorithm that traces all squares around
+ * the area that can not be reached, and the new goal is set to the
+ * nearest square of those traced that is nearest to the goal.
+ * 
+ * If it originally determined that it could reach the target square,
+ * but it after RECALC_TRACE_LIMIT steps hasn't, it will try a new trace
+ * if possible.
  *
- * Also, if it originally determines that it can probably reach the
- * target square, but it after 2000 iterations hasn't found the
- * target yet, it will try a flood fill to determine whether it can
- * reach the target and perhaps revise its target square, and then
- * run the path finding again. And the second time it will run the
- * path finding until it is done no matter if it finds a target square
- * within 2000 iterations or not.
- *
+ * If it hasn't reached the target square after RECALC_FLOODFILL_LIMIT
+ * steps, it will run a special floodfill algorithm starting from the
+ * starting square, and setting the goal to the square nearest to the
+ * old goal that was reached.
  */
 
 #include "aipathfinding.h"
@@ -96,7 +94,7 @@ namespace Game
 		Uint16*****        hConsts;
 		int                hConstHeight, hConstWidth;
 		unsigned char      xShift, yShift;
-		int                cCount = 0, fCount = 0, tCount = 0, pCount = 0, numPaths = 0, numFailed = 0, notReachedFlood = 0, notReachedPath = 0, numGreatSuccess1 = 0, numGreatSuccess2 = 0;
+		int                cCount = 0, fCount = 0, tCount = 0, pCount = 0, numPaths = 0, numFailed = 0, notReachedFlood = 0, notReachedPath = 0, numGreatSuccess1 = 0, numGreatSuccess2 = 0, numTotalFrames = 0;
 
 		unsigned char NODE_TYPE_OPEN = 1, NODE_TYPE_CLOSED = 2;
 		
@@ -420,13 +418,16 @@ namespace Game
 			ThreadData* tdata = (ThreadData*)arg;
 			while (threadRuntime == true)
 			{
-				if (PerformPathfinding(tdata) == PATHSTATE_EMPTY_QUEUE)
+				for (int i = 0; i < 200; i++)
 				{
-					SDL_Delay(10);
-					continue;
+					if (PerformPathfinding(tdata) == PATHSTATE_EMPTY_QUEUE)
+					{
+						SDL_Delay(10);
+						continue;
+					}
 				}
 				
-				SDL_Delay(1);
+				SDL_Delay(10);
 			}
 			delete tdata;
 			tdata = NULL;
@@ -607,6 +608,8 @@ namespace Game
 
 				if (curState != INTTHRSTATE_WAITING)
 				{
+					pUnit->pathfindingStartingFrame = currentFrame;
+
 					pUnit->pMovementData->_currentState = INTTHRSTATE_WAITING;
 					gCalcQueue.push(pUnit);
 				}
@@ -1756,7 +1759,7 @@ namespace Game
 					unitSize = tdata->pUnit->type->heightOnMap-1;
 					areaMapIndex = tdata->pUnit->type->movementType;
 
-					if (numNotReached[unitSize][areaMapIndex] > 5)
+					if (numNotReached[unitSize][areaMapIndex] > 10)
 					{
 						regenerateAreaCodes[unitSize][areaMapIndex] = true;
 						numNotReached[unitSize][areaMapIndex] = 0;
@@ -2019,6 +2022,7 @@ namespace Game
 					BuildNodeLinkedList(tdata);
 					md->calcState = CALCSTATE_REACHED_GOAL;
 					ret = SUCCESS;
+					numTotalFrames += currentFrame - unit->pathfindingStartingFrame;
 				}
 				else
 				{

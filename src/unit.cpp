@@ -373,13 +373,6 @@ namespace Game
 			uy = my - (unit->type->heightOnMap>>1);
 		}
 
-		
-
-		int abs_int(int x)
-		{
-			return x >= 0 ? x : -x;
-		}
-
 		bool WithinRange(UnitType* type, int attacker_x, int attacker_y, int target_x, int target_y, float maxrange, float minrange)
 		{
 			int start_x, start_y;
@@ -417,7 +410,7 @@ namespace Game
 			}
 
 			int dist_x = attacker_x - x, dist_y = attacker_y - y;
-			int dist_both = abs_int(dist_x) + abs_int(dist_y);
+			int dist_both = abs(dist_x) + abs(dist_y);
 			if (dist_both <= maxrange)
 			{
 				if (dist_both < minrange)
@@ -433,7 +426,7 @@ namespace Game
 					}
 				}
 			}
-			else if (abs_int(dist_x) <= maxrange && abs_int(dist_y) <= maxrange && dist_both + (dist_both >> 1) <= maxrange)
+			else if (abs(dist_x) <= maxrange && abs(dist_y) <= maxrange && dist_both + (dist_both >> 1) <= maxrange)
 			{
 				distance = (float) sqrt(dist_x * dist_x + dist_y * dist_y);
 				if ((distance <= maxrange) && (distance >= minrange))
@@ -1302,7 +1295,9 @@ namespace Game
 				unit->pMovementData->action.goal.unit->completeness = 100.0;
 				if (unit->pMovementData->action.goal.unit->isCompleted == false)
 				{
+#ifdef CHECKSUM_DEBUG_HIGH
 					Networking::checksum_output << "BUILD DONE " << AI::currentFrame << ": " << unit->id << " " << unit->pMovementData->action.goal.unit->id << "\n";
+#endif
 					unit->pMovementData->action.goal.unit->isCompleted = true;
 					if (unit->pMovementData->action.goal.unit->type->isMobile)
 					{
