@@ -60,9 +60,10 @@ namespace Game
 		SDL_mutex* gpmxDone;
 		SDL_mutex* gpmxThreadState;
 		SDL_mutex* gpmxAreaMap;
+		SDL_mutex* gpmxHConst;
 		set<Dimension::Unit*> doneUnits;
 
-		int numPathfindingThreads = 1;
+		int numPathfindingThreads = 2;
 
 		ThreadData**         pThreadDatas;
 		volatile Uint16****  areaMaps;
@@ -72,7 +73,7 @@ namespace Game
 		volatile Uint16***** hConsts;
 		int                hConstHeight, hConstWidth;
 		unsigned char      xShift, yShift;
-		int                cCount = 0, fCount = 0, tCount = 0, pCount = 0, numPaths = 0, numFailed = 0, notReachedFlood = 0, notReachedPath = 0, numGreatSuccess1 = 0, numGreatSuccess2 = 0, numTotalFrames = 0;
+		volatile int       cCount = 0, fCount = 0, tCount = 0, pCount = 0, numPaths = 0, numFailed = 0, notReachedFlood = 0, notReachedPath = 0, numGreatSuccess1 = 0, numGreatSuccess2 = 0, numTotalFrames = 0;
 
 		struct node
 		{
@@ -357,6 +358,8 @@ namespace Game
 			gpmxCommand = SDL_CreateMutex();
 			gpmxDone = SDL_CreateMutex();
 			gpmxThreadState = SDL_CreateMutex();
+			gpmxAreaMap = SDL_CreateMutex();
+			gpmxHConst = SDL_CreateMutex();
 
 			for (int i = 0; i < numPathfindingThreads; i++)
 			{
@@ -771,8 +774,6 @@ namespace Game
 			if (unit->pMovementData == NULL)
 				return false;
 
-			SDL_LockMutex(gpmxCommand);
-				
 			if (GetInternalPathState(unit) != PATHSTATE_GOAL)
 				return false;
 				
@@ -822,6 +823,8 @@ namespace Game
 				*(int*) 0 = 0;
 			}
 
+			SDL_LockMutex(gpmxCommand);
+				
 			md->action = md->_action;
 
 			md->_start = NULL;
@@ -836,8 +839,20 @@ namespace Game
 			md->_action.changedGoalPos.x = 0;
 			md->_action.changedGoalPos.y = 0;
 			md->_action.arg        = NULL;
+
+			SDL_UnlockMutex(gpmxCommand);
+
+			return true;
+		}
+
+		void ApplyUnappliedCommandIfAny(Dimension::Unit* unit)
+		{
+			MovementData* md = unit->pMovementData;
+			
+			SDL_LockMutex(gpmxCommand);
 			
 			SDL_LockMutex(gpmxThreadState);
+
 			if (md->_newCommandWhileUnApplied)
 			{
 //				cout << "Unapplied " << unit->id << endl;
@@ -864,8 +879,6 @@ namespace Game
 			SDL_UnlockMutex(gpmxThreadState);
 
 			SDL_UnlockMutex(gpmxCommand);
-
-			return true;
 		}
 
 		void ApplyAllNewPaths()
@@ -886,6 +899,7 @@ namespace Game
 					if (state == PATHSTATE_GOAL)
 					{
 						ApplyNewPath(pUnit);
+						ApplyUnappliedCommandIfAny(pUnit);
 						pUnit->pMovementData->pCurGoalNode = NULL;
 					}
 					else if (state == PATHSTATE_ERROR)
@@ -899,11 +913,10 @@ namespace Game
 					if (state == PATHSTATE_GOAL)
 					{
 						Networking::PreparePath(pUnit, pUnit->pMovementData->_start, pUnit->pMovementData->_goal);
-						DeallocPathfindingNodes(pUnit, AI::DPN_BACK);
+						ApplyUnappliedCommandIfAny(pUnit);
 					}
 					else if (state == PATHSTATE_ERROR)
 					{
-						DeallocPathfindingNodes(pUnit, AI::DPN_BACK);
 						ScheduleNextAction(pUnit);
 					}
 				}
@@ -1869,6 +1882,8 @@ namespace Game
 			i = 0;
 
 			cur_node = tdata->nearestNode;
+			
+			SDL_LockMutex(gpmxHConst);
 			while (cur_node != -1)
 			{
 				int hConstXNode = tdata->nodes[cur_node].x>>xShift;
@@ -1906,6 +1921,8 @@ namespace Game
 				cur_node = tdata->nodes[cur_node].parent;
 				prev_node = new_node;
 			}
+			SDL_UnlockMutex(gpmxHConst);
+
 			md->_goal = first_node;
 			md->_start = new_node;
 			tdata->nearestNode = -1;
@@ -2013,9 +2030,9 @@ namespace Game
 
 					tdata->hasBegunPathfinding = false;
 					
+					SDL_LockMutex(gpmxHConst);
 					if (!hConsts[tdata->unitSize])
 					{
-//						cout << "yay" << endl;
 						hConsts[tdata->unitSize] = new volatile Uint16***[hConstHeight];
 						for (int y1 = 0; y1 < hConstHeight; y1++)
 						{
@@ -2034,10 +2051,7 @@ namespace Game
 							}
 						}
 					}
-					else
-					{
-//						cout << "blaha" << endl;
-					}
+					SDL_UnlockMutex(gpmxHConst);
 
 				}
 			}
