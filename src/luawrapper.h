@@ -6,15 +6,15 @@
 #endif
 
 extern "C" {
-/*#if defined(__APPLE__) || defined(MACOSX)
+#if defined(__APPLE__) || defined(MACOSX)
+	#include <Lua/lua.h>
+	#include <Lua/lualib.h>
+	#include <Lua/lauxlib.h>
+#else
 	#include <lua.h>
 	#include <lualib.h>
 	#include <lauxlib.h>
-#else*/
-	#include <lua.h>
-	#include <lualib.h>
-	#include <lauxlib.h>
-//#endif
+#endif
 }
 
 //#define LUA_DEBUG
