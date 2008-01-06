@@ -1414,9 +1414,14 @@ namespace Game
 					ScheduleDisplayUnit(target, new_x, new_y);
 
 					pUnit->pMovementData->action.goal.goal_id = 0xFFFF;
+					
+					SDL_LockMutex(AI::GetCommandMutex());
+
 					pUnit->pMovementData->action.goal.unit = NULL; // Zero out target unit before calling DeleteUnit,
 				                                        	// to prevent DeleteUnit from calling CancelAction which calls
 				                                        	// CancelBuild which calls DeleteUnit which calls CancelAction....
+					SDL_UnlockMutex(AI::GetCommandMutex());
+
 					ScheduleUnitDeletion(target);
 				}
 			}
@@ -1891,9 +1896,10 @@ namespace Game
 			{
 				for (int x = start_x; x <= end_x; x++)
 				{
-					if (pppElements[y][x] && !pppElements[y][x]->type->isMobile)
+					Unit* pUnit = pppElements[y][x];
+					if (pUnit && !pUnit->type->isMobile)
 					{
-						pppElements[y][x]->usedInAreaMaps = true;
+						pUnit->usedInAreaMaps = true;
 						return false;
 					}
 				}
@@ -2377,6 +2383,8 @@ namespace Game
 			}
 		}
 
+		set<Unit*> ScheduledBigSquareUpdates;
+
 		bool SetAssociatedSquares(Unit* unit, int new_x, int new_y)
 		{
 			int start_x, start_y, end_x, end_y;
@@ -2418,6 +2426,22 @@ namespace Game
 
 			if (old_big_x != new_big_x || old_big_y != new_big_y)
 			{
+				ScheduledBigSquareUpdates.insert(unit);
+			}
+
+			return true;
+		}
+
+		void ApplyScheduledBigSquareUpdates()
+		{
+			for (set<Unit*>::iterator it = ScheduledBigSquareUpdates.begin(); it != ScheduledBigSquareUpdates.end(); it++)
+			{
+				Unit* unit = *it;
+				int old_big_x = unit->curAssociatedBigSquare.x;
+				int old_big_y = unit->curAssociatedBigSquare.y;
+				int new_big_x = unit->curAssociatedSquare.x >> bigSquareRightShift;
+				int new_big_y = unit->curAssociatedSquare.y >> bigSquareRightShift;
+
 				if (old_big_x > -1 && old_big_y > -1)
 				{
 					vector<Unit*> *unit_vector = unitsInBigSquaresPerPlayer[unit->owner->index][old_big_y][old_big_x];
@@ -2444,8 +2468,7 @@ namespace Game
 				unit->curAssociatedBigSquare.x = new_big_x;
 				unit->curAssociatedBigSquare.y = new_big_y;
 			}
-
-			return true;
+			ScheduledBigSquareUpdates.clear();
 		}
 
 		void DeleteAssociatedSquares(Unit* unit, int old_x, int old_y)
@@ -3615,7 +3638,7 @@ namespace Game
 				}
 			}
 
-			SDL_LockMutex(AI::GetMutex());
+			SDL_LockMutex(AI::GetCommandMutex());
 
 			for (i = 0; i < pWorld->vUnits.size(); i++)
 			{
@@ -3654,7 +3677,7 @@ namespace Game
 				}
 			}
 
-			SDL_UnlockMutex(AI::GetMutex());
+			SDL_UnlockMutex(AI::GetCommandMutex());
 
 			if (unit->curAssociatedBigSquare.y > -1)
 			{
@@ -3765,7 +3788,7 @@ namespace Game
 				}
 			}
 			
-			SDL_LockMutex(AI::GetMutex());
+			SDL_LockMutex(AI::GetCommandMutex());
 
 			for (i = 0; i < pWorld->vUnits.size(); i++)
 			{
@@ -3804,7 +3827,7 @@ namespace Game
 				}
 			}
 
-			SDL_UnlockMutex(AI::GetMutex());
+			SDL_UnlockMutex(AI::GetCommandMutex());
 
 			DeleteAssociatedSquares(unit, unit->curAssociatedSquare.x, unit->curAssociatedSquare.y);
 			

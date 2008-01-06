@@ -33,6 +33,7 @@ namespace Game
 		inline int GetTraversalTime(Unit *unit, int x, int y, int dx, int dy);
 		int GetTraversalTimeAdjusted(Unit *unit, int x, int y, int dx, int dy);
 		bool MoveUnit(Unit* unit);
+		void ApplyScheduledBigSquareUpdates();
 		bool SquareIsGoal(Unit *unit, int x, int y, bool use_internal = false);
 		
 		bool SquareIsWalkable(Unit *unit, int x, int y, int flags);
@@ -357,7 +358,6 @@ namespace Game
 			Uint32              pushID;
 			Unit*               pusher;
 			FaceTarget          faceTarget;
-			Uint32              pathfindingStartingFrame;
 		};
 
 		extern vector<Unit*> **unitBigSquares;

@@ -839,6 +839,7 @@ namespace UnitLuaInterface
 					action->action = ACTION_GOTO;
 					action->target = NULL;
 				}
+
 				ApplyAction(action->unit, action->action, action->x, action->y, action->target, action->arg);
 				Game::Dimension::ChangePath(action->unit, action->x, action->y, action->action, action->target, action->arg);
 			}
@@ -849,6 +850,9 @@ namespace UnitLuaInterface
 
 	void CommandUnit_TargetUnit(Unit* unit, Unit* target, UnitAction action, void* arg)
 	{
+		if (action == ACTION_NONE)
+			return;
+		
 		Game::AI::action_changes++;
 		if (Game::Networking::isNetworked)
 		{
@@ -873,6 +877,9 @@ namespace UnitLuaInterface
 	void CommandUnit_TargetPos(Unit* unit, int x, int y, UnitAction action, void* arg)
 	{
 		if (!unit->type->isMobile && action == ACTION_GOTO)
+			return;
+
+		if (action == ACTION_NONE)
 			return;
 		
 		Game::AI::action_changes++;

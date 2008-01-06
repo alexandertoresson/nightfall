@@ -1,8 +1,8 @@
 #
 # Do not use non-numeric values
 #
-screen width		1024
-screen height		768
+screen width		800
+screen height		600
 screen bpp			32
 fullscreen			0
 default font		fonts/vera.ttf

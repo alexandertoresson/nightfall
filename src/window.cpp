@@ -224,11 +224,11 @@ namespace Window
 		}
 		
 		
-		if (!Utilities::IsOGLExtensionSupported("GL_ARB_texture_env_crossbar"))
+/*		if (!Utilities::IsOGLExtensionSupported("GL_ARB_texture_env_crossbar"))
 		{
 			std::cout << "The OpenGL extension GL_ARB_texture_env_crossbar is needed for this program" << std::endl;
 			return ERROR_GENERAL;
-		}
+		} */
 		
 #else
 		{

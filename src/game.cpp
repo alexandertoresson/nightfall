@@ -1009,9 +1009,9 @@ namespace Game
 					{
 						avgcount = AI::cCount / AI::numPaths;
 					}
-					if (Game::Rules::noGraphics)
+//					if (Game::Rules::noGraphics)
 						cout << "Fps: " << ((float) frames / (((float) (SDL_GetTicks() - last_status_time)) / 1000.0f)) << " " << Dimension::pWorld->vUnits.size() << " " << AI::currentFrame << " c: " << AI::cCount << " t: " << AI::tCount << " f: " << AI::fCount << " p: " << AI::pCount << " n: " << AI::numPaths << " q: " << AI::GetQueueSize() << " f: " << AI::numFailed << " a: " << avgcount << " nrf: " << AI::notReachedFlood << " nrp: " << AI::notReachedPath << " nsc: " << Dimension::numSentCommands << " ngs1: " << AI::numGreatSuccess1 << " ngs2: " << AI::numGreatSuccess2 << " ntf: " << AI::numTotalFrames << endl;
-					else
+//					else
 						console << "Fps: " << ((float) frames / (((float) (SDL_GetTicks() - last_status_time)) / 1000.0f)) << " " << Dimension::pWorld->vUnits.size() << Console::nl;
 					AI::cCount = 0;
 					AI::tCount = 0;

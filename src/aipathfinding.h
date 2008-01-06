@@ -11,7 +11,6 @@ namespace Game
 	{
 		struct MovementData;
 		struct UnitGoal;
-		extern bool  **regenerateAreaCodes;
 	}
 }
 
@@ -100,7 +99,8 @@ namespace Game
 		{
 			INTTHRSTATE_NONE = 1,
 			INTTHRSTATE_WAITING,
-			INTTHRSTATE_PROCESSING
+			INTTHRSTATE_PROCESSING,
+			INTTHRSTATE_UNAPPLIED
 		};
 
 		enum PreprocessState
@@ -154,6 +154,7 @@ namespace Game
 			IntThrState  _currentState;
 			bool         _popFromQueue;
 			PopReason    _reason;
+			bool         _newCommandWhileUnApplied;
 			
 			Node*        _start;
 			Node*        _goal;
@@ -161,17 +162,17 @@ namespace Game
 			ActionData   _action;
 			
 			ActionData   _newAction;
+
+			int          _associatedThread;
+			
+			Uint32       _pathfindingStartingFrame;
 			
 #ifdef DEBUG_AI_PATHFINDING
 			unsigned int _cycles;
 #endif
 		};
 
-		struct ThreadData
-		{
-			SDL_mutex*        pMutex;
-			Dimension::Unit*  pUnit;
-		};
+		struct ThreadData;
 		
 		//
 		// Prepare unit for pathfinding
@@ -217,6 +218,12 @@ namespace Game
 		bool ApplyNewPath(Dimension::Unit*);
 		
 		//
+		// Applies the internal node structure as the current path
+		// for all units.
+		//
+		void ApplyAllNewPaths();
+
+		//
 		// Quit current path and deallocaet it
 		// Returns true if success, false on failure
 		//
@@ -258,14 +265,13 @@ namespace Game
 		void QuitPathfindingThreading(void);
 		
 		//
-		// Get pathfinding thread mutex
+		// Get pathfinding command mutex
 		//
-		SDL_mutex* GetMutex(void);
+		SDL_mutex* GetCommandMutex();
 		
-		//
-		// Internal thread method.
-		//
-		int  _ThreadMethod(void* arg);
+		void PausePathfinding();
+		
+		void ResumePathfinding();
 
 		void DeleteUnitFromAreaMap(Dimension::Unit* unit);
 		void AddUnitToAreaMap(Dimension::Unit* unit);
@@ -273,7 +279,6 @@ namespace Game
 		const int STACK_ELEMENTS = 2048;
 		
 		extern int cCount, fCount, tCount, pCount, numPaths, numFailed, notReachedPath, notReachedFlood, numGreatSuccess1, numGreatSuccess2, numTotalFrames;
-		extern set<Dimension::Unit*> doneUnits;
 		
 		int GetQueueSize();
 	}

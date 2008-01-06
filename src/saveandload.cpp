@@ -290,7 +290,7 @@ namespace Game
 		void SaveGame(std::string filename)
 		{
 			Utilities::XMLWriter xmlfile;
-			SDL_LockMutex(AI::GetMutex());
+			AI::PausePathfinding();
 
 			xmlfile.Open(filename);
 
@@ -338,7 +338,7 @@ namespace Game
 			xmlfile.EndTag();
 
 			xmlfile.Close();
-			SDL_UnlockMutex(AI::GetMutex());
+			AI::ResumePathfinding();
 		}
 
 		Utilities::XMLReader xmlfile;

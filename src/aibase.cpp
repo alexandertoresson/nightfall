@@ -683,48 +683,7 @@ namespace Game
 				///////////////////////////////////////////////////////////////////////////
 				// Apply Paths
 
-				SDL_LockMutex(AI::GetMutex());
-
-				for (set<Dimension::Unit*>::iterator it = doneUnits.begin(); it != doneUnits.end(); it++)
-				{
-					Dimension::Unit* pUnit = *it;
-					if (!Dimension::IsValidUnitPointer(pUnit) || pUnit->pMovementData->action.action == ACTION_DIE)
-					{
-						continue;
-					}
-					PathState state = GetInternalPathState(pUnit);
-					
-					if (!Networking::isNetworked)
-					{
-						if (state == PATHSTATE_GOAL)
-						{
-							ApplyNewPath(pUnit);
-							pUnit->pMovementData->pCurGoalNode = NULL;
-						}
-						else if (state == PATHSTATE_ERROR)
-						{
-							CancelAction(pUnit);
-							pUnit->pMovementData->pCurGoalNode = NULL;
-						}
-					}
-					else
-					{
-						if (state == PATHSTATE_GOAL)
-						{
-							Networking::PreparePath(pUnit, pUnit->pMovementData->_start, pUnit->pMovementData->_goal);
-							DeallocPathfindingNodes(pUnit, AI::DPN_BACK);
-						}
-						else if (state == PATHSTATE_ERROR)
-						{
-							DeallocPathfindingNodes(pUnit, AI::DPN_BACK);
-							ScheduleNextAction(pUnit);
-						}
-					}
-				}
-
-				doneUnits.clear();
-
-				SDL_UnlockMutex(AI::GetMutex());
+				ApplyAllNewPaths();
 
 				for (vector<Dimension::Player*>::iterator it = Dimension::pWorld->vPlayers.begin(); it != Dimension::pWorld->vPlayers.end(); it++)
 				{
@@ -837,6 +796,7 @@ namespace Game
 				// Apply various stuff that cannot be applied while the lua and simpleai threads are running
 
 				Dimension::DisplayScheduledUnits();
+				Dimension::ApplyScheduledBigSquareUpdates();
 				UnitLuaInterface::ApplyScheduledActions();
 				UnitLuaInterface::ApplyScheduledDamagings();
 
