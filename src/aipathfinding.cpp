@@ -1621,12 +1621,12 @@ namespace Game
 
 		int CalcH(int new_x, int new_y, int target_x, int target_y, int unitSize)
 		{
-			int h_diagonal = min(abs(new_x-target_x), abs(new_y-target_y));
-			int h_straight = (abs(new_x-target_x) + abs(new_y-target_y));
+			int h_diagonal = min(fabs(new_x-target_x), fabs(new_y-target_y));
+			int h_straight = (fabs(new_x-target_x) + fabs(new_y-target_y));
 			Uint16 hConst = hConsts[unitSize][target_y>>yShift][target_x>>xShift][new_y>>yShift][new_x>>xShift];
 			return ((30 * h_diagonal + 20 * (h_straight - 2*h_diagonal)) * hConst) >> 8;
-/*			int diff_x = abs(new_x - target_x);
-			int diff_y = abs(new_y - target_y);
+/*			int diff_x = fabs(new_x - target_x);
+			int diff_y = fabs(new_y - target_y);
 			return (diff_x + diff_y) * 20;*/
 		}
 

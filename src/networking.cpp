@@ -312,7 +312,7 @@ namespace Game
 			while (curnode->pParent)
 			{
 				int stepcode = -1;
-				if (abs(curnode->pParent->x - curnode->x) <= 1 && abs(curnode->pParent->y - curnode->y) <= 1)
+				if (fabs(curnode->pParent->x - curnode->x) <= 1 && fabs(curnode->pParent->y - curnode->y) <= 1)
 				{
 					stepcode = stepcodes[(curnode->pParent->y - curnode->y)+1][(curnode->pParent->x - curnode->x)+1];
 				}
