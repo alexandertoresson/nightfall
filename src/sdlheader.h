@@ -72,12 +72,3 @@
 
 #include <iostream>
 
-#ifndef RTS_FABS
-#define RTS_FABS
-	extern inline double fabs(double v) throw ()
-	{
-		std::cout << "yay" << std::endl;
-		return v > 0 ? v : -v;
-	}
-#endif
-
