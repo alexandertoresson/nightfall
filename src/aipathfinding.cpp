@@ -495,11 +495,24 @@ namespace Game
 			}
 		}
 		
-		SDL_mutex* GetCommandMutex()
+		int PausePathfinding(Dimension::Unit* unit)
 		{
-			return gpmxCommand;
+			SDL_LockMutex(gpmxCommand);
+			SDL_LockMutex(gpmxQueue);
+			int thread = unit->pMovementData->_associatedThread;
+			SDL_UnlockMutex(gpmxCommand);
+			SDL_UnlockMutex(gpmxQueue);
+			if (thread != -1)
+				SDL_LockMutex(pThreadDatas[thread]->pMutex);
+			return thread;
 		}
-
+		
+		void ResumePathfinding(int thread)
+		{
+			if (thread != -1)
+				SDL_UnlockMutex(pThreadDatas[thread]->pMutex);
+		}
+		
 		int _ThreadMethod(void* arg)
 		{
 			ThreadData* tdata = (ThreadData*)arg;
@@ -602,6 +615,8 @@ namespace Game
 			if (goal_y >= height)
 				goal_y = height-1;
 
+			SDL_LockMutex(gpmxCommand);
+
 			if (action == ACTION_ATTACK || action == ACTION_FOLLOW || action == ACTION_MOVE_ATTACK_UNIT)
 			{
 				if (!Dimension::IsValidUnitPointer(target))
@@ -634,8 +649,6 @@ namespace Game
 				std::cout << "Invalid action; has action == none." << std::endl;
 				return IPR_SUCCESS;
 			}
-
-			SDL_LockMutex(gpmxCommand);
 
 #ifdef DEBUG_AI_PATHFINDING
 			SDL_LockMutex(gpmxQueue);
@@ -874,6 +887,7 @@ namespace Game
 			else
 			{
 //				cout << "none2 " << unit->id << endl;
+				md->_associatedThread = -1;
 				md->_currentState = INTTHRSTATE_NONE;
 			}
 			SDL_UnlockMutex(gpmxThreadState);
@@ -966,11 +980,45 @@ namespace Game
 			if (unit->pMovementData == NULL)
 				return;
 
-			SDL_LockMutex(gpmxCommand);
-
 			unit->pMovementData->_popFromQueue = true;
 			unit->pMovementData->_reason = POP_DELETED;
+		}
 
+		void CancelUndergoingProc(Dimension::Unit* unit)
+		{
+			if (unit == NULL)
+				return;
+
+			if (unit->pMovementData == NULL)
+				return;
+
+			SDL_LockMutex(gpmxCommand);
+			unit->pMovementData->_popFromQueue = true;
+			unit->pMovementData->_reason = POP_CANCELLED;
+			SDL_UnlockMutex(gpmxCommand);
+
+			std::cout << "cancel " << unit->id << std::endl;
+		}
+
+		void DequeueNewPath(Dimension::Unit* unit)
+		{
+			if (unit == NULL)
+				return;
+
+			if (unit->pMovementData == NULL)
+				return;
+
+			SDL_LockMutex(gpmxCommand);
+
+			if (unit->pMovementData->_popFromQueue && unit->pMovementData->_reason == POP_NEW_GOAL)
+			{
+				unit->pMovementData->_popFromQueue = false;
+			}
+			
+			if (unit->pMovementData->_newCommandWhileUnApplied)
+			{
+				unit->pMovementData->_newCommandWhileUnApplied = false;
+			}
 			SDL_UnlockMutex(gpmxCommand);
 		}
 
@@ -1936,8 +1984,6 @@ namespace Game
 			pCount += psteps;
 			numPaths++;
 
-			SDL_LockMutex(gpmxCommand);
-
 			switch (md->_reason)
 			{
 				case POP_NEW_GOAL:
@@ -1952,8 +1998,16 @@ namespace Game
 
 					md->_action = md->_newAction;
 
+					SDL_LockMutex(gpmxQueue);
 					gCalcQueue.push(tdata->pUnit);
+					SDL_UnlockMutex(gpmxQueue);
 
+					break;
+
+				case POP_CANCELLED:
+					DeallocPathfinding(tdata);
+					std::cout << "handlecancelled " << tdata->pUnit->id << std::endl;
+					
 					break;
 
 				case POP_DELETED:
@@ -1977,11 +2031,25 @@ namespace Game
 					SDL_UnlockMutex(gpmxThreadState);
 			}
 			
-			SDL_UnlockMutex(gpmxCommand);
-
 			tdata->pUnit = NULL;
 		}
 
+		bool CheckPop(ThreadData* tdata, MovementData* md)
+		{
+			SDL_LockMutex(gpmxCommand);
+			if (md->_popFromQueue)
+			{
+				ParsePopQueueReason(tdata, md);
+				tdata->pUnit = NULL;
+				
+				SDL_UnlockMutex(tdata->pMutex);
+				SDL_UnlockMutex(gpmxCommand);
+				return true;
+			}
+			SDL_UnlockMutex(gpmxCommand);
+			return false;
+		}
+			
 		int PerformPathfinding(ThreadData* tdata)
 		{
 			SDL_LockMutex(tdata->pMutex);
@@ -1991,11 +2059,11 @@ namespace Game
 
 			if (tdata->pUnit == NULL)
 			{
+				SDL_UnlockMutex(tdata->pMutex);
 				SDL_LockMutex(gpmxQueue);
 				if (gCalcQueue.empty())
 				{
 					SDL_UnlockMutex(gpmxQueue);
-					SDL_UnlockMutex(tdata->pMutex);	
 					return PATHSTATE_EMPTY_QUEUE;
 				}
 				else
@@ -2004,6 +2072,12 @@ namespace Game
 					gCalcQueue.pop();
 					tdata->pUnit->pMovementData->_associatedThread = tdata->threadIndex;
 					SDL_UnlockMutex(gpmxQueue);
+					SDL_LockMutex(tdata->pMutex);
+
+					if (CheckPop(tdata, tdata->pUnit->pMovementData))
+					{
+						return SUCCESS;
+					}
 
 					SDL_LockMutex(gpmxThreadState);
 					tdata->pUnit->pMovementData->_currentState = INTTHRSTATE_PROCESSING;
@@ -2057,15 +2131,10 @@ namespace Game
 			}
 
 			unit = tdata->pUnit;
-			md   = tdata->pUnit->pMovementData;
+			md   = unit->pMovementData;
 
-			if (md->_popFromQueue)
+			if (CheckPop(tdata, md))
 			{
-//				printf("begin\n");
-				ParsePopQueueReason(tdata, md);
-				tdata->pUnit = NULL;
-				
-				SDL_UnlockMutex(tdata->pMutex);
 				return SUCCESS;
 			}
 			
@@ -2134,6 +2203,10 @@ namespace Game
 							else
 							{
 								SDL_LockMutex(tdata->pMutex);
+								if (CheckPop(tdata, md))
+								{
+									return SUCCESS;
+								}
 							}
 						} while (1);
 					}
@@ -2166,6 +2239,10 @@ namespace Game
 							else
 							{
 								SDL_LockMutex(tdata->pMutex);
+								if (CheckPop(tdata, md))
+								{
+									return SUCCESS;
+								}
 							}
 						} while (1);
 					}
@@ -2217,19 +2294,12 @@ namespace Game
 
 						state = PathfindingStep(tdata);
 						
-						SDL_UnlockMutex(tdata->pMutex);
-
-						if (md->_popFromQueue)
+						if (CheckPop(tdata, md))
 						{
-//							printf("middle\n");
-							SDL_LockMutex(tdata->pMutex);
-							
-							ParsePopQueueReason(tdata, md);
-							tdata->pUnit = NULL;
-							
-							SDL_UnlockMutex(tdata->pMutex);
 							return SUCCESS;
 						}
+
+						SDL_UnlockMutex(tdata->pMutex);
 
 						if (steps > MAXIMUM_CALCULATIONS_PER_FRAME && state != PATHSTATE_GOAL)
 						{
@@ -2243,6 +2313,10 @@ namespace Game
 						else  if (state == PATHSTATE_OK || state == PATHSTATE_IMPOSSIBLE)
 						{
 							SDL_LockMutex(tdata->pMutex);
+							if (CheckPop(tdata, md))
+							{
+								return SUCCESS;
+							}
 							continue;
 						}
 						else
@@ -2258,7 +2332,9 @@ namespace Game
 			}
 
 			if (!quit)
+			{
 				SDL_LockMutex(tdata->pMutex); // << ... mutex from locking when quitting the loop
+			}
 
 			SDL_LockMutex(gpmxThreadState);
 			md->_currentState = INTTHRSTATE_UNAPPLIED;
@@ -2266,11 +2342,9 @@ namespace Game
 			md->changedGoal = false;
 			
 			int ret = ERROR_GENERAL;
-			if (md->_popFromQueue)
+			if (CheckPop(tdata, md))
 			{
-//				printf("end\n");
-				ParsePopQueueReason(tdata, md);
-				ret = SUCCESS;
+				return SUCCESS;
 			}
 			else
 			{

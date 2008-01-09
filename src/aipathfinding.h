@@ -92,6 +92,7 @@ namespace Game
 		enum PopReason 
 		{
 			POP_DELETED = 0,
+			POP_CANCELLED,
 			POP_NEW_GOAL
 		};
 
@@ -229,6 +230,8 @@ namespace Game
 		//
 		bool QuitCurrentPath(Dimension::Unit*);
 		
+		void CancelUndergoingProc(Dimension::Unit* unit);
+
 		//
 		// Internal function: do pathfinding work.
 		//
@@ -255,6 +258,12 @@ namespace Game
 		void QuitUndergoingProc(Dimension::Unit*);
 
 		//
+		//
+		//
+		//
+		void DequeueNewPath(Dimension::Unit* unit);
+
+		//
 		// Prepare pathfinding thread
 		//
 		void InitPathfindingThreading(void);
@@ -264,14 +273,11 @@ namespace Game
 		//
 		void QuitPathfindingThreading(void);
 		
-		//
-		// Get pathfinding command mutex
-		//
-		SDL_mutex* GetCommandMutex();
-		
 		void PausePathfinding();
+		int PausePathfinding(Dimension::Unit* unit);
 		
 		void ResumePathfinding();
+		void ResumePathfinding(int thread);
 
 		void DeleteUnitFromAreaMap(Dimension::Unit* unit);
 		void AddUnitToAreaMap(Dimension::Unit* unit);

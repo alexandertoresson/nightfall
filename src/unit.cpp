@@ -1415,12 +1415,12 @@ namespace Game
 
 					pUnit->pMovementData->action.goal.goal_id = 0xFFFF;
 					
-					SDL_LockMutex(AI::GetCommandMutex());
+					int thread = AI::PausePathfinding(pUnit);
 
 					pUnit->pMovementData->action.goal.unit = NULL; // Zero out target unit before calling DeleteUnit,
 				                                        	// to prevent DeleteUnit from calling CancelAction which calls
 				                                        	// CancelBuild which calls DeleteUnit which calls CancelAction....
-					SDL_UnlockMutex(AI::GetCommandMutex());
+					AI::ResumePathfinding(thread);
 
 					ScheduleUnitDeletion(target);
 				}
@@ -3638,7 +3638,7 @@ namespace Game
 				}
 			}
 
-			SDL_LockMutex(AI::GetCommandMutex());
+			int thread = AI::PausePathfinding(unit);
 
 			for (i = 0; i < pWorld->vUnits.size(); i++)
 			{
@@ -3647,19 +3647,13 @@ namespace Game
 				{
 					AI::CancelAction(curUnit);
 				}
-				if (curUnit->pMovementData->_action.goal.unit == unit || curUnit->pMovementData->_newAction.goal.unit == unit)
+				if (curUnit->pMovementData->_action.goal.unit == unit)
 				{
-					if (curUnit->pMovementData->_action.goal.unit == unit)
-					{
-						curUnit->pMovementData->_action.goal.unit = NULL;
-						curUnit->pMovementData->_action.action = AI::ACTION_GOTO;
-					}
-					if (curUnit->pMovementData->_newAction.goal.unit == unit)
-					{
-						curUnit->pMovementData->_newAction.goal.unit = NULL;
-						curUnit->pMovementData->_newAction.action = AI::ACTION_GOTO;
-					}
-
+					AI::CancelUndergoingProc(curUnit);
+				}
+				if (curUnit->pMovementData->_newAction.goal.unit == unit)
+				{
+					AI::DequeueNewPath(curUnit);
 				}
 
 				for (vector<Projectile*>::iterator it = curUnit->projectiles.begin(); it != curUnit->projectiles.end(); it++)
@@ -3677,29 +3671,7 @@ namespace Game
 				}
 			}
 
-			SDL_UnlockMutex(AI::GetCommandMutex());
-
-			if (unit->curAssociatedBigSquare.y > -1)
-			{
-				vector<Unit*> *unit_vector = unitsInBigSquaresPerPlayer[unit->owner->index][unit->curAssociatedBigSquare.y][unit->curAssociatedBigSquare.x];
-				for (vector<Unit*>::iterator it = unit_vector->begin(); it != unit_vector->end(); it++)
-				{
-					if (*it == unit)
-					{
-						unit_vector->erase(it);
-						break;
-					}
-				}
-				unit_vector = unitsInBigSquares[unit->curAssociatedBigSquare.y][unit->curAssociatedBigSquare.x];
-				for (vector<Unit*>::iterator it = unit_vector->begin(); it != unit_vector->end(); it++)
-				{
-					if (*it == unit)
-					{
-						unit_vector->erase(it);
-						break;
-					}
-				}
-			}
+			AI::ResumePathfinding(thread);
 
 		}
 
@@ -3787,47 +3759,6 @@ namespace Game
 					break;
 				}
 			}
-			
-			SDL_LockMutex(AI::GetCommandMutex());
-
-			for (i = 0; i < pWorld->vUnits.size(); i++)
-			{
-				curUnit = pWorld->vUnits.at(i);
-				while (curUnit->pMovementData->action.goal.unit == unit)
-				{
-					AI::CancelAction(curUnit);
-				}
-				if (curUnit->pMovementData->_action.goal.unit == unit || curUnit->pMovementData->_newAction.goal.unit == unit)
-				{
-					if (curUnit->pMovementData->_action.goal.unit == unit)
-					{
-						curUnit->pMovementData->_action.goal.unit = NULL;
-						curUnit->pMovementData->_action.action = AI::ACTION_GOTO;
-					}
-					if (curUnit->pMovementData->_newAction.goal.unit == unit)
-					{
-						curUnit->pMovementData->_newAction.goal.unit = NULL;
-						curUnit->pMovementData->_newAction.action = AI::ACTION_GOTO;
-					}
-
-				}
-
-				for (vector<Projectile*>::iterator it = curUnit->projectiles.begin(); it != curUnit->projectiles.end(); it++)
-				{
-					if ((*it)->goalUnit == unit)
-					{
-						(*it)->goalUnit = NULL;
-					}
-
-					//if (curUnit->projectiles.at(j)->goalUnit == unit)
-					//{
-						//curUnit->projectiles.erase(curUnit->projectiles.begin() + j);
-						//j--;
-					//}
-				}
-			}
-
-			SDL_UnlockMutex(AI::GetCommandMutex());
 
 			DeleteAssociatedSquares(unit, unit->curAssociatedSquare.x, unit->curAssociatedSquare.y);
 			
@@ -3888,14 +3819,48 @@ namespace Game
 			if (unit->type->isMobile)
 				numUnitsPerAreaMap[unit->type->heightOnMap-1][unit->type->movementType]--;
 
+			int thread = AI::PausePathfinding(unit);
+
+			for (i = 0; i < pWorld->vUnits.size(); i++)
+			{
+				curUnit = pWorld->vUnits.at(i);
+				while (curUnit->pMovementData->action.goal.unit == unit)
+				{
+					AI::CancelAction(curUnit);
+				}
+				if (curUnit->pMovementData->_action.goal.unit == unit)
+				{
+					AI::CancelUndergoingProc(curUnit);
+				}
+				if (curUnit->pMovementData->_newAction.goal.unit == unit)
+				{
+					AI::DequeueNewPath(curUnit);
+				}
+
+				for (vector<Projectile*>::iterator it = curUnit->projectiles.begin(); it != curUnit->projectiles.end(); it++)
+				{
+					if ((*it)->goalUnit == unit)
+					{
+						(*it)->goalUnit = NULL;
+					}
+
+					//if (curUnit->projectiles.at(j)->goalUnit == unit)
+					//{
+						//curUnit->projectiles.erase(curUnit->projectiles.begin() + j);
+						//j--;
+					//}
+				}
+			}
+
 			if (AI::IsUndergoingPathCalc(unit))
 			{
 				AI::QuitUndergoingProc(unit);
-
-				unit = NULL;
+				AI::ResumePathfinding(thread);
 				return;
 			}
 			
+			AI::ResumePathfinding(thread);
+
 			if (unit->pMovementData->pStart != NULL)
 				AI::DeallocPathfindingNodes(unit);
 
@@ -4132,6 +4097,11 @@ namespace Game
 			}
 
 			nextToRangeArray = GenerateRangeArray(1.5, 0);
+
+			CheckPrecomputedArrays(unitTypeMap["LargeTank"]);
+			CheckPrecomputedArrays(unitTypeMap["SmallTank"]);
+			CheckPrecomputedArrays(unitTypeMap["LargeAttackRobot"]);
+			CheckPrecomputedArrays(unitTypeMap["SmallAttackRobot"]);
 		}
 
 		void HandleAnim(int (&a_frames)[2][4], int& animNum, float mix, Unit* pUnit, void* Anim, AnimType animtype, float (&pos_between_anim_frames)[2])

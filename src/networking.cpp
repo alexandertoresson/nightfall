@@ -425,6 +425,8 @@ namespace Game
 			return SUCCESS;
 		}
 
+		SDL_mutex* prepareActionMutex = SDL_CreateMutex();
+
 		void PrepareAction(Dimension::Unit* unit, Dimension::Unit* target, int x, int y, AI::UnitAction action, void* arg)
 		{
 			NetActionData* actiondata = new NetActionData;
@@ -438,6 +440,7 @@ namespace Game
 				actiondata->goalunit_id = 0xFFFF;
 			actiondata->arg = arg;
 			actiondata->valid_at_frame = AI::currentFrame + netDelay;
+			SDL_LockMutex(prepareActionMutex);
 			if (networkType == SERVER)
 			{
 				NetActionData* actiondata_copy = new NetActionData;
@@ -447,6 +450,7 @@ namespace Game
 			unsentActions.push_back(actiondata);
 			if (unit->pMovementData->action.action == AI::ACTION_NONE)
 				unit->pMovementData->action.action = AI::ACTION_NETWORK_AWAITING_SYNC;
+			SDL_UnlockMutex(prepareActionMutex);
 		}
 
 		void PreparePath(Dimension::Unit* unit, AI::Node* pStart, AI::Node* pGoal)
@@ -467,6 +471,8 @@ namespace Game
 			unsentPaths.push_back(path);
 		}
 
+		SDL_mutex* prepareCreationMutex = SDL_CreateMutex();
+
 		void PrepareCreation(Dimension::UnitType* unittype, Dimension::Player* owner, int x, int y, int rot)
 		{
 			NetCreate* create = new NetCreate;
@@ -476,6 +482,7 @@ namespace Game
 			create->y = y;
 			create->rot = rot;
 			create->valid_at_frame = AI::currentFrame + netDelay;
+			SDL_LockMutex(prepareCreationMutex);
 			if (networkType == SERVER)
 			{
 				NetCreate* create_copy = new NetCreate;
@@ -483,7 +490,10 @@ namespace Game
 				waitingCreations.push_back(create_copy);
 			}
 			unsentCreations.push_back(create);
+			SDL_UnlockMutex(prepareCreationMutex);
 		}
+
+		SDL_mutex* prepareDamagingMutex = SDL_CreateMutex();
 
 		void PrepareDamaging(Dimension::Unit* unit, float damage)
 		{
@@ -491,6 +501,7 @@ namespace Game
 			dmg->unit_id = unit->id;
 			dmg->damage = (int) (damage * 100);
 			dmg->valid_at_frame = AI::currentFrame + netDelay;
+			SDL_LockMutex(prepareDamagingMutex);
 			if (networkType == SERVER)
 			{
 				NetDamage* damage_copy = new NetDamage;
@@ -498,7 +509,10 @@ namespace Game
 				waitingDamagings.push_back(damage_copy);
 			}
 			unsentDamagings.push_back(dmg);
+			SDL_UnlockMutex(prepareDamagingMutex);
 		}
+
+		SDL_mutex* prepareSellMutex = SDL_CreateMutex();
 
 		void PrepareSell(Dimension::Player* owner, int amount)
 		{
@@ -506,6 +520,7 @@ namespace Game
 			sell->owner_id = owner->index;
 			sell->amount = amount;
 			sell->valid_at_frame = AI::currentFrame + netDelay;
+			SDL_LockMutex(prepareSellMutex);
 			if (networkType == SERVER)
 			{
 				NetSell* sell_copy = new NetSell;
@@ -513,6 +528,7 @@ namespace Game
 				waitingSells.push_back(sell_copy);
 			}
 			unsentSells.push_back(sell);
+			SDL_UnlockMutex(prepareSellMutex);
 		}
 
 		Dimension::Unit* DecodeUnitID(Uint16 id)

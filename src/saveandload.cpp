@@ -122,7 +122,7 @@ namespace Game
 					
 					OutputIntPosition(xmlfile, "pos", actionData->goal.pos);
 					
-					if (actionData->goal.unit)
+					if (IsValidUnitPointer(actionData->goal.unit))
 					{
 						OutputInt(xmlfile, "unit", actionData->goal.unit->id);
 					}
