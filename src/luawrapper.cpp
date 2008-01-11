@@ -173,15 +173,21 @@ namespace Utilities
 			curFunction = luaFunction;
 		}
 
+		SDL_mutex *CallErrMutex = SDL_CreateMutex();
+
 		int LuaVirtualMachine::CallFunction(unsigned int arguments, unsigned int rets)
 		{
 			const void *func = lua_topointer(m_pVM, -(1 + arguments));
+			SDL_LockMutex(CallErrMutex);
 			if (callErrs[func] < LUA_FUNCTION_FAIL_LIMIT)
 			{
+				SDL_UnlockMutex(CallErrMutex);
 				if (lua_pcall(m_pVM, arguments, rets, 0) != 0)
 				{
 					std::cerr << "[Lua VM] Error on call to " << curFunction << ": " << lua_tostring(m_pVM, -1) << std::endl;
+					SDL_LockMutex(CallErrMutex);
 					callErrs[func]++;
+					SDL_UnlockMutex(CallErrMutex);
 					if (callErrs[func] == LUA_FUNCTION_FAIL_LIMIT)
 					{
 						std::cout << "Lua function " << curFunction << "() exceeded the number of allowed errors; disabling it." << std::endl;

@@ -1927,12 +1927,12 @@ namespace Game
 			return MovementTypeCanWalkOnSquares_UnGuarded(type->movementType, type->heightOnMap, x, y);
 		}
 
-		inline bool SquareIsWalkable_Internal(Unit *unit, UnitType *type, Player *player, int x, int y, int flags)
+		inline bool SquareIsWalkable_Internal(Unit *unit, MovementType movementType, Player *player, int x, int y, int flags)
 		{
 			bool walkable;
 			if (x >= 0 && y >= 0 && x < pWorld->width && y < pWorld->height)
 			{
-				walkable = MovementTypeCanWalkOnSquare_NoPrecalc(type->movementType, x, y);
+				walkable = MovementTypeCanWalkOnSquare_NoPrecalc(movementType, x, y);
 				if (walkable && (flags & SIW_ALLKNOWING || SquareIsVisible_UnGuarded(player, x, y)))
 				{
 					Unit* curUnit = pppElements[y][x];
@@ -1966,7 +1966,7 @@ namespace Game
 			return false;
 		}
 
-		inline bool SquareIsWalkable_MultipleInternal(Unit *unit, UnitType *type, Player *player, int x, int y, int flags)
+		inline bool SquareIsWalkable_MultipleInternal(Unit *unit, Player *player, int x, int y, int flags)
 		{
 			if (flags & SIW_ALLKNOWING || SquareIsVisible_UnGuarded(player, x, y))
 			{
@@ -1998,22 +1998,22 @@ namespace Game
 
 		inline bool SquareIsWalkable(Unit *unit, int x, int y, int flags)
 		{
-			return SquareIsWalkable_Internal(unit, unit->type, unit->owner, x, y, flags);
+			return SquareIsWalkable_Internal(unit, unit->type->movementType, unit->owner, x, y, flags);
 		}
 
 		inline bool SquareIsWalkable(Unit *unit, int x, int y)
 		{
-			return SquareIsWalkable_Internal(unit, unit->type, unit->owner, x, y, SIW_DEFAULT);
+			return SquareIsWalkable_Internal(unit, unit->type->movementType, unit->owner, x, y, SIW_DEFAULT);
 		}
 
 		inline bool SquareIsWalkable(UnitType *type, Player *player, int x, int y, int flags)
 		{
-			return SquareIsWalkable_Internal(NULL, type, player, x, y, flags);
+			return SquareIsWalkable_Internal(NULL, type->movementType, player, x, y, flags);
 		}
 
 		inline bool SquareIsWalkable(UnitType *type, Player *player, int x, int y)
 		{
-			return SquareIsWalkable_Internal(NULL, type, player, x, y, SIW_DEFAULT);
+			return SquareIsWalkable_Internal(NULL, type->movementType, player, x, y, SIW_DEFAULT);
 		}
 
 		bool SquaresAreWalkable(Unit *unit, int x, int y, int flags)
@@ -2035,7 +2035,7 @@ namespace Game
 						{
 							for (int nx = start_x; nx < end_x; nx++)
 							{
-								if (!SquareIsWalkable_MultipleInternal(unit, type, player, nx, ny, flags))
+								if (!SquareIsWalkable_MultipleInternal(unit, player, nx, ny, flags))
 								{
 									return false;
 								}
@@ -2054,7 +2054,7 @@ namespace Game
 					{
 						for (int nx = start_x; nx < end_x; nx++)
 						{
-							if (!SquareIsWalkable_Internal(unit, type, player, nx, ny, flags))
+							if (!SquareIsWalkable_Internal(unit, type->movementType, player, nx, ny, flags))
 							{
 								return false;
 							}
@@ -2091,7 +2091,7 @@ namespace Game
 						{
 							for (int nx = start_x; nx < end_x; nx++)
 							{
-								if (!SquareIsWalkable_MultipleInternal(NULL, type, player, nx, ny, flags))
+								if (!SquareIsWalkable_MultipleInternal(NULL, player, nx, ny, flags))
 								{
 									return false;
 								}
@@ -2109,7 +2109,7 @@ namespace Game
 					{
 						for (int nx = start_x; nx < end_x; nx++)
 						{
-							if (!SquareIsWalkable_Internal(NULL, type, player, nx, ny, flags))
+							if (!SquareIsWalkable_Internal(NULL, type->movementType, player, nx, ny, flags))
 							{
 								return false;
 							}

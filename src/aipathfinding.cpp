@@ -63,7 +63,7 @@ namespace Game
 		SDL_mutex* gpmxHConst;
 		set<Dimension::Unit*> doneUnits;
 
-		int numPathfindingThreads = 2;
+		int numPathfindingThreads = 1;
 
 		ThreadData**         pThreadDatas;
 		volatile Uint16****  areaMaps;
@@ -789,6 +789,8 @@ namespace Game
 
 			if (GetInternalPathState(unit) != PATHSTATE_GOAL)
 				return false;
+
+
 				
 			MovementData* md = unit->pMovementData;
 			
@@ -796,9 +798,6 @@ namespace Game
 				DeallocPathfindingNodes(unit, DPN_FRONT);
 				
 //			cout << "Apply " << unit->id << endl;
-
-			md->pStart = md->_start;
-			md->pGoal  = md->_goal;
 
 			if (md->_action.action == ACTION_ATTACK || md->_action.action == ACTION_FOLLOW || md->_action.action == ACTION_MOVE_ATTACK_UNIT)
 			{
@@ -838,6 +837,9 @@ namespace Game
 
 			SDL_LockMutex(gpmxCommand);
 				
+			md->pStart = md->_start;
+			md->pGoal  = md->_goal;
+
 			md->action = md->_action;
 
 			md->_start = NULL;
@@ -997,7 +999,6 @@ namespace Game
 			unit->pMovementData->_reason = POP_CANCELLED;
 			SDL_UnlockMutex(gpmxCommand);
 
-			std::cout << "cancel " << unit->id << std::endl;
 		}
 
 		void DequeueNewPath(Dimension::Unit* unit)
@@ -2006,7 +2007,7 @@ namespace Game
 
 				case POP_CANCELLED:
 					DeallocPathfinding(tdata);
-					std::cout << "handlecancelled " << tdata->pUnit->id << std::endl;
+//					std::cout << "handlecancelled " << tdata->pUnit->id << std::endl;
 					
 					break;
 
