@@ -5418,6 +5418,9 @@ echo "${ECHO_T}yes" >&6; }
 fi
 fi
 
+LIBS="$LUA_LIBS $SDL_LIBS $LIBS"
+CFLAGS="$SDL_CFLAGS"
+
 
 { echo "$as_me:$LINENO: checking for Mix_LoadMUS in -lSDL_mixer" >&5
 echo $ECHO_N "checking for Mix_LoadMUS in -lSDL_mixer... $ECHO_C" >&6; }
@@ -5718,8 +5721,6 @@ echo "$as_me: error: \"SDL_net library could not be found!\"" >&2;}
    { (exit 1); exit 1; }; }
 fi
 
-
-LIBS="$LUA_LIBS $SDL_LIBS $LIBS"
 
 LD="ld"
 
