@@ -4408,6 +4408,18 @@ fi
 ac_config_headers="$ac_config_headers src/config.h"
 
 
+MACHINE=`uname -s`
+
+
+
+
+	{ echo "$as_me:$LINENO: checking for GL" >&5
+echo $ECHO_N "checking for GL... $ECHO_C" >&6; }
+	if [ $MACHINE = "Darwin" ]; then
+		CXXFLAGS="${CXXFLAGS} -FOpenGL"
+		LIBS="${LIBS} -framework OpenGL"
+		echo "OS X detected; using frameworks"
+	else
 
 { echo "$as_me:$LINENO: checking for glVertex3f in -lGL" >&5
 echo $ECHO_N "checking for glVertex3f in -lGL... $ECHO_C" >&6; }
@@ -4478,11 +4490,22 @@ _ACEOF
   LIBS="-lGL $LIBS"
 
 else
-  { { echo "$as_me:$LINENO: error: \"OpenGL library could not be found!\"" >&5
-echo "$as_me: error: \"OpenGL library could not be found!\"" >&2;}
+  { { echo "$as_me:$LINENO: error: \"GL library could not be found!\"" >&5
+echo "$as_me: error: \"GL library could not be found!\"" >&2;}
    { (exit 1); exit 1; }; }
 fi
 
+	fi
+
+if [ $MACHINE != "Darwin" ]; then
+
+	{ echo "$as_me:$LINENO: checking for GLU" >&5
+echo $ECHO_N "checking for GLU... $ECHO_C" >&6; }
+	if [ $MACHINE = "Darwin" ]; then
+		CXXFLAGS="${CXXFLAGS} -FGLU"
+		LIBS="${LIBS} -framework GLU"
+		echo "OS X detected; using frameworks"
+	else
 
 { echo "$as_me:$LINENO: checking for gluLookAt in -lGLU" >&5
 echo $ECHO_N "checking for gluLookAt in -lGLU... $ECHO_C" >&6; }
@@ -4556,6 +4579,10 @@ else
   { { echo "$as_me:$LINENO: error: \"GLU library could not be found!\"" >&5
 echo "$as_me: error: \"GLU library could not be found!\"" >&2;}
    { (exit 1); exit 1; }; }
+fi
+
+	fi
+
 fi
 
 if [ -z `pkg-config --version` ]; then
