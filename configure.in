@@ -57,17 +57,20 @@ else
 	])
 	PKG_CHECK_MODULES(LUA, lua5.1 >= 5.1.0,,
 	[
-		echo -n "LUA 5.1.x not found, checking for LUA 5.0.x... "
-		PKG_CHECK_MODULES(LUA, lua50 >= 5.0.0,,
+		PKG_CHECK_MODULES(LUA, lua >= 5.1.0,,
 		[
-		echo -n "LUA could not be found using pkg-config, falling back to lua-config50... "
-		if @<:@ -z "`lua-config50 --libs --include`" @:>@; then
-			AC_MSG_ERROR("LUA library 5.0.x or 5.1.x could not be found!")
-		else
-			echo "LUA 5.0.x found!"
-			LUA_CFLAGS=`lua-config50 --include`
-			LUA_LIBS=`lua-config50 --libs --extralibs`
-		fi
+			echo -n "LUA 5.1.x not found, checking for LUA 5.0.x... "
+			PKG_CHECK_MODULES(LUA, lua50 >= 5.0.0,,
+			[
+			echo -n "LUA could not be found using pkg-config, falling back to lua-config50... "
+			if @<:@ -z "`lua-config50 --libs --include`" @:>@; then
+				AC_MSG_ERROR("LUA library 5.0.x or 5.1.x could not be found!")
+			else
+				echo "LUA 5.0.x found!"
+				LUA_CFLAGS=`lua-config50 --include`
+				LUA_LIBS=`lua-config50 --libs --extralibs`
+			fi
+			])
 		])
 	])
 fi
