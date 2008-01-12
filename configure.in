@@ -85,6 +85,11 @@ AC_CHECK_LIB(SDL_net,SDLNet_Init,[],[AC_MSG_ERROR("SDL_net library could not be 
 
 LD="ld"
 
+echo $SDL_CFLAGS
+echo $SDL_LIBS
+echo $CFLAGS
+echo $LIBS
+
 dnl **************************************
 dnl *** Check for linker optimizations ***
 dnl **************************************
