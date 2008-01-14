@@ -5724,10 +5724,10 @@ fi
 
 LD="ld"
 
-echo $SDL_CFLAGS
-echo $SDL_LIBS
-echo $CFLAGS
-echo $LIBS
+echo "SDL_CFLAGS = $SDL_CFLAGS"
+echo "SDL_LIBS = $SDL_LIBS"
+echo "CFLAGS = $CFLAGS"
+echo "LIBS = $LIBS"
 
 { echo "$as_me:$LINENO: checking whether $LD accepts -O1" >&5
 echo $ECHO_N "checking whether $LD accepts -O1... $ECHO_C" >&6; }

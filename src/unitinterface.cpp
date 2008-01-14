@@ -776,16 +776,6 @@ namespace UnitLuaInterface
 		return 0;
 	}
 
-	int LCalculateUnitDamage(LuaVM* pVM)
-	{
-		Unit* pUnit = _GetUnit(lua_touserdata(pVM, 1));
-
-		CHECK_UNIT_PTR(pUnit)
-
-		lua_pushnumber(pVM, CalcUnitDamage(pUnit));
-		return 1;
-	}
-
 	int LCanReach(LuaVM* pVM)
 	{
 		Unit* pUnit01 = _GetUnit(lua_touserdata(pVM, 1));
@@ -2817,7 +2807,6 @@ else \
 		GET_INT_FIELD_OPTIONAL(pUnitType->maxPower, "maxPower", 0)
 		GET_INT_FIELD_OPTIONAL(pUnitType->minAttack, "minAttack", 0)
 		GET_INT_FIELD_OPTIONAL(pUnitType->maxAttack, "maxAttack", 0)
-		GET_INT_FIELD_OPTIONAL(pUnitType->maxPower, "maxPower", 0)
 		GET_INT_FIELD_OPTIONAL(pUnitType->heightOnMap, "heightOnMap", 0)
 		GET_INT_FIELD_OPTIONAL(pUnitType->widthOnMap, "widthOnMap", 0)
 		GET_INT_FIELD_OPTIONAL(pUnitType->buildCost, "buildCost", 0)
@@ -2834,7 +2823,10 @@ else \
 		GET_BOOL_FIELD_OPTIONAL(pUnitType->hasAI, "hasAI", false)
 		GET_BOOL_FIELD_OPTIONAL(pUnitType->hasLuaAI, "hasLuaAI", false)
 
-		GET_FLOAT_FIELD_OPTIONAL(pUnitType->attackAccuracy, "attackAccuracy", 0.0)
+		GET_FLOAT_FIELD_OPTIONAL(pUnitType->armor, "armor", 100.0)
+		GET_FLOAT_FIELD_OPTIONAL(pUnitType->regenHealth, "regenHealth", 0.0)
+		GET_FLOAT_FIELD_OPTIONAL(pUnitType->regenPower, "regenPower", 0.0)
+		GET_FLOAT_FIELD_OPTIONAL(pUnitType->attackAccuracy, "attackAccuracy", 100.0)
 		GET_FLOAT_FIELD_OPTIONAL(pUnitType->attackMinRange, "attackMinRange", 0.0)
 		GET_FLOAT_FIELD_OPTIONAL(pUnitType->attackMaxRange, "attackMaxRange", 0.0)
 		GET_FLOAT_FIELD_OPTIONAL(pUnitType->sightRange, "sightRange", 0.0)
@@ -3083,7 +3075,6 @@ else \
 
 //		pVM->RegisterFunction("InitiateAttack", LInitiateAttack);
 		pVM->RegisterFunction("Attack", LAttack);
-		pVM->RegisterFunction("CalculateUnitDamage", LCalculateUnitDamage);
 		pVM->RegisterFunction("CanReach", LCanReach);
 		
 		pVM->RegisterFunction("CommandUnit_TargetUnit", LCommandUnit_TargetUnit);

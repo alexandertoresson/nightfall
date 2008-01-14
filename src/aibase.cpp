@@ -439,6 +439,12 @@ namespace Game
 					NotEnoughPowerForLight(pUnit);
 					return;
 				}
+
+				float power_inc = pUnit->type->regenPower / aiFps;
+				pUnit->power = pUnit->power +  power_inc > pUnit->type->maxPower ? pUnit->type->maxPower : pUnit->power + power_inc;
+					
+				float health_inc = pUnit->type->regenHealth / aiFps;
+				pUnit->health = pUnit->health +  health_inc > pUnit->type->maxHealth ? pUnit->type->maxHealth : pUnit->health + health_inc;
 					
 				pUnit->hasPower = true;
 				EnoughPowerForLight(pUnit);

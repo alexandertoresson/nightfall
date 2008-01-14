@@ -243,8 +243,11 @@ namespace Game
 			const char* id;
 			Model*      model;
 			Animation*  animations[AI::ACTION_NUM];    // one per action, NULL if an animation doesn't exist for that action
+			float       armor;
 			int         maxHealth;
+			float       regenHealth;
 			int         maxPower;
+			float       regenPower;
 			int         minAttack;     // in hitpoints
 			int         maxAttack;
 			bool        canAttack;
@@ -388,7 +391,7 @@ namespace Game
 		void Research(Unit* unit);
 		void CancelBuild(Dimension::Unit* pUnit);
 		void CancelResearch(Dimension::Unit* pUnit);
-		float CalcUnitDamage(Unit* unit);
+		float CalcUnitDamage(Unit* target, Unit* attacker);
 		bool CanAttack(Unit* attacker);
 		bool Attack(Unit* target, float damage);
 		void InitiateAttack(Unit* attacker, Unit* target);

@@ -799,13 +799,25 @@ namespace Game
 				
 //			cout << "Apply " << unit->id << endl;
 
+			SDL_LockMutex(gpmxCommand);
+			
+			if (md->_popFromQueue)
+			{
+				if (md->_reason == POP_CANCELLED || md->_reason == POP_DELETED)
+				{
+					md->_popFromQueue = false;
+					SDL_UnlockMutex(gpmxCommand);
+					return false;
+				}
+			}
+
 			if (md->_action.action == ACTION_ATTACK || md->_action.action == ACTION_FOLLOW || md->_action.action == ACTION_MOVE_ATTACK_UNIT)
 			{
 				if (!Dimension::IsValidUnitPointer(md->_action.goal.unit))
 				{
 					std::cout << "Invalid action, needs target. Fixing up action." << std::endl;
 					md->_action.action = ACTION_GOTO;
-					*(int*) 0 = 0;
+//					*(int*) 0 = 0;
 				}
 			}
 
@@ -815,7 +827,7 @@ namespace Game
 				{
 					std::cout << "Invalid action, needs target or arg. Fixing up action." << std::endl;
 					md->_action.action = ACTION_GOTO;
-					*(int*) 0 = 0;
+//					*(int*) 0 = 0;
 				}
 			}
 			
@@ -825,18 +837,16 @@ namespace Game
 				{
 					std::cout << "Invalid action, needs arg. Fixing up action." << std::endl;
 					md->_action.action = ACTION_GOTO;
-					*(int*) 0 = 0;
+//					*(int*) 0 = 0;
 				}
 			}
 			
 			if (md->_action.action == ACTION_NONE)
 			{
 				std::cout << "Invalid action; path with no action calculated." << std::endl;
-				*(int*) 0 = 0;
+//				*(int*) 0 = 0;
 			}
 
-			SDL_LockMutex(gpmxCommand);
-				
 			md->pStart = md->_start;
 			md->pGoal  = md->_goal;
 
@@ -2006,6 +2016,14 @@ namespace Game
 					break;
 
 				case POP_CANCELLED:
+
+					md->_popFromQueue = false;
+
+					SDL_LockMutex(gpmxThreadState);
+					md->_currentState = INTTHRSTATE_NONE;
+					md->calcState = CALCSTATE_FAILURE;
+					SDL_UnlockMutex(gpmxThreadState);
+
 					DeallocPathfinding(tdata);
 //					std::cout << "handlecancelled " << tdata->pUnit->id << std::endl;
 					

@@ -170,50 +170,50 @@ namespace Game
 		// position in the landscape
 		void SetUnitCoordSpace(Unit* unit, bool ignoreCompleteness /* = false */)
 		{
-				UnitType* type = unit->type;
-				float unit_x, unit_y, unit_z, degrees_to_rotate;
-				Utilities::Vector3D up_vector, normal, rotate_axis;
+			UnitType* type = unit->type;
+			float unit_x, unit_y, unit_z, degrees_to_rotate;
+			Utilities::Vector3D up_vector, normal, rotate_axis;
+		
+			unit_x = unit->pos.x;
+			unit_z = unit->pos.y;
+
+			if ((type->widthOnMap >> 1) << 1 == type->widthOnMap)
+			{
+				unit_x -= 0.5f;
+			}
+			if ((type->heightOnMap >> 1) << 1 == type->heightOnMap)
+			{
+				unit_z -= 0.5f;
+			}
 			
-				unit_x = unit->pos.x;
-				unit_z = unit->pos.y;
+			// Translate to the position of the terrain at the position of the unit
+			unit_y = GetTerrainHeight(unit_x, unit_z);
+			glTranslatef(unit_x * 0.125f - terrainOffsetX, unit_y, unit_z * 0.125f - terrainOffsetY);
 
-				if ((type->widthOnMap >> 1) << 1 == type->widthOnMap)
-				{
-					unit_x -= 0.5f;
-				}
-				if ((type->heightOnMap >> 1) << 1 == type->heightOnMap)
-				{
-					unit_z -= 0.5f;
-				}
-				
-				// Translate to the position of the terrain at the position of the unit
-				unit_y = GetTerrainHeight(unit_x, unit_z);
-				glTranslatef(unit_x * 0.125f - terrainOffsetX, unit_y, unit_z * 0.125f - terrainOffsetY);
+			// rotate so the unit will be placed correctly onto possibly leaning ground, by rotating by the difference between
+			// the up vector and the terrain normal (get degrees to rotate by with dot product, get axis with cross product)
+			up_vector.set(0.0f, 1.0f, 0.0f);
+			normal = GetTerrainNormal(unit->pos.x, unit->pos.y);
 
-				// rotate so the unit will be placed correctly onto possibly leaning ground, by rotating by the difference between
-				// the up vector and the terrain normal (get degrees to rotate by with dot product, get axis with cross product)
-				up_vector.set(0.0f, 1.0f, 0.0f);
-				normal = GetTerrainNormal(unit->pos.x, unit->pos.y);
+			rotate_axis = up_vector;
+			rotate_axis.cross(normal);
 
-				rotate_axis = up_vector;
-				rotate_axis.cross(normal);
+			degrees_to_rotate = acos(up_vector.dot(normal)) * (float) (180 / PI);
 
-				degrees_to_rotate = acos(up_vector.dot(normal)) * (float) (180 / PI);
+			glRotatef(degrees_to_rotate, rotate_axis.x, rotate_axis.y, rotate_axis.z);
 
-				glRotatef(degrees_to_rotate, rotate_axis.x, rotate_axis.y, rotate_axis.z);
-
-				// rotate the unit by how much it's supposed to be rotated
-				glRotatef(unit->rotation, 0.0f, 1.0f, 0.0f);
-				
-				// scale down
-				if (ignoreCompleteness)
-					glScalef(0.0625f*type->size, 0.0625f*type->size, 0.0625f*type->size);
-				else
-					glScalef(0.0625f*type->size * unit->completeness / 100.0f, 0.0625f*type->size * unit->completeness / 100.0f, 0.0625f*type->size * unit->completeness / 100.0f);
-				
-				// translate upwards (in the direction of the terrain normal, because of the rotation before)
-				glTranslatef(0.0f, 1.05f, 0.0f);
-				
+			// rotate the unit by how much it's supposed to be rotated
+			glRotatef(unit->rotation, 0.0f, 1.0f, 0.0f);
+			
+			// scale down
+			if (ignoreCompleteness)
+				glScalef(0.0625f*type->size, 0.0625f*type->size, 0.0625f*type->size);
+			else
+				glScalef(0.0625f*type->size * unit->completeness / 100.0f, 0.0625f*type->size * unit->completeness / 100.0f, 0.0625f*type->size * unit->completeness / 100.0f);
+			
+			// translate upwards (in the direction of the terrain normal, because of the rotation before)
+			glTranslatef(0.0f, 1.05f, 0.0f);
+			
 		}
 
 		// sets the coordinate system so you can render a billboard at the current position
@@ -279,25 +279,25 @@ namespace Game
 		// position
 		void SetProjectileCoordSpace(Projectile* proj)
 		{
-				ProjectileType* type = proj->type;
-				float degrees_to_rotate;
-				Utilities::Vector3D up_vector, rotate_axis;
-				
-				glTranslatef(proj->pos.x, proj->pos.y, proj->pos.z);
+			ProjectileType* type = proj->type;
+			float degrees_to_rotate;
+			Utilities::Vector3D up_vector, rotate_axis;
+			
+			glTranslatef(proj->pos.x * 0.125f - terrainOffsetX, proj->pos.z, proj->pos.y * 0.125f - terrainOffsetY);
 
-				// rotate so the unit will be placed correctly onto possibly leaning ground, by rotating by the difference between
-				// the up vector and the terrain normal (get degrees to rotate by with dot product, get axis with cross product)
-				up_vector.set(0.0f, 1.0f, 0.0f);
+			// rotate so the unit will be placed correctly onto possibly leaning ground, by rotating by the difference between
+			// the up vector and the terrain normal (get degrees to rotate by with dot product, get axis with cross product)
+			up_vector.set(0.0f, 1.0f, 0.0f);
 
-				rotate_axis = up_vector;
-				rotate_axis.cross(proj->direction);
+			rotate_axis = up_vector;
+			rotate_axis.cross(proj->direction);
 
-				degrees_to_rotate = acos(up_vector.dot(proj->direction)) * (float) (180 / PI);
+			degrees_to_rotate = acos(up_vector.dot(proj->direction)) * (float) (180 / PI);
 
-				glRotatef(degrees_to_rotate, rotate_axis.x, rotate_axis.y, rotate_axis.z);
+			glRotatef(degrees_to_rotate, rotate_axis.x, rotate_axis.y, rotate_axis.z);
 
-				// scale down
-				glScalef(0.0625f*type->size, 0.0625f*type->size, 0.0625f*type->size);
+			// scale down
+			glScalef(0.0625f*type->size, 0.0625f*type->size, 0.0625f*type->size);
 				
 		}
 
@@ -319,6 +319,18 @@ namespace Game
 				return unitByID[id];
 			}
 			return NULL;
+		}
+
+		void GetWHUpperLeftCorner(int width, int height, float mx, float my, int& lx, int& uy)
+		{
+			lx = (int) mx - (width>>1);
+			uy = (int) my - (height>>1);
+		}
+
+		void GetWHUpperLeftCorner(int width, int height, int mx, int my, int& lx, int& uy)
+		{
+			lx = mx - (width>>1);
+			uy = my - (width>>1);
 		}
 
 		void GetSizeUpperLeftCorner(int size, float mx, float my, int& lx, int& uy)
@@ -355,10 +367,6 @@ namespace Game
 		{
 			lx = unit->curAssociatedSquare.x - (unit->type->widthOnMap>>1);
 			uy = unit->curAssociatedSquare.y - (unit->type->heightOnMap>>1);
-			if (lx < 0 || uy < 0 || lx + unit->type->widthOnMap-1 >= pWorld->width || uy + unit->type->heightOnMap-1 >= pWorld->height)
-			{
-				cout << "CRITICAL ERROR: UNIT PLACED OUTSIDE MAP" << endl;
-			}
 		}
 
 		void GetUnitUpperLeftCorner(Unit* unit, float mx, float my, int& lx, int& uy)
@@ -1461,262 +1469,269 @@ namespace Game
 #ifdef CHECKSUM_DEBUG_HIGH
 				Networking::checksum_output << "DIE" << "\n";
 #endif
-				KillUnit(target);
-			}
-			if (target->pMovementData->action.action == AI::ACTION_DIE)
-			{
-				return true;
-			}
-			return false;
-		}
-
-		Uint16 a_seed = 23467;
-		float attack_rand()
-		{
-			a_seed = (Uint16) ( ((int) a_seed + 82473) ^ 53672);
-			return ((float)a_seed / 65535.0f);
-		}
-
-		// calculate how much damage a unit does
-		float CalcUnitDamage(Unit* unit)
-		{
-			return (float) unit->type->minAttack + float(unit->type->maxAttack - unit->type->minAttack) * attack_rand();
-		}
-
-		void InitiateAttack(Unit* attacker, Unit* target)
-		{
-			Position goto_pos;
-			Utilities::Vector3D goal_pos;	
-			double power_usage =  attacker->type->attackPowerUsage;
-			
-			if (attacker->owner->resources.power < power_usage)
-			{
-				return;
-			}
-
-			attacker->lastAttack = AI::currentFrame;
-
-			attacker->owner->resources.power -= power_usage;
-
-#ifdef CHECKSUM_DEBUG_HIGH
-			Networking::checksum_output << "ATTACK " << AI::currentFrame << ": " << attacker->id << " " << target->id << " " << power_usage << "\n";
-#endif
-
-			if (attacker->type->isMobile)
-			{
-				FaceUnit(attacker, target);
-			}
-			if (!attacker->type->projectileType)
-			{
-				attacker->lastSeenPositions[target->owner->index] = attacker->curAssociatedSquare;
-
-				if (target->pMovementData->action.action != AI::ACTION_DIE)
-					AI::SendUnitEventToLua_IsAttacked(target, attacker);
-
-				if (Attack(target, CalcUnitDamage(attacker)))
-				{
-					AI::CompleteAction(attacker);
+					KillUnit(target);
 				}
-			}
-			else
-			{
-				goto_pos = target->pos;
-				goal_pos = Dimension::GetTerrainCoordHighestLevel(goto_pos.x, goto_pos.y);
-				goal_pos.y += target->type->height * 0.25f * 0.0625f;
-				Projectile *proj = CreateProjectile(attacker->type->projectileType, Dimension::GetTerrainCoordHighestLevel(attacker->pos.x, attacker->pos.y), goal_pos);
-				proj->goalUnit = target;
-				attacker->projectiles.push_back(proj);
-				PlayActionSound(attacker, Audio::SFX_ACT_FIRE_FNF);
-			}
-		}
-
-		bool UnitBinPred(const Unit* unit01, const Unit* unit02)
-		{
-			return unit01->id < unit02->id;
-		}
-
-		void HandleProjectiles(Unit* pUnit)
-		{
-			Projectile *proj = NULL;
-			float max_radius = 0;
-			vector<Unit*>::iterator it;
-			list<Unit*> units_hit;
-
-			for (unsigned index = 0; index < pUnit->projectiles.size(); )
-			{
-				proj = pUnit->projectiles.at(index);
-#ifdef CHECKSUM_DEBUG_HIGH
-				Networking::checksum_output << "PROJ " << AI::currentFrame << ": " << proj->pos.x << ", " << proj->pos.y << ", " << proj->pos.z << " " << proj->pos.distance(proj->goalPos) << " " << proj->type->speed * (1.0 / AI::aiFps) << "\n";
-#endif
-				if (proj->type->isHoming && proj->goalUnit != NULL)
-					proj->goalPos = GetTerrainCoordHighestLevel(proj->goalUnit->pos.x, proj->goalUnit->pos.y);
-
-				if (proj->pos.distance(proj->goalPos) < proj->type->speed * (1.0 / AI::aiFps))
+				if (target->pMovementData->action.action == AI::ACTION_DIE)
 				{
-					
-					max_radius = proj->type->areaOfEffect * 0.125f;
-					proj->pos = proj->goalPos;
+					return true;
+				}
+				return false;
+			}
+
+			Uint16 a_seed = 23467;
+			float attack_rand()
+			{
+				a_seed = (Uint16) ( ((int) a_seed + 82473) ^ 53672);
+				return ((float)a_seed / 65535.0f);
+			}
+
+			// calculate how much damage a unit does
+			float CalcUnitDamage(Unit* target, Unit* attacker)
+			{
+				return ((float) attacker->type->minAttack + float(attacker->type->maxAttack - attacker->type->minAttack) * attack_rand()) / target->type->armor * 100.0;
+			}
+
+			void InitiateAttack(Unit* attacker, Unit* target)
+			{
+				Position goto_pos;
+				Utilities::Vector3D goal_pos;	
+				double power_usage =  attacker->type->attackPowerUsage;
+				
+				if (attacker->owner->resources.power < power_usage)
+				{
+					return;
+				}
+
+				attacker->lastAttack = AI::currentFrame;
+
+				attacker->owner->resources.power -= power_usage;
 
 #ifdef CHECKSUM_DEBUG_HIGH
-					Networking::checksum_output << "HIT " << proj->pos.x << ", " << proj->pos.y << ", " << proj->pos.z << "\n";
+				Networking::checksum_output << "ATTACK " << AI::currentFrame << ": " << attacker->id << " " << target->id << " " << power_usage << "\n";
 #endif
 
-					Position projTerrainPos = GetPosition(&proj->pos);
-					int big_start_x = (int) (projTerrainPos.x - ceil(max_radius) - 10) >> bigSquareRightShift;
-					int big_start_y = (int) (projTerrainPos.y - ceil(max_radius) - 10) >> bigSquareRightShift;
-					int big_end_x = (int) (projTerrainPos.x + ceil(max_radius) + 10) >> bigSquareRightShift;
-					int big_end_y = (int) (projTerrainPos.y + ceil(max_radius) + 10) >> bigSquareRightShift;
-			
-					if (big_start_y < 0)
-						big_start_y = 0;
+				if (attacker->type->isMobile)
+				{
+					FaceUnit(attacker, target);
+				}
 
-					if (big_start_x < 0)
-						big_start_x = 0;
+				if (attack_rand() * 100 > attacker->type->attackAccuracy)
+				{
+					return;
+				}
 
-					if (big_end_y >= bigSquareHeight)
-						big_end_y = bigSquareHeight-1;
+				if (!attacker->type->projectileType)
+				{
+					attacker->lastSeenPositions[target->owner->index] = attacker->curAssociatedSquare;
 
-					if (big_end_x >= bigSquareWidth)
-						big_end_x = bigSquareWidth-1;
+					if (target->pMovementData->action.action != AI::ACTION_DIE)
+						AI::SendUnitEventToLua_IsAttacked(target, attacker);
 
-
-					units_hit.clear();
-
-					for (int y = big_start_y; y <= big_end_y; y++)
+					if (Attack(target, CalcUnitDamage(target, attacker)))
 					{
-						for (int x = big_start_x; x <= big_end_x; x++)
-						{
-							for (it = unitsInBigSquares[y][x]->begin(); it != unitsInBigSquares[y][x]->end(); it++)
-							{
-								Unit* target = *it;
-								if (target == pUnit)
-									continue;
-
-								Utilities::Vector3D unit_pos = GetTerrainCoordHighestLevel(target->pos.x, target->pos.y);
-								if (proj->goalPos.distance(unit_pos) <= max_radius)
-								{
-									units_hit.push_back(target);
-								}
-							}
-						}
+						AI::CompleteAction(attacker);
 					}
-
-					units_hit.sort(UnitBinPred);
-
-					for (list<Unit*>::iterator it = units_hit.begin(); it != units_hit.end(); it++)
-					{
-						Unit* target = *it;
-
-#ifdef CHECKSUM_DEBUG_HIGH
-						Networking::checksum_output << "HIT " << target->id << "\n";
-#endif
-						pUnit->lastSeenPositions[target->owner->index] = pUnit->curAssociatedSquare;
-						if (target->owner != pUnit->owner)
-						{
-							if (target->pMovementData->action.action != AI::ACTION_DIE)
-								AI::SendUnitEventToLua_IsAttacked(target, pUnit);
-						}
-						if (Attack(target, CalcUnitDamage(pUnit)))
-						{
-							if (target == proj->goalUnit || proj->goalUnit == NULL)
-								AI::CompleteAction(pUnit);
-						}
-					}
-
-					Position proj_pos = GetPosition(&proj->pos);
-					if (!Game::Rules::noGraphics)
-					{
-						FX::pParticleSystems->InitEffect(proj_pos.x, proj_pos.y, 0.0f, max_radius * 4, FX::PARTICLE_SPHERICAL_EXPLOSION);
-					}
-					
-					pUnit->projectiles.erase(pUnit->projectiles.begin()+index);
 				}
 				else
 				{
-#ifdef CHECKSUM_DEBUG_HIGH
-					Networking::checksum_output << "MOVE " << proj->direction.x << ", " << proj->direction.y << ", " << proj->direction.z << "\n";
-#endif
-					proj->pos += proj->direction * proj->type->speed * (1.0f / (float) AI::aiFps);
-					index++;
+					goto_pos = target->pos;
+					goal_pos = Utilities::Vector3D(goto_pos.x, goto_pos.y, Dimension::GetTerrainHeightHighestLevel(goto_pos.x, goto_pos.y));
+					goal_pos.z += target->type->height * 0.25f * 0.0625f;
+					Projectile *proj = CreateProjectile(attacker->type->projectileType, Utilities::Vector3D(attacker->pos.x, attacker->pos.y, GetTerrainHeightHighestLevel(attacker->pos.x, attacker->pos.y)), goal_pos);
+					proj->goalUnit = target;
+					attacker->projectiles.push_back(proj);
+					PlayActionSound(attacker, Audio::SFX_ACT_FIRE_FNF);
 				}
 			}
-		}
-		
-		// returns true if attacker can reach target with an attack
-		bool CanReach(Unit* attacker, Unit* target)
-		{
-			return WouldBeAbleToReach(attacker, attacker->curAssociatedSquare.x, attacker->curAssociatedSquare.y, target);
-		}
 
-		bool CanSee(Unit* attacker, Unit* target)
-		{
-			return WithinRangeArray(target, attacker->curAssociatedSquare.x, attacker->curAssociatedSquare.y, attacker->type->sightRangeArray);
-		}
-
-		int calls = 0;
-
-		Unit* GetNearestUnitInRange(Unit* unit, RangeType rangeType, PlayerState state)
-		{
-			Unit* bestUnit = NULL;
-			float bestDistance = 1000000.0, distance;
-			Unit* curUnit;
-			vector<Unit*>* units;
-			int max_range = rangeType == RANGE_SIGHT ? (int) ceil(unit->type->sightRange) : (int) ceil(unit->type->attackMaxRange);
-			int big_start_x = (unit->curAssociatedSquare.x - max_range - 10) >> bigSquareRightShift;
-			int big_start_y = (unit->curAssociatedSquare.y - max_range - 10) >> bigSquareRightShift;
-			int big_end_x = (unit->curAssociatedSquare.x + max_range + 10) >> bigSquareRightShift;
-			int big_end_y = (unit->curAssociatedSquare.y + max_range + 10) >> bigSquareRightShift;
-
-			if (big_start_y < 0)
-				big_start_y = 0;
-
-			if (big_start_x < 0)
-				big_start_x = 0;
-
-			if (big_end_y >= bigSquareHeight)
-				big_end_y = bigSquareHeight-1;
-
-			if (big_end_x >= bigSquareWidth)
-				big_end_x = bigSquareWidth-1;
-			
-			for (vector<Player*>::iterator it = pWorld->vPlayers.begin(); it != pWorld->vPlayers.end(); it++)
+			bool UnitBinPred(const Unit* unit01, const Unit* unit02)
 			{
-				Player *owner = *it;
-				if (unit->owner->states[owner->index] & state)
+				return unit01->id < unit02->id;
+			}
+
+			void HandleProjectiles(Unit* pUnit)
+			{
+				Projectile *proj = NULL;
+				float max_radius = 0;
+				vector<Unit*>::iterator it;
+				list<Unit*> units_hit;
+
+				for (unsigned index = 0; index < pUnit->projectiles.size(); )
 				{
-					int owner_index = owner->index;
-					units = &owner->vUnits;
-					for (int y = big_start_y; y <= big_end_y; y++)
+					proj = pUnit->projectiles.at(index);
+#ifdef CHECKSUM_DEBUG_HIGH
+					Networking::checksum_output << "PROJ " << AI::currentFrame << ": " << proj->pos.x << ", " << proj->pos.y << ", " << proj->pos.z << " " << proj->pos.distance(proj->goalPos) << " " << proj->type->speed * (1.0 / AI::aiFps) << "\n";
+#endif
+/*					if (proj->type->isHoming && proj->goalUnit != NULL)
+						proj->goalPos = GetTerrainCoordHighestLevel(proj->goalUnit->pos.x, proj->goalUnit->pos.y);*/
+
+					if (proj->pos.distance(proj->goalPos) < proj->type->speed * (1.0 / AI::aiFps))
 					{
-						for (int x = big_start_x; x <= big_end_x; x++)
+						
+						max_radius = proj->type->areaOfEffect * 0.125f;
+						proj->pos = proj->goalPos;
+
+#ifdef CHECKSUM_DEBUG_HIGH
+						Networking::checksum_output << "HIT " << proj->pos.x << ", " << proj->pos.y << ", " << proj->pos.z << "\n";
+#endif
+
+						int big_start_x = (int) (proj->pos.x - ceil(max_radius) - 10) >> bigSquareRightShift;
+						int big_start_y = (int) (proj->pos.y - ceil(max_radius) - 10) >> bigSquareRightShift;
+						int big_end_x = (int) (proj->pos.x + ceil(max_radius) + 10) >> bigSquareRightShift;
+						int big_end_y = (int) (proj->pos.y + ceil(max_radius) + 10) >> bigSquareRightShift;
+				
+						if (big_start_y < 0)
+							big_start_y = 0;
+
+						if (big_start_x < 0)
+							big_start_x = 0;
+
+						if (big_end_y >= bigSquareHeight)
+							big_end_y = bigSquareHeight-1;
+
+						if (big_end_x >= bigSquareWidth)
+							big_end_x = bigSquareWidth-1;
+
+						Utilities::Vector3D proj_pos = GetTerrainCoordHighestLevel(proj->goalPos.x, proj->goalPos.y);
+						proj_pos.y = proj->goalPos.z;
+
+						units_hit.clear();
+
+						for (int y = big_start_y; y <= big_end_y; y++)
 						{
-							for (vector<Unit*>::iterator it_unit = unitsInBigSquaresPerPlayer[owner_index][y][x]->begin(); it_unit != unitsInBigSquaresPerPlayer[owner_index][y][x]->end(); it_unit++)
+							for (int x = big_start_x; x <= big_end_x; x++)
 							{
-								curUnit = *it_unit;
-								if (curUnit != unit && curUnit->isDisplayed)
+								for (it = unitsInBigSquares[y][x]->begin(); it != unitsInBigSquares[y][x]->end(); it++)
 								{
-									bool found = false;
-									if (rangeType == RANGE_SIGHT)
+									Unit* target = *it;
+									if (target == pUnit)
+										continue;
+
+									Utilities::Vector3D unit_pos = GetTerrainCoordHighestLevel(target->pos.x, target->pos.y);
+									if (proj_pos.distance(unit_pos) <= max_radius)
 									{
-										if (CanSee(unit, curUnit))
-										{
-											found = true;
-										}
+										units_hit.push_back(target);
 									}
-									else if (rangeType == RANGE_ATTACK)
+								}
+							}
+						}
+
+						units_hit.sort(UnitBinPred);
+
+						for (list<Unit*>::iterator it = units_hit.begin(); it != units_hit.end(); it++)
+						{
+							Unit* target = *it;
+
+#ifdef CHECKSUM_DEBUG_HIGH
+							Networking::checksum_output << "HIT " << target->id << "\n";
+#endif
+							pUnit->lastSeenPositions[target->owner->index] = pUnit->curAssociatedSquare;
+							if (target->owner != pUnit->owner)
+							{
+								if (target->pMovementData->action.action != AI::ACTION_DIE)
+									AI::SendUnitEventToLua_IsAttacked(target, pUnit);
+							}
+							if (Attack(target, CalcUnitDamage(target, pUnit)))
+							{
+								if (target == proj->goalUnit || proj->goalUnit == NULL)
+									AI::CompleteAction(pUnit);
+							}
+						}
+
+						if (!Game::Rules::noGraphics)
+						{
+							FX::pParticleSystems->InitEffect(proj->pos.x, proj->pos.y, 0.0f, max_radius * 4, FX::PARTICLE_SPHERICAL_EXPLOSION);
+						}
+						
+						pUnit->projectiles.erase(pUnit->projectiles.begin()+index);
+					}
+					else
+					{
+#ifdef CHECKSUM_DEBUG_HIGH
+						Networking::checksum_output << "MOVE " << proj->direction.x << ", " << proj->direction.y << ", " << proj->direction.z << "\n";
+#endif
+						proj->pos += proj->direction * proj->type->speed * (1.0f / (float) AI::aiFps);
+						index++;
+					}
+				}
+			}
+			
+			// returns true if attacker can reach target with an attack
+			bool CanReach(Unit* attacker, Unit* target)
+			{
+				return WouldBeAbleToReach(attacker, attacker->curAssociatedSquare.x, attacker->curAssociatedSquare.y, target);
+			}
+
+			bool CanSee(Unit* attacker, Unit* target)
+			{
+				return WithinRangeArray(target, attacker->curAssociatedSquare.x, attacker->curAssociatedSquare.y, attacker->type->sightRangeArray);
+			}
+
+			int calls = 0;
+
+			Unit* GetNearestUnitInRange(Unit* unit, RangeType rangeType, PlayerState state)
+			{
+				Unit* bestUnit = NULL;
+				float bestDistance = 1000000.0, distance;
+				Unit* curUnit;
+				vector<Unit*>* units;
+				int max_range = rangeType == RANGE_SIGHT ? (int) ceil(unit->type->sightRange) : (int) ceil(unit->type->attackMaxRange);
+				int big_start_x = (unit->curAssociatedSquare.x - max_range - 10) >> bigSquareRightShift;
+				int big_start_y = (unit->curAssociatedSquare.y - max_range - 10) >> bigSquareRightShift;
+				int big_end_x = (unit->curAssociatedSquare.x + max_range + 10) >> bigSquareRightShift;
+				int big_end_y = (unit->curAssociatedSquare.y + max_range + 10) >> bigSquareRightShift;
+
+				if (big_start_y < 0)
+					big_start_y = 0;
+
+				if (big_start_x < 0)
+					big_start_x = 0;
+
+				if (big_end_y >= bigSquareHeight)
+					big_end_y = bigSquareHeight-1;
+
+				if (big_end_x >= bigSquareWidth)
+					big_end_x = bigSquareWidth-1;
+				
+				for (vector<Player*>::iterator it = pWorld->vPlayers.begin(); it != pWorld->vPlayers.end(); it++)
+				{
+					Player *owner = *it;
+					if (unit->owner->states[owner->index] & state)
+					{
+						int owner_index = owner->index;
+						units = &owner->vUnits;
+						for (int y = big_start_y; y <= big_end_y; y++)
+						{
+							for (int x = big_start_x; x <= big_end_x; x++)
+							{
+								for (vector<Unit*>::iterator it_unit = unitsInBigSquaresPerPlayer[owner_index][y][x]->begin(); it_unit != unitsInBigSquaresPerPlayer[owner_index][y][x]->end(); it_unit++)
+								{
+									curUnit = *it_unit;
+									if (curUnit != unit && curUnit->isDisplayed)
 									{
-										if (CanReach(unit, curUnit))
+										bool found = false;
+										if (rangeType == RANGE_SIGHT)
 										{
-											found = true;
+											if (CanSee(unit, curUnit))
+											{
+												found = true;
+											}
 										}
-									}
-									if (found)
-									{
-										distance = Distance2D(curUnit->pos.x - unit->pos.x, curUnit->pos.y - unit->pos.y);
-										if (distance < bestDistance)
+										else if (rangeType == RANGE_ATTACK)
 										{
-											bestUnit = curUnit;
-											bestDistance = distance;
+											if (CanReach(unit, curUnit))
+											{
+												found = true;
+											}
+										}
+										if (found)
+										{
+											distance = Distance2D(curUnit->pos.x - unit->pos.x, curUnit->pos.y - unit->pos.y);
+											if (distance < bestDistance)
+											{
+												bestUnit = curUnit;
+												bestDistance = distance;
+											}
 										}
 									}
 								}
@@ -1724,216 +1739,250 @@ namespace Game
 						}
 					}
 				}
+				return bestUnit;
 			}
-			return bestUnit;
-		}
 
-		bool UnitIsRendered(Unit *unit, Player *player)
-		{
-			int start_x, start_y;
-			Uint16** NumUnitsSeeingSquare = player->NumUnitsSeeingSquare;
-			if (!unit->isDisplayed)
+			bool UnitIsRendered(Unit *unit, Player *player)
 			{
+				int start_x, start_y;
+				Uint16** NumUnitsSeeingSquare = player->NumUnitsSeeingSquare;
+				if (!unit->isDisplayed)
+				{
+					return false;
+				}
+				GetUnitUpperLeftCorner(unit, start_x, start_y);
+				for (int y = start_y; y < start_y + unit->type->heightOnMap; y++)
+				{
+					for (int x = start_x; x < start_x + unit->type->widthOnMap; x++)
+					{
+						if (x >= 0 && y >= 0 && x < pWorld->width && y < pWorld->height)
+						{
+							if (BigSquareIsRendered(x, y) && NumUnitsSeeingSquare[y][x])
+							{
+								return true;
+							}
+						}
+					}
+				}
 				return false;
 			}
-			GetUnitUpperLeftCorner(unit, start_x, start_y);
-			for (int y = start_y; y < start_y + unit->type->heightOnMap; y++)
+
+			float GetLightAmountOnUnit(Unit* unit)
 			{
-				for (int x = start_x; x < start_x + unit->type->widthOnMap; x++)
+				float temp = 0.0;
+				int num = 0;
+				int start_x, start_y;
+				bool is_lighted;
+				GetUnitUpperLeftCorner(unit, start_x, start_y);
+				for (int y = start_y; y < start_y + unit->type->heightOnMap; y++)
 				{
-					if (x >= 0 && y >= 0 && x < pWorld->width && y < pWorld->height)
+					for (int x = start_x; x < start_x + unit->type->widthOnMap; x++)
 					{
-						if (BigSquareIsRendered(x, y) && NumUnitsSeeingSquare[y][x])
+						if (x >= 0 && y >= 0 && x < pWorld->width && y < pWorld->height)
+						{
+							is_lighted = pWorld->NumLightsOnSquare[y][x] > 0 ? 1 : 0;
+							temp += (float) is_lighted;
+							num++;
+						}
+					}
+				}
+				return temp / (float) num;
+			}
+
+			bool UnitIsVisible(Unit *unit, Player *player)
+			{
+				int start_x, start_y;
+				int end_x, end_y;
+				Uint16** NumUnitsSeeingSquare = player->NumUnitsSeeingSquare;
+				if (!unit->isDisplayed)
+				{
+					return false;
+				}
+				GetUnitUpperLeftCorner(unit, start_x, start_y);
+				end_x = start_x + unit->type->widthOnMap - 1;
+				end_y = start_y + unit->type->heightOnMap - 1;
+				for (int y = start_y; y <= end_y; y++)
+				{
+					Uint16* row = NumUnitsSeeingSquare[y];
+					for (int x = start_x; x <= end_x; x++)
+					{
+						if (row[x])
 						{
 							return true;
 						}
 					}
 				}
-			}
-			return false;
-		}
-
-		float GetLightAmountOnUnit(Unit* unit)
-		{
-			float temp = 0.0;
-			int num = 0;
-			int start_x, start_y;
-			bool is_lighted;
-			GetUnitUpperLeftCorner(unit, start_x, start_y);
-			for (int y = start_y; y < start_y + unit->type->heightOnMap; y++)
-			{
-				for (int x = start_x; x < start_x + unit->type->widthOnMap; x++)
-				{
-					if (x >= 0 && y >= 0 && x < pWorld->width && y < pWorld->height)
-					{
-						is_lighted = pWorld->NumLightsOnSquare[y][x] > 0 ? 1 : 0;
-						temp += (float) is_lighted;
-						num++;
-					}
-				}
-			}
-			return temp / (float) num;
-		}
-
-		bool UnitIsVisible(Unit *unit, Player *player)
-		{
-			int start_x, start_y;
-			int end_x, end_y;
-			Uint16** NumUnitsSeeingSquare = player->NumUnitsSeeingSquare;
-			if (!unit->isDisplayed)
-			{
 				return false;
 			}
-			GetUnitUpperLeftCorner(unit, start_x, start_y);
-			end_x = start_x + unit->type->widthOnMap - 1;
-			end_y = start_y + unit->type->heightOnMap - 1;
-			for (int y = start_y; y <= end_y; y++)
-			{
-				Uint16* row = NumUnitsSeeingSquare[y];
-				for (int x = start_x; x <= end_x; x++)
-				{
-					if (row[x])
-					{
-						return true;
-					}
-				}
-			}
-			return false;
-		}
 
-		inline bool SquareIsVisible_UnGuarded(Player *player, int x, int y)
-		{
-			return player->NumUnitsSeeingSquare[y][x];
-		}
-
-		bool SquareIsVisible(Player *player, int x, int y)
-		{
-			if (x >= 0 && y >= 0 && x < pWorld->width && y < pWorld->height)
+			inline bool SquareIsVisible_UnGuarded(Player *player, int x, int y)
 			{
 				return player->NumUnitsSeeingSquare[y][x];
 			}
-			else
-			{
-				return false;
-			}
-		}
 
-		inline bool MovementTypeCanWalkOnSquare_NoPrecalc(MovementType mType, int x, int y)
-		{
-			if (x < 0 || y < 0 || x >= pWorld->width || y >= pWorld->height)
+			bool SquareIsVisible(Player *player, int x, int y)
 			{
-				return false;
-			}
-			int steepness = pWorld->ppSteepness[y][x];
-			float height = HeightMipmaps[0][0].ppHeights[y][x];
-			switch (mType)
-			{
-				case MOVEMENT_HUMAN:
-					return steepness < 72 && height > waterLevel;
-					break;
-				case MOVEMENT_SMALLVEHICLE:
-					return steepness < 68 && height > waterLevel;
-					break;
-				case MOVEMENT_MEDIUMVEHICLE:
-					return steepness < 60 && height > waterLevel;
-					break;
-				case MOVEMENT_LARGEVEHICLE:
-					return steepness < 54 && height > waterLevel;
-					break;
-				case MOVEMENT_BUILDING:
-					return steepness < 51 && height > waterLevel && height < unitBuildingMaximumAltitude;
-					break;
-				default:
-					return false;
-					break;
-			}
-		}
-
-		inline bool MovementTypeCanWalkOnSquare_UnGuarded(MovementType mType, int x, int y)
-		{
-			return movementTypeWithSizeCanWalkOnSquare[0][mType][y][x];
-		}
-
-		inline bool MovementTypeCanWalkOnSquares_UnGuarded(MovementType mType, int size, int x, int y)
-		{
-			return movementTypeWithSizeCanWalkOnSquare[size-1][mType][y][x];
-		}
-
-		bool MovementTypeCanWalkOnSquare(MovementType mType, int x, int y)
-		{
-			if (x < 0 || y < 0 || x >= pWorld->width || y >= pWorld->height)
-			{
-				return false;
-			}
-			return MovementTypeCanWalkOnSquare_UnGuarded(mType, x, y);
-		}
-
-		bool MovementTypeCanWalkOnSquares(MovementType mType, int size, int x, int y)
-		{
-			if (x < 0 || y < 0 || x >= pWorld->width || y >= pWorld->height)
-			{
-				return false;
-			}
-			return MovementTypeCanWalkOnSquares_UnGuarded(mType, size, x, y);
-		}
-
-		bool MovementTypeCanWalkOnSquare_Pathfinding(MovementType mType, int size, int pos_x, int pos_y)
-		{
-			int start_x, start_y;
-			int end_x, end_y;
-			if (pos_x < 0 || pos_y < 0 || pos_x >= pWorld->width || pos_y >= pWorld->height)
-			{
-				return false;
-			}
-			if (!MovementTypeCanWalkOnSquares_UnGuarded(mType, size+1, pos_x, pos_y))
-			{
-				return false;
-			}
-			GetSizeUpperLeftCorner(size, pos_x, pos_y, start_x, start_y);
-			end_x = start_x + size - 1;
-			end_y = start_y + size - 1;
-			for (int y = start_y; y <= end_y; y++)
-			{
-				for (int x = start_x; x <= end_x; x++)
+				if (x >= 0 && y >= 0 && x < pWorld->width && y < pWorld->height)
 				{
-					Unit* pUnit = pppElements[y][x];
-					if (pUnit && !pUnit->type->isMobile)
-					{
-						pUnit->usedInAreaMaps = true;
-						return false;
-					}
+					return player->NumUnitsSeeingSquare[y][x];
+				}
+				else
+				{
+					return false;
 				}
 			}
-			return true;
-		}
 
-		inline bool UnitTypeCanWalkOnSquare(UnitType* type, int x, int y)
-		{
-			return MovementTypeCanWalkOnSquare(type->movementType, x, y);
-		}
-
-		inline bool UnitTypeCanWalkOnSquare_UnGuarded(UnitType* type, int x, int y)
-		{
-			return MovementTypeCanWalkOnSquare_UnGuarded(type->movementType, x, y);
-		}
-
-		inline bool UnitTypeCanWalkOnSquares(UnitType* type, int x, int y)
-		{
-			return MovementTypeCanWalkOnSquares(type->movementType, type->heightOnMap, x, y);
-		}
-
-		inline bool UnitTypeCanWalkOnSquares_UnGuarded(UnitType* type, int x, int y)
-		{
-			return MovementTypeCanWalkOnSquares_UnGuarded(type->movementType, type->heightOnMap, x, y);
-		}
-
-		inline bool SquareIsWalkable_Internal(Unit *unit, MovementType movementType, Player *player, int x, int y, int flags)
-		{
-			bool walkable;
-			if (x >= 0 && y >= 0 && x < pWorld->width && y < pWorld->height)
+			inline bool MovementTypeCanWalkOnSquare_NoPrecalc(MovementType mType, int x, int y)
 			{
-				walkable = MovementTypeCanWalkOnSquare_NoPrecalc(movementType, x, y);
-				if (walkable && (flags & SIW_ALLKNOWING || SquareIsVisible_UnGuarded(player, x, y)))
+				if (x < 0 || y < 0 || x >= pWorld->width || y >= pWorld->height)
+				{
+					return false;
+				}
+				int steepness = pWorld->ppSteepness[y][x];
+				float height = HeightMipmaps[0][0].ppHeights[y][x];
+				switch (mType)
+				{
+					case MOVEMENT_HUMAN:
+						return steepness < 72 && height > waterLevel;
+						break;
+					case MOVEMENT_SMALLVEHICLE:
+						return steepness < 68 && height > waterLevel;
+						break;
+					case MOVEMENT_MEDIUMVEHICLE:
+						return steepness < 60 && height > waterLevel;
+						break;
+					case MOVEMENT_LARGEVEHICLE:
+						return steepness < 54 && height > waterLevel;
+						break;
+					case MOVEMENT_BUILDING:
+						return steepness < 51 && height > waterLevel && height < unitBuildingMaximumAltitude;
+						break;
+					default:
+						return false;
+						break;
+				}
+			}
+
+			inline bool MovementTypeCanWalkOnSquare_UnGuarded(MovementType mType, int x, int y)
+			{
+				return movementTypeWithSizeCanWalkOnSquare[0][mType][y][x];
+			}
+
+			inline bool MovementTypeCanWalkOnSquares_UnGuarded(MovementType mType, int size, int x, int y)
+			{
+				return movementTypeWithSizeCanWalkOnSquare[size-1][mType][y][x];
+			}
+
+			bool MovementTypeCanWalkOnSquare(MovementType mType, int x, int y)
+			{
+				if (x < 0 || y < 0 || x >= pWorld->width || y >= pWorld->height)
+				{
+					return false;
+				}
+				return MovementTypeCanWalkOnSquare_UnGuarded(mType, x, y);
+			}
+
+			bool MovementTypeCanWalkOnSquares(MovementType mType, int size, int x, int y)
+			{
+				if (x < 0 || y < 0 || x >= pWorld->width || y >= pWorld->height)
+				{
+					return false;
+				}
+				return MovementTypeCanWalkOnSquares_UnGuarded(mType, size, x, y);
+			}
+
+			bool MovementTypeCanWalkOnSquare_Pathfinding(MovementType mType, int size, int pos_x, int pos_y)
+			{
+				int start_x, start_y;
+				int end_x, end_y;
+				if (pos_x < 0 || pos_y < 0 || pos_x >= pWorld->width || pos_y >= pWorld->height)
+				{
+					return false;
+				}
+				if (!MovementTypeCanWalkOnSquares_UnGuarded(mType, size+1, pos_x, pos_y))
+				{
+					return false;
+				}
+				GetSizeUpperLeftCorner(size, pos_x, pos_y, start_x, start_y);
+				end_x = start_x + size - 1;
+				end_y = start_y + size - 1;
+				for (int y = start_y; y <= end_y; y++)
+				{
+					for (int x = start_x; x <= end_x; x++)
+					{
+						Unit* pUnit = pppElements[y][x];
+						if (pUnit && !pUnit->type->isMobile)
+						{
+							pUnit->usedInAreaMaps = true;
+							return false;
+						}
+					}
+				}
+				return true;
+			}
+
+			inline bool UnitTypeCanWalkOnSquare(UnitType* type, int x, int y)
+			{
+				return MovementTypeCanWalkOnSquare(type->movementType, x, y);
+			}
+
+			inline bool UnitTypeCanWalkOnSquare_UnGuarded(UnitType* type, int x, int y)
+			{
+				return MovementTypeCanWalkOnSquare_UnGuarded(type->movementType, x, y);
+			}
+
+			inline bool UnitTypeCanWalkOnSquares(UnitType* type, int x, int y)
+			{
+				return MovementTypeCanWalkOnSquares(type->movementType, type->heightOnMap, x, y);
+			}
+
+			inline bool UnitTypeCanWalkOnSquares_UnGuarded(UnitType* type, int x, int y)
+			{
+				return MovementTypeCanWalkOnSquares_UnGuarded(type->movementType, type->heightOnMap, x, y);
+			}
+
+			inline bool SquareIsWalkable_Internal(Unit *unit, MovementType movementType, Player *player, int x, int y, int flags)
+			{
+				bool walkable;
+				if (x >= 0 && y >= 0 && x < pWorld->width && y < pWorld->height)
+				{
+					walkable = MovementTypeCanWalkOnSquare_NoPrecalc(movementType, x, y);
+					if (walkable && (flags & SIW_ALLKNOWING || SquareIsVisible_UnGuarded(player, x, y)))
+					{
+						Unit* curUnit = pppElements[y][x];
+						if (curUnit == NULL || curUnit == unit)
+						{
+							return true;
+						}
+						if (flags & SIW_CONSIDER_WAITING && curUnit->isWaiting)
+						{
+							return false;
+						}
+						if (flags & SIW_CONSIDER_PUSHED && curUnit->isPushed)
+						{
+							return false;
+						}
+						if (flags & SIW_IGNORE_MOVING && curUnit->isMoving)
+						{
+							return true;
+						}
+						if (flags & SIW_IGNORE_OWN_MOBILE_UNITS && curUnit->owner == player && curUnit->type->isMobile)
+						{
+							return true;
+						}
+						return false;
+					}
+					else
+					{
+						return walkable;
+					}
+				}
+				return false;
+			}
+
+			inline bool SquareIsWalkable_MultipleInternal(Unit *unit, Player *player, int x, int y, int flags)
+			{
+				if (flags & SIW_ALLKNOWING || SquareIsVisible_UnGuarded(player, x, y))
 				{
 					Unit* curUnit = pppElements[y][x];
 					if (curUnit == NULL || curUnit == unit)
@@ -1958,182 +2007,132 @@ namespace Game
 					}
 					return false;
 				}
-				else
-				{
-					return walkable;
-				}
+				return true;
 			}
-			return false;
-		}
 
-		inline bool SquareIsWalkable_MultipleInternal(Unit *unit, Player *player, int x, int y, int flags)
-		{
-			if (flags & SIW_ALLKNOWING || SquareIsVisible_UnGuarded(player, x, y))
+			inline bool SquareIsWalkable(Unit *unit, int x, int y, int flags)
 			{
-				Unit* curUnit = pppElements[y][x];
-				if (curUnit == NULL || curUnit == unit)
+				return SquareIsWalkable_Internal(unit, unit->type->movementType, unit->owner, x, y, flags);
+			}
+
+			inline bool SquareIsWalkable(MovementType movementType, Player* player, int x, int y, int flags)
+			{
+				return SquareIsWalkable_Internal(NULL, movementType, player, x, y, flags);
+			}
+
+			inline bool SquareIsWalkable(Unit *unit, int x, int y)
+			{
+				return SquareIsWalkable_Internal(unit, unit->type->movementType, unit->owner, x, y, SIW_DEFAULT);
+			}
+
+			inline bool SquareIsWalkable(UnitType *type, Player *player, int x, int y, int flags)
+			{
+				return SquareIsWalkable_Internal(NULL, type->movementType, player, x, y, flags);
+			}
+
+			inline bool SquareIsWalkable(UnitType *type, Player *player, int x, int y)
+			{
+				return SquareIsWalkable_Internal(NULL, type->movementType, player, x, y, SIW_DEFAULT);
+			}
+
+			bool SquaresAreWalkable_Internal(Unit *unit, MovementType movementType, int width, int height, Player* player, int x, int y, int flags)
+			{
+				int start_x, start_y;
+				int end_x, end_y;
+				if (x >= 0 && y >= 0 && x < pWorld->width && y < pWorld->height)
 				{
-					return true;
-				}
-				if (flags & SIW_CONSIDER_WAITING && curUnit->isWaiting)
-				{
-					return false;
-				}
-				if (flags & SIW_CONSIDER_PUSHED && curUnit->isPushed)
-				{
-					return false;
-				}
-				if (flags & SIW_IGNORE_MOVING && curUnit->isMoving)
-				{
-					return true;
-				}
-				if (flags & SIW_IGNORE_OWN_MOBILE_UNITS && curUnit->owner == player && curUnit->type->isMobile)
-				{
-					return true;
+					if (width == height && width <= 4 && movementTypeWithSizeCanWalkOnSquare[width-1][movementType])
+					{
+						if (MovementTypeCanWalkOnSquares(movementType, width, x, y))
+						{
+							GetSizeUpperLeftCorner(width, x, y, start_x, start_y);
+							end_x = start_x + width;
+							end_y = start_y + height;
+							for (int ny = start_y; ny < end_y; ny++)
+							{
+								for (int nx = start_x; nx < end_x; nx++)
+								{
+									if (!SquareIsWalkable_MultipleInternal(unit, player, nx, ny, flags))
+									{
+										return false;
+									}
+								}
+							}
+							return true;
+						}
+					}
+					else
+					{
+						GetWHUpperLeftCorner(width, height, x, y, start_x, start_y);
+						end_x = start_x + width;
+						end_y = start_y + height;
+						for (int ny = start_y; ny < end_y; ny++)
+						{
+							for (int nx = start_x; nx < end_x; nx++)
+							{
+								if (!SquareIsWalkable_Internal(unit, movementType, player, nx, ny, flags))
+								{
+									return false;
+								}
+							}
+						}
+						return true;
+					}
 				}
 				return false;
 			}
-			return true;
-		}
 
-		inline bool SquareIsWalkable(Unit *unit, int x, int y, int flags)
-		{
-			return SquareIsWalkable_Internal(unit, unit->type->movementType, unit->owner, x, y, flags);
-		}
-
-		inline bool SquareIsWalkable(Unit *unit, int x, int y)
-		{
-			return SquareIsWalkable_Internal(unit, unit->type->movementType, unit->owner, x, y, SIW_DEFAULT);
-		}
-
-		inline bool SquareIsWalkable(UnitType *type, Player *player, int x, int y, int flags)
-		{
-			return SquareIsWalkable_Internal(NULL, type->movementType, player, x, y, flags);
-		}
-
-		inline bool SquareIsWalkable(UnitType *type, Player *player, int x, int y)
-		{
-			return SquareIsWalkable_Internal(NULL, type->movementType, player, x, y, SIW_DEFAULT);
-		}
-
-		bool SquaresAreWalkable(Unit *unit, int x, int y, int flags)
-		{
-			int start_x, start_y;
-			int end_x, end_y;
-			UnitType* type = unit->type;
-			if (x >= 0 && y >= 0 && x < pWorld->width && y < pWorld->height)
+			bool SquaresAreWalkable(Unit* unit, int x, int y, int flags)
 			{
-				if (unit->type->isMobile && movementTypeWithSizeCanWalkOnSquare[unit->type->widthOnMap-1][unit->type->movementType])
+				UnitType* type = unit->type;
+				return SquaresAreWalkable_Internal(unit, type->movementType, type->widthOnMap, type->heightOnMap, unit->owner, x, y, flags);
+			}
+
+			bool SquaresAreWalkable(Unit *unit, int x, int y)
+			{
+				return SquaresAreWalkable(unit, x, y, SIW_DEFAULT);
+			}
+
+			bool SquaresAreWalkable(UnitType *type, Player *player, int x, int y, int flags)
+			{
+				return SquaresAreWalkable_Internal(NULL, type->movementType, type->widthOnMap, type->heightOnMap, player, x, y, flags);
+			}
+			
+			bool SquaresAreWalkable(MovementType movementType, int width, int height, Player *player, int x, int y, int flags)
+			{
+				return SquaresAreWalkable_Internal(NULL, movementType, width, height, player, x, y, flags);
+			}
+
+			inline bool SquaresAreWalkable(UnitType *type, Player *player, int x, int y)
+			{
+				return SquaresAreWalkable(type, player, x, y, SIW_DEFAULT);
+			}
+
+			bool SquaresAreWalkable(UnitType *type, int x, int y, int flags)
+			{
+				return SquaresAreWalkable(type, NULL, x, y, flags);
+			}
+
+			bool SquareIsLighted(Player *player, int x, int y)
+			{
+				if (x >= 0 && y >= 0 && x < pWorld->width && y < pWorld->height)
 				{
-					if (UnitTypeCanWalkOnSquares(unit->type, x, y))
+					if (player->NumUnitsSeeingSquare[y][x])
 					{
-						Player* player = unit->owner;
-						GetUnitUpperLeftCorner(unit, x, y, start_x, start_y);
-						end_x = start_x + unit->type->widthOnMap;
-						end_y = start_y + unit->type->heightOnMap;
-						for (int ny = start_y; ny < end_y; ny++)
-						{
-							for (int nx = start_x; nx < end_x; nx++)
-							{
-								if (!SquareIsWalkable_MultipleInternal(unit, player, nx, ny, flags))
-								{
-									return false;
-								}
-							}
-						}
-						return true;
+						return pWorld->NumLightsOnSquare[y][x];
+					}
+					else
+					{
+						return false;
 					}
 				}
 				else
 				{
-					Player* player = unit->owner;
-					GetUnitUpperLeftCorner(unit, x, y, start_x, start_y);
-					end_x = start_x + unit->type->widthOnMap;
-					end_y = start_y + unit->type->heightOnMap;
-					for (int ny = start_y; ny < end_y; ny++)
-					{
-						for (int nx = start_x; nx < end_x; nx++)
-						{
-							if (!SquareIsWalkable_Internal(unit, type->movementType, player, nx, ny, flags))
-							{
-								return false;
-							}
-						}
-					}
-					return true;
+					return false;
 				}
 			}
-			return false;
-		}
 
-		bool SquaresAreWalkable(Unit *unit, int x, int y)
-		{
-			return SquaresAreWalkable(unit, x, y, SIW_DEFAULT);
-		}
-
-		void CheckPrecomputedArrays(UnitType* type);
-
-		bool SquaresAreWalkable(UnitType *type, Player *player, int x, int y, int flags)
-		{
-			int start_x, start_y;
-			int end_x, end_y;
-			if (x >= 0 && y >= 0 && x < pWorld->width && y < pWorld->height)
-			{
-//				CheckPrecomputedArrays(type);
-				if (type->isMobile && movementTypeWithSizeCanWalkOnSquare[type->widthOnMap-1][type->movementType])
-				{
-					if (UnitTypeCanWalkOnSquares(type, x, y))
-					{
-						GetTypeUpperLeftCorner(type, x, y, start_x, start_y);
-						end_x = start_x + type->widthOnMap;
-						end_y = start_y + type->heightOnMap;
-						for (int ny = start_y; ny < end_y; ny++)
-						{
-							for (int nx = start_x; nx < end_x; nx++)
-							{
-								if (!SquareIsWalkable_MultipleInternal(NULL, player, nx, ny, flags))
-								{
-									return false;
-								}
-							}
-						}
-						return true;
-					}
-				}
-				else
-				{
-					GetTypeUpperLeftCorner(type, x, y, start_x, start_y);
-					end_x = start_x + type->widthOnMap;
-					end_y = start_y + type->heightOnMap;
-					for (int ny = start_y; ny < end_y; ny++)
-					{
-						for (int nx = start_x; nx < end_x; nx++)
-						{
-							if (!SquareIsWalkable_Internal(NULL, type->movementType, player, nx, ny, flags))
-							{
-								return false;
-							}
-						}
-					}
-					return true;
-				}
-			}
-			return false;
-		}
-
-		inline bool SquaresAreWalkable(UnitType *type, Player *player, int x, int y)
-		{
-			return SquaresAreWalkable(type, player, x, y, SIW_DEFAULT);
-		}
-
-		bool SquaresAreWalkable(UnitType *type, int x, int y, int flags)
-		{
-			return SquaresAreWalkable(type, NULL, x, y, flags);
-		}
-
-		bool SquareIsLighted(Player *player, int x, int y)
-		{
-			if (x >= 0 && y >= 0 && x < pWorld->width && y < pWorld->height)
+			inline bool SquareIsLighted_UnGuarded(Player *player, int x, int y)
 			{
 				if (player->NumUnitsSeeingSquare[y][x])
 				{
@@ -2144,1501 +2143,1484 @@ namespace Game
 					return false;
 				}
 			}
-			else
-			{
-				return false;
-			}
-		}
 
-		inline bool SquareIsLighted_UnGuarded(Player *player, int x, int y)
-		{
-			if (player->NumUnitsSeeingSquare[y][x])
+			bool SquaresAreLighted(UnitType *type, Player *player, int x, int y)
 			{
-				return pWorld->NumLightsOnSquare[y][x];
-			}
-			else
-			{
-				return false;
-			}
-		}
-
-		bool SquaresAreLighted(UnitType *type, Player *player, int x, int y)
-		{
-			int start_x, start_y;
-			int end_x, end_y;
-			GetTypeUpperLeftCorner(type, x, y, start_x, start_y);
-			end_y = start_y + type->heightOnMap - 1;
-			end_x = start_x + type->widthOnMap - 1;
-			if (start_x < 0 || start_y < 0 || end_x > pWorld->width || end_y > pWorld->height)
-			{
-				return false;
-			}
-			for (int ny = start_y; ny <= end_y; ny++)
-			{
-				for (int nx = start_x; nx <= end_x; nx++)
+				int start_x, start_y;
+				int end_x, end_y;
+				GetTypeUpperLeftCorner(type, x, y, start_x, start_y);
+				end_y = start_y + type->heightOnMap - 1;
+				end_x = start_x + type->widthOnMap - 1;
+				if (start_x < 0 || start_y < 0 || end_x > pWorld->width || end_y > pWorld->height)
 				{
-					if (!SquareIsLighted_UnGuarded(player, nx, ny))
+					return false;
+				}
+				for (int ny = start_y; ny <= end_y; ny++)
+				{
+					for (int nx = start_x; nx <= end_x; nx++)
 					{
-						return false;
+						if (!SquareIsLighted_UnGuarded(player, nx, ny))
+						{
+							return false;
+						}
 					}
 				}
+				return true;
 			}
-			return true;
-		}
 
-		bool SquaresAreLightedAround(UnitType *type, Player *player, int x, int y)
-		{
-			int start_x, start_y;
-			GetTypeUpperLeftCorner(type, x, y, start_x, start_y);
-			start_x--;
-			start_y--;
-			for (int ny = start_y; ny < start_y + type->heightOnMap + 2; ny++)
+			bool SquaresAreLightedAround(UnitType *type, Player *player, int x, int y)
 			{
-				for (int nx = start_x; nx < start_x + type->widthOnMap + 2; nx++)
+				int start_x, start_y;
+				GetTypeUpperLeftCorner(type, x, y, start_x, start_y);
+				start_x--;
+				start_y--;
+				for (int ny = start_y; ny < start_y + type->heightOnMap + 2; ny++)
 				{
-					if (!SquareIsLighted(player, nx, ny))
+					for (int nx = start_x; nx < start_x + type->widthOnMap + 2; nx++)
 					{
-						return false;
+						if (!SquareIsLighted(player, nx, ny))
+						{
+							return false;
+						}
 					}
 				}
+				return true;
 			}
-			return true;
-		}
 
-		bool SquareIsGoal(Unit *unit, int x, int y, bool use_internal)
-		{
-			Unit*       target = NULL;
-			IntPosition pos;
-			void*       arg;
+			bool SquareIsGoal(Unit *unit, int x, int y, bool use_internal)
+			{
+				Unit*       target = NULL;
+				IntPosition pos;
+				void*       arg;
+				
+				if (!use_internal)
+				{
+					target = unit->pMovementData->action.goal.unit;
+					pos    = unit->pMovementData->action.goal.pos;
+					arg    = unit->pMovementData->action.arg;
+				}
+				else
+				{
+					target = unit->pMovementData->_action.goal.unit;
+					pos    = unit->pMovementData->_action.goal.pos;
+					arg    = unit->pMovementData->_action.arg;
+				}
 			
-			if (!use_internal)
-			{
-				target = unit->pMovementData->action.goal.unit;
-				pos    = unit->pMovementData->action.goal.pos;
-				arg    = unit->pMovementData->action.arg;
-			}
-			else
-			{
-				target = unit->pMovementData->_action.goal.unit;
-				pos    = unit->pMovementData->_action.goal.pos;
-				arg    = unit->pMovementData->_action.arg;
-			}
-		
-			if(target)
-			{
-				if (unit->pMovementData->action.action == AI::ACTION_ATTACK || unit->pMovementData->action.action == AI::ACTION_MOVE_ATTACK_UNIT)
+				if(target)
 				{
-					return WouldBeAbleToReach(unit, x, y, target);
-				}
-				else if (unit->pMovementData->action.action == AI::ACTION_FOLLOW)
-				{
-					return WithinRangeArray(target->type, x, y, target->curAssociatedSquare.x, target->curAssociatedSquare.y, nextToRangeArray);
-				}
-				else if (unit->pMovementData->action.action == AI::ACTION_BUILD)
-				{
-					if (arg)
+					if (unit->pMovementData->action.action == AI::ACTION_ATTACK || unit->pMovementData->action.action == AI::ACTION_MOVE_ATTACK_UNIT)
 					{
-						return WithinRangeArray((UnitType*) arg, x, y, pos.x, pos.y, nextToRangeArray);
+						return WouldBeAbleToReach(unit, x, y, target);
+					}
+					else if (unit->pMovementData->action.action == AI::ACTION_FOLLOW)
+					{
+						return WithinRangeArray(target->type, x, y, target->curAssociatedSquare.x, target->curAssociatedSquare.y, nextToRangeArray);
+					}
+					else if (unit->pMovementData->action.action == AI::ACTION_BUILD)
+					{
+						if (arg)
+						{
+							return WithinRangeArray((UnitType*) arg, x, y, pos.x, pos.y, nextToRangeArray);
+						}
+						else
+						{
+							return WithinRangeArray(target->type, x, y, target->curAssociatedSquare.x, target->curAssociatedSquare.y, nextToRangeArray);
+						}
 					}
 					else
 					{
-						return WithinRangeArray(target->type, x, y, target->curAssociatedSquare.x, target->curAssociatedSquare.y, nextToRangeArray);
+						return (x == pos.x) && (y == pos.y);
 					}
 				}
 				else
 				{
 					return (x == pos.x) && (y == pos.y);
 				}
-			}
-			else
-			{
-				return (x == pos.x) && (y == pos.y);
-			}
-		}		
+			}		
 
-		// operation is 0 for removing seen squares, 1 for adding seen squares.
-		void UpdateSeenSquares(Unit* unit, int x, int y, int operation)
-		{
-			int start_x, start_y, end_x, end_y;
-			Uint16** NumUnitsSeeingSquare = unit->owner->NumUnitsSeeingSquare;
-			RangeScanlines* rangeScanlines = unit->type->sightRangeScanlines;
+			// operation is 0 for removing seen squares, 1 for adding seen squares.
+			void UpdateSeenSquares(Unit* unit, int x, int y, int operation)
+			{
+				int start_x, start_y, end_x, end_y;
+				Uint16** NumUnitsSeeingSquare = unit->owner->NumUnitsSeeingSquare;
+				RangeScanlines* rangeScanlines = unit->type->sightRangeScanlines;
 
-			if (unit->owner->type == PLAYER_TYPE_REMOTE)
-			{
-				// Do not calculate seen squares for units not controlled by this client/server
-				return;
-			}
-			
-			if (operation == 0 && unit->hasSeen == false)
-			{
-				return;
-			}
-			else if (operation == 1 && unit->hasSeen == true)
-			{
-				cout << "SEEN SQUARES MANAGEMENT WARNING: Attempted to add seen squares twice" << endl;
-				return;
-			}
-
-			unit->hasSeen = operation == 1 ? true : false;
-
-			int offset = rangeScanlines->yOffset;
-			int size = rangeScanlines->height;
-			start_y = y - offset < 0 ? offset - y : 0;
-			end_y = y + offset >= pWorld->height ? size - offset + pWorld->height - y - 2 : size;
-			for (int ry = start_y; ry < end_y; ry++)
-			{
-				int ny = ry + y - offset;
-				start_x = x + rangeScanlines->scanlines[ry].startX;
-				end_x = x + rangeScanlines->scanlines[ry].endX;
-				start_x = start_x < 0 ? 0 : start_x;
-				end_x = end_x >= pWorld->width ? pWorld->width-1 : end_x;
-				if (operation)
+				if (unit->owner->type == PLAYER_TYPE_REMOTE)
 				{
-					for (int nx = start_x; nx < end_x; nx++)
-					{
-						NumUnitsSeeingSquare[ny][nx]++;
-						if (NumUnitsSeeingSquare[ny][nx] == 1 && pppElements[ny][nx] && pppElements[ny][nx]->owner != unit->owner)
-						{
-							// A unit that might have been hidden before has been spotted.
-							// Update the lastSeenPosition in the spotted unit of the player
-							// of the spotting unit correctly.
-							int player_index = unit->owner->index;
-							Unit* rev_unit = pppElements[ny][nx];
+					// Do not calculate seen squares for units not controlled by this client/server
+					return;
+				}
+				
+				if (operation == 0 && unit->hasSeen == false)
+				{
+					return;
+				}
+				else if (operation == 1 && unit->hasSeen == true)
+				{
+					cout << "SEEN SQUARES MANAGEMENT WARNING: Attempted to add seen squares twice" << endl;
+					return;
+				}
 
-							rev_unit->lastSeenPositions[player_index] = rev_unit->curAssociatedSquare;
+				unit->hasSeen = operation == 1 ? true : false;
+
+				int offset = rangeScanlines->yOffset;
+				int size = rangeScanlines->height;
+				start_y = y - offset < 0 ? offset - y : 0;
+				end_y = y + offset >= pWorld->height ? size - offset + pWorld->height - y - 2 : size;
+				for (int ry = start_y; ry < end_y; ry++)
+				{
+					int ny = ry + y - offset;
+					start_x = x + rangeScanlines->scanlines[ry].startX;
+					end_x = x + rangeScanlines->scanlines[ry].endX;
+					start_x = start_x < 0 ? 0 : start_x;
+					end_x = end_x >= pWorld->width ? pWorld->width-1 : end_x;
+					if (operation)
+					{
+						for (int nx = start_x; nx < end_x; nx++)
+						{
+							NumUnitsSeeingSquare[ny][nx]++;
+							if (NumUnitsSeeingSquare[ny][nx] == 1 && pppElements[ny][nx] && pppElements[ny][nx]->owner != unit->owner)
+							{
+								// A unit that might have been hidden before has been spotted.
+								// Update the lastSeenPosition in the spotted unit of the player
+								// of the spotting unit correctly.
+								int player_index = unit->owner->index;
+								Unit* rev_unit = pppElements[ny][nx];
+
+								rev_unit->lastSeenPositions[player_index] = rev_unit->curAssociatedSquare;
+							}
+						}
+					}
+					else
+					{
+						for (int nx = start_x; nx < end_x; nx++)
+						{
+							NumUnitsSeeingSquare[ny][nx]--;
 						}
 					}
 				}
-				else
+			}
+
+			// operation is 0 for removing lighted squares, 1 for adding lighted squares.
+			void UpdateLightedSquares(Unit* unit, int x, int y, int operation)
+			{
+				int start_x, start_y, end_x, end_y;
+				Uint16** NumLightsOnSquare = pWorld->NumLightsOnSquare;
+				RangeScanlines* rangeScanlines = unit->type->lightRangeScanlines;
+
+				if (unit->type->lightRange < 1e-3)
 				{
-					for (int nx = start_x; nx < end_x; nx++)
-					{
-						NumUnitsSeeingSquare[ny][nx]--;
-					}
-				}
-			}
-		}
-
-		// operation is 0 for removing lighted squares, 1 for adding lighted squares.
-		void UpdateLightedSquares(Unit* unit, int x, int y, int operation)
-		{
-			int start_x, start_y, end_x, end_y;
-			Uint16** NumLightsOnSquare = pWorld->NumLightsOnSquare;
-			RangeScanlines* rangeScanlines = unit->type->lightRangeScanlines;
-
-			if (unit->type->lightRange < 1e-3)
-			{
-				return;
-			}
-
-			if (operation == 1 && unit->lightState == LIGHT_OFF)
-			{
-				return;
-			}
-			else if (operation == 0 && !unit->isLighted)
-			{
-				return;
-			}
-
-			if (operation == 1)
-			{
-				if (unit->isLighted)
-				{
-					cout << "LIGHTED SQUARES MANAGEMENT WARNING: Attempt to light the squares of a unit twice" << endl;
 					return;
 				}
-				unit->isLighted = true;
-			}
-			else if (operation == 0)
-			{
-				unit->isLighted = false;
-			}
 
-			int offset = rangeScanlines->yOffset;
-			int size = rangeScanlines->height;
-			start_y = y - offset < 0 ? offset - y : 0;
-			end_y = y + offset >= pWorld->height ? size - offset + pWorld->height - y - 2 : size;
-			for (int ry = start_y; ry < end_y; ry++)
-			{
-				int ny = ry + y - offset;
-				start_x = x + rangeScanlines->scanlines[ry].startX;
-				end_x = x + rangeScanlines->scanlines[ry].endX;
-				start_x = start_x < 0 ? 0 : start_x;
-				end_x = end_x >= pWorld->width ? pWorld->width-1 : end_x;
+				if (operation == 1 && unit->lightState == LIGHT_OFF)
+				{
+					return;
+				}
+				else if (operation == 0 && !unit->isLighted)
+				{
+					return;
+				}
 
 				if (operation == 1)
 				{
-					for (int nx = start_x; nx < end_x; nx++)
+					if (unit->isLighted)
 					{
-						NumLightsOnSquare[ny][nx]++;
+						cout << "LIGHTED SQUARES MANAGEMENT WARNING: Attempt to light the squares of a unit twice" << endl;
+						return;
+					}
+					unit->isLighted = true;
+				}
+				else if (operation == 0)
+				{
+					unit->isLighted = false;
+				}
+
+				int offset = rangeScanlines->yOffset;
+				int size = rangeScanlines->height;
+				start_y = y - offset < 0 ? offset - y : 0;
+				end_y = y + offset >= pWorld->height ? size - offset + pWorld->height - y - 2 : size;
+				for (int ry = start_y; ry < end_y; ry++)
+				{
+					int ny = ry + y - offset;
+					start_x = x + rangeScanlines->scanlines[ry].startX;
+					end_x = x + rangeScanlines->scanlines[ry].endX;
+					start_x = start_x < 0 ? 0 : start_x;
+					end_x = end_x >= pWorld->width ? pWorld->width-1 : end_x;
+
+					if (operation == 1)
+					{
+						for (int nx = start_x; nx < end_x; nx++)
+						{
+							NumLightsOnSquare[ny][nx]++;
+						}
+					}
+					else
+					{
+						for (int nx = start_x; nx < end_x; nx++)
+						{
+							NumLightsOnSquare[ny][nx]--;
+						}
+					}
+				}
+			}
+
+			set<Unit*> ScheduledBigSquareUpdates;
+
+			bool SetAssociatedSquares(Unit* unit, int new_x, int new_y)
+			{
+				int start_x, start_y, end_x, end_y;
+				if (!SquaresAreWalkable(unit, new_x, new_y, SIW_ALLKNOWING))
+				{
+					return false;
+				}
+				
+				UpdateSeenSquares(unit, new_x, new_y, 1); // add new
+				UpdateLightedSquares(unit, new_x, new_y, 1); // add new
+				
+				unit->curAssociatedSquare.x = new_x;
+				unit->curAssociatedSquare.y = new_y;
+
+				GetUnitUpperLeftCorner(unit, new_x, new_y, start_x, start_y);
+				end_x = start_x + unit->type->widthOnMap - 1;
+				end_y = start_y + unit->type->heightOnMap - 1;
+				for (int y = start_y; y <= end_y; y++)
+				{
+					for (int x = start_x; x <= end_x; x++)
+					{
+						pppElements[y][x] = unit;
+					}
+				}
+
+				for (unsigned int i = 0; i < pWorld->vPlayers.size(); i++)
+				{
+					if (UnitIsVisible(unit, pWorld->vPlayers.at(i)))
+					{
+						unit->lastSeenPositions[i].x = new_x;
+						unit->lastSeenPositions[i].y = new_y;
+					}
+				}
+				
+				int old_big_x = unit->curAssociatedBigSquare.x;
+				int old_big_y = unit->curAssociatedBigSquare.y;
+				int new_big_x = new_x >> bigSquareRightShift;
+				int new_big_y = new_y >> bigSquareRightShift;
+
+				if (old_big_x != new_big_x || old_big_y != new_big_y)
+				{
+					ScheduledBigSquareUpdates.insert(unit);
+				}
+
+				return true;
+			}
+
+			void ApplyScheduledBigSquareUpdates()
+			{
+				for (set<Unit*>::iterator it = ScheduledBigSquareUpdates.begin(); it != ScheduledBigSquareUpdates.end(); it++)
+				{
+					Unit* unit = *it;
+					int old_big_x = unit->curAssociatedBigSquare.x;
+					int old_big_y = unit->curAssociatedBigSquare.y;
+					int new_big_x = unit->curAssociatedSquare.x >> bigSquareRightShift;
+					int new_big_y = unit->curAssociatedSquare.y >> bigSquareRightShift;
+
+					if (old_big_x > -1 && old_big_y > -1)
+					{
+						vector<Unit*> *unit_vector = unitsInBigSquaresPerPlayer[unit->owner->index][old_big_y][old_big_x];
+						for (vector<Unit*>::iterator it = unit_vector->begin(); it != unit_vector->end(); it++)
+						{
+							if (*it == unit)
+							{
+								unit_vector->erase(it);
+								break;
+							}
+						}
+						unit_vector = unitsInBigSquares[old_big_y][old_big_x];
+						for (vector<Unit*>::iterator it = unit_vector->begin(); it != unit_vector->end(); it++)
+						{
+							if (*it == unit)
+							{
+								unit_vector->erase(it);
+								break;
+							}
+						}
+					}
+					unitsInBigSquaresPerPlayer[unit->owner->index][new_big_y][new_big_x]->push_back(unit);
+					unitsInBigSquares[new_big_y][new_big_x]->push_back(unit);
+					unit->curAssociatedBigSquare.x = new_big_x;
+					unit->curAssociatedBigSquare.y = new_big_y;
+				}
+				ScheduledBigSquareUpdates.clear();
+			}
+
+			void DeleteAssociatedSquares(Unit* unit, int old_x, int old_y)
+			{
+				int start_x, start_y, end_x, end_y;
+				UpdateSeenSquares(unit, old_x, old_y, 0); // remove old
+				UpdateLightedSquares(unit, old_x, old_y, 0); // remove old
+
+				GetUnitUpperLeftCorner(unit, old_x, old_y, start_x, start_y);
+				end_x = start_x + unit->type->widthOnMap - 1;
+				end_y = start_y + unit->type->heightOnMap - 1;
+				for (int y = start_y; y <= end_y; y++)
+				{
+					for (int x = start_x; x <= end_x; x++)
+					{
+						pppElements[y][x] = NULL;
+					}
+				}
+
+				return;
+			}
+
+			// updates pppElements according to how the unit has moved on the grid
+			bool UpdateAssociatedSquares(Unit* unit, int new_x, int new_y, int old_x, int old_y)
+			{
+				if (!SquaresAreWalkable(unit, new_x, new_y, SIW_ALLKNOWING))
+				{
+					return false;
+				}
+				
+				if (unit->curAssociatedSquare.x != old_x || unit->curAssociatedSquare.y != old_y)
+				{
+					cout << "ASSOCIATED SQUARES MANAGEMENT WARNING: Attempted to delete squares in another place than where they were once added" << endl;
+					old_x = unit->curAssociatedSquare.x;
+					old_y = unit->curAssociatedSquare.y;
+				}
+
+				DeleteAssociatedSquares(unit, old_x, old_y);
+				return SetAssociatedSquares(unit, new_x, new_y);
+			}
+
+			void SetLightState(Unit* unit, LightState lightState)
+			{
+				UpdateLightedSquares(unit, unit->curAssociatedSquare.x, unit->curAssociatedSquare.y, 0); // del old
+				unit->lightState = lightState;
+				UpdateLightedSquares(unit, unit->curAssociatedSquare.x, unit->curAssociatedSquare.y, 1); // add new
+			}
+
+			void NotEnoughPowerForLight(Unit* unit)
+			{
+				if (unit->type->lightRange < 1e-3)
+				{
+					return;
+				}
+
+				if (unit->isLighted)
+				{
+					UpdateLightedSquares(unit, unit->curAssociatedSquare.x, unit->curAssociatedSquare.y, 0); // remove
+				}
+			}
+
+			void EnoughPowerForLight(Unit* unit)
+			{
+				if (unit->type->lightRange < 1e-3)
+				{
+					return;
+				}
+
+				if (!unit->isLighted)
+				{
+					UpdateLightedSquares(unit, unit->curAssociatedSquare.x, unit->curAssociatedSquare.y, 1); // add
+				}
+			}
+
+			inline int GetTraversalTime(Unit *unit, int x, int y, int dx, int dy)
+			{
+				int time = traversalTimeBySize[unit->type->widthOnMap-1][y+dy][x+dx];
+				if (dy & dx)
+				{
+					time += time >> 1;
+				}
+				return time;
+			}
+
+			int GetTraversalTimeAdjusted(Unit *unit, int x, int y, int dx, int dy)
+			{
+				int time = GetTraversalTime(unit, x, y, dx, dy);
+	/*			if (!SquaresAreLighted(unit->type, unit->owner, x+dx, y+dy))
+				{
+					time = time << 1;
+				}*/
+				return time;
+			}
+
+			void ChangePath(Unit* pUnit, int goal_x, int goal_y, AI::UnitAction action, Unit* target, void* arg)
+			{
+				if (pUnit->type->isMobile)
+				{
+					AI::CommandPathfinding(pUnit, pUnit->curAssociatedSquare.x, pUnit->curAssociatedSquare.y, goal_x, goal_y, action, target, arg);
+				}
+			}
+
+			bool CheckPath(Unit* pUnit)
+			{
+				AI::Node *curnode = pUnit->pMovementData->pStart, *parent;
+				bool invalid_path = false;
+
+				// The code below checks whether the path is correct. It cannot, however, check whether pointers
+				// are valid in any other way than checking whether they are NULL or do not match other pointers. Non-null
+				// invalid pointers will cause _crashes_, and that is not the fault of this piece of code nor this routine.
+				if (curnode->pParent)
+				{
+					invalid_path = true;
+					cout << "CRITICAL ERROR IN PATH DETECTED BY CheckPath(): pStart has pParent" << endl;
+				}
+				else
+				{
+					parent = curnode;
+					curnode = curnode->pChild;
+					while (curnode)
+					{
+						if (curnode->pParent != parent)
+						{
+							invalid_path = true;
+							cout << "CRITICAL ERROR IN PATH DETECTED BY CheckPath(): pNode->pChild->pParent != pNode" << endl;
+							break;
+						}
+						parent = curnode;
+						curnode = curnode->pChild;
+					}
+					if (parent->pChild == NULL && parent != pUnit->pMovementData->pGoal)
+					{
+						invalid_path = true;
+						cout << "CRITICAL ERROR IN PATH DETECTED BY CheckPath(): pGoal IS NOT THE LAST ITEM IN LINKED LIST OF NODES" << endl;
+					}
+				}
+				return invalid_path;
+			}
+
+			int numSentCommands = 0;
+
+			bool PushUnits(Unit* pUnit)
+			{
+				int start_x_new, start_y_new;
+				int start_x, start_y;
+				int end_x, end_y;
+				bool noloop = true;
+				if (!SquaresAreWalkable(pUnit, pUnit->pMovementData->pCurGoalNode->x, pUnit->pMovementData->pCurGoalNode->y, SIW_IGNORE_MOVING))
+				{
+					if (!SquaresAreWalkable(pUnit, pUnit->pMovementData->pCurGoalNode->x, pUnit->pMovementData->pCurGoalNode->y, SIW_IGNORE_OWN_MOBILE_UNITS))
+					{
+						return true;
 					}
 				}
 				else
 				{
-					for (int nx = start_x; nx < end_x; nx++)
-					{
-						NumLightsOnSquare[ny][nx]--;
-					}
-				}
-			}
-		}
-
-		set<Unit*> ScheduledBigSquareUpdates;
-
-		bool SetAssociatedSquares(Unit* unit, int new_x, int new_y)
-		{
-			int start_x, start_y, end_x, end_y;
-			if (!SquaresAreWalkable(unit, new_x, new_y, SIW_ALLKNOWING))
-			{
-				return false;
-			}
-			
-			UpdateSeenSquares(unit, new_x, new_y, 1); // add new
-			UpdateLightedSquares(unit, new_x, new_y, 1); // add new
-			
-			unit->curAssociatedSquare.x = new_x;
-			unit->curAssociatedSquare.y = new_y;
-
-			GetUnitUpperLeftCorner(unit, new_x, new_y, start_x, start_y);
-			end_x = start_x + unit->type->widthOnMap - 1;
-			end_y = start_y + unit->type->heightOnMap - 1;
-			for (int y = start_y; y <= end_y; y++)
-			{
-				for (int x = start_x; x <= end_x; x++)
-				{
-					pppElements[y][x] = unit;
-				}
-			}
-
-			for (unsigned int i = 0; i < pWorld->vPlayers.size(); i++)
-			{
-				if (UnitIsVisible(unit, pWorld->vPlayers.at(i)))
-				{
-					unit->lastSeenPositions[i].x = new_x;
-					unit->lastSeenPositions[i].y = new_y;
-				}
-			}
-			
-			int old_big_x = unit->curAssociatedBigSquare.x;
-			int old_big_y = unit->curAssociatedBigSquare.y;
-			int new_big_x = new_x >> bigSquareRightShift;
-			int new_big_y = new_y >> bigSquareRightShift;
-
-			if (old_big_x != new_big_x || old_big_y != new_big_y)
-			{
-				ScheduledBigSquareUpdates.insert(unit);
-			}
-
-			return true;
-		}
-
-		void ApplyScheduledBigSquareUpdates()
-		{
-			for (set<Unit*>::iterator it = ScheduledBigSquareUpdates.begin(); it != ScheduledBigSquareUpdates.end(); it++)
-			{
-				Unit* unit = *it;
-				int old_big_x = unit->curAssociatedBigSquare.x;
-				int old_big_y = unit->curAssociatedBigSquare.y;
-				int new_big_x = unit->curAssociatedSquare.x >> bigSquareRightShift;
-				int new_big_y = unit->curAssociatedSquare.y >> bigSquareRightShift;
-
-				if (old_big_x > -1 && old_big_y > -1)
-				{
-					vector<Unit*> *unit_vector = unitsInBigSquaresPerPlayer[unit->owner->index][old_big_y][old_big_x];
-					for (vector<Unit*>::iterator it = unit_vector->begin(); it != unit_vector->end(); it++)
-					{
-						if (*it == unit)
-						{
-							unit_vector->erase(it);
-							break;
-						}
-					}
-					unit_vector = unitsInBigSquares[old_big_y][old_big_x];
-					for (vector<Unit*>::iterator it = unit_vector->begin(); it != unit_vector->end(); it++)
-					{
-						if (*it == unit)
-						{
-							unit_vector->erase(it);
-							break;
-						}
-					}
-				}
-				unitsInBigSquaresPerPlayer[unit->owner->index][new_big_y][new_big_x]->push_back(unit);
-				unitsInBigSquares[new_big_y][new_big_x]->push_back(unit);
-				unit->curAssociatedBigSquare.x = new_big_x;
-				unit->curAssociatedBigSquare.y = new_big_y;
-			}
-			ScheduledBigSquareUpdates.clear();
-		}
-
-		void DeleteAssociatedSquares(Unit* unit, int old_x, int old_y)
-		{
-			int start_x, start_y, end_x, end_y;
-			UpdateSeenSquares(unit, old_x, old_y, 0); // remove old
-			UpdateLightedSquares(unit, old_x, old_y, 0); // remove old
-
-			GetUnitUpperLeftCorner(unit, old_x, old_y, start_x, start_y);
-			end_x = start_x + unit->type->widthOnMap - 1;
-			end_y = start_y + unit->type->heightOnMap - 1;
-			for (int y = start_y; y <= end_y; y++)
-			{
-				for (int x = start_x; x <= end_x; x++)
-				{
-					pppElements[y][x] = NULL;
-				}
-			}
-
-			return;
-		}
-
-		// updates pppElements according to how the unit has moved on the grid
-		bool UpdateAssociatedSquares(Unit* unit, int new_x, int new_y, int old_x, int old_y)
-		{
-			if (!SquaresAreWalkable(unit, new_x, new_y, SIW_ALLKNOWING))
-			{
-				return false;
-			}
-			
-			if (unit->curAssociatedSquare.x != old_x || unit->curAssociatedSquare.y != old_y)
-			{
-				cout << "ASSOCIATED SQUARES MANAGEMENT WARNING: Attempted to delete squares in another place than where they were once added" << endl;
-				old_x = unit->curAssociatedSquare.x;
-				old_y = unit->curAssociatedSquare.y;
-			}
-
-			DeleteAssociatedSquares(unit, old_x, old_y);
-			return SetAssociatedSquares(unit, new_x, new_y);
-		}
-
-		void SetLightState(Unit* unit, LightState lightState)
-		{
-			UpdateLightedSquares(unit, unit->curAssociatedSquare.x, unit->curAssociatedSquare.y, 0); // del old
-			unit->lightState = lightState;
-			UpdateLightedSquares(unit, unit->curAssociatedSquare.x, unit->curAssociatedSquare.y, 1); // add new
-		}
-
-		void NotEnoughPowerForLight(Unit* unit)
-		{
-			if (unit->type->lightRange < 1e-3)
-			{
-				return;
-			}
-
-			if (unit->isLighted)
-			{
-				UpdateLightedSquares(unit, unit->curAssociatedSquare.x, unit->curAssociatedSquare.y, 0); // remove
-			}
-		}
-
-		void EnoughPowerForLight(Unit* unit)
-		{
-			if (unit->type->lightRange < 1e-3)
-			{
-				return;
-			}
-
-			if (!unit->isLighted)
-			{
-				UpdateLightedSquares(unit, unit->curAssociatedSquare.x, unit->curAssociatedSquare.y, 1); // add
-			}
-		}
-
-		inline int GetTraversalTime(Unit *unit, int x, int y, int dx, int dy)
-		{
-			int time = traversalTimeBySize[unit->type->widthOnMap-1][y+dy][x+dx];
-			if (dy & dx)
-			{
-				time += time >> 1;
-			}
-			return time;
-		}
-
-		int GetTraversalTimeAdjusted(Unit *unit, int x, int y, int dx, int dy)
-		{
-			int time = GetTraversalTime(unit, x, y, dx, dy);
-/*			if (!SquaresAreLighted(unit->type, unit->owner, x+dx, y+dy))
-			{
-				time = time << 1;
-			}*/
-			return time;
-		}
-
-		void ChangePath(Unit* pUnit, int goal_x, int goal_y, AI::UnitAction action, Unit* target, void* arg)
-		{
-			if (pUnit->type->isMobile)
-			{
-				AI::CommandPathfinding(pUnit, pUnit->curAssociatedSquare.x, pUnit->curAssociatedSquare.y, goal_x, goal_y, action, target, arg);
-			}
-		}
-
-		bool CheckPath(Unit* pUnit)
-		{
-			AI::Node *curnode = pUnit->pMovementData->pStart, *parent;
-			bool invalid_path = false;
-
-			// The code below checks whether the path is correct. It cannot, however, check whether pointers
-			// are valid in any other way than checking whether they are NULL or do not match other pointers. Non-null
-			// invalid pointers will cause _crashes_, and that is not the fault of this piece of code nor this routine.
-			if (curnode->pParent)
-			{
-				invalid_path = true;
-				cout << "CRITICAL ERROR IN PATH DETECTED BY CheckPath(): pStart has pParent" << endl;
-			}
-			else
-			{
-				parent = curnode;
-				curnode = curnode->pChild;
-				while (curnode)
-				{
-					if (curnode->pParent != parent)
-					{
-						invalid_path = true;
-						cout << "CRITICAL ERROR IN PATH DETECTED BY CheckPath(): pNode->pChild->pParent != pNode" << endl;
-						break;
-					}
-					parent = curnode;
-					curnode = curnode->pChild;
-				}
-				if (parent->pChild == NULL && parent != pUnit->pMovementData->pGoal)
-				{
-					invalid_path = true;
-					cout << "CRITICAL ERROR IN PATH DETECTED BY CheckPath(): pGoal IS NOT THE LAST ITEM IN LINKED LIST OF NODES" << endl;
-				}
-			}
-			return invalid_path;
-		}
-
-		int numSentCommands = 0;
-
-		bool PushUnits(Unit* pUnit)
-		{
-			int start_x_new, start_y_new;
-			int start_x, start_y;
-			int end_x, end_y;
-			bool noloop = true;
-			if (!SquaresAreWalkable(pUnit, pUnit->pMovementData->pCurGoalNode->x, pUnit->pMovementData->pCurGoalNode->y, SIW_IGNORE_MOVING))
-			{
-				if (!SquaresAreWalkable(pUnit, pUnit->pMovementData->pCurGoalNode->x, pUnit->pMovementData->pCurGoalNode->y, SIW_IGNORE_OWN_MOBILE_UNITS))
-				{
 					return true;
 				}
-			}
-			else
-			{
-				return true;
-			}
-			GetUnitUpperLeftCorner(pUnit, pUnit->pMovementData->pCurGoalNode->x, pUnit->pMovementData->pCurGoalNode->y, start_x_new, start_y_new);
-			GetUnitUpperLeftCorner(pUnit, pUnit->curAssociatedSquare.x, pUnit->curAssociatedSquare.y, start_x, start_y);
-			end_x = start_x + pUnit->type->widthOnMap - 1;
-			end_y = start_y + pUnit->type->heightOnMap - 1;
-			Uint32 curtime = SDL_GetTicks();
-			bool found = false;
-			for (int y = start_y_new; y < start_y_new + pUnit->type->heightOnMap; y++)
-			{
-				for (int x = start_x_new; x < start_x_new + pUnit->type->widthOnMap; x++)
+				GetUnitUpperLeftCorner(pUnit, pUnit->pMovementData->pCurGoalNode->x, pUnit->pMovementData->pCurGoalNode->y, start_x_new, start_y_new);
+				GetUnitUpperLeftCorner(pUnit, pUnit->curAssociatedSquare.x, pUnit->curAssociatedSquare.y, start_x, start_y);
+				end_x = start_x + pUnit->type->widthOnMap - 1;
+				end_y = start_y + pUnit->type->heightOnMap - 1;
+				Uint32 curtime = SDL_GetTicks();
+				bool found = false;
+				for (int y = start_y_new; y < start_y_new + pUnit->type->heightOnMap; y++)
 				{
-					if (x >= 0 && y >= 0 && x < pWorld->width && y < pWorld->height && pppElements[y][x])
+					for (int x = start_x_new; x < start_x_new + pUnit->type->widthOnMap; x++)
 					{
-						Dimension::Unit* curUnit = pppElements[y][x];
-						pUnit->isWaiting = true;
-						found = true;
-						if (curtime - curUnit->lastCommand > (AI::aiFps >> 2) && !curUnit->isMoving && !curUnit->isPushed && !curUnit->isWaiting && !AI::IsUndergoingPathCalc(curUnit))
+						if (x >= 0 && y >= 0 && x < pWorld->width && y < pWorld->height && pppElements[y][x])
 						{
-							int diff_x = pUnit->pMovementData->pCurGoalNode->x - pUnit->curAssociatedSquare.x;
-							int diff_y = pUnit->pMovementData->pCurGoalNode->y - pUnit->curAssociatedSquare.y;
-							int goto_x = pUnit->pMovementData->pCurGoalNode->x, goto_y = pUnit->pMovementData->pCurGoalNode->y;
-							int unit_x = curUnit->curAssociatedSquare.x, unit_y = curUnit->curAssociatedSquare.y;
-							int start_x_path = start_x - ((curUnit->type->widthOnMap-1) << 1) - 1;
-							int start_y_path = start_y - ((curUnit->type->heightOnMap-1) << 1) - 1;
-							int end_x_path = end_x + (curUnit->type->widthOnMap << 1) + 1;
-							int end_y_path = end_y + (curUnit->type->heightOnMap << 1) + 1;
-							int middle_x, middle_y;
-							bool dirs_possible[10] = {false, false, true, true, true, true, true, true, true, true};
-							int trace_dirs[8][2] = {{-1,  0},
-		                       					       {-1, -1},
-		                       					       { 0, -1},
-		                       					       { 1, -1},
-		                       					       { 1,  0},
-		                       					       { 1,  1},
-		                       					       { 0,  1},
-		                       					       {-1,  1}};
-		                       			int dirmatrix[3][3] = {{1, 2, 3},
-		                       			                       {0, 0, 4},
-		                       			                       {7, 6, 5}};
-		                       			int curdir = dirmatrix[diff_y+1][diff_x+1];
+							Dimension::Unit* curUnit = pppElements[y][x];
+							pUnit->isWaiting = true;
+							found = true;
+							if (curtime - curUnit->lastCommand > (AI::aiFps >> 2) && !curUnit->isMoving && !curUnit->isPushed && !curUnit->isWaiting && !AI::IsUndergoingPathCalc(curUnit))
+							{
+								int diff_x = pUnit->pMovementData->pCurGoalNode->x - pUnit->curAssociatedSquare.x;
+								int diff_y = pUnit->pMovementData->pCurGoalNode->y - pUnit->curAssociatedSquare.y;
+								int goto_x = pUnit->pMovementData->pCurGoalNode->x, goto_y = pUnit->pMovementData->pCurGoalNode->y;
+								int unit_x = curUnit->curAssociatedSquare.x, unit_y = curUnit->curAssociatedSquare.y;
+								int start_x_path = start_x - ((curUnit->type->widthOnMap-1) << 1) - 1;
+								int start_y_path = start_y - ((curUnit->type->heightOnMap-1) << 1) - 1;
+								int end_x_path = end_x + (curUnit->type->widthOnMap << 1) + 1;
+								int end_y_path = end_y + (curUnit->type->heightOnMap << 1) + 1;
+								int middle_x, middle_y;
+								bool dirs_possible[10] = {false, false, true, true, true, true, true, true, true, true};
+								int trace_dirs[8][2] = {{-1,  0},
+		                       					       	       {-1, -1},
+		                       					       	       { 0, -1},
+		                       					       	       { 1, -1},
+		                       					       	       { 1,  0},
+		                       					       	       { 1,  1},
+		                       					       	       { 0,  1},
+		                       					       	       {-1,  1}};
+		                       				int dirmatrix[3][3] = {{1, 2, 3},
+		                       			                       	       {0, 0, 4},
+		                       			                       	       {7, 6, 5}};
+		                       				int curdir = dirmatrix[diff_y+1][diff_x+1];
 
-							int dirs[10][2];
-							
-							int dir = 2;
-							int combo_order[] = {1, 4, 3, 2};
-							for (int i = 0; i < 4; i++)
-							{
-								dirs[dir][0] = trace_dirs[(curdir+combo_order[i])&7][0];
-								dirs[dir][1] = trace_dirs[(curdir+combo_order[i])&7][1];
-								dir++;
-								dirs[dir][0] = trace_dirs[(curdir-combo_order[i])&7][0];
-								dirs[dir][1] = trace_dirs[(curdir-combo_order[i])&7][1];
-								dir++;
-							}
-							dirs[9][0] = trace_dirs[(curdir)&7][0];
-							dirs[9][1] = trace_dirs[(curdir)&7][1];
-							if (diff_x > 0)
-							{
-								if (diff_y > 0)
+								int dirs[10][2];
+								
+								int dir = 2;
+								int combo_order[] = {1, 4, 3, 2};
+								for (int i = 0; i < 4; i++)
 								{
-									middle_x = end_x_path;
-									middle_y = end_y_path;
+									dirs[dir][0] = trace_dirs[(curdir+combo_order[i])&7][0];
+									dirs[dir][1] = trace_dirs[(curdir+combo_order[i])&7][1];
+									dir++;
+									dirs[dir][0] = trace_dirs[(curdir-combo_order[i])&7][0];
+									dirs[dir][1] = trace_dirs[(curdir-combo_order[i])&7][1];
+									dir++;
 								}
-								else if (diff_y < 0)
+								dirs[9][0] = trace_dirs[(curdir)&7][0];
+								dirs[9][1] = trace_dirs[(curdir)&7][1];
+								if (diff_x > 0)
 								{
-									middle_x = end_x_path;
-									middle_y = start_y_path;
-								}
-								else
-								{
-									middle_x = end_x_path;
-									middle_y = goto_y;
-								}
-							}
-							else if (diff_x < 0)
-							{
-								if (diff_y > 0)
-								{
-									middle_x = start_x_path;
-									middle_y = end_y_path;
-								}
-								else if (diff_y < 0)
-								{
-									middle_x = start_x_path;
-									middle_y = start_y_path;
-								}
-								else
-								{
-									middle_x = start_x_path;
-									middle_y = goto_y;
-								}
-							}
-							else
-							{
-								if (diff_y > 0)
-								{
-									middle_x = goto_x;
-									middle_y = end_y_path;
-								}
-								else if (diff_y < 0)
-								{
-									middle_x = goto_x;
-									middle_y = start_y_path;
-								}
-								else
-								{
-									middle_x = goto_x;
-									middle_y = goto_y;
-								}
-							}
-							int flags[] = {SIW_IGNORE_OWN_MOBILE_UNITS | SIW_CONSIDER_WAITING | SIW_CONSIDER_PUSHED};
-							bool done = false;
-							for (int j = 0; j < 1; j++)
-							{
-								int cur_x = unit_x, cur_y = unit_y;
-								int last_x = unit_x, last_y = unit_y;
-								while (1)
-								{
-									cur_x += middle_x > cur_x ? -1 : 1;
-									cur_y += middle_y > cur_y  ? -1 : 1;
-									if (!SquaresAreWalkable(curUnit, cur_x, cur_y, flags[j]))
+									if (diff_y > 0)
 									{
-										dirs_possible[0] = false;
-										break;
+										middle_x = end_x_path;
+										middle_y = end_y_path;
 									}
-									if (cur_y == start_y || cur_y == end_y)
+									else if (diff_y < 0)
 									{
-										if (cur_x == start_x || cur_x == end_x)
-										{
-											dirs[0][0] = cur_x - curUnit->curAssociatedSquare.x;
-											dirs[0][1] = cur_y - curUnit->curAssociatedSquare.y;
-											dirs_possible[0] = true;
-											break;
-										}
-									}
-									last_x = cur_x;
-									last_y = cur_y;
-								}
-
-								cur_x = unit_x, cur_y = unit_y;
-								last_x = unit_x, last_y = unit_y;
-								while (1)
-								{
-									cur_x += middle_x > cur_x ? 1 : middle_x < cur_x ? -1 : 0;
-									cur_y += middle_y > cur_y ? 1 : middle_y < cur_y ? -1 : 0;
-									if (!SquaresAreWalkable(curUnit, cur_x, cur_y, flags[j]))
-									{
-										dirs_possible[1] = false;
-										break;
-									}
-									if (cur_y == middle_y && cur_x == middle_x)
-									{
-										if (diff_x & diff_y)
-										{
-											if (last_x - cur_x)
-											{
-												cur_y += cur_y == end_y ? -1 : 1;
-											}
-											else if (last_y - cur_y)
-											{
-												cur_x += cur_x == end_x ? -1 : 1;
-											}
-										}
-										else
-										{
-											cur_x += (cur_x - last_x);
-											cur_y += (cur_y - last_y);
-										}
-										break;
-									}
-									last_x = cur_x;
-									last_y = cur_y;
-								}
-								while (1)
-								{
-									if (!SquaresAreWalkable(curUnit, cur_x, cur_y, flags[j]))
-									{
-										dirs_possible[1] = false;
-										break;
-									}
-									last_x = cur_x;
-									last_y = cur_y;
-									cur_x += middle_x > cur_x ? -1 : 1;
-									cur_y += middle_y > cur_y  ? -1 : 1;
-									if (cur_y == start_y || cur_y == end_y)
-									{
-										if (cur_x == start_x || cur_x == end_x)
-										{
-											dirs[1][0] = last_x - curUnit->curAssociatedSquare.x;
-											dirs[1][1] = last_y - curUnit->curAssociatedSquare.y;
-											dirs_possible[1] = true;
-											break;
-										}
-									}
-								}
-								for (int i = 0; i < 10; i++)
-								{
-									int goto_new_x, goto_new_y;
-									goto_new_x = curUnit->curAssociatedSquare.x + dirs[i][0];
-									goto_new_y = curUnit->curAssociatedSquare.y + dirs[i][1];
-									if (dirs_possible[i] && SquaresAreWalkable(curUnit, goto_new_x, goto_new_y, flags[j]))
-									{
-										if (DoesNotBlock(curUnit, pUnit->type, goto_x, goto_y, goto_new_x, goto_new_y) && (!pUnit->pusher || DoesNotBlock(curUnit, pUnit->pusher->type, pUnit->pusher->pMovementData->pCurGoalNode->x, pUnit->pusher->pMovementData->pCurGoalNode->y, goto_new_x, goto_new_y)))
-										{
-											cout << "Move " << curUnit << " " << goto_new_x << " " << goto_new_y << " " << flags[j] << " " << i << endl;
-											numSentCommands++;
-											CommandUnit(curUnit, goto_new_x, goto_new_y, AI::ACTION_GOTO, NULL, true, true);
-											curUnit->isPushed = true;
-											if (pUnit->pushID)
-											{
-												curUnit->pushID = pUnit->pushID;
-											}
-											else
-											{
-												curUnit->pushID = nextPushID++;
-											}
-											if (pUnit->pusher)
-											{
-												curUnit->pusher = pUnit->pusher;
-											}
-											else
-											{
-												curUnit->pusher = pUnit;
-											}
-											done = true;
-											break;
-										}
-									}
-								}
-								if (done)
-									break;
-							}
-							if (!done)
-							{
-								AI::CancelAction(pUnit);
-								pUnit->isPushed = false;
-								pUnit->isWaiting = false;
-							}
-						}
-					}
-				}
-			}
-			if (!found)
-			{
-				cout << "Non-found!" << endl;
-			}
-			return noloop;
-		}
-
-		void NewGoalNode(Unit* pUnit)
-		{
-			float distance, distance_per_frame;
-			Position goto_pos;
-			Utilities::Vector3D move; // abused to calculate movement per axis in 2d and the rotation of the model when going in a specific direction...
-			goto_pos.x = (float) pUnit->pMovementData->pCurGoalNode->x + 0.5f;
-			goto_pos.y = (float) pUnit->pMovementData->pCurGoalNode->y + 0.5f;
-
-			distance_per_frame = pUnit->type->movementSpeed / (float) AI::aiFps / 
-				             ((float)GetTraversalTime(pUnit,
-						               pUnit->pMovementData->pCurGoalNode->pParent->x,
-							       pUnit->pMovementData->pCurGoalNode->pParent->y,
-							       pUnit->pMovementData->pCurGoalNode->x - pUnit->pMovementData->pCurGoalNode->pParent->x,
-							       pUnit->pMovementData->pCurGoalNode->y - pUnit->pMovementData->pCurGoalNode->pParent->y)
-				              / 10.0f);
-
-			distance = Distance2D(goto_pos.x - pUnit->pos.x, goto_pos.y - pUnit->pos.y);
-
-			move.set(goto_pos.x - pUnit->pos.x, 0.0, goto_pos.y - pUnit->pos.y);
-			move.normalize();
-			move *= distance_per_frame;
-
-			pUnit->pMovementData->movementVector = move;
-			pUnit->pMovementData->distanceLeft = distance;
-			pUnit->pMovementData->distancePerFrame = distance_per_frame;
-			pUnit->faceTarget = FACETARGET_NONE;
-		}
-
-		bool MoveUnit(Unit* pUnit)
-		{
-			float distance, distance_per_frame;
-			Position goto_pos;
-			Utilities::Vector3D move; // abused to calculate movement per axis in 2d and the rotation of the model when going in a specific direction...
-			AI::UnitAction action = pUnit->pMovementData->action.action;
-			Utilities::Vector3D zero_rot;
-			Utilities::Vector3D goal_pos;
-			bool should_move = true;
-
-			double power_usage =  pUnit->type->movePowerUsage / AI::aiFps;
-
-			if (pUnit->owner->resources.power < power_usage)
-			{
-				return true;
-			}
-
-			if (pUnit->pMovementData->pStart)
-			{
-				if ((action == AI::ACTION_FOLLOW || action == AI::ACTION_ATTACK) && pUnit->owner->type != PLAYER_TYPE_REMOTE)
-				{
-					if (pUnit->pMovementData->action.goal.unit->lastSeenPositions[pUnit->owner->index].x != pUnit->pMovementData->action.goal.pos.x ||
-					    pUnit->pMovementData->action.goal.unit->lastSeenPositions[pUnit->owner->index].y != pUnit->pMovementData->action.goal.pos.y)
-					{
-						ChangePath(pUnit, pUnit->pMovementData->action.goal.unit->lastSeenPositions[pUnit->owner->index].x, pUnit->pMovementData->action.goal.unit->lastSeenPositions[pUnit->owner->index].y, pUnit->pMovementData->action.action, pUnit->pMovementData->action.goal.unit, pUnit->pMovementData->action.arg);
-					}
-				}
-			
-				if (!pUnit->pMovementData->pCurGoalNode)
-				{
-					AI::Node *curnode = pUnit->pMovementData->pStart;
-					bool recalc_path = CheckPath(pUnit);
-					pUnit->isWaiting = false;
-					
-					if (recalc_path)
-					{
-						cout << "TRYING TO RECOVER BY DEALLOCATING PATH AND CALCULATING IT AGAIN FOR UNIT " << pUnit << "..." << endl;
-					}
-					else
-					{
-						while (curnode)
-						{
-							if (curnode->x == pUnit->curAssociatedSquare.x &&
-							    curnode->y == pUnit->curAssociatedSquare.y)
-							{
-#ifdef CHECKSUM_DEBUG_HIGH
-								Networking::checksum_output << "START PATH GOAL " << AI::currentFrame << ": " << pUnit->id << " " << curnode->x << " " << curnode->y << "\n";
-#endif
-								break;
-							}
-							curnode = curnode->pChild;
-						}
-
-						if (!curnode)
-						{
-							recalc_path = true;
-							pUnit->pMovementData->pCurGoalNode = NULL;
-						}
-						else
-						{
-							pUnit->pMovementData->pCurGoalNode = curnode->pChild;
-						}
-					}
-
-					if (recalc_path)
-					{
-						if (pUnit->owner->type != PLAYER_TYPE_REMOTE)
-						{
-#ifdef CHECKSUM_DEBUG_HIGH
-							Networking::checksum_output << "INIT RECALC " << AI::currentFrame << ": " << pUnit->id << "\n";
-#endif
-							// unit positions has changed enough since the path was calculated, making it needed to
-							// recalculate it. another possibility is that the path was invalidated by CheckPath()...
-							if (action == AI::ACTION_FOLLOW || action == AI::ACTION_ATTACK)
-							{
-								ChangePath(pUnit, pUnit->pMovementData->action.goal.unit->lastSeenPositions[pUnit->owner->index].x, 
-										  pUnit->pMovementData->action.goal.unit->lastSeenPositions[pUnit->owner->index].y,
-										  pUnit->pMovementData->action.action, pUnit->pMovementData->action.goal.unit, pUnit->pMovementData->action.arg);
-							}
-							else
-							{
-								ChangePath(pUnit, pUnit->pMovementData->action.goal.pos.x, pUnit->pMovementData->action.goal.pos.y,
-										  pUnit->pMovementData->action.action, pUnit->pMovementData->action.goal.unit, pUnit->pMovementData->action.arg);
-							}
-						}
-						pUnit->pMovementData->pCurGoalNode = NULL;
-						should_move = false;
-						pUnit->isMoving = false;
-					}
-					else
-					{
-						pUnit->pMovementData->switchedSquare = false;
-						if (!pUnit->pMovementData->pCurGoalNode || !pUnit->pMovementData->pCurGoalNode->pParent)
-						{
-#ifdef CHECKSUM_DEBUG_HIGH
-							Networking::checksum_output << "ONE NODE PATH " << AI::currentFrame << ": " << pUnit->id << "\n";
-#endif
-							if (pUnit->pMovementData->action.goal.unit)
-							{
-								if (!CanReach(pUnit, pUnit->pMovementData->action.goal.unit))
-								{
-#ifdef CHECKSUM_DEBUG_HIGH
-									Networking::checksum_output << "CANCEL CANNOTREACH " << AI::currentFrame << ": " << pUnit->id << "\n";
-#endif
-									AI::CancelAction(pUnit);
-								}
-							}
-							else
-							{
-								if (pUnit->pMovementData->action.action != AI::ACTION_BUILD)
-								{
-#ifdef CHECKSUM_DEBUG_HIGH
-									Networking::checksum_output << "COMPLETE " << AI::currentFrame << ": " << pUnit->id << "\n";
-#endif
-									AI::CompleteAction(pUnit);
-								}
-								else
-								{
-									if (!IsWithinRangeForBuilding(pUnit))
-									{
-#ifdef CHECKSUM_DEBUG_HIGH
-										Networking::checksum_output << "CANCEL CANNOTBUILD " << AI::currentFrame << ": " << pUnit->id << "\n";
-#endif
-										AI::CancelAction(pUnit);
-									}
-								}
-							}
-							pUnit->isMoving = false;
-							pUnit->isPushed = false;
-							pUnit->pMovementData->pCurGoalNode = NULL;
-							should_move = false;
-							AI::DeallocPathfindingNodes(pUnit);
-						}
-						else
-						{
-							NewGoalNode(pUnit);
-/*							PushUnits(pUnit);
-							if (!pUnit->pMovementData->pStart)
-							{
-								return true;
-							}*/
-						}
-					}
-				}
-			}
-			else
-			{
-#ifdef CHECKSUM_DEBUG_HIGH
-				Networking::checksum_output << "PATHWAIT " << AI::currentFrame << ": " << pUnit->id << "\n";
-#endif
-				should_move = false;
-				pUnit->isMoving = false;
-				if (pUnit->owner->type != PLAYER_TYPE_REMOTE && !AI::IsUndergoingPathCalc(pUnit))
-				{
-					ChangePath(pUnit, pUnit->pMovementData->action.goal.pos.x, pUnit->pMovementData->action.goal.pos.y, pUnit->pMovementData->action.action, pUnit->pMovementData->action.goal.unit, pUnit->pMovementData->action.arg);
-				}
-			}
-
-			if (should_move)
-			{
-				move = pUnit->pMovementData->movementVector;
-				distance_per_frame = pUnit->pMovementData->distancePerFrame;
-				distance = pUnit->pMovementData->distanceLeft;
-				
-#ifdef CHECKSUM_DEBUG_HIGH
-				Networking::checksum_output << "MOVE " << AI::currentFrame << ": " << pUnit->id << " " << pUnit->pos.x << " " << pUnit->pos.y << " " << move.x << " " << move.y << " " << pUnit->type->movementSpeed << " " << AI::aiFps << " " << GetTraversalTime(pUnit, pUnit->pMovementData->pCurGoalNode->pParent->x, pUnit->pMovementData->pCurGoalNode->pParent->y, pUnit->pMovementData->pCurGoalNode->x - pUnit->pMovementData->pCurGoalNode->pParent->x, pUnit->pMovementData->pCurGoalNode->y - pUnit->pMovementData->pCurGoalNode->pParent->y) << " " << distance_per_frame << " " << distance << " " << power_usage << "\n";
-#endif
-				
-				if (distance < distance_per_frame)
-				{
-					move *= (distance / distance_per_frame);
-				}
-
-				if (!pUnit->pMovementData->switchedSquare &&
-				    Distance2D(pUnit->pos.x + move.x - (float) pUnit->pMovementData->pCurGoalNode->pParent->x - 0.5f,
-					       pUnit->pos.y + move.y - (float) pUnit->pMovementData->pCurGoalNode->pParent->y - 0.5f) > 
-				    Distance2D(pUnit->pos.x + move.x - (float) pUnit->pMovementData->pCurGoalNode->x - 0.5f,
-					       pUnit->pos.y + move.y - (float) pUnit->pMovementData->pCurGoalNode->y - 0.5f))
-				{
-#ifdef CHECKSUM_DEBUG_HIGH
-					Networking::checksum_output << "ATTEMPT " << AI::currentFrame << ": " << pUnit->id << " " << pUnit->pMovementData->pCurGoalNode->x << " " << pUnit->pMovementData->pCurGoalNode->y << "\n";
-#endif
-					if (!UpdateAssociatedSquares(pUnit, pUnit->pMovementData->pCurGoalNode->x,
-								            pUnit->pMovementData->pCurGoalNode->y,
-								            pUnit->pMovementData->pCurGoalNode->pParent->x,
-								            pUnit->pMovementData->pCurGoalNode->pParent->y))
-					{
-						should_move = false;
-						pUnit->isMoving = false;
-						pUnit->pushID = 0;
-						pUnit->pusher = NULL;
-						if (!SquaresAreWalkable(pUnit, pUnit->pMovementData->pCurGoalNode->x, pUnit->pMovementData->pCurGoalNode->y, SIW_IGNORE_MOVING | SIW_ALLKNOWING))
-						{
-							bool recalc = true;
-							
-/*							if (pUnit->isWaiting)
-							{ 
-								if (!SquaresAreWalkable(pUnit, pUnit->pMovementData->pCurGoalNode->x, pUnit->pMovementData->pCurGoalNode->y, SIW_IGNORE_OWN_MOBILE_UNITS))
-								{
-									recalc = true;
-								}
-							}
-							else
-							{
-								if (!SquaresAreWalkable(pUnit, pUnit->pMovementData->pCurGoalNode->x, pUnit->pMovementData->pCurGoalNode->y, SIW_IGNORE_OWN_MOBILE_UNITS | SIW_CONSIDER_WAITING))
-								{
-									recalc = true;
-								}
-							}*/
-							if (recalc)
-							{
-#ifdef CHECKSUM_DEBUG_HIGH
-								Networking::checksum_output << "RECALC " << AI::currentFrame << ": " << pUnit->id << "\n";
-#endif
-								if (pUnit->owner->type != PLAYER_TYPE_REMOTE && !AI::IsUndergoingPathCalc(pUnit))
-								{
-									if (action == AI::ACTION_FOLLOW || action == AI::ACTION_ATTACK)
-									{
-										ChangePath(pUnit, pUnit->pMovementData->action.goal.unit->lastSeenPositions[pUnit->owner->index].x, 
-											  	  pUnit->pMovementData->action.goal.unit->lastSeenPositions[pUnit->owner->index].y,
-										  	  pUnit->pMovementData->action.action, pUnit->pMovementData->action.goal.unit, pUnit->pMovementData->action.arg);
+										middle_x = end_x_path;
+										middle_y = start_y_path;
 									}
 									else
 									{
-										ChangePath(pUnit, pUnit->pMovementData->action.goal.pos.x, pUnit->pMovementData->action.goal.pos.y,
-										  	  pUnit->pMovementData->action.action, pUnit->pMovementData->action.goal.unit, pUnit->pMovementData->action.arg);
+										middle_x = end_x_path;
+										middle_y = goto_y;
 									}
 								}
-							}
-							else
-							{
-//								PushUnits(pUnit);
-//								return true;
-							}
-						}
-						else
-						{
-							pUnit->isWaiting = true;
-#ifdef CHECKSUM_DEBUG_HIGH
-							Networking::checksum_output << "STOP " << AI::currentFrame << ": " << pUnit->id << "\n";
-#endif
-						}
-					}
-					else
-					{
-						pUnit->isWaiting = false;
-						pUnit->pMovementData->switchedSquare = true;
-						pUnit->isMoving = true;
-					}
-
-				}
-
-				if (should_move)
-				{
-#ifdef CHECKSUM_DEBUG_HIGH
-					Networking::checksum_output << "REALLYMOVE " << AI::currentFrame << ": " << pUnit->id << "\n";
-#endif
-					pUnit->owner->resources.power -= power_usage;
-			
-					pUnit->pos.x += move.x;
-					pUnit->pos.y += move.z;
-					pUnit->isMoving = true;
-
-					if (pUnit->faceTarget != FACETARGET_PATH)
-					{
-						zero_rot.set(-1.0, 0.0, 0.0);
-						move.normalize();
-						pUnit->rotation = acos(zero_rot.dot(move)) * (float) (180 / PI);
-						if (move.z < 0) pUnit->rotation = 180 - pUnit->rotation + 180;
-						pUnit->faceTarget = FACETARGET_PATH;
-					}
-
-					if (distance < distance_per_frame)
-					{
-						pUnit->pMovementData->distanceLeft = 0;
-						if (pUnit->pMovementData->pCurGoalNode->x == pUnit->pMovementData->pGoal->x &&
-						    pUnit->pMovementData->pCurGoalNode->y == pUnit->pMovementData->pGoal->y)
-						{
-							pUnit->isWaiting = false;
-							pUnit->isPushed = false;
-							pUnit->pushID = 0;
-							pUnit->pusher = NULL;
-#ifdef CHECKSUM_DEBUG_HIGH
-							Networking::checksum_output << "REACH " << AI::currentFrame << ": " << pUnit->id << " " << pUnit->pMovementData->pGoal->x << " " << pUnit->pMovementData->pGoal->y << "\n";
-#endif
-							if (pUnit->pMovementData->action.goal.unit)
-							{
-								if (!CanSee(pUnit, pUnit->pMovementData->action.goal.unit))
+								else if (diff_x < 0)
 								{
-#ifdef CHECKSUM_DEBUG_HIGH
-									Networking::checksum_output << "CANCEL CANNOTSEE " << AI::currentFrame << ": " << pUnit->id << "\n";
-#endif
-									AI::CancelAction(pUnit);
-								}
-							}
-							else
-							{
-								if (pUnit->pMovementData->action.action != AI::ACTION_BUILD)
-								{
-#ifdef CHECKSUM_DEBUG_HIGH
-									Networking::checksum_output << "COMPLETE " << AI::currentFrame << ": " << pUnit->id << "\n";
-#endif
-									AI::CompleteAction(pUnit);
+									if (diff_y > 0)
+									{
+										middle_x = start_x_path;
+										middle_y = end_y_path;
+									}
+									else if (diff_y < 0)
+									{
+										middle_x = start_x_path;
+										middle_y = start_y_path;
+									}
+									else
+									{
+										middle_x = start_x_path;
+										middle_y = goto_y;
+									}
 								}
 								else
 								{
-									if (!IsWithinRangeForBuilding(pUnit))
+									if (diff_y > 0)
 									{
-#ifdef CHECKSUM_DEBUG_HIGH
-										Networking::checksum_output << "CANCEL CANNOTBUILD " << AI::currentFrame << ": " << pUnit->id << "\n";
-#endif
-										AI::CancelAction(pUnit);
+										middle_x = goto_x;
+										middle_y = end_y_path;
+									}
+									else if (diff_y < 0)
+									{
+										middle_x = goto_x;
+										middle_y = start_y_path;
+									}
+									else
+									{
+										middle_x = goto_x;
+										middle_y = goto_y;
 									}
 								}
+								int flags[] = {SIW_IGNORE_OWN_MOBILE_UNITS | SIW_CONSIDER_WAITING | SIW_CONSIDER_PUSHED};
+								bool done = false;
+								for (int j = 0; j < 1; j++)
+								{
+									int cur_x = unit_x, cur_y = unit_y;
+									int last_x = unit_x, last_y = unit_y;
+									while (1)
+									{
+										cur_x += middle_x > cur_x ? -1 : 1;
+										cur_y += middle_y > cur_y  ? -1 : 1;
+										if (!SquaresAreWalkable(curUnit, cur_x, cur_y, flags[j]))
+										{
+											dirs_possible[0] = false;
+											break;
+										}
+										if (cur_y == start_y || cur_y == end_y)
+										{
+											if (cur_x == start_x || cur_x == end_x)
+											{
+												dirs[0][0] = cur_x - curUnit->curAssociatedSquare.x;
+												dirs[0][1] = cur_y - curUnit->curAssociatedSquare.y;
+												dirs_possible[0] = true;
+												break;
+											}
+										}
+										last_x = cur_x;
+										last_y = cur_y;
+									}
+
+									cur_x = unit_x, cur_y = unit_y;
+									last_x = unit_x, last_y = unit_y;
+									while (1)
+									{
+										cur_x += middle_x > cur_x ? 1 : middle_x < cur_x ? -1 : 0;
+										cur_y += middle_y > cur_y ? 1 : middle_y < cur_y ? -1 : 0;
+										if (!SquaresAreWalkable(curUnit, cur_x, cur_y, flags[j]))
+										{
+											dirs_possible[1] = false;
+											break;
+										}
+										if (cur_y == middle_y && cur_x == middle_x)
+										{
+											if (diff_x & diff_y)
+											{
+												if (last_x - cur_x)
+												{
+													cur_y += cur_y == end_y ? -1 : 1;
+												}
+												else if (last_y - cur_y)
+												{
+													cur_x += cur_x == end_x ? -1 : 1;
+												}
+											}
+											else
+											{
+												cur_x += (cur_x - last_x);
+												cur_y += (cur_y - last_y);
+											}
+											break;
+										}
+										last_x = cur_x;
+										last_y = cur_y;
+									}
+									while (1)
+									{
+										if (!SquaresAreWalkable(curUnit, cur_x, cur_y, flags[j]))
+										{
+											dirs_possible[1] = false;
+											break;
+										}
+										last_x = cur_x;
+										last_y = cur_y;
+										cur_x += middle_x > cur_x ? -1 : 1;
+										cur_y += middle_y > cur_y  ? -1 : 1;
+										if (cur_y == start_y || cur_y == end_y)
+										{
+											if (cur_x == start_x || cur_x == end_x)
+											{
+												dirs[1][0] = last_x - curUnit->curAssociatedSquare.x;
+												dirs[1][1] = last_y - curUnit->curAssociatedSquare.y;
+												dirs_possible[1] = true;
+												break;
+											}
+										}
+									}
+									for (int i = 0; i < 10; i++)
+									{
+										int goto_new_x, goto_new_y;
+										goto_new_x = curUnit->curAssociatedSquare.x + dirs[i][0];
+										goto_new_y = curUnit->curAssociatedSquare.y + dirs[i][1];
+										if (dirs_possible[i] && SquaresAreWalkable(curUnit, goto_new_x, goto_new_y, flags[j]))
+										{
+											if (DoesNotBlock(curUnit, pUnit->type, goto_x, goto_y, goto_new_x, goto_new_y) && (!pUnit->pusher || DoesNotBlock(curUnit, pUnit->pusher->type, pUnit->pusher->pMovementData->pCurGoalNode->x, pUnit->pusher->pMovementData->pCurGoalNode->y, goto_new_x, goto_new_y)))
+											{
+												cout << "Move " << curUnit << " " << goto_new_x << " " << goto_new_y << " " << flags[j] << " " << i << endl;
+												numSentCommands++;
+												CommandUnit(curUnit, goto_new_x, goto_new_y, AI::ACTION_GOTO, NULL, true, true);
+												curUnit->isPushed = true;
+												if (pUnit->pushID)
+												{
+													curUnit->pushID = pUnit->pushID;
+												}
+												else
+												{
+													curUnit->pushID = nextPushID++;
+												}
+												if (pUnit->pusher)
+												{
+													curUnit->pusher = pUnit->pusher;
+												}
+												else
+												{
+													curUnit->pusher = pUnit;
+												}
+												done = true;
+												break;
+											}
+										}
+									}
+									if (done)
+										break;
+								}
+								if (!done)
+								{
+									AI::CancelAction(pUnit);
+									pUnit->isPushed = false;
+									pUnit->isWaiting = false;
+								}
 							}
-							pUnit->isMoving = false;
-							pUnit->pMovementData->pCurGoalNode = NULL;
-							AI::DeallocPathfindingNodes(pUnit);
+						}
+					}
+				}
+				if (!found)
+				{
+					cout << "Non-found!" << endl;
+				}
+				return noloop;
+			}
+
+			void NewGoalNode(Unit* pUnit)
+			{
+				float distance, distance_per_frame;
+				Position goto_pos;
+				Utilities::Vector3D move; // abused to calculate movement per axis in 2d and the rotation of the model when going in a specific direction...
+				goto_pos.x = (float) pUnit->pMovementData->pCurGoalNode->x + 0.5f;
+				goto_pos.y = (float) pUnit->pMovementData->pCurGoalNode->y + 0.5f;
+
+				distance_per_frame = pUnit->type->movementSpeed / (float) AI::aiFps / 
+				             	     ((float)GetTraversalTime(pUnit,
+						               	       pUnit->pMovementData->pCurGoalNode->pParent->x,
+							       	       pUnit->pMovementData->pCurGoalNode->pParent->y,
+							       	       pUnit->pMovementData->pCurGoalNode->x - pUnit->pMovementData->pCurGoalNode->pParent->x,
+							       	       pUnit->pMovementData->pCurGoalNode->y - pUnit->pMovementData->pCurGoalNode->pParent->y)
+				              	      / 10.0f);
+
+				distance = Distance2D(goto_pos.x - pUnit->pos.x, goto_pos.y - pUnit->pos.y);
+
+				move.set(goto_pos.x - pUnit->pos.x, 0.0, goto_pos.y - pUnit->pos.y);
+				move.normalize();
+				move *= distance_per_frame;
+
+				pUnit->pMovementData->movementVector = move;
+				pUnit->pMovementData->distanceLeft = distance;
+				pUnit->pMovementData->distancePerFrame = distance_per_frame;
+				pUnit->faceTarget = FACETARGET_NONE;
+			}
+
+			bool MoveUnit(Unit* pUnit)
+			{
+				float distance, distance_per_frame;
+				Position goto_pos;
+				Utilities::Vector3D move; // abused to calculate movement per axis in 2d and the rotation of the model when going in a specific direction...
+				AI::UnitAction action = pUnit->pMovementData->action.action;
+				Utilities::Vector3D zero_rot;
+				Utilities::Vector3D goal_pos;
+				bool should_move = true;
+
+				double power_usage =  pUnit->type->movePowerUsage / AI::aiFps;
+
+				if (pUnit->owner->resources.power < power_usage)
+				{
+					return true;
+				}
+
+				if (pUnit->pMovementData->pStart)
+				{
+					if ((action == AI::ACTION_FOLLOW || action == AI::ACTION_ATTACK) && pUnit->owner->type != PLAYER_TYPE_REMOTE)
+					{
+						if (pUnit->pMovementData->action.goal.unit->lastSeenPositions[pUnit->owner->index].x != pUnit->pMovementData->action.goal.pos.x ||
+					    	    pUnit->pMovementData->action.goal.unit->lastSeenPositions[pUnit->owner->index].y != pUnit->pMovementData->action.goal.pos.y)
+						{
+							ChangePath(pUnit, pUnit->pMovementData->action.goal.unit->lastSeenPositions[pUnit->owner->index].x, pUnit->pMovementData->action.goal.unit->lastSeenPositions[pUnit->owner->index].y, pUnit->pMovementData->action.action, pUnit->pMovementData->action.goal.unit, pUnit->pMovementData->action.arg);
+						}
+					}
+				
+					if (!pUnit->pMovementData->pCurGoalNode)
+					{
+						AI::Node *curnode = pUnit->pMovementData->pStart;
+						bool recalc_path = CheckPath(pUnit);
+						pUnit->isWaiting = false;
+						
+						if (recalc_path)
+						{
+							cout << "TRYING TO RECOVER BY DEALLOCATING PATH AND CALCULATING IT AGAIN FOR UNIT " << pUnit << "..." << endl;
 						}
 						else
 						{
-							if (pUnit->pMovementData->pCurGoalNode->pChild && pUnit->pMovementData->pCurGoalNode->pChild->pParent != pUnit->pMovementData->pCurGoalNode)
+							while (curnode)
 							{
-								cout << "ERROR: pCurGoalNode != pCurGoalNode->pChild->pParent" << endl;
+								if (curnode->x == pUnit->curAssociatedSquare.x &&
+							    	    curnode->y == pUnit->curAssociatedSquare.y)
+								{
+	#ifdef CHECKSUM_DEBUG_HIGH
+									Networking::checksum_output << "START PATH GOAL " << AI::currentFrame << ": " << pUnit->id << " " << curnode->x << " " << curnode->y << "\n";
+	#endif
+									break;
+								}
+								curnode = curnode->pChild;
+							}
+
+							if (!curnode)
+							{
+								recalc_path = true;
 								pUnit->pMovementData->pCurGoalNode = NULL;
 							}
 							else
 							{
-								pUnit->pMovementData->pCurGoalNode = pUnit->pMovementData->pCurGoalNode->pChild;
-								NewGoalNode(pUnit);
-//								PushUnits(pUnit);
+								pUnit->pMovementData->pCurGoalNode = curnode->pChild;
 							}
-#ifdef CHECKSUM_DEBUG_HIGH
-							Networking::checksum_output << "NEXT GOAL " << AI::currentFrame << ": " << pUnit->id << " " << pUnit->pMovementData->pCurGoalNode->x << " " << pUnit->pMovementData->pCurGoalNode->y << "\n";
-#endif
+						}
+
+						if (recalc_path)
+						{
+							if (pUnit->owner->type != PLAYER_TYPE_REMOTE)
+							{
+	#ifdef CHECKSUM_DEBUG_HIGH
+								Networking::checksum_output << "INIT RECALC " << AI::currentFrame << ": " << pUnit->id << "\n";
+	#endif
+								// unit positions has changed enough since the path was calculated, making it needed to
+								// recalculate it. another possibility is that the path was invalidated by CheckPath()...
+								if (action == AI::ACTION_FOLLOW || action == AI::ACTION_ATTACK)
+								{
+									ChangePath(pUnit, pUnit->pMovementData->action.goal.unit->lastSeenPositions[pUnit->owner->index].x, 
+										  	  pUnit->pMovementData->action.goal.unit->lastSeenPositions[pUnit->owner->index].y,
+										  	  pUnit->pMovementData->action.action, pUnit->pMovementData->action.goal.unit, pUnit->pMovementData->action.arg);
+								}
+								else
+								{
+									ChangePath(pUnit, pUnit->pMovementData->action.goal.pos.x, pUnit->pMovementData->action.goal.pos.y,
+										  	  pUnit->pMovementData->action.action, pUnit->pMovementData->action.goal.unit, pUnit->pMovementData->action.arg);
+								}
+							}
+							pUnit->pMovementData->pCurGoalNode = NULL;
+							should_move = false;
+							pUnit->isMoving = false;
+						}
+						else
+						{
 							pUnit->pMovementData->switchedSquare = false;
+							if (!pUnit->pMovementData->pCurGoalNode || !pUnit->pMovementData->pCurGoalNode->pParent)
+							{
+	#ifdef CHECKSUM_DEBUG_HIGH
+								Networking::checksum_output << "ONE NODE PATH " << AI::currentFrame << ": " << pUnit->id << "\n";
+	#endif
+								if (pUnit->pMovementData->action.goal.unit)
+								{
+									if (!CanReach(pUnit, pUnit->pMovementData->action.goal.unit))
+									{
+	#ifdef CHECKSUM_DEBUG_HIGH
+										Networking::checksum_output << "CANCEL CANNOTREACH " << AI::currentFrame << ": " << pUnit->id << "\n";
+	#endif
+										AI::CancelAction(pUnit);
+									}
+								}
+								else
+								{
+									if (pUnit->pMovementData->action.action != AI::ACTION_BUILD)
+									{
+	#ifdef CHECKSUM_DEBUG_HIGH
+										Networking::checksum_output << "COMPLETE " << AI::currentFrame << ": " << pUnit->id << "\n";
+	#endif
+										AI::CompleteAction(pUnit);
+									}
+									else
+									{
+										if (!IsWithinRangeForBuilding(pUnit))
+										{
+	#ifdef CHECKSUM_DEBUG_HIGH
+											Networking::checksum_output << "CANCEL CANNOTBUILD " << AI::currentFrame << ": " << pUnit->id << "\n";
+	#endif
+											AI::CancelAction(pUnit);
+										}
+									}
+								}
+								pUnit->isMoving = false;
+								pUnit->isPushed = false;
+								pUnit->pMovementData->pCurGoalNode = NULL;
+								should_move = false;
+								AI::DeallocPathfindingNodes(pUnit);
+							}
+							else
+							{
+								NewGoalNode(pUnit);
+	/*							PushUnits(pUnit);
+								if (!pUnit->pMovementData->pStart)
+								{
+									return true;
+								}*/
+							}
 						}
 					}
-					else
-					{
-						pUnit->pMovementData->distanceLeft -= distance_per_frame;
-					}
-				
 				}
+				else
+				{
+	#ifdef CHECKSUM_DEBUG_HIGH
+					Networking::checksum_output << "PATHWAIT " << AI::currentFrame << ": " << pUnit->id << "\n";
+	#endif
+					should_move = false;
+					pUnit->isMoving = false;
+					if (pUnit->owner->type != PLAYER_TYPE_REMOTE && !AI::IsUndergoingPathCalc(pUnit))
+					{
+						ChangePath(pUnit, pUnit->pMovementData->action.goal.pos.x, pUnit->pMovementData->action.goal.pos.y, pUnit->pMovementData->action.action, pUnit->pMovementData->action.goal.unit, pUnit->pMovementData->action.arg);
+					}
+				}
+
+				if (should_move)
+				{
+					move = pUnit->pMovementData->movementVector;
+					distance_per_frame = pUnit->pMovementData->distancePerFrame;
+					distance = pUnit->pMovementData->distanceLeft;
+					
+	#ifdef CHECKSUM_DEBUG_HIGH
+					Networking::checksum_output << "MOVE " << AI::currentFrame << ": " << pUnit->id << " " << pUnit->pos.x << " " << pUnit->pos.y << " " << move.x << " " << move.y << " " << pUnit->type->movementSpeed << " " << AI::aiFps << " " << GetTraversalTime(pUnit, pUnit->pMovementData->pCurGoalNode->pParent->x, pUnit->pMovementData->pCurGoalNode->pParent->y, pUnit->pMovementData->pCurGoalNode->x - pUnit->pMovementData->pCurGoalNode->pParent->x, pUnit->pMovementData->pCurGoalNode->y - pUnit->pMovementData->pCurGoalNode->pParent->y) << " " << distance_per_frame << " " << distance << " " << power_usage << "\n";
+	#endif
+					
+					if (distance < distance_per_frame)
+					{
+						move *= (distance / distance_per_frame);
+					}
+
+					if (!pUnit->pMovementData->switchedSquare &&
+				    	    Distance2D(pUnit->pos.x + move.x - (float) pUnit->pMovementData->pCurGoalNode->pParent->x - 0.5f,
+					       	       pUnit->pos.y + move.y - (float) pUnit->pMovementData->pCurGoalNode->pParent->y - 0.5f) > 
+				    	    Distance2D(pUnit->pos.x + move.x - (float) pUnit->pMovementData->pCurGoalNode->x - 0.5f,
+					       	       pUnit->pos.y + move.y - (float) pUnit->pMovementData->pCurGoalNode->y - 0.5f))
+					{
+	#ifdef CHECKSUM_DEBUG_HIGH
+						Networking::checksum_output << "ATTEMPT " << AI::currentFrame << ": " << pUnit->id << " " << pUnit->pMovementData->pCurGoalNode->x << " " << pUnit->pMovementData->pCurGoalNode->y << "\n";
+	#endif
+						if (!UpdateAssociatedSquares(pUnit, pUnit->pMovementData->pCurGoalNode->x,
+								            	    pUnit->pMovementData->pCurGoalNode->y,
+								            	    pUnit->pMovementData->pCurGoalNode->pParent->x,
+								            	    pUnit->pMovementData->pCurGoalNode->pParent->y))
+						{
+							should_move = false;
+							pUnit->isMoving = false;
+							pUnit->pushID = 0;
+							pUnit->pusher = NULL;
+							if (!SquaresAreWalkable(pUnit, pUnit->pMovementData->pCurGoalNode->x, pUnit->pMovementData->pCurGoalNode->y, SIW_IGNORE_MOVING | SIW_ALLKNOWING))
+							{
+								bool recalc = true;
+								
+	/*							if (pUnit->isWaiting)
+								{ 
+									if (!SquaresAreWalkable(pUnit, pUnit->pMovementData->pCurGoalNode->x, pUnit->pMovementData->pCurGoalNode->y, SIW_IGNORE_OWN_MOBILE_UNITS))
+									{
+										recalc = true;
+									}
+								}
+								else
+								{
+									if (!SquaresAreWalkable(pUnit, pUnit->pMovementData->pCurGoalNode->x, pUnit->pMovementData->pCurGoalNode->y, SIW_IGNORE_OWN_MOBILE_UNITS | SIW_CONSIDER_WAITING))
+									{
+										recalc = true;
+									}
+								}*/
+								if (recalc)
+								{
+	#ifdef CHECKSUM_DEBUG_HIGH
+									Networking::checksum_output << "RECALC " << AI::currentFrame << ": " << pUnit->id << "\n";
+	#endif
+									if (pUnit->owner->type != PLAYER_TYPE_REMOTE && !AI::IsUndergoingPathCalc(pUnit))
+									{
+										if (action == AI::ACTION_FOLLOW || action == AI::ACTION_ATTACK)
+										{
+											ChangePath(pUnit, pUnit->pMovementData->action.goal.unit->lastSeenPositions[pUnit->owner->index].x, 
+											  	  	  pUnit->pMovementData->action.goal.unit->lastSeenPositions[pUnit->owner->index].y,
+										  	  	  pUnit->pMovementData->action.action, pUnit->pMovementData->action.goal.unit, pUnit->pMovementData->action.arg);
+										}
+										else
+										{
+											ChangePath(pUnit, pUnit->pMovementData->action.goal.pos.x, pUnit->pMovementData->action.goal.pos.y,
+										  	  	  pUnit->pMovementData->action.action, pUnit->pMovementData->action.goal.unit, pUnit->pMovementData->action.arg);
+										}
+									}
+								}
+								else
+								{
+	//								PushUnits(pUnit);
+	//								return true;
+								}
+							}
+							else
+							{
+								pUnit->isWaiting = true;
+	#ifdef CHECKSUM_DEBUG_HIGH
+								Networking::checksum_output << "STOP " << AI::currentFrame << ": " << pUnit->id << "\n";
+	#endif
+							}
+						}
+						else
+						{
+							pUnit->isWaiting = false;
+							pUnit->pMovementData->switchedSquare = true;
+							pUnit->isMoving = true;
+						}
+
+					}
+
+					if (should_move)
+					{
+	#ifdef CHECKSUM_DEBUG_HIGH
+						Networking::checksum_output << "REALLYMOVE " << AI::currentFrame << ": " << pUnit->id << "\n";
+	#endif
+						pUnit->owner->resources.power -= power_usage;
+				
+						pUnit->pos.x += move.x;
+						pUnit->pos.y += move.z;
+						pUnit->isMoving = true;
+
+						if (pUnit->faceTarget != FACETARGET_PATH)
+						{
+							zero_rot.set(-1.0, 0.0, 0.0);
+							move.normalize();
+							pUnit->rotation = acos(zero_rot.dot(move)) * (float) (180 / PI);
+							if (move.z < 0) pUnit->rotation = 180 - pUnit->rotation + 180;
+							pUnit->faceTarget = FACETARGET_PATH;
+						}
+
+						if (distance < distance_per_frame)
+						{
+							pUnit->pMovementData->distanceLeft = 0;
+							if (pUnit->pMovementData->pCurGoalNode->x == pUnit->pMovementData->pGoal->x &&
+						    	    pUnit->pMovementData->pCurGoalNode->y == pUnit->pMovementData->pGoal->y)
+							{
+								pUnit->isWaiting = false;
+								pUnit->isPushed = false;
+								pUnit->pushID = 0;
+								pUnit->pusher = NULL;
+	#ifdef CHECKSUM_DEBUG_HIGH
+								Networking::checksum_output << "REACH " << AI::currentFrame << ": " << pUnit->id << " " << pUnit->pMovementData->pGoal->x << " " << pUnit->pMovementData->pGoal->y << "\n";
+	#endif
+								if (pUnit->pMovementData->action.goal.unit)
+								{
+									if (!CanSee(pUnit, pUnit->pMovementData->action.goal.unit))
+									{
+	#ifdef CHECKSUM_DEBUG_HIGH
+										Networking::checksum_output << "CANCEL CANNOTSEE " << AI::currentFrame << ": " << pUnit->id << "\n";
+	#endif
+										AI::CancelAction(pUnit);
+									}
+								}
+								else
+								{
+									if (pUnit->pMovementData->action.action != AI::ACTION_BUILD)
+									{
+	#ifdef CHECKSUM_DEBUG_HIGH
+										Networking::checksum_output << "COMPLETE " << AI::currentFrame << ": " << pUnit->id << "\n";
+	#endif
+										AI::CompleteAction(pUnit);
+									}
+									else
+									{
+										if (!IsWithinRangeForBuilding(pUnit))
+										{
+	#ifdef CHECKSUM_DEBUG_HIGH
+											Networking::checksum_output << "CANCEL CANNOTBUILD " << AI::currentFrame << ": " << pUnit->id << "\n";
+	#endif
+											AI::CancelAction(pUnit);
+										}
+									}
+								}
+								pUnit->isMoving = false;
+								pUnit->pMovementData->pCurGoalNode = NULL;
+								AI::DeallocPathfindingNodes(pUnit);
+							}
+							else
+							{
+								if (pUnit->pMovementData->pCurGoalNode->pChild && pUnit->pMovementData->pCurGoalNode->pChild->pParent != pUnit->pMovementData->pCurGoalNode)
+								{
+									cout << "ERROR: pCurGoalNode != pCurGoalNode->pChild->pParent" << endl;
+									pUnit->pMovementData->pCurGoalNode = NULL;
+								}
+								else
+								{
+									pUnit->pMovementData->pCurGoalNode = pUnit->pMovementData->pCurGoalNode->pChild;
+									NewGoalNode(pUnit);
+	//								PushUnits(pUnit);
+								}
+	#ifdef CHECKSUM_DEBUG_HIGH
+								Networking::checksum_output << "NEXT GOAL " << AI::currentFrame << ": " << pUnit->id << " " << pUnit->pMovementData->pCurGoalNode->x << " " << pUnit->pMovementData->pCurGoalNode->y << "\n";
+	#endif
+								pUnit->pMovementData->switchedSquare = false;
+							}
+						}
+						else
+						{
+							pUnit->pMovementData->distanceLeft -= distance_per_frame;
+						}
+					
+					}
+				}
+
+				return true;
 			}
 
-			return true;
-		}
+			// Check whether a click at (clickx, clicky) hit unit
+			bool DoesHitUnit(Unit* unit, int clickx, int clicky, float& distance)
+			{
+				UnitType* type = unit->type;
+				Model* model = type->model;
+				Utilities::Vector3D near_plane, far_plane, tp1, tp2, tp3, hit_pos;
+				int index, index_v;
 
-		// Check whether a click at (clickx, clicky) hit unit
-		bool DoesHitUnit(Unit* unit, int clickx, int clicky, float& distance)
-		{
-			UnitType* type = unit->type;
-			Model* model = type->model;
-			Utilities::Vector3D near_plane, far_plane, tp1, tp2, tp3, hit_pos;
-			int index, index_v;
+				if (!model)
+					return false;
 
-			if (!model)
+				glPushMatrix();
+
+					SetUnitCoordSpace(unit);
+
+					WindowCoordToVector((GLdouble) clickx, (GLdouble) clicky, near_plane, far_plane);
+					
+					index = 0;
+
+					for (int i = 0; i < model->tri_count; i++)
+					{
+						index_v = model->tris[index++] * 3;
+						tp1.set(model->vertices[index_v], model->vertices[index_v+1], model->vertices[index_v+2]);
+						index_v = model->tris[index++] * 3;
+						tp2.set(model->vertices[index_v], model->vertices[index_v+1], model->vertices[index_v+2]);
+						index_v = model->tris[index++] * 3;
+						tp3.set(model->vertices[index_v], model->vertices[index_v+1], model->vertices[index_v+2]);
+						if (CheckLineIntersectTri(tp1, tp3, tp2, near_plane, far_plane, hit_pos))
+						{
+							glPopMatrix();
+							distance = near_plane.distance(hit_pos);
+							return true;
+						}
+					}
+
+				glPopMatrix();
+
 				return false;
-
-			glPushMatrix();
-
-				SetUnitCoordSpace(unit);
-
-				WindowCoordToVector((GLdouble) clickx, (GLdouble) clicky, near_plane, far_plane);
-				
-				index = 0;
-
-				for (int i = 0; i < model->tri_count; i++)
-				{
-					index_v = model->tris[index++] * 3;
-					tp1.set(model->vertices[index_v], model->vertices[index_v+1], model->vertices[index_v+2]);
-					index_v = model->tris[index++] * 3;
-					tp2.set(model->vertices[index_v], model->vertices[index_v+1], model->vertices[index_v+2]);
-					index_v = model->tris[index++] * 3;
-					tp3.set(model->vertices[index_v], model->vertices[index_v+1], model->vertices[index_v+2]);
-					if (CheckLineIntersectTri(tp1, tp3, tp2, near_plane, far_plane, hit_pos))
-					{
-						glPopMatrix();
-						distance = near_plane.distance(hit_pos);
-						return true;
-					}
-				}
-
-			glPopMatrix();
-
-			return false;
-		}
-		
-		// get the screen coord of the middle (0.0, 0.0, 0.0) of unit
-		Utilities::Vector3D GetUnitWindowPos(Unit* unit)
-		{
-//			UnitType* type = unit->type; << unused!
-//			Model* model = type->model; << unused!
-			Utilities::Vector3D win_vector;
-//			int index, index_v; << unused!
-//			float unit_y; << unused
-			glPushMatrix();
-
-				SetUnitCoordSpace(unit);
-
-				WorldCoordToWindowCoord(Utilities::Vector3D(0.0f, 0.0f, 0.0f), win_vector);
-
-			glPopMatrix();
-
-			return win_vector;
-
-		}
-
-		// get what unit was clicked, if any
-		Unit* GetUnitClicked(int clickx, int clicky, int map_x, int map_y)
-		{
-			Unit* unit;
-			Unit* cur_unit = 0;
-			float cur_dist = 1e10, dist;
-			for (vector<Dimension::Unit*>::iterator it = Dimension::pWorld->vUnits.begin(); it != Dimension::pWorld->vUnits.end(); it++)
-			{
-				unit = *it;
-				if (UnitIsRendered(unit, currentPlayerView))
-				{
-					if (unit->curAssociatedSquare.x > map_x-3 && unit->curAssociatedSquare.x < map_x+3 && unit->curAssociatedSquare.y < map_y+3 && unit->curAssociatedSquare.y < map_y+3)
-					{
-						if (Dimension::DoesHitUnit(unit, clickx, clicky, dist))
-						{
-							if (dist < cur_dist)
-							{
-								cur_unit = unit;
-								cur_dist = dist;
-							}
-						}
-					}
-				}
 			}
-			return cur_unit;
-		}
-
-		void CheckPrecomputedArrays(UnitType* type)
-		{
-			if (type->isMobile)
-			{
-				int j = type->widthOnMap-1;
-				int i = type->movementType;
-				
-				if (!movementTypeWithSizeCanWalkOnSquare[j][i])
-				{
-					movementTypeWithSizeCanWalkOnSquare[j][i] = new char*[pWorld->height];
-					for (int y = 0; y < pWorld->height; y++)
-					{
-						movementTypeWithSizeCanWalkOnSquare[j][i][y] = new char[pWorld->width];
-						for (int x = 0; x < pWorld->width; x++)
-						{
-							int start_x, start_y;
-							GetSizeUpperLeftCorner(j+1, x, y, start_x, start_y);
-							for (int y2 = start_y; y2 <= start_y + j; y2++)
-							{
-								for (int x2 = start_x; x2 <= start_x + j; x2++)
-								{
-									if (!MovementTypeCanWalkOnSquare_NoPrecalc((MovementType)i, x2, y2))
-									{
-										goto not_walkable;
-									}
-								}
-							}
-							movementTypeWithSizeCanWalkOnSquare[j][i][y][x] = 1;
-							continue;
-
-							not_walkable:
-							movementTypeWithSizeCanWalkOnSquare[j][i][y][x] = 0;
-						}
-					}
-				}
-
-				if (!traversalTimeBySize[j])
-				{
-					traversalTimeBySize[j] = new char*[pWorld->height];
-					for (int y = 0; y < pWorld->height; y++)
-					{
-						traversalTimeBySize[j][y] = new char[pWorld->width];
-						for (int x = 0; x < pWorld->width; x++)
-						{
-							int start_x, start_y;
-							int steepness = 0, num = 0;
-							GetSizeUpperLeftCorner(j+1, x, y, start_x, start_y);
-							for (int y2 = start_y; y2 <= start_y + j; y2++)
-							{
-								for (int x2 = start_x; x2 <= start_x + j; x2++)
-								{
-									if (x2 >= 0 && y2 >= 0 && x2 < pWorld->width && y2 < pWorld->height)
-									{
-										steepness += pWorld->ppSteepness[y2][x2];
-										num++;
-									}
-								}
-							}
-							steepness /= num;
-
-							if (steepness > 255)
-								steepness = 255;
-
-							traversalTimeBySize[j][y][x] = char(10 + (steepness >> 1));
-						}
-					}
-				}
-			}
-		}
-
-		Uint16 r_seed = 23467;
-		float rotation_rand()
-		{
-			r_seed = Uint16(((int) r_seed + 82473) ^ 53672);
-			return ((float)r_seed / 65535.0f);
-		}
-
-		set<Unit*> unitsScheduledForDeletion;
-		list<Unit*> unitsScheduledForDisplay;
-
-		SDL_mutex* unitCreationMutex = SDL_CreateMutex();
-
-		// create a unit, but don't display it
-		Unit* CreateUnitNoDisplay(UnitType* type, Player* owner, int id, bool complete)
-		{
-			SDL_LockMutex(unitCreationMutex);
-			if (pWorld->vUnits.size() >= 0xFFFF)
-			{
-				return NULL;
-			}
-
-			Unit* unit = new Unit;
-			unit->type = type;
-			unit->power = (float) type->maxPower;
-			unit->owner = owner;
-
-			if (!complete)
-			{
-				unit->completeness = 0.0;
-				unit->isCompleted = false;
-				unit->health = 0.0;
-			}
-			else
-			{
-				unit->completeness = 100.0;
-				unit->isCompleted = true;
-				unit->health = (float) type->maxHealth;
-			}
-			unit->rotation = rotation_rand() * 360;
-			unit->animData.sAnimData[0] = new SingleAnimData*[10];
-			unit->animData.sAnimData[1] = new SingleAnimData*[10];
-			for (int i = 0; i < 10; i++)
-			{
-				unit->animData.sAnimData[0][i] = new SingleAnimData[10];
-				unit->animData.sAnimData[1][i] = new SingleAnimData[10];
-			}
-			unit->pMovementData = NULL;
-			unit->lastAttack = 0;
-			unit->lastAttacked = 0;
-			unit->lastCommand = 0;
-			unit->isDisplayed = false;
-			unit->lastSeenPositions = new IntPosition[pWorld->vPlayers.size()];
-			unit->lightState = LIGHT_ON;
-			unit->isLighted = false;
-			unit->isMoving = false;
-			unit->isWaiting = false;
-			unit->isPushed = false;
-			unit->hasSeen = false;
-			unit->curAssociatedSquare.x = -1;
-			unit->curAssociatedSquare.y = -1;
-			unit->curAssociatedBigSquare.x = -1;
-			unit->curAssociatedBigSquare.x = -1;
-			unit->rallypoint = NULL;
-			unit->unitAIFuncs = type->unitAIFuncs[owner->index];
-			unit->aiFrame = 0;
-			unit->usedInAreaMaps = false;
-			unit->pushID = 0;
-			unit->pusher = NULL;
-			unit->faceTarget = FACETARGET_NONE;
-			unit->action_completeness = 0.0f;
-			unit->hasPower = false;
-
-			unit->pMovementData = new AI::MovementData;
- 			AI::InitMovementData(unit);
 			
-			int tries = 0;
-
-			if (id != -1)
+			// get the screen coord of the middle (0.0, 0.0, 0.0) of unit
+			Utilities::Vector3D GetUnitWindowPos(Unit* unit)
 			{
-				nextID = id;
+	//			UnitType* type = unit->type; << unused!
+	//			Model* model = type->model; << unused!
+				Utilities::Vector3D win_vector;
+	//			int index, index_v; << unused!
+	//			float unit_y; << unused
+				glPushMatrix();
+
+					SetUnitCoordSpace(unit);
+
+					WorldCoordToWindowCoord(Utilities::Vector3D(0.0f, 0.0f, 0.0f), win_vector);
+
+				glPopMatrix();
+
+				return win_vector;
+
 			}
 
-			while (unitByID[nextID])
+			// get what unit was clicked, if any
+			Unit* GetUnitClicked(int clickx, int clicky, int map_x, int map_y)
 			{
-				nextID++;
-				if (nextID == 0)
+				Unit* unit;
+				Unit* cur_unit = 0;
+				float cur_dist = 1e10, dist;
+				for (vector<Dimension::Unit*>::iterator it = Dimension::pWorld->vUnits.begin(); it != Dimension::pWorld->vUnits.end(); it++)
 				{
-					nextID = 0;
+					unit = *it;
+					if (UnitIsRendered(unit, currentPlayerView))
+					{
+						if (unit->curAssociatedSquare.x > map_x-3 && unit->curAssociatedSquare.x < map_x+3 && unit->curAssociatedSquare.y < map_y+3 && unit->curAssociatedSquare.y < map_y+3)
+						{
+							if (Dimension::DoesHitUnit(unit, clickx, clicky, dist))
+							{
+								if (dist < cur_dist)
+								{
+									cur_unit = unit;
+									cur_dist = dist;
+								}
+							}
+						}
+					}
 				}
-				if (tries++ == 0xFFFF)
+				return cur_unit;
+			}
+
+			void CheckPrecomputedArrays(UnitType* type)
+			{
+				if (type->isMobile)
+				{
+					int j = type->widthOnMap-1;
+					int i = type->movementType;
+					
+					if (!movementTypeWithSizeCanWalkOnSquare[j][i])
+					{
+						movementTypeWithSizeCanWalkOnSquare[j][i] = new char*[pWorld->height];
+						for (int y = 0; y < pWorld->height; y++)
+						{
+							movementTypeWithSizeCanWalkOnSquare[j][i][y] = new char[pWorld->width];
+							for (int x = 0; x < pWorld->width; x++)
+							{
+								int start_x, start_y;
+								GetSizeUpperLeftCorner(j+1, x, y, start_x, start_y);
+								for (int y2 = start_y; y2 <= start_y + j; y2++)
+								{
+									for (int x2 = start_x; x2 <= start_x + j; x2++)
+									{
+										if (!MovementTypeCanWalkOnSquare_NoPrecalc((MovementType)i, x2, y2))
+										{
+											goto not_walkable;
+										}
+									}
+								}
+								movementTypeWithSizeCanWalkOnSquare[j][i][y][x] = 1;
+								continue;
+
+								not_walkable:
+								movementTypeWithSizeCanWalkOnSquare[j][i][y][x] = 0;
+							}
+						}
+					}
+
+					if (!traversalTimeBySize[j])
+					{
+						traversalTimeBySize[j] = new char*[pWorld->height];
+						for (int y = 0; y < pWorld->height; y++)
+						{
+							traversalTimeBySize[j][y] = new char[pWorld->width];
+							for (int x = 0; x < pWorld->width; x++)
+							{
+								int start_x, start_y;
+								int steepness = 0, num = 0;
+								GetSizeUpperLeftCorner(j+1, x, y, start_x, start_y);
+								for (int y2 = start_y; y2 <= start_y + j; y2++)
+								{
+									for (int x2 = start_x; x2 <= start_x + j; x2++)
+									{
+										if (x2 >= 0 && y2 >= 0 && x2 < pWorld->width && y2 < pWorld->height)
+										{
+											steepness += pWorld->ppSteepness[y2][x2];
+											num++;
+										}
+									}
+								}
+								steepness /= num;
+
+								if (steepness > 255)
+									steepness = 255;
+
+								traversalTimeBySize[j][y][x] = char(10 + (steepness >> 1));
+							}
+						}
+					}
+				}
+			}
+
+			Uint16 r_seed = 23467;
+			float rotation_rand()
+			{
+				r_seed = Uint16(((int) r_seed + 82473) ^ 53672);
+				return ((float)r_seed / 65535.0f);
+			}
+
+			set<Unit*> unitsScheduledForDeletion;
+			list<Unit*> unitsScheduledForDisplay;
+
+			SDL_mutex* unitCreationMutex = SDL_CreateMutex();
+
+			// create a unit, but don't display it
+			Unit* CreateUnitNoDisplay(UnitType* type, Player* owner, int id, bool complete)
+			{
+				SDL_LockMutex(unitCreationMutex);
+				if (pWorld->vUnits.size() >= 0xFFFF)
+				{
+					return NULL;
+				}
+
+				Unit* unit = new Unit;
+				unit->type = type;
+				unit->power = (float) type->maxPower;
+				unit->owner = owner;
+
+				if (!complete)
+				{
+					unit->completeness = 0.0;
+					unit->isCompleted = false;
+					unit->health = 0.0;
+				}
+				else
+				{
+					unit->completeness = 100.0;
+					unit->isCompleted = true;
+					unit->health = (float) type->maxHealth;
+				}
+				unit->rotation = rotation_rand() * 360;
+				unit->animData.sAnimData[0] = new SingleAnimData*[10];
+				unit->animData.sAnimData[1] = new SingleAnimData*[10];
+				for (int i = 0; i < 10; i++)
+				{
+					unit->animData.sAnimData[0][i] = new SingleAnimData[10];
+					unit->animData.sAnimData[1][i] = new SingleAnimData[10];
+				}
+				unit->pMovementData = NULL;
+				unit->lastAttack = 0;
+				unit->lastAttacked = 0;
+				unit->lastCommand = 0;
+				unit->isDisplayed = false;
+				unit->lastSeenPositions = new IntPosition[pWorld->vPlayers.size()];
+				unit->lightState = LIGHT_ON;
+				unit->isLighted = false;
+				unit->isMoving = false;
+				unit->isWaiting = false;
+				unit->isPushed = false;
+				unit->hasSeen = false;
+				unit->curAssociatedSquare.x = -1;
+				unit->curAssociatedSquare.y = -1;
+				unit->curAssociatedBigSquare.x = -1;
+				unit->curAssociatedBigSquare.x = -1;
+				unit->rallypoint = NULL;
+				unit->unitAIFuncs = type->unitAIFuncs[owner->index];
+				unit->aiFrame = 0;
+				unit->usedInAreaMaps = false;
+				unit->pushID = 0;
+				unit->pusher = NULL;
+				unit->faceTarget = FACETARGET_NONE;
+				unit->action_completeness = 0.0f;
+				unit->hasPower = false;
+
+				unit->pMovementData = new AI::MovementData;
+ 				AI::InitMovementData(unit);
+				
+				int tries = 0;
+
+				if (id != -1)
+				{
+					nextID = id;
+				}
+
+				while (unitByID[nextID])
+				{
+					nextID++;
+					if (nextID == 0)
+					{
+						nextID = 0;
+					}
+					if (tries++ == 0xFFFF)
+					{
+						return false;
+					}
+				}
+
+	#ifdef CHECKSUM_DEBUG_HIGH
+				Networking::checksum_output << "CREATEUNIT " << type->id << " " << nextID << "\n";
+	#endif
+				
+				unit->id = nextID;
+
+				unitByID[unit->id] = unit;
+				
+				for (int i = 0; i < Audio::SFX_ACT_COUNT; i++)
+					unit->soundNodes[i] = NULL;
+
+				for (unsigned int i = 0; i < pWorld->vPlayers.size(); i++)
+				{
+					unit->lastSeenPositions[i].x = -1000;
+					unit->lastSeenPositions[i].y = -1000;
+				}
+
+ 				validUnitPointers[unit] = true;
+
+				CheckPrecomputedArrays(type);
+				
+				SDL_UnlockMutex(unitCreationMutex);
+
+				return unit;
+			}
+			
+			SDL_mutex* unitsScheduledForDisplayMutex = SDL_CreateMutex();
+
+			bool ScheduleDisplayUnit(Unit* unit, int x, int y)
+			{
+				if (!SquaresAreWalkable(unit->type, x, y, SIW_ALLKNOWING))
 				{
 					return false;
 				}
-			}
-
-#ifdef CHECKSUM_DEBUG_HIGH
-			Networking::checksum_output << "CREATEUNIT " << type->id << " " << nextID << "\n";
-#endif
 			
-			unit->id = nextID;
+				unit->curAssociatedSquare.x = x;
+				unit->curAssociatedSquare.y = y;
 
-			unitByID[unit->id] = unit;
-			
-			for (int i = 0; i < Audio::SFX_ACT_COUNT; i++)
-				unit->soundNodes[i] = NULL;
+				if (unit->type->isMobile)
+					numUnitsPerAreaMap[unit->type->heightOnMap-1][unit->type->movementType]++;
+				else
+					AI::AddUnitToAreaMap(unit);
 
-			for (unsigned int i = 0; i < pWorld->vPlayers.size(); i++)
-			{
-				unit->lastSeenPositions[i].x = -1000;
-				unit->lastSeenPositions[i].y = -1000;
+				SDL_LockMutex(unitsScheduledForDisplayMutex);
+				unitsScheduledForDisplay.push_back(unit);
+				SDL_UnlockMutex(unitsScheduledForDisplayMutex);
+
+				return true;
 			}
 
- 			validUnitPointers[unit] = true;
-
-			CheckPrecomputedArrays(type);
-			
-			SDL_UnlockMutex(unitCreationMutex);
-
-			return unit;
-		}
-		
-		SDL_mutex* unitsScheduledForDisplayMutex = SDL_CreateMutex();
-
-		bool ScheduleDisplayUnit(Unit* unit, int x, int y)
-		{
-			if (!SquaresAreWalkable(unit->type, x, y, SIW_ALLKNOWING))
+			bool DisplayUnit(Unit* unit)
 			{
-				return false;
-			}
-		
-			unit->curAssociatedSquare.x = x;
-			unit->curAssociatedSquare.y = y;
-
-			if (unit->type->isMobile)
-				numUnitsPerAreaMap[unit->type->heightOnMap-1][unit->type->movementType]++;
-			else
-				AI::AddUnitToAreaMap(unit);
-
-			SDL_LockMutex(unitsScheduledForDisplayMutex);
-			unitsScheduledForDisplay.push_back(unit);
-			SDL_UnlockMutex(unitsScheduledForDisplayMutex);
-
-			return true;
-		}
-
-		bool DisplayUnit(Unit* unit)
-		{
-			if (!SquaresAreWalkable(unit->type, unit->curAssociatedSquare.x, unit->curAssociatedSquare.y, SIW_ALLKNOWING))
-			{
-				return false;
-			}
-		
-			pWorld->vUnits.push_back(unit);
-			if (unit->type->hasAI)
-			{
-				pWorld->vUnitsWithAI.push_back(unit);
-			}
-			unit->owner->vUnits.push_back(unit);
-			if (unit->type->hasLuaAI)
-			{
-				unit->owner->vUnitsWithLuaAI.push_back(unit);
-			}
-
-			unit->pos.x = (float) unit->curAssociatedSquare.x + 0.5;
-			unit->pos.y = (float) unit->curAssociatedSquare.y + 0.5;
-
-			unit->isDisplayed = true;
-
-			SetAssociatedSquares(unit, (int) unit->pos.x, (int) unit->pos.y);
-
-			if (!unit->isCompleted)
-			{
-				Incomplete(unit);
-			}
-
- 			displayedUnitPointers[unit] = true;
-
-			AI::SendUnitEventToLua_UnitCreation(unit);
-			AI::SendUnitEventToLua_BecomeIdle(unit);
-
-			return true;
-		}
-
-		// create a unit
-		Unit* CreateUnit(UnitType* type, Player* owner, int x, int y, int id, bool complete)
-		{
-			if (!SquaresAreWalkable(type, x, y, SIW_ALLKNOWING))
-			{
-//				cout << "buildfail" << endl;
-				return NULL;
-			}
-			Unit* unit = CreateUnitNoDisplay(type, owner, id, complete);
-			ScheduleDisplayUnit(unit, x, y);
-			return unit;
-		}
-
-		void DisplayScheduledUnits()
-		{
-			unitsScheduledForDisplay.sort(UnitBinPred);
-			for (list<Unit*>::iterator it = unitsScheduledForDisplay.begin(); it != unitsScheduledForDisplay.end(); it++)
-			{
-				DisplayUnit(*it);
-			}
-			unitsScheduledForDisplay.clear();
-		}
-
-		void KillUnit(Unit* unit)
-		{
-			unsigned int i;
-			Unit* curUnit;
-
-			AI::CancelAllActions(unit);
-
-			AI::SendUnitEventToLua_UnitKilled(unit);
-			
-			unit->health = 0;
-			unit->pMovementData->action.action = AI::ACTION_DIE;
-
-			PlayActionSound(unit, Audio::SFX_ACT_DEATH_FNF);
-
-			if (!Game::Rules::noGraphics)
-			{
-				//Start an explosion
-				if(UnitIsVisible(unit, Dimension::currentPlayerView))
+				if (!SquaresAreWalkable(unit->type, unit->curAssociatedSquare.x, unit->curAssociatedSquare.y, SIW_ALLKNOWING))
 				{
-					FX::pParticleSystems->InitEffect(unit->pos.x, unit->pos.y, 0.0f, unit->type->size, FX::PARTICLE_SPHERICAL_EXPLOSION);
+					return false;
 				}
+			
+				pWorld->vUnits.push_back(unit);
+				if (unit->type->hasAI)
+				{
+					pWorld->vUnitsWithAI.push_back(unit);
+				}
+				unit->owner->vUnits.push_back(unit);
+				if (unit->type->hasLuaAI)
+				{
+					unit->owner->vUnitsWithLuaAI.push_back(unit);
+				}
+
+				unit->pos.x = (float) unit->curAssociatedSquare.x + 0.5;
+				unit->pos.y = (float) unit->curAssociatedSquare.y + 0.5;
+
+				unit->isDisplayed = true;
+
+				SetAssociatedSquares(unit, (int) unit->pos.x, (int) unit->pos.y);
+
+				if (!unit->isCompleted)
+				{
+					Incomplete(unit);
+				}
+
+ 				displayedUnitPointers[unit] = true;
+
+				AI::SendUnitEventToLua_UnitCreation(unit);
+				AI::SendUnitEventToLua_BecomeIdle(unit);
+
+				return true;
 			}
 
-			int thread = AI::PausePathfinding(unit);
+			// create a unit
+			Unit* CreateUnit(UnitType* type, Player* owner, int x, int y, int id, bool complete)
+			{
+				if (!SquaresAreWalkable(type, x, y, SIW_ALLKNOWING))
+				{
+	//				cout << "buildfail" << endl;
+					return NULL;
+				}
+				Unit* unit = CreateUnitNoDisplay(type, owner, id, complete);
+				ScheduleDisplayUnit(unit, x, y);
+				return unit;
+			}
+
+			void DisplayScheduledUnits()
+			{
+				unitsScheduledForDisplay.sort(UnitBinPred);
+				for (list<Unit*>::iterator it = unitsScheduledForDisplay.begin(); it != unitsScheduledForDisplay.end(); it++)
+				{
+					DisplayUnit(*it);
+				}
+				unitsScheduledForDisplay.clear();
+			}
+
+			void KillUnit(Unit* unit)
+			{
+				unsigned int i;
+				Unit* curUnit;
+
+				AI::CancelAllActions(unit);
+
+				AI::SendUnitEventToLua_UnitKilled(unit);
+				
+				unit->health = 0;
+				unit->pMovementData->action.action = AI::ACTION_DIE;
+
+				PlayActionSound(unit, Audio::SFX_ACT_DEATH_FNF);
+
+				if (!Game::Rules::noGraphics)
+				{
+					//Start an explosion
+					if(UnitIsVisible(unit, Dimension::currentPlayerView))
+					{
+						FX::pParticleSystems->InitEffect(unit->pos.x, unit->pos.y, 0.0f, unit->type->size, FX::PARTICLE_SPHERICAL_EXPLOSION);
+					}
+				}
+
+				AI::PausePathfinding();
 
 			for (i = 0; i < pWorld->vUnits.size(); i++)
 			{
@@ -3671,7 +3653,7 @@ namespace Game
 				}
 			}
 
-			AI::ResumePathfinding(thread);
+			AI::ResumePathfinding();
 
 		}
 
@@ -3819,7 +3801,7 @@ namespace Game
 			if (unit->type->isMobile)
 				numUnitsPerAreaMap[unit->type->heightOnMap-1][unit->type->movementType]--;
 
-			int thread = AI::PausePathfinding(unit);
+			AI::PausePathfinding();
 
 			for (i = 0; i < pWorld->vUnits.size(); i++)
 			{
@@ -3855,11 +3837,11 @@ namespace Game
 			if (AI::IsUndergoingPathCalc(unit))
 			{
 				AI::QuitUndergoingProc(unit);
-				AI::ResumePathfinding(thread);
+				AI::ResumePathfinding();
 				return;
 			}
 			
-			AI::ResumePathfinding(thread);
+			AI::ResumePathfinding();
 
 			if (unit->pMovementData->pStart != NULL)
 				AI::DeallocPathfindingNodes(unit);
@@ -4271,26 +4253,28 @@ namespace Game
 
 		void RenderProjectile(Projectile* proj)
 		{
-			Model* model = proj->type->model;
-			glPushMatrix();
+			if (SquareIsVisible(currentPlayerView, proj->pos.x, proj->pos.y))
+			{
+				Model* model = proj->type->model;
+				glPushMatrix();
 
-			SetProjectileCoordSpace(proj);
+				SetProjectileCoordSpace(proj);
 
-			glBegin(GL_TRIANGLES);
+				glBegin(GL_TRIANGLES);
 
-				if (model && model->texCoords)
-				{
-					RenderTrianglesTextured(model->tri_count, model->tris, model->tex_tris, model->normals, model->vertices, model->texCoords);
-				}
-				else
-				{
-					RenderTriangles(model->tri_count, model->tris, model->normals, model->vertices);
-				}
+					if (model && model->texCoords)
+					{
+						RenderTrianglesTextured(model->tri_count, model->tris, model->tex_tris, model->normals, model->vertices, model->texCoords);
+					}
+					else
+					{
+						RenderTriangles(model->tri_count, model->tris, model->normals, model->vertices);
+					}
 
-			glEnd();
+				glEnd();
 
-			glPopMatrix();
-			
+				glPopMatrix();
+			}	
 		}
 
 		void CalculateMaterial(Unit* unit, GLfloat (&dest)[4], GLfloat source[4], GLfloat (&mod)[2][2][4])

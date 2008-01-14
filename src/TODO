@@ -12,82 +12,48 @@
 /_____/ \                      ||----w |                      O O /Oo           
 |_[]__|_|______________________||     ||_______________________| |______________
                                                                                 
-IMPORTANT ----------------------------------------------------------------------
 * GUI (Marcus)
 	o Gamestates - menu/ingame/options/etc. (Leonard & Marcus)
 	o Widgets and Panels
-* Fix problems in pathfinding (Leo)
-	o Cancel searching for a path after a certain number of steps to prevent
-	  infinite searches.
-	o If no path is found, make the unit go to the 'nearest' square found.
-	o Implement some fast way of finding out whether a path can be found or
-	  not?
-* Skybox (fix rendering bug) (Marcus)
-* Render projectiles & handle their flight in calls in AI scripts (Alexander)
+	o 'Layout managers'
 * Models (Marcus)
 	o Primarily meshes
 	o Textures are secondary
 	o Unit & Technology thumbnails 128x128
-* Enemy AI (just something simple to begin with)
-* Day/night cycle, Gaia AI, lights on light towers and other light sources (Leo)
+		* For already existing ones, re-render with transparent background
+
+* Enemy AI
+	o Improve it!
 * Player AI: (Alexander)
-	o Implement aggressive stance as default hardcoded stance
-	o Unitconstruction (unit will walk to a place and start building, 
-                            buildings build units but they won't appear until 
-                            they're 100% done)
+	o Unitconstruction
 		* Re-level ground where you build buildings.
-	o Link all this into the GUI when it's done.
-* Implement upgrades for units
+* Implement upgrades for units and prerequisites for building units and performing upgrades
 * Handle building of near-earth geothermal energy stations correctly (can only 
   be built on cracks in the ground) (Marcus)
 * Add cracks and positions of them in the terrain (by altering heightmap?)
-* Calculate SquareIsWalkable and GetTraversalTime correctly according to unit 
-  type and terrain type (Alexander)
-* Only render units on visible terrain squares, this is quite easy and can be 
-  swiftly done (Alexander)
 * Sound effects (any of us)
 	o Click/selection sounds (Marcus)
 	o Walk sounds
 	o Attack sounds (Marcus)
 	o Ambient sounds (Leo)
-* Fog of War (Alexander)
+* Fog of War
+	o Render volumetrically?
 * Missions (Marcus)
 	o Events (triggered by X) - executes a lua-script when triggered
 
-NOT IMPORTANT (ordered by priority) --------------------------------------------
-* Fix terrain engine fov (not necessary but we might want to do it anyway)
 * Player AI:
 	o Stances (aggressive, defensive, stand ground, do nothing)
-	o Add order queues (so you could for example set a unit to first build 
-	                    one thing, then goto a place, then build another 
-	                    thing etc)
+	o Make order queues easier to use? 
 * Music (Leo? Maybe Alexander too?)
 * Effect engine
 	o Volumetric fog at thermal energy sources
-	o 2D Particle engine for explosions
 * Add water textures
 * Terrain
 	o Multitextured
 	o Cast shadows
 * Pixel shaders (Alexander)
 * Stable Windows-executable
-
-(*
-I'm proposing the following map-structure:
-resources/missions/Tutorial.lua
-
-Tutorial.lua: (pseudokod)
-	LoadHeightmap("resources/mission/lunar.heightmap")
-	player1 = CreatePlayer("newbie", ...)
-	PutPlayer(player1, 10, 10) -- x och y-position
-	player2 = CreatePlayer("enemy", ...)
-	PutPlayer(player2, 100, 100)
-	
-	PutEvent("myScriptFileToExecute", EVENTS.WHEN_USER_ENTERS_AREA, 
-	         CreateArea(20, 20, 20, 20)) -- x, y, w, h
-	
-	AddSomeTreesAndStuff
-	
-	DisplayDialog("Some fancy message")
-	etc.
-*)
+* Use VBOs for rendering units, terrain and particles
+* Fix remaining crash-bugs
+* Rework projectile handling
+* Smooth directions-changing of units?

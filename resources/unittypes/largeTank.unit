@@ -1,8 +1,9 @@
 local ut = {}
 ut.id = "LargeTank"
 ut.name = "Large Tank"
-ut.maxHealth = 1200
+ut.maxHealth = 2400
 ut.maxPower = 100
+ut.armor = 250.0
 ut.minAttack = 120
 ut.maxAttack = 240
 ut.heightOnMap = 4
@@ -13,7 +14,7 @@ ut.isMobile = true
 	
 ut.canAttack = true
 ut.attackMaxRange = 15.0
-ut.attackAccuracy = 80.0
+ut.attackAccuracy = 95.0
 
 ut.sightRange = 17.0
 ut.movementSpeed = 1.5
@@ -37,7 +38,7 @@ ut.projectileType =
 		model = "models/missile.wrl#Missile",
 		areaOfEffect = 3.0,
 		startPos = {1.0, 0.0, 0.0},
-		speed = 1.0,
+		speed = 8.0,
 		size = 0.4
 	}
 CreateUnitType(ut)

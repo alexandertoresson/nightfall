@@ -27,7 +27,7 @@
 #include <vector>
 #include <map>
 #include <string>
-#include <assert.h>
+#include <cassert>
 #include "sdlheader.h"
 #include "terrain.h"
 #include "linkedlist.h"
