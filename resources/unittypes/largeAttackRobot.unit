@@ -37,9 +37,9 @@ ut.model = "models/largeattackrobot.wrl#LargeAttackRobot"
 ut.projectileType =
 	{
 		model = "models/missile.wrl#Missile",
-		areaOfEffect = 1.0,
+		areaOfEffect = 1.5,
 		startPos = {1.0, 0.0, 0.0},
-		speed = 8.0,
+		speed = 12.0,
 		size = 0.2
 	}
 CreateUnitType(ut)

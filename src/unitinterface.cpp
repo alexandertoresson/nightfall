@@ -2593,18 +2593,18 @@ namespace UnitLuaInterface
 		return 2;
 	}
 
-	int LLoadUnitType(LuaVM* pVM)
+	int LLoadLuaScript(LuaVM* pVM)
 	{
 		const char* filename = lua_tostring(pVM, 1);
 	
 		if (!filename)
-			LUA_FAILURE("LLoadUnitType: Invalid unittype filename - null pointer")
+			LUA_FAILURE("LLoadLuaScript: Invalid filename - null pointer")
 
 		Utilities::Scripting::LuaVirtualMachine* const pVM_object = Utilities::Scripting::LuaVirtualMachine::Instance();
 
 		if (pVM_object->DoFile(filename))
 		{
-			LUA_FAILURE("LLoadUnitType: Error loading unittype LUA script " << filename)
+			LUA_FAILURE("LLoadLuaSCript: Error loading LUA script " << filename)
 		}
 
 		LUA_SUCCESS
@@ -3172,7 +3172,7 @@ else \
 		pVM->RegisterFunction("GetConfigFile", LGetConfigFile);
 		pVM->RegisterFunction("GetWritableConfigFile", LGetWritableConfigFile);
 		
-		pVM->RegisterFunction("LoadUnitType", LLoadUnitType);
+		pVM->RegisterFunction("LoadLuaScript", LLoadLuaScript);
 		pVM->RegisterFunction("UnloadUnitType", LUnloadUnitType);
 		pVM->RegisterFunction("UnloadAllUnitTypes", LUnloadAllUnitTypes);
 		

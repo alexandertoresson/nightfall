@@ -111,6 +111,19 @@ namespace Game
 		          SIW_CONSIDER_PUSHED = 8,
 		          SIW_IGNORE_OWN_MOBILE_UNITS = 16;
 
+		struct VBOArrays
+		{
+			GLuint normalArray;
+			GLuint vertexArray;
+			GLuint texCoordArray;
+			VBOArrays()
+			{
+				normalArray = 0;
+				vertexArray = 0;
+				texCoordArray = 0;
+			}
+		};
+
 		struct Model
 		{
 			int tri_count;
@@ -127,6 +140,8 @@ namespace Game
 			GLfloat *Material_Specular;
 			GLfloat *Material_Shininess;
 			GLfloat *Material_Emissive;
+			VBOArrays staticArrays;
+			VBOArrays dynamicArrays;
 		};
 
 		struct MorphAnim

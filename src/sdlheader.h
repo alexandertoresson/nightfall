@@ -22,6 +22,7 @@
 	#include <OpenGL/glu.h>
 	#include <OpenGL/glext.h>
 	#include <Carbon/Carbon.h>
+	#include "GLEW/glew.h"
 	
 	#define MAC
 	#undef inline
@@ -37,19 +38,9 @@
 	#include <SDL_ttf.h>
 	#include <SDL_net.h>
 
-	#ifdef WIN32
-
-		#include <GL/glew.h>
-		#include <GL/wglew.h>
-		#include <GL/GLU.h>
-
-	#else
-
-		#include <GL/gl.h>
-		#include <GL/glu.h>
-		#include <GL/glext.h>
-
-	#endif
+	#include <GL/glew.h>
+	#include <GL/gl.h>
+	#include <GL/glu.h>
 #endif
 
 #ifndef GL_ARB_multitexture

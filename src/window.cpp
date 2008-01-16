@@ -14,6 +14,8 @@ namespace Window
 
 	bool noWindow = false;
 
+	bool hasVBOs = false;
+
 	int windowWidth, windowHeight;
 
 	float guiResolution, guiHeight, guiWidth;
@@ -210,27 +212,6 @@ namespace Window
 		//  Reset The View 
 		glLoadIdentity();
 
-#ifndef WIN32
-		if (!Utilities::IsOGLExtensionSupported("GL_ARB_multitexture"))
-		{
-			std::cout << "The OpenGL extension GL_ARB_multitexture is needed for this program" << std::endl;
-			return ERROR_GENERAL;
-		}
-
-		if (!Utilities::IsOGLExtensionSupported("GL_ARB_texture_env_combine"))
-		{
-			std::cout << "The OpenGL extension GL_ARB_texture_env_combine is needed for this program" << std::endl;
-			return ERROR_GENERAL;
-		}
-		
-		
-/*		if (!Utilities::IsOGLExtensionSupported("GL_ARB_texture_env_crossbar"))
-		{
-			std::cout << "The OpenGL extension GL_ARB_texture_env_crossbar is needed for this program" << std::endl;
-			return ERROR_GENERAL;
-		} */
-		
-#else
 		{
 			GLenum err = glewInit();
 
@@ -238,23 +219,46 @@ namespace Window
 			{
 				std::ostringstream iss;
 				iss << "Critical error: " << glewGetErrorString(err) << "\n\nTerminating application!";
+#ifdef WIN32
 				MessageBoxA(NULL, iss.str().c_str(), "GLEW error!", MB_OK | MB_ICONERROR);
+#else
+				std::cout << "GLEW Error: " << iss.str() << std::endl;
+#endif
 				return ERROR_GENERAL;
 			}
 		}
 
 		if (!glewIsExtensionSupported("GL_ARB_multitexture"))
 		{
+#ifdef WIN32
 			MessageBoxA(NULL, "The OpenGL extension GL_ARB_multitexture doesn't seem to be supported by your hardware.\nPlease make sure you have the latest drivers installed.", "OpenGL Extension error!", MB_OK | MB_ICONERROR);
+#else
+			std::cout << "GL_ARB_multitexture extension could not be found!" << std::endl;
+#endif
 			return ERROR_GENERAL;
 
 		}
 
 		if (!glewIsExtensionSupported("GL_ARB_texture_env_combine"))
 		{
+#ifdef WIN32
 			MessageBoxA(NULL, "The OpenGL extension GL_ARB_texture_env_combine doesn't seem to be supported by your hardware.\nPlease make sure you have the latest drivers installed.", "OpenGL Extension error!", MB_OK | MB_ICONERROR);
+#else
+			std::cout << "GL_ARB_texture_env_combine extension could not be found!" << std::endl;
+#endif
 			return ERROR_GENERAL;
 		}
+		
+		if (glewIsExtensionSupported("GL_ARB_vertex_buffer_object"))
+		{
+			std::cout << "Support for vertex buffer objects detected" << std::endl;
+			hasVBOs = true;
+		}
+		else
+		{
+			std::cout << "Support for vertex buffer objects not detected" << std::endl;
+		}
+		
 	/*
 		if (!glewIsExtensionSupported("GL_ARB_texture_env_crossbar"))
 		{
@@ -262,7 +266,6 @@ namespace Window
 			return ERROR_GENERAL;
 		}
 	*/	
-#endif
 		GLint maxTextureUnits;
 		glGetIntegerv(GL_MAX_TEXTURE_UNITS, &maxTextureUnits);
 		GLint maxModelviewStackDepth;

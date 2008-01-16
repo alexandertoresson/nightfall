@@ -14,6 +14,7 @@ ut.isMobile = true
 	
 ut.canAttack = true
 ut.attackMaxRange = 15.0
+ut.attackMinRange = 5.0
 ut.attackAccuracy = 95.0
 
 ut.sightRange = 17.0
@@ -23,7 +24,7 @@ ut.attackSpeed = 1.0
 ut.size = 4.0
 ut.height = 1.0
 ut.buildTime = 90.0
-ut.buildCost = 800
+ut.buildCost = 1200
 ut.researchTime = 180.0
 ut.researchCost = 3200
 

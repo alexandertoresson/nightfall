@@ -2536,6 +2536,7 @@ namespace  Utilities
 				{
 					ModelData->texture = 0;
 				}
+
 				ModelsIndex.push_back(ModelData);
 				
 

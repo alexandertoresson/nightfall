@@ -4460,25 +4460,138 @@ namespace Game
 
 				tempModel = morphAnim->tempModel;
 				
-				float normal_scale_factor = 0.0625f*unit->type->size * unit->completeness / 100.0f;
+				float fullsize_normal_scale_factor = 0.0625f*unit->type->size;
+				float normal_scale_factor = fullsize_normal_scale_factor * unit->completeness / 100.0f;
 
-				for (int i = 0; i < tempModel->pointCount * 3; i++)
+
+				if (Window::hasVBOs)
 				{
-					tempModel->normals[i] = model->normals[i] * normal_scale_factor;
-				}
+					if (model->staticArrays.vertexArray == 0)
+					{
+						GLfloat *vertices = new GLfloat[model->tri_count * 9];
+						GLfloat *normals = new GLfloat[model->tri_count * 9];
+						GLfloat *texCoords = new GLfloat[model->tri_count * 6];
+						glGenBuffersARB(1, &model->staticArrays.vertexArray);
+						glGenBuffersARB(1, &model->staticArrays.normalArray);
+						glGenBuffersARB(1, &model->staticArrays.texCoordArray);
+						glGenBuffersARB(1, &model->dynamicArrays.normalArray);
+						
+						int index_v, index_t, index = 0;
+						int write_v = 0, write_t = 0;
+						for (int j = 0; j < model->tri_count; j++)
+						{
+							for (int k = 0; k < 3; k++)
+							{
+								index_v = model->tris[index] * 3;
 
-				glBegin(GL_TRIANGLES);
+								normals[write_v] = model->normals[index_v] * fullsize_normal_scale_factor;
+								normals[write_v+1] = model->normals[index_v+1] * fullsize_normal_scale_factor;
+								normals[write_v+2] = model->normals[index_v+2] * fullsize_normal_scale_factor;
 
-				if (model->texCoords == NULL)
-				{
-					RenderTriangles(model->tri_count, model->tris, tempModel->normals, model->vertices);
+								vertices[write_v] = model->vertices[index_v];
+								vertices[write_v+1] = model->vertices[index_v+1];
+								vertices[write_v+2] = model->vertices[index_v+2];
+
+								write_v += 3;
+
+								if (model->texCoords)
+								{
+									index_t = model->tex_tris[index] * 2;
+									texCoords[write_t] = model->texCoords[index_t];
+									texCoords[write_t+1] = model->texCoords[index_t+1];
+									write_t += 2;
+								}
+
+								index++;
+							}
+						}
+						glBindBufferARB(GL_ARRAY_BUFFER_ARB, model->staticArrays.vertexArray);
+						glBufferDataARB(GL_ARRAY_BUFFER_ARB, model->tri_count * 9 * sizeof(GLfloat), vertices, GL_STATIC_DRAW_ARB);
+						glBindBufferARB(GL_ARRAY_BUFFER_ARB, model->staticArrays.normalArray);
+						glBufferDataARB(GL_ARRAY_BUFFER_ARB, model->tri_count * 9 * sizeof(GLfloat), normals, GL_STATIC_DRAW_ARB);
+						if (model->texCoords)
+						{
+							glBindBufferARB(GL_ARRAY_BUFFER_ARB, model->staticArrays.texCoordArray);
+							glBufferDataARB(GL_ARRAY_BUFFER_ARB, model->tri_count * 6 * sizeof(GLfloat), texCoords, GL_STATIC_DRAW_ARB);
+						}
+
+						delete[] vertices;
+						delete[] normals;
+						delete[] texCoords;
+					}
+
+					glEnable(GL_NORMAL_ARRAY);
+
+					if (unit->completeness < 100.0f)
+					{
+						GLfloat *normals = new GLfloat[model->tri_count * 9];
+						int index_v, index = 0;
+						int write_v = 0;
+						for (int j = 0; j < model->tri_count; j++)
+						{
+							for (int k = 0; k < 3; k++)
+							{
+								index_v = model->tris[index] * 3;
+
+								normals[write_v] = model->normals[index_v] * normal_scale_factor;
+								normals[write_v+1] = model->normals[index_v+1] * normal_scale_factor;
+								normals[write_v+2] = model->normals[index_v+2] * normal_scale_factor;
+
+								write_v += 3;
+								index++;
+							}
+						}
+						glBindBufferARB(GL_ARRAY_BUFFER_ARB, model->dynamicArrays.normalArray);
+						glBufferDataARB(GL_ARRAY_BUFFER_ARB, model->tri_count * 9 * sizeof(GLfloat), normals, GL_STREAM_DRAW_ARB);
+						glNormalPointer(GL_FLOAT, 0, NULL);
+						delete[] normals;
+					}
+					else
+					{
+						glBindBufferARB(GL_ARRAY_BUFFER_ARB, model->staticArrays.normalArray);
+						glNormalPointer(GL_FLOAT, 0, NULL);
+					}
+
+					glEnable(GL_VERTEX_ARRAY);
+					glBindBufferARB(GL_ARRAY_BUFFER_ARB, model->staticArrays.vertexArray);
+					glVertexPointer(3, GL_FLOAT, 0, NULL);
+					if (model->texCoords)
+					{
+						glBindBufferARB(GL_ARRAY_BUFFER_ARB, model->staticArrays.texCoordArray);
+						glTexCoordPointer(2, GL_FLOAT, 0, NULL);
+						glEnable(GL_TEXTURE_COORD_ARRAY);
+					}
+					glDrawArrays(GL_TRIANGLES, 0, model->tri_count*3);
+					glBindBufferARB(GL_ARRAY_BUFFER_ARB, 0);
+					
+					if (model->texCoords)
+					{
+						glDisable(GL_TEXTURE_COORD_ARRAY);
+					}
+					glDisable(GL_NORMAL_ARRAY);
+					glDisable(GL_VERTEX_ARRAY);
+
 				}
 				else
 				{
-					RenderTrianglesTextured(model->tri_count, model->tris, model->tex_tris, tempModel->normals, model->vertices, model->texCoords);
-				}
+					for (int i = 0; i < tempModel->pointCount * 3; i++)
+					{
+						tempModel->normals[i] = model->normals[i] * normal_scale_factor;
+					}
 
-				glEnd();
+					glBegin(GL_TRIANGLES);
+
+					if (model->texCoords == NULL)
+					{
+						RenderTriangles(model->tri_count, model->tris, tempModel->normals, model->vertices);
+					}
+					else
+					{
+						RenderTrianglesTextured(model->tri_count, model->tris, model->tex_tris, tempModel->normals, model->vertices, model->texCoords);
+					}
+
+					glEnd();
+				}
 			}
 
 			if (unit->pMovementData->action.action == AI::ACTION_DIE)

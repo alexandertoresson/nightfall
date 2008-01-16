@@ -24,6 +24,7 @@ RTS_CHECK_LIB(GL,glVertex3f,OpenGL)
 if @<:@ $MACHINE != "Darwin" @:>@; then
 	RTS_CHECK_LIB(GLU,gluLookAt,GLU)
 fi
+AC_CHECK_LIB(GLEW,glewInit,[],[AC_MSG_ERROR("GLEW library could not be found!")])
 
 if @<:@ -z `pkg-config --version` @:>@; then
 	echo "pkg-config could not be found, falling back to sdl-config and lua-config... "

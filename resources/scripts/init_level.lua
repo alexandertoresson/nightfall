@@ -2,32 +2,32 @@ InitLevel_Current = InitLevel
 
 function LoadDefaultUnitTypes()
 
-	LoadUnitType("unittypes/mainBuilding.unit")
-	LoadUnitType("unittypes/tankFactory.unit")
-	LoadUnitType("unittypes/barracks.unit")
+	LoadLuaScript("unittypes/mainBuilding.unit")
+	LoadLuaScript("unittypes/tankFactory.unit")
+	LoadLuaScript("unittypes/barracks.unit")
 			
-	LoadUnitType("unittypes/solarPanel.unit")
-	LoadUnitType("unittypes/surfaceGeothermal.unit")
-	LoadUnitType("unittypes/deepGeothermal.unit")
+	LoadLuaScript("unittypes/solarPanel.unit")
+	LoadLuaScript("unittypes/surfaceGeothermal.unit")
+	LoadLuaScript("unittypes/deepGeothermal.unit")
 			
-	LoadUnitType("unittypes/smallLightTower.unit")
-	LoadUnitType("unittypes/mediumLightTower.unit")
-	LoadUnitType("unittypes/largeLightTower.unit")
+	LoadLuaScript("unittypes/smallLightTower.unit")
+	LoadLuaScript("unittypes/mediumLightTower.unit")
+	LoadLuaScript("unittypes/largeLightTower.unit")
 			
-	LoadUnitType("unittypes/defenseTower.unit")
+	LoadLuaScript("unittypes/defenseTower.unit")
 	
-	LoadUnitType("unittypes/builder.unit")
+	LoadLuaScript("unittypes/builder.unit")
 		
-	LoadUnitType("unittypes/explorer.unit")
-	LoadUnitType("unittypes/portableLightSource.unit")
+	LoadLuaScript("unittypes/explorer.unit")
+	LoadLuaScript("unittypes/portableLightSource.unit")
 
-	LoadUnitType("unittypes/smallAttackRobot.unit")
-	LoadUnitType("unittypes/largeAttackRobot.unit")
+	LoadLuaScript("unittypes/smallAttackRobot.unit")
+	LoadLuaScript("unittypes/largeAttackRobot.unit")
 
-	LoadUnitType("unittypes/smallTank.unit")
-	LoadUnitType("unittypes/largeTank.unit")
+	LoadLuaScript("unittypes/smallTank.unit")
+	LoadLuaScript("unittypes/largeTank.unit")
 			
-	LoadUnitType("unittypes/monster.unit")
+	LoadLuaScript("unittypes/monster.unit")
 
 end
 
