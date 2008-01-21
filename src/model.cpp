@@ -2566,7 +2566,7 @@ namespace  Utilities
 				SET_UNITTYPE_VALUE(hasAI)
 				SET_UNITTYPE_VALUE(hurtByLight)
 				SET_UNITTYPE_VALUE(canAttack)
-				SET_UNITTYPE_VALUE(canAttackWhileMoving)
+//				SET_UNITTYPE_VALUE(canAttackWhileMoving)
 				SET_UNITTYPE_VALUE(attackMinRange)
 				SET_UNITTYPE_VALUE(attackMaxRange)
 				SET_UNITTYPE_VALUE(attackAccuracy)

@@ -14,7 +14,7 @@ ut.isMobile = true
 	
 ut.canAttack = true
 ut.attackMaxRange = 15.0
-ut.attackMinRange = 5.0
+-- ut.attackMinRange = 5.0
 ut.attackAccuracy = 95.0
 
 ut.sightRange = 17.0

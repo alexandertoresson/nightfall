@@ -63,7 +63,7 @@ namespace Game
 		SDL_mutex* gpmxHConst;
 		set<Dimension::Unit*> doneUnits;
 
-		int numPathfindingThreads = 1;
+		int numPathfindingThreads = 2;
 
 		ThreadData**         pThreadDatas;
 		volatile Uint16****  areaMaps;
@@ -943,7 +943,7 @@ namespace Game
 					}
 					else if (state == PATHSTATE_ERROR)
 					{
-						ScheduleNextAction(pUnit);
+						IssueNextAction(pUnit);
 					}
 				}
 			}

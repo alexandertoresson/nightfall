@@ -75,13 +75,12 @@ namespace Game
 			}
 		}
 
-		void SendCommandUnitToLua(Dimension::Unit* pUnit, int x, int y, UnitAction action, void* argument)
+		void SendCommandUnitToLua(int unitID, int playerIndex, int x, int y, UnitAction action, void* argument)
 		{
-			pUnit->lastCommand = SDL_GetTicks();
-			Utilities::Scripting::LuaVirtualMachine* pVM = Utilities::Scripting::GetPlayerVMInstance(pUnit->owner->index);
-			if (pUnit->owner->type == Dimension::PLAYER_TYPE_REMOTE)
+			Utilities::Scripting::LuaVirtualMachine* pVM = Utilities::Scripting::GetPlayerVMInstance(playerIndex);
+			if (Dimension::pWorld->vPlayers[playerIndex]->type == Dimension::PLAYER_TYPE_REMOTE)
 				return;
-			switch (pUnit->owner->type)
+			switch (Dimension::pWorld->vPlayers[playerIndex]->type)
 			{
 				case Dimension::PLAYER_TYPE_HUMAN:
 					pVM->SetFunction("CommandUnit_TargetPos_Human");
@@ -95,7 +94,7 @@ namespace Game
 				case Dimension::PLAYER_TYPE_REMOTE:
 					break;
 			}
-			lua_pushlightuserdata(pVM->GetVM(), (void*) pUnit->id);
+			lua_pushlightuserdata(pVM->GetVM(), (void*) unitID);
 			lua_pushnumber(pVM->GetVM(), x);
 			lua_pushnumber(pVM->GetVM(), y);
 			lua_pushnumber(pVM->GetVM(), action);
@@ -103,13 +102,12 @@ namespace Game
 			pVM->CallFunction(5);
 		}
 
-		void SendCommandUnitToLua(Dimension::Unit* pUnit, Dimension::Unit* destination, UnitAction action, void* argument)
+		void SendCommandUnitToLua(int unitID, int playerIndex, int destinationID, UnitAction action, void* argument)
 		{
-			pUnit->lastCommand = SDL_GetTicks();
-			Utilities::Scripting::LuaVirtualMachine* pVM = Utilities::Scripting::GetPlayerVMInstance(pUnit->owner->index);
-			if (pUnit->owner->type == Dimension::PLAYER_TYPE_REMOTE)
+			Utilities::Scripting::LuaVirtualMachine* pVM = Utilities::Scripting::GetPlayerVMInstance(playerIndex);
+			if (Dimension::pWorld->vPlayers[playerIndex]->type == Dimension::PLAYER_TYPE_REMOTE)
 				return;
-			switch (pUnit->owner->type)
+			switch (Dimension::pWorld->vPlayers[playerIndex]->type)
 			{
 				case Dimension::PLAYER_TYPE_HUMAN:
 					pVM->SetFunction("CommandUnit_TargetUnit_Human");
@@ -123,11 +121,69 @@ namespace Game
 				case Dimension::PLAYER_TYPE_REMOTE:
 					break;
 			}
-			lua_pushlightuserdata(pVM->GetVM(), (void*) pUnit->id);
-			lua_pushlightuserdata(pVM->GetVM(), (void*) destination->id);
+			lua_pushlightuserdata(pVM->GetVM(), (void*) unitID);
+			lua_pushlightuserdata(pVM->GetVM(), (void*) destinationID);
 			lua_pushnumber(pVM->GetVM(), action);
 			lua_pushlightuserdata(pVM->GetVM(), argument);
 			pVM->CallFunction(4);
+		}
+
+		struct ScheduledCommand
+		{
+			bool hasUnitTarget;
+			int playerIndex;
+			int unitID;
+			int destinationID;
+			int x, y;
+			UnitAction action;
+			void* argument;
+		};
+
+		std::vector<ScheduledCommand*> scheduledCommands;
+
+		void ScheduleCommandUnit(Dimension::Unit* pUnit, int x, int y, UnitAction action, void* argument)
+		{
+			pUnit->lastCommand = SDL_GetTicks();
+			ScheduledCommand *command = new ScheduledCommand();
+			command->hasUnitTarget = false;
+			command->unitID = pUnit->id;
+			command->playerIndex = pUnit->owner->index;
+			command->x = x;
+			command->y = y;
+			command->action = action;
+			command->argument = argument;
+			scheduledCommands.push_back(command);
+		}
+
+		void ScheduleCommandUnit(Dimension::Unit* pUnit, Dimension::Unit* destination, UnitAction action, void* argument)
+		{
+			pUnit->lastCommand = SDL_GetTicks();
+			ScheduledCommand *command = new ScheduledCommand();
+			command->hasUnitTarget = true;
+			command->unitID = pUnit->id;
+			command->playerIndex = pUnit->owner->index;
+			command->destinationID = destination->id;
+			command->action = action;
+			command->argument = argument;
+			scheduledCommands.push_back(command);
+		}
+
+		void ApplyScheduledCommandUnits()
+		{
+			for (std::vector<ScheduledCommand*>::iterator it = scheduledCommands.begin(); it != scheduledCommands.end(); it++)
+			{
+				ScheduledCommand *command = *it;
+				if (command->hasUnitTarget)
+				{
+					SendCommandUnitToLua(command->unitID, command->playerIndex, command->destinationID, command->action, command->argument);
+				}
+				else
+				{
+					SendCommandUnitToLua(command->unitID, command->playerIndex, command->x, command->y, command->action, command->argument);
+				}
+				delete command;
+			}
+			scheduledCommands.clear();
 		}
 
 		enum UnitEventType
@@ -140,7 +196,8 @@ namespace Game
 		struct UnitEvent
 		{
 			UnitEventType eventType;
-			Dimension::Unit* unit;
+			int unitID;
+			int playerIndex;
 			UnitAction action;
 			int x, y;
 			int targetID;
@@ -155,36 +212,36 @@ namespace Game
 			for (vector<UnitEvent*>::iterator it = scheduledUnitEvents.begin(); it != scheduledUnitEvents.end(); it++)
 			{
 				UnitEvent* event = *it;
-				if (Dimension::IsValidUnitPointer(event->unit))
+				Utilities::Scripting::LuaVirtualMachine* pVM = Utilities::Scripting::GetPlayerVMInstance(event->playerIndex);
+				pVM->SetFunction(*event->func);
+				switch (event->eventType)
 				{
-					Utilities::Scripting::LuaVirtualMachine* pVM = Utilities::Scripting::GetPlayerVMInstance(event->unit->owner->index);
-					pVM->SetFunction(*event->func);
-					switch (event->eventType)
-					{
-						case UNITEVENTTYPE_ACTION:
-							lua_pushlightuserdata(pVM->GetVM(), (void*) event->unit->id);
-							lua_pushinteger(pVM->GetVM(), event->action);
-							lua_pushnumber(pVM->GetVM(), event->x);
-							lua_pushnumber(pVM->GetVM(), event->y);
-							lua_pushlightuserdata(pVM->GetVM(), (void*) event->targetID);
-							lua_pushlightuserdata(pVM->GetVM(), event->arg);
-							pVM->CallFunction(6);
-							break;
-						case UNITEVENTTYPE_SIMPLE:
-							lua_pushlightuserdata(pVM->GetVM(), (void*) event->unit->id);
-							pVM->CallFunction(1);
-							break;
-						case UNITEVENTTYPE_ATTACK:
-							lua_pushlightuserdata(pVM->GetVM(), (void*) event->unit->id);
-							lua_pushlightuserdata(pVM->GetVM(), (void*) event->targetID);
-							pVM->CallFunction(2);
-							break;
-					}
+					case UNITEVENTTYPE_ACTION:
+						lua_pushlightuserdata(pVM->GetVM(), (void*) event->unitID);
+						lua_pushinteger(pVM->GetVM(), event->action);
+						lua_pushnumber(pVM->GetVM(), event->x);
+						lua_pushnumber(pVM->GetVM(), event->y);
+						lua_pushlightuserdata(pVM->GetVM(), (void*) event->targetID);
+						lua_pushlightuserdata(pVM->GetVM(), event->arg);
+						pVM->CallFunction(6);
+						break;
+					case UNITEVENTTYPE_SIMPLE:
+//						std::cout << *event->func << " " << event->unitID << std::endl;
+						lua_pushlightuserdata(pVM->GetVM(), (void*) event->unitID);
+						pVM->CallFunction(1);
+						break;
+					case UNITEVENTTYPE_ATTACK:
+						lua_pushlightuserdata(pVM->GetVM(), (void*) event->unitID);
+						lua_pushlightuserdata(pVM->GetVM(), (void*) event->targetID);
+						pVM->CallFunction(2);
+						break;
 				}
 				delete event;
 			}
 			scheduledUnitEvents.clear();
 		}
+
+		SDL_mutex *scheduleUnitEventMutex = SDL_CreateMutex();
 
 		void ScheduleActionUnitEvent(Dimension::Unit* pUnit, EventAIFunc *aiEvent)
 		{
@@ -194,7 +251,8 @@ namespace Game
 
 			UnitEvent *event = new UnitEvent;
 
-			event->unit = pUnit;
+			event->unitID = pUnit->id;
+			event->playerIndex = pUnit->owner->index;
 			event->action = pUnit->pMovementData->action.action;
 			event->x = pUnit->pMovementData->action.goal.pos.x;
 			event->y = pUnit->pMovementData->action.goal.pos.y;
@@ -210,7 +268,9 @@ namespace Game
 			event->func = &aiEvent->func;
 			event->eventType = UNITEVENTTYPE_ACTION;
 
+			SDL_LockMutex(scheduleUnitEventMutex);
 			scheduledUnitEvents.push_back(event);
+			SDL_UnlockMutex(scheduleUnitEventMutex);
 
 		}
 
@@ -222,11 +282,14 @@ namespace Game
 
 			UnitEvent *event = new UnitEvent;
 
-			event->unit = pUnit;
+			event->unitID = pUnit->id;
+			event->playerIndex = pUnit->owner->index;
 			event->func = &aiEvent->func;
 			event->eventType = UNITEVENTTYPE_SIMPLE;
 
+			SDL_LockMutex(scheduleUnitEventMutex);
 			scheduledUnitEvents.push_back(event);
+			SDL_UnlockMutex(scheduleUnitEventMutex);
 		}
 
 		void SendUnitEventToLua_CommandCompleted(Dimension::Unit* pUnit)
@@ -268,11 +331,14 @@ namespace Game
 			UnitEvent *event = new UnitEvent;
 
 			event->eventType = UNITEVENTTYPE_ATTACK;
-			event->unit = pUnit;
+			event->unitID = pUnit->id;
+			event->playerIndex = pUnit->owner->index;
 			event->targetID = attacker->id;
 			event->func = &pUnit->type->unitAIFuncs[pUnit->owner->index].isAttacked.func;
 
+			SDL_LockMutex(scheduleUnitEventMutex);
 			scheduledUnitEvents.push_back(event);
+			SDL_UnlockMutex(scheduleUnitEventMutex);
 		}
 
 		void HandleUnitPower()
@@ -524,7 +590,7 @@ namespace Game
 			}
 		}
 
-		int numLuaAIThreads = 1;
+		int numLuaAIThreads = 2;
 
 		SDL_cond **fireAIConds;
 		SDL_cond *simpleAIdoneCond;
@@ -745,14 +811,14 @@ namespace Game
 					///////////////////////////////////////////////////////////////////////////
 					// Wait for the threads to be done
 					
-					while (aiThreadsDone != 1)
+					while (aiThreadsDone < 1)
 					{
 						SDL_CondWait(simpleAIdoneCond, mainAIWaitMutexes[0]); // Wait for SimpleAI thread
 					}
 					
 					for (int i = 0; i < numLuaAIThreads; i++)
 					{
-						while (aiThreadsDone != i+2)
+						while (aiThreadsDone < i+2)
 						{
 							SDL_CondWait(luaAIdoneConds[i], mainAIWaitMutexes[i+1]); // Wait for lua ai threads
 						}
@@ -806,6 +872,9 @@ namespace Game
 				UnitLuaInterface::ApplyScheduledActions();
 				UnitLuaInterface::ApplyScheduledDamagings();
 
+				// Send unit commands that could not be sent while lua ai was running
+				ApplyScheduledCommandUnits();
+
 				// DisplayScheduledUnits() and ApplyScheduledActions() will have queued up more 
 				// events, so we do this as the last thing before deleting units, to avoid that
 				// events survive onto the next frame.
@@ -815,6 +884,7 @@ namespace Game
 				// otherwise if you apply actions after it, you may apply actions with targets
 				// that are deleted units.
 				Dimension::DeleteScheduledUnits(); 
+
 			}
 			else
 			{
@@ -891,7 +961,7 @@ namespace Game
 
 				if (pUnit->actionQueue.size() == 1 || insert)
 				{
-					SendCommandUnitToLua(pUnit, x, y, action, argument);
+					ScheduleCommandUnit(pUnit, x, y, action, argument);
 				}
 
 			}
@@ -934,7 +1004,7 @@ namespace Game
 				
 				if (pUnit->actionQueue.size() == 1 || insert)
 				{
-					SendCommandUnitToLua(pUnit, destination, action, argument);
+					ScheduleCommandUnit(pUnit, destination, action, argument);
 				}
 
 			}
@@ -984,29 +1054,30 @@ namespace Game
 			DeallocPathfindingNodes(pUnit);
 			pUnit->pMovementData->pCurGoalNode = NULL;
 
-			if (pUnit->actionQueue.size())
+			while (pUnit->actionQueue.size())
 			{
 				delete pUnit->actionQueue.front();
 				pUnit->actionQueue.pop_front();
-			}
-
-			if (pUnit->actionQueue.size())
-			{
-				if (pUnit->actionQueue.front()->goal_unit)
+				if (pUnit->actionQueue.size())
 				{
-					Dimension::ActionData *actiondata = pUnit->actionQueue.front();
-					SendCommandUnitToLua(pUnit, actiondata->goal_unit, actiondata->action, actiondata->arg);
-				}
-				else
-				{
-					Dimension::ActionData *actiondata = pUnit->actionQueue.front();
-					SendCommandUnitToLua(pUnit, actiondata->goal_pos.x, actiondata->goal_pos.y, actiondata->action, actiondata->arg);
+					if (pUnit->actionQueue.front()->goal_unit)
+					{
+						Dimension::ActionData *actiondata = pUnit->actionQueue.front();
+						if (Dimension::IsDisplayedUnitPointer(actiondata->goal_unit))
+						{
+							ScheduleCommandUnit(pUnit, actiondata->goal_unit, actiondata->action, actiondata->arg);
+							return;
+						}
+					}
+					else
+					{
+						Dimension::ActionData *actiondata = pUnit->actionQueue.front();
+						ScheduleCommandUnit(pUnit, actiondata->goal_pos.x, actiondata->goal_pos.y, actiondata->action, actiondata->arg);
+						return;
+					}
 				}
 			}
-			else
-			{
-				AI::SendUnitEventToLua_BecomeIdle(pUnit);
-			}
+			AI::SendUnitEventToLua_BecomeIdle(pUnit);
 		}
 
 		void CancelAction(Dimension::Unit* pUnit)
@@ -1060,28 +1131,6 @@ namespace Game
 
 			AI::SendUnitEventToLua_CommandCompleted(pUnit);
 			IssueNextAction(pUnit);
-		}
-		
-		void ScheduleNextAction(Dimension::Unit* pUnit)
-		{
-			if (pUnit->actionQueue.size())
-			{
-				delete pUnit->actionQueue.front();
-				pUnit->actionQueue.pop_front();
-				if (pUnit->actionQueue.size())
-				{
-					if (pUnit->actionQueue.front()->goal_unit)
-					{
-						Dimension::ActionData *actiondata = pUnit->actionQueue.front();
-						SendCommandUnitToLua(pUnit, actiondata->goal_unit, actiondata->action, actiondata->arg);
-					}
-					else
-					{
-						Dimension::ActionData *actiondata = pUnit->actionQueue.front();
-						SendCommandUnitToLua(pUnit, actiondata->goal_pos.x, actiondata->goal_pos.y, actiondata->action, actiondata->arg);
-					}
-				}
-			}
 		}
 		
 		void ApplyAction(Dimension::Unit* pUnit, UnitAction action, int goal_x, int goal_y, Dimension::Unit* target, void* arg)

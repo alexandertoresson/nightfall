@@ -183,8 +183,12 @@ end
 function Empty(table)
 	if (table == nil) or (table == {}) then
 		return true
+	else
+		for key,value in pairs(table) do
+			return false
+		end
+		return true
 	end
-	return false
 end
 
 function InitAI_AI(Player)
@@ -224,6 +228,9 @@ function PerformAI_Player_AI(Player)
 		iterations = iterations + 1
 		if not CanBuild[ToBuild[i]] then
 			can_produce = false
+			if Empty(AvailableBuilders[ToBuild[i]]) and not Empty(CheckedBuilders[ToBuild[i]]) then
+				MoveBackChecked(ToBuild[i])
+			end
 			if IsResearched(Player, ToBuild[i]) then
 				builder = GetBuilderCached(ToBuild[i])
 				if not Empty(AvailableBuilders[builder]) then
@@ -268,7 +275,7 @@ function PerformAI_Player_AI(Player)
 
 	for i = 1,table_maxn(BuildList) do
 		iterations = iterations + 1
-		if NeedForPower[BuildList[i].UnitType] then
+		if NeedForSurvival[BuildList[i].UnitType] then
 			BuildList[i].NewWeight = 1
 		elseif NeedForPower[BuildList[i].UnitType] then
 			BuildList[i].NewWeight = BuildList[i].Weight
@@ -295,39 +302,20 @@ function PerformAI_Player_AI(Player)
 		valid = false
 		checked = 0
 		if not (AvailableBuilders[BuilderType] == nil) then
-			if GetUnitTypeIsMobile(UnitType) then
-				builder = nil
-				for key,value in pairs(AvailableBuilders[BuilderType]) do
-					builder = key
-					iterations = iterations + 1
-					if not (AvailableBuilders[builder] == nil) then
-						unitavailable = true
-						valid = true
-						MoveUnitToChecked(builder, BuilderType)
-						break
-					end
-					checked = checked + 1
-					if checked == 10 then
-						break
-					end
+			for key,value in pairs(AvailableBuilders[BuilderType]) do
+				builder = key
+				iterations = iterations + 1
+				if not (AvailableBuilders[builder] == nil) then
+					unitavailable = true
+					valid = true
+					MoveUnitToChecked(builder, BuilderType)
 				end
-			else
-				if Empty(AvailableBuilders[BuilderType]) and not Empty(CheckedBuilders[BuilderType]) then
-					MoveBackChecked(BuilderType)
+				checked = checked + 1
+				if checked == 10 then
+					break
 				end
-				for key,value in pairs(AvailableBuilders[BuilderType]) do
-					builder = key
-					iterations = iterations + 1
-					if not (AvailableBuilders[builder] == nil) then
-						unitavailable = true
-						valid = true
-						MoveUnitToChecked(builder, BuilderType)
-					end
-					checked = checked + 1
-					if checked == 10 then
-						break
-					end
-				end
+			end
+			if not GetUnitTypeIsMobile(UnitType) then
 				if valid then
 					x, y = GetUnitPosition(builder)
 					if UnitType == GetUnitTypeFromString("SmallLightTower") or UnitType == GetUnitTypeFromString("MediumLightTower") or UnitType == GetUnitTypeFromString("LargeLightTower") then
@@ -340,6 +328,7 @@ function PerformAI_Player_AI(Player)
 		end
 		if valid then
 			if IsResearched(Player, UnitType) then
+				
 				CommandBuild(builder, x, y, UnitType)
 
 				Need[UnitType] = false

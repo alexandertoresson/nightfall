@@ -144,6 +144,7 @@ namespace Game
 			Node*        pGoal;
 			
 			ActionData   action;
+			ActionData   secondaryAction;
 
 			bool         changedGoal;
 			int          calcState;

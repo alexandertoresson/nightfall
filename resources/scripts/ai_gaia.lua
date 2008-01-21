@@ -6,6 +6,8 @@ LastCommands = {}
 
 function InitAI_Gaia(Player)
 
+	width, height = GetMapDimensions()
+	MaxNumMonsters = 40 * (width / 128) * (height / 128)
 	InitAI_Generic(Player)
 
 end
@@ -15,14 +17,14 @@ function PerformAI_Unit_Gaia(Unit, action)
 	if GetUnitType(Unit) == GetUnitTypeFromString("Grue") then
 
 		if GetTime() >= 6.0 and GetTime() <= 18.0 then
-			Attack(Unit, 0.3 * GetUnitMaxHealth(Unit))
+			Attack(Unit, 1.0 * GetUnitMaxHealth(Unit))
 		else 
 			if GetUnitLightAmount(Unit) > 0.001 then
-				Attack(Unit, GetUnitLightAmount(Unit) * 0.3 * GetUnitMaxHealth(Unit))
+				Attack(Unit, GetUnitLightAmount(Unit) * 1.0 * GetUnitMaxHealth(Unit))
 			end
 		end
 
-		if (math.random() < 1/100) then
+		if (math.random() < 1/200) then
 			Attack(Unit, 1.0 * GetUnitMaxHealth(Unit) + 1)
 		end
 
@@ -51,16 +53,18 @@ end
 
 function PerformAI_Player_Gaia(Player)
 	if (GetTime() < 6.0 or GetTime() > 18.0) then
-		if NumMonsters < 25 then
-			width, height = GetMapDimensions()
-			UnitType = GetUnitTypeFromString("Grue")
+		if NumMonsters < MaxNumMonsters  then
+			local NumToCreate = math.ceil((NumMonsters+1) / MaxNumMonsters / 2) + 1
+			for i = 1,NumToCreate do
+				UnitType = GetUnitTypeFromString("Grue")
 
-			repeat
-				x = (width-1) * math.random()
-				y = (height-1) * math.random()
-			until CanCreateUnitAt(UnitType, Player, x, y)
+				repeat
+					x = (width-1) * math.random()
+					y = (height-1) * math.random()
+				until CanCreateUnitAt(UnitType, Player, x, y)
 
-			CreateUnit(UnitType, Player, x,  y)
+				CreateUnit(UnitType, Player, x,  y)
+			end
 		end
 	else
 		NumMonsters = 0

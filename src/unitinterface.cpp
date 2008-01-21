@@ -45,7 +45,12 @@ namespace UnitLuaInterface
 
 	Unit* _GetUnit(void* ptr)
 	{
-		return GetUnitByID((int)ptr);
+		Unit* unit = GetUnitByID((int)ptr);
+/*		if (unit == NULL || !IsDisplayedUnitPointer(unit))
+		{
+			std::cout << "[LUA SET] Failure: " << (int) ptr << " is not a valid unit id " << std::endl;
+		}*/
+		return unit;
 	}
 
 	int LGetUnitHealth(LuaVM* pVM)
@@ -250,18 +255,6 @@ namespace UnitLuaInterface
 			canBuild = pUnit->type->canBuild.size() > 0;
 
 		lua_pushboolean(pVM, canBuild);
-		return 1;
-	}
-
-	int LGetUnitCanAttackWhileMoving(LuaVM* pVM)
-	{
-		Unit* pUnit = _GetUnit(lua_touserdata(pVM, 1));
-		bool canAttackWhileMoving = false;
-
-		if (pUnit != NULL && IsDisplayedUnitPointer(pUnit))
-			canAttackWhileMoving = pUnit->type->canAttackWhileMoving;
-
-		lua_pushboolean(pVM, canAttackWhileMoving);
 		return 1;
 	}
 
@@ -788,22 +781,6 @@ namespace UnitLuaInterface
 		return 1;
 	}
 
-	int LChangePath(LuaVM* pVM)
-	{
-		Unit* pUnit = _GetUnit(lua_touserdata(pVM, 1));
-
-		CHECK_UNIT_PTR(pUnit)
-
-		int position[2] = { lua_tointeger(pVM, 2), 
-		                    lua_tointeger(pVM, 3) };
-
-		if (position[0] < 0 || position[1] < 0)
-			LUA_FAILURE("Invalid position, x or y values lower than zero")
-
-		ChangePath(pUnit, position[0], position[1], pUnit->pMovementData->action.action, pUnit->pMovementData->action.goal.unit, pUnit->pMovementData->action.arg);
-		LUA_SUCCESS
-	}
-
 	struct ScheduledAction
 	{
 		Unit *unit;
@@ -1058,37 +1035,7 @@ namespace UnitLuaInterface
 			LUA_FAILURE("LSetEventHandler: Null pointer context received")
 		}
 
-		if (IsDisplayedUnitPointer(_GetUnit(context)))
-		{
-			Unit* unit = _GetUnit(context);
-			switch (eventtype)
-			{
-				case EVENTTYPE_COMMANDCOMPLETED:
-					unit->unitAIFuncs.commandCompleted.func = handlerString;
-					break;
-				case EVENTTYPE_COMMANDCANCELLED:
-					unit->unitAIFuncs.commandCancelled.func = handlerString;
-					break;
-				case EVENTTYPE_NEWCOMMAND:
-					unit->unitAIFuncs.newCommand.func = handlerString;
-					break;
-				case EVENTTYPE_BECOMEIDLE:
-					unit->unitAIFuncs.becomeIdle.func = handlerString;
-					break;
-				case EVENTTYPE_ISATTACKED:
-					unit->unitAIFuncs.isAttacked.func = handlerString;
-					break;
-				case EVENTTYPE_UNITKILLED:
-					unit->unitAIFuncs.unitKilled.func = handlerString;
-					break;
-				case EVENTTYPE_PERFORMUNITAI:
-					unit->unitAIFuncs.performUnitAI.func = handlerString;
-					break;
-				default:
-					LUA_FAILURE("LSetEventHandler: Event type not valid for unit")
-			}
-		}
-		else if (IsValidUnitTypePointer((UnitType*)context))
+		if (IsValidUnitTypePointer((UnitType*)context))
 		{
 			Player* player = (Player*) lua_touserdata(pVM, 4);
 			UnitType* unittype = (UnitType*) context;
@@ -1165,6 +1112,36 @@ namespace UnitLuaInterface
 					LUA_FAILURE("LSetEventHandler: Event type not valid for player")
 			}
 		}
+		else if (IsDisplayedUnitPointer(_GetUnit(context)))
+		{
+			Unit* unit = _GetUnit(context);
+			switch (eventtype)
+			{
+				case EVENTTYPE_COMMANDCOMPLETED:
+					unit->unitAIFuncs.commandCompleted.func = handlerString;
+					break;
+				case EVENTTYPE_COMMANDCANCELLED:
+					unit->unitAIFuncs.commandCancelled.func = handlerString;
+					break;
+				case EVENTTYPE_NEWCOMMAND:
+					unit->unitAIFuncs.newCommand.func = handlerString;
+					break;
+				case EVENTTYPE_BECOMEIDLE:
+					unit->unitAIFuncs.becomeIdle.func = handlerString;
+					break;
+				case EVENTTYPE_ISATTACKED:
+					unit->unitAIFuncs.isAttacked.func = handlerString;
+					break;
+				case EVENTTYPE_UNITKILLED:
+					unit->unitAIFuncs.unitKilled.func = handlerString;
+					break;
+				case EVENTTYPE_PERFORMUNITAI:
+					unit->unitAIFuncs.performUnitAI.func = handlerString;
+					break;
+				default:
+					LUA_FAILURE("LSetEventHandler: Event type not valid for unit")
+			}
+		}
 		else
 		{
 			LUA_FAILURE("LSetEventHandler: Invalid pointer received")
@@ -1184,19 +1161,7 @@ namespace UnitLuaInterface
 			LUA_FAILURE("LSetRegularAIDelay: Null pointer context received")
 		}
 		
-		if (IsDisplayedUnitPointer(_GetUnit(context)))
-		{
-			Unit* unit = _GetUnit(context);
-			if (eventtype == EVENTTYPE_PERFORMUNITAI)
-			{
-				unit->unitAIFuncs.performUnitAI.delay = delay;
-			}
-			else
-			{
-				LUA_FAILURE("LSetRegularAIDelay: Event type not valid for unit")
-			}
-		}
-		else if (IsValidUnitTypePointer((UnitType*)context))
+		if (IsValidUnitTypePointer((UnitType*)context))
 		{
 			Player* player = (Player*) lua_touserdata(pVM, 4);
 			UnitType* unittype = (UnitType*) context;
@@ -1232,6 +1197,18 @@ namespace UnitLuaInterface
 				LUA_FAILURE("LSetRegularAIDelay: Event type not valid for player")
 			}
 		}
+		else if (IsDisplayedUnitPointer(_GetUnit(context)))
+		{
+			Unit* unit = _GetUnit(context);
+			if (eventtype == EVENTTYPE_PERFORMUNITAI)
+			{
+				unit->unitAIFuncs.performUnitAI.delay = delay;
+			}
+			else
+			{
+				LUA_FAILURE("LSetRegularAIDelay: Event type not valid for unit")
+			}
+		}
 		else
 		{
 			LUA_FAILURE("LSetRegularAIDelay: Invalid pointer received")
@@ -1251,19 +1228,7 @@ namespace UnitLuaInterface
 			LUA_FAILURE("LSetRegularAIEnabled: Null pointer context received")
 		}
 		
-		if (IsDisplayedUnitPointer(_GetUnit(context)))
-		{
-			Unit* unit = _GetUnit(context);
-			if (eventtype == EVENTTYPE_PERFORMUNITAI)
-			{
-				unit->unitAIFuncs.performUnitAI.enabled = enabled;
-			}
-			else
-			{
-				LUA_FAILURE("LSetRegularAIEnabled: Event type not valid for unit")
-			}
-		}
-		else if (IsValidUnitTypePointer((UnitType*)context))
+		if (IsValidUnitTypePointer((UnitType*)context))
 		{
 			Player* player = (Player*) lua_touserdata(pVM, 4);
 			UnitType* unittype = (UnitType*) context;
@@ -1297,6 +1262,18 @@ namespace UnitLuaInterface
 			else
 			{
 				LUA_FAILURE("LSetRegularAIEnabled: Event type not valid for player")
+			}
+		}
+		else if (IsDisplayedUnitPointer(_GetUnit(context)))
+		{
+			Unit* unit = _GetUnit(context);
+			if (eventtype == EVENTTYPE_PERFORMUNITAI)
+			{
+				unit->unitAIFuncs.performUnitAI.enabled = enabled;
+			}
+			else
+			{
+				LUA_FAILURE("LSetRegularAIEnabled: Event type not valid for unit")
 			}
 		}
 		else
@@ -1546,7 +1523,7 @@ namespace UnitLuaInterface
 		
 		GLfloat value = (GLfloat)lua_tonumber(pVM, 1);
 		
-		if (value > 0 || value <= -1.0f)
+		if (value > 1.0f || value <= -1.0f)
 		{
 			LUA_FAILURE("LSetMaximumBuildingAltitude: Invalid altitude. Using preset.")
 		}
@@ -2818,7 +2795,6 @@ else \
 		GET_ENUM_FIELD_OPTIONAL(pUnitType->movementType, "movementType", MOVEMENT_SMALLVEHICLE, MovementType)
 
 		GET_BOOL_FIELD_OPTIONAL(pUnitType->canAttack, "canAttack", false)
-		GET_BOOL_FIELD_OPTIONAL(pUnitType->canAttackWhileMoving, "canAttackWhileMoving", false)
 		GET_BOOL_FIELD_OPTIONAL(pUnitType->isMobile, "isMobile", false)
 		GET_BOOL_FIELD_OPTIONAL(pUnitType->hasAI, "hasAI", false)
 		GET_BOOL_FIELD_OPTIONAL(pUnitType->hasLuaAI, "hasLuaAI", false)
@@ -3051,7 +3027,6 @@ else \
 		pVM->RegisterFunction("GetUnitLightAmount", LGetUnitLightAmount);
 		pVM->RegisterFunction("GetUnitCanAttack", LGetUnitCanAttack);
 		pVM->RegisterFunction("GetUnitCanBuild", LGetUnitCanBuild);
-		pVM->RegisterFunction("GetUnitCanAttackWhileMoving", LGetUnitCanAttackWhileMoving);
 		pVM->RegisterFunction("GetUnitLastAttack", LGetUnitLastAttack);
 		pVM->RegisterFunction("GetUnitLastAttacked", LGetUnitLastAttacked);
 		pVM->RegisterFunction("GetUnitTargetUnit", LGetUnitTargetUnit);
@@ -3073,7 +3048,6 @@ else \
 
 		pVM->RegisterFunction("IsWithinRangeForBuilding", LIsWithinRangeForBuilding);
 
-//		pVM->RegisterFunction("InitiateAttack", LInitiateAttack);
 		pVM->RegisterFunction("Attack", LAttack);
 		pVM->RegisterFunction("CanReach", LCanReach);
 		

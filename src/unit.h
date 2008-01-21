@@ -248,6 +248,35 @@ namespace Game
 			void* arg;
 		};
 
+		enum PrerequisiteType
+		{
+			PREREQUISITETYPE_RESEARCH,
+			PREREQUISITETYPE_UNIT_BUILT,
+			PREREQUISITETYPE_UNIT_EXISTING,
+			PREREQUISITETYPE_TIME_ELAPSED
+		};
+
+		struct Research;
+
+		struct Prerequisite
+		{
+			PrerequisiteType type;
+			union
+			{
+				Unit* unit;
+				Research* research;
+			} object;
+			int num;
+		};
+
+		struct Research
+		{
+			vector<Prerequisite*> prerequisites;
+			bool isResearched;
+			Unit** researcher;
+			std::string effectFunc;
+		};
+
 		struct Scanline;
 		struct RangeScanlines;
 		struct RangeArray;
@@ -266,8 +295,11 @@ namespace Game
 			int         minAttack;     // in hitpoints
 			int         maxAttack;
 			bool        canAttack;
-			bool        canAttackWhileMoving;
-			float       attackAccuracy;  // accuracy of attack (0 - 100) -- not currently used or implemented
+			int         containingCapacity;
+			UnitType**  enterableUnitTypes;
+			bool        canEnterEnemyUnits;
+			bool**      secondaryActionMatrix;
+			float       attackAccuracy;  // accuracy of attack (0 - 100)
 			float       attackMinRange;  // the minimum range of the unit's attack
 			float       attackMaxRange;  // the maximum range of the unit's attack
 			float       sightRange;      // how far the unit can see

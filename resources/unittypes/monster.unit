@@ -16,7 +16,7 @@ ut.attackMaxRange = 1.2
 ut.attackMinRange = 0.0
 ut.attackAccuracy = 80.0
 
-ut.sightRange = 15.0
+ut.sightRange = 30.0
 ut.movementSpeed = 8.0
 ut.movementType = MovementType.SmallVehicle
 ut.attackSpeed = 1.0
