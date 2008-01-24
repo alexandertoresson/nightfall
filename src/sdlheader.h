@@ -18,15 +18,17 @@
 	#include <SDL_image/SDL_image.h>
 	#include <SDL_ttf/SDL_ttf.h>
 	#include <SDL_net/SDL_net.h>
+	#include <glew.h>
 	#include <OpenGL/gl.h>
 	#include <OpenGL/glu.h>
 	#include <OpenGL/glext.h>
 	#include <Carbon/Carbon.h>
-	#include "GLEW/glew.h"
 	
+	/*
 	#define MAC
 	#undef inline
 	#define inline
+	*/
 	
 	#define SDL_EVENT_DUMP_CONSOLE 31
 #else
