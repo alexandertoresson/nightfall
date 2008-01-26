@@ -665,6 +665,8 @@ namespace Game
 
 			unit->pMovementData->pGoal = pGoal;
 			unit->pMovementData->pStart = pStart;
+
+			nodes.clear();
 		}
 
 		void ParseCurGoalNode(Utilities::XMLData *data)
