@@ -229,7 +229,7 @@ namespace Window
 				Panel();
 				virtual int Add(Widget*);
 				virtual int Add(Panel*);
-				virtual int Delete(int panel_widget);
+				virtual int Delete(int panel_widget, bool dealloc = false);
 				virtual int Clear();
 
 				virtual void Paint();

@@ -20,7 +20,6 @@ namespace Game
 	{
 		GameMenu::GameMenu()
 		{
-
 			pStart = new Window::GUI::TextButton();
 			pStart->SetText("Start the game");
 			pStart->SetTag((void*)new Internal(this, NEWGAME));
@@ -64,8 +63,11 @@ namespace Game
 		GameMenu::~GameMenu()
 		{
 			delete pStart;
+			delete pLoad;
 			delete pCredits;
+			delete pMultiplayer;
 			delete pQuit;
+//			delete pMainPanel;
 		}
 
 		void GameMenu::ActionSelect(Window::GUI::EventType evtType, void* tag)
@@ -93,6 +95,72 @@ namespace Game
 					break;
 			}
 			pTag->parent->returnValue = pTag->action;
+		}
+
+		FileBrowserDialog::FileBrowserDialog(BrowserMode mode)
+		{
+			this->mode = mode;
+			this->extension = FileBrowserDialog::ALL_FILES;
+			this->path = ".";
+
+			pHeader = new Window::GUI::Label();
+			pHeader->SetText((mode == FileBrowserDialog::MODE_LOAD) ? "Load" : "Save");
+
+			pMainPanel = new Panel();
+			SetPanel(pMainPanel);
+
+			pMainPanel->SetConstraintPercent(pMainPanel->Add(pHeader), 0.1f, 0.05f, 0.8f, 0.1f);
+			
+			returnState = MENU;
+
+			sleep = true;
+			sleepms = 16;
+
+			PopulateList();
+		}
+
+		FileBrowserDialog::~FileBrowserDialog()
+		{
+			delete pHeader;
+
+			DeallocButtons();
+		}
+
+		void FileBrowserDialog::PopulateList()
+		{
+			if (!Utilities::FileExists(this->path))
+				this->path = ".";
+
+			DeallocButtons();
+
+			Utilities::FSDataList files;			
+			this->filesCount = Utilities::ListFilesInDirectory(this->path, &files);
+
+			if (this->filesCount < 1)
+				return;
+
+			this->fileList = new FileEntry*[this->filesCount];
+			for (int i = 0; i < this->filesCount; i++)
+			{
+				FileEntry* entry = this->fileList[i];
+				
+				entry->buttonId = 0;
+				entry->file = files.at(i);
+			}
+		}
+
+		void FileBrowserDialog::DeallocButtons()
+		{
+			if (!this->filesCount)
+				return;
+
+			for (int i = 0; i < this->filesCount; i++)
+			{
+				pMainPanel->Delete(this->fileList[i]->buttonId, true);
+				delete this->fileList[i];
+			}
+
+			delete [] this->fileList;
 		}
 
 		GameInGameMenu::GameInGameMenu()
@@ -294,6 +362,7 @@ namespace Game
 					if (Dimension::unitsSelected[i]->owner != Dimension::currentPlayerView)
 					{
 						Dimension::unitsSelected.erase(Dimension::unitsSelected.begin() + i--);
+						continue;
 					}
 					if (unit == Dimension::unitsSelected[i])
 					{

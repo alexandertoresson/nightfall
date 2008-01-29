@@ -476,7 +476,7 @@ namespace Window
 			}
 		}
 	
-		int Panel::Delete(int panel_widget)
+		int Panel::Delete(int panel_widget, bool dealloc /* = FALSE */)
 		{
 			map<int, ObjectInfo*>::iterator iter = ObjectMap.find(panel_widget);
 			if(iter != ObjectMap.end())
@@ -490,6 +490,14 @@ namespace Window
 						break;
 					}
 				}
+
+				if (dealloc)
+				{
+					if ((*iter).second->object.pWidget)
+						delete (*iter).second->object.pWidget;
+					delete (*iter).second;
+				}
+
 				ObjectMap.erase(iter);
 				return SUCCESS;
 			}

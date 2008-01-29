@@ -28,6 +28,7 @@ namespace Game
 #include "gui.h"
 #include "dimension.h"
 #include "unit.h"
+#include "filesystem.h"
 
 #endif
 
@@ -351,6 +352,62 @@ namespace Game
 		public:
 			GameMenu();
 			~GameMenu();
+		};
+
+		class FileBrowserDialog : public Window::GUI::GUIWindow
+		{
+		public:
+			enum BrowserMode
+			{
+				MODE_LOAD = 1,
+				MODE_SAVE
+			};
+
+			static const char ALL_FILES = '*';
+
+		private:
+
+			struct Internal
+			{
+				GameMenu *parent;
+				SwitchState action;
+
+				Internal(GameMenu *mParent, SwitchState mAction)
+				{
+					parent = mParent;
+					action = mAction;
+				}
+			};
+
+			struct FileEntry
+			{
+				Utilities::FSData* file;
+				int buttonId;
+			};
+
+			std::string path;
+			std::string extension;
+			Window::GUI::Panel*   pMainPanel;
+			Window::GUI::Label*   pHeader;
+			FileEntry**           fileList;
+
+			SwitchState returnState;
+			BrowserMode mode;
+			int filesCount;
+
+			void PopulateList();
+			void DeallocButtons();
+
+		public:
+
+			FileBrowserDialog(BrowserMode);
+			~FileBrowserDialog();
+
+			void SetInitialDirectory(std::string newPath) { path = newPath;    }
+			std::string GetFilename() const               { return path;       }
+
+			void SetExtension(const std::string newExt)  { extension = newExt; }
+			std::string GetExtension() const             { return extension;   }
 		};
 
 		class GameInGameMenu : public Window::GUI::GUIWindow
