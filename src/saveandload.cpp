@@ -876,8 +876,9 @@ namespace Game
 		void LoadGame_PostLoad()
 		{
 			xmlfile.Iterate("nightfall_save_file", ParseMain);
+#ifndef WIN32
 			xmlfile.Deallocate();
-				
+#endif	
 			AI::SendScheduledUnitEvents();
 			UnitLuaInterface::ApplyScheduledActions();
 		}
