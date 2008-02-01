@@ -3399,6 +3399,54 @@ namespace Game
 			return ((float)r_seed / 65535.0f);
 		}
 
+		void PrepareAnimationData(Unit* unit)
+		{
+			unit->animData.sAnimData[0] = new SingleAnimData*[10];
+			unit->animData.sAnimData[1] = new SingleAnimData*[10];
+			for (int i = 0; i < 10; i++)
+			{
+				unit->animData.sAnimData[0][i] = new SingleAnimData[10];
+				unit->animData.sAnimData[1][i] = new SingleAnimData[10];
+			}
+
+			unit->pMovementData = new AI::MovementData;
+ 			AI::InitMovementData(unit);
+		}
+
+		void PrepareUnitEssentials(Unit* unit, UnitType* type, Player* owner)
+		{
+			if (!unit || !type)
+				return ;
+
+			unit->type = type;
+			unit->power = (float) type->maxPower;
+			unit->owner = owner;
+			unit->rotation = rotation_rand() * 360;
+			unit->pMovementData = NULL;
+			unit->lastAttack = 0;
+			unit->lastAttacked = 0;
+			unit->lastCommand = 0;
+			unit->isDisplayed = false;
+			unit->lightState = LIGHT_ON;
+			unit->isLighted = false;
+			unit->isMoving = false;
+			unit->isWaiting = false;
+			unit->isPushed = false;
+			unit->hasSeen = false;
+			unit->usedInAreaMaps = false;
+			unit->pushID = 0;
+			unit->pusher = NULL;
+			unit->faceTarget = FACETARGET_NONE;
+			unit->action_completeness = 0.0f;
+			unit->hasPower = false;
+			unit->curAssociatedSquare.x = -1;
+			unit->curAssociatedSquare.y = -1;
+			unit->curAssociatedBigSquare.x = -1;
+			unit->curAssociatedBigSquare.y = -1;
+			unit->rallypoint = NULL;
+			unit->aiFrame = 0;
+		}
+
 		set<Unit*> unitsScheduledForDeletion;
 		list<Unit*> unitsScheduledForDisplay;
 
@@ -3414,9 +3462,12 @@ namespace Game
 			}
 
 			Unit* unit = new Unit;
-			unit->type = type;
-			unit->power = (float) type->maxPower;
-			unit->owner = owner;
+
+			PrepareUnitEssentials(unit, type, owner);
+			PrepareAnimationData(unit);
+
+			unit->lastSeenPositions = new IntPosition[pWorld->vPlayers.size()];
+			unit->unitAIFuncs = type->unitAIFuncs[owner->index];
 
 			if (!complete)
 			{
@@ -3430,42 +3481,6 @@ namespace Game
 				unit->isCompleted = true;
 				unit->health = (float) type->maxHealth;
 			}
-			unit->rotation = rotation_rand() * 360;
-			unit->animData.sAnimData[0] = new SingleAnimData*[10];
-			unit->animData.sAnimData[1] = new SingleAnimData*[10];
-			for (int i = 0; i < 10; i++)
-			{
-				unit->animData.sAnimData[0][i] = new SingleAnimData[10];
-				unit->animData.sAnimData[1][i] = new SingleAnimData[10];
-			}
-			unit->pMovementData = NULL;
-			unit->lastAttack = 0;
-			unit->lastAttacked = 0;
-			unit->lastCommand = 0;
-			unit->isDisplayed = false;
-			unit->lastSeenPositions = new IntPosition[pWorld->vPlayers.size()];
-			unit->lightState = LIGHT_ON;
-			unit->isLighted = false;
-			unit->isMoving = false;
-			unit->isWaiting = false;
-			unit->isPushed = false;
-			unit->hasSeen = false;
-			unit->curAssociatedSquare.x = -1;
-			unit->curAssociatedSquare.y = -1;
-			unit->curAssociatedBigSquare.x = -1;
-			unit->curAssociatedBigSquare.y = -1;
-			unit->rallypoint = NULL;
-			unit->unitAIFuncs = type->unitAIFuncs[owner->index];
-			unit->aiFrame = 0;
-			unit->usedInAreaMaps = false;
-			unit->pushID = 0;
-			unit->pusher = NULL;
-			unit->faceTarget = FACETARGET_NONE;
-			unit->action_completeness = 0.0f;
-			unit->hasPower = false;
-
-			unit->pMovementData = new AI::MovementData;
- 			AI::InitMovementData(unit);
 			
 			int tries = 0;
 
@@ -3700,6 +3715,21 @@ namespace Game
 					}
 				}
 			}
+			
+			if (unit->owner == GetCurrentPlayer())
+			{
+				vector<Unit*>::iterator it = unitsDisplayQueue.begin();
+				while (it != unitsDisplayQueue.end())
+				{
+					if (*it == unit)
+					{
+						ClearUnitGhosts(unit);
+						unitsDisplayQueue.erase(it);
+						break;
+					}
+					it++;
+				}
+			}
 
 			for (vector<Unit*>::iterator it = unit->owner->vUnits.begin(); it != unit->owner->vUnits.end(); it++)
 			{
@@ -3856,6 +3886,106 @@ namespace Game
 			delete unit;
 			
 			unit = NULL;
+		}
+
+		vector<Unit*> unitsDisplayQueue;
+		Unit* CreateGhostUnit(UnitType* type)
+		{
+			Player* owner = Game::Dimension::currentPlayer;
+
+			if (!owner)
+				return NULL;
+
+			Unit* unit = new Unit;
+
+			unit->completeness = 100.0;
+			unit->isCompleted = true;
+			unit->health = (float) type->maxHealth;
+
+			PrepareUnitEssentials(unit, type, owner);
+			PrepareAnimationData(unit);
+
+			return unit;
+		}
+
+		void DeleteGhostUnit(Unit*& unit)
+		{
+			for (int i = 0; i < 10 ; i++)
+			{
+				delete [] unit->animData.sAnimData[0][i];
+				delete [] unit->animData.sAnimData[1][i];
+			}
+
+			delete [] unit->animData.sAnimData[0];
+			delete [] unit->animData.sAnimData[1];
+
+			delete unit->pMovementData;
+
+			delete unit;
+			unit = NULL;
+		}
+
+		void PrepareUnitGhosts(Unit* masterUnit)
+		{
+			if (!masterUnit)
+				return;
+
+			int len = masterUnit->actionQueue.size();
+			int i = 0;
+			ActionData* act = NULL;
+
+			for ( ; i < len; i++)
+			{
+				act = masterUnit->actionQueue.at(i);
+				if (act->action == AI::ACTION_BUILD)
+				{
+					Unit* ghost = CreateGhostUnit(static_cast<UnitType*>(act->arg));
+					
+					ghost->pos.x = act->goal_pos.x;
+					ghost->pos.y = act->goal_pos.y;
+
+					act->visual_repr = new ActionQueueVisualRepresentation;
+					act->visual_repr->ghost = ghost;
+				}
+				else
+				{
+					act->visual_repr = NULL; // just to make sure
+				}
+			}
+
+			unitsDisplayQueue.push_back(masterUnit);
+		}
+
+		void ClearUnitGhosts(Unit*& masterUnit)
+		{
+			if (!masterUnit)
+				return;
+
+			int len = masterUnit->actionQueue.size();
+			int i = 0;
+			ActionData* act = NULL;
+
+			for ( ; i < len; i++)
+			{
+				act = masterUnit->actionQueue.at(i);
+				if (act->visual_repr != NULL)
+				{
+					if (act->visual_repr->ghost)
+						DeleteGhostUnit(act->visual_repr->ghost);
+
+					delete act->visual_repr;
+					act->visual_repr = NULL;
+				}
+			}
+		}
+
+		void CheckGhostUnits(ActionData*& data)
+		{
+			if (data->visual_repr)
+			{
+				if (data->visual_repr->ghost)
+					DeleteGhostUnit(data->visual_repr->ghost);
+			}
 		}
 
 		void ScheduleUnitDeletion(Unit* unit)
@@ -4657,8 +4787,10 @@ namespace Game
 			Unit* unit;
 			UnitType* type;
 			unsigned int uindex;
+			unsigned int aindex;
+			unsigned int size = pWorld->vUnits.size();
 //			TransformAnim* animations[2];
-			for (uindex = 0; uindex < pWorld->vUnits.size(); uindex++)
+			for (uindex = 0; uindex < size; uindex++)
 			{
 				unit = pWorld->vUnits.at(uindex);
 				type = unit->type;
@@ -4692,6 +4824,45 @@ namespace Game
 				}
 			}
 
+			glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+						
+			size = Dimension::unitsDisplayQueue.size();
+			Unit* master = NULL;
+			for (uindex = 0; uindex < size; uindex++)
+			{
+				master = Dimension::unitsDisplayQueue.at(uindex);
+				if (!master)
+					continue;
+
+				for (aindex = 0; aindex < master->actionQueue.size(); aindex ++)
+				{
+					ActionData* q = master->actionQueue.at(aindex);
+					if (q->visual_repr)
+					{
+						if (q->visual_repr->ghost)
+						{
+							unit = q->visual_repr->ghost;
+							type = unit->type;
+							int animNum = 0;
+
+							glPushMatrix();
+
+							SetUnitCoordSpace(unit);
+
+							if (type->animations[unit->pMovementData->action.action])
+							{
+								for (int i = 0; i < type->animations[unit->pMovementData->action.action]->num_parts; i++)
+								{
+									RenderTransAnim(unit, type->animations[unit->pMovementData->action.action]->transAnim[i], animNum);
+								}
+							}
+
+							glPopMatrix();
+						}
+					}
+				}
+			}
+			glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 		}
 
 		void RenderHealthBars()

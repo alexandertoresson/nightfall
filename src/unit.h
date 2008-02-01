@@ -240,12 +240,19 @@ namespace Game
 			}
 		};
 
+		struct ActionQueueVisualRepresentation
+		{
+			Unit* ghost;
+			Position pos;
+		};
+
 		struct ActionData
 		{
 			IntPosition goal_pos;
 			Unit* goal_unit;
 			AI::UnitAction action;
 			void* arg;
+			ActionQueueVisualRepresentation* visual_repr;
 		};
 
 		enum PrerequisiteType
@@ -413,6 +420,7 @@ namespace Game
 		extern vector<Unit*> **unitBigSquares;
 
 		extern vector<Unit*> unitsSelected;
+		extern vector<Unit*> unitsDisplayQueue;
 		extern vector<Unit*> unitGroups[10];
 		extern GLfloat unitMaterialAmbient[2][2][4];
 		extern GLfloat unitMaterialDiffuse[2][2][4];
@@ -470,6 +478,8 @@ namespace Game
 		bool UnitIsVisible(Unit *unit, Player *player);
 		Unit* GetUnitClicked(int clickx, int clicky, int map_x, int map_y);
 
+		void PrepareAnimationData(Unit*);
+		void PrepareUnitEssentials(Unit* unit, UnitType* type, Player* owner);
 		Unit* CreateUnitNoDisplay(UnitType* type, Player* owner, int id = -1, bool complete = true);
 		Unit* CreateUnit(UnitType* type, Player* owner, int x, int y, int id = -1, bool complete = true);
 		bool ScheduleDisplayUnit(Unit* unit, int x, int y);
@@ -478,6 +488,10 @@ namespace Game
 		void KillUnit(Unit* unit);
 		void ScheduleUnitDeletion(Unit* unit);
 		void DeleteScheduledUnits();
+
+		void PrepareUnitGhosts(Unit*);
+		void ClearUnitGhosts(Unit*&);
+		void CheckGhostUnits(ActionData*&);
 
 		void UpdateSeenSquares(Unit* unit, int x, int y, int operation);
 		void UpdateLightedSquares(Unit* unit, int x, int y, int operation);

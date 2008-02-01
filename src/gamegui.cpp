@@ -145,7 +145,7 @@ namespace Game
 				FileEntry* entry = this->fileList[i];
 				
 				entry->buttonId = 0;
-				entry->file = files.at(i);
+//				entry->file = files.at(i);
 			}
 		}
 
@@ -706,6 +706,20 @@ namespace Game
 							}
 							break;
 						}
+						case SDLK_q:
+						{
+							if (Game::Dimension::unitsSelected.size())
+							{
+								vector<Game::Dimension::Unit*>::iterator it = 
+									Game::Dimension::unitsSelected.begin();
+
+								while (it != Game::Dimension::unitsSelected.end())
+								{
+									Game::Dimension::PrepareUnitGhosts(*it);
+									it++;
+								}
+							}
+						}
 						case SDLK_1:
 						{
 							if (pGame->input->GetKeyState(SDLK_LCTRL))
@@ -886,6 +900,22 @@ namespace Game
 						{
 							pGame->pMainGame->SetVisible(pGame->consoleID, false);
 							break;
+						}
+						case SDLK_q:
+						{
+							if (Game::Dimension::unitsDisplayQueue.size())
+							{
+								vector<Game::Dimension::Unit*>::iterator it =
+									Game::Dimension::unitsDisplayQueue.begin();
+
+								while (it != Game::Dimension::unitsDisplayQueue.end())
+								{
+									Game::Dimension::ClearUnitGhosts(*it);
+									it++;
+								}
+
+								Game::Dimension::unitsDisplayQueue.clear();
+							}
 						}
 						default:
 							break;

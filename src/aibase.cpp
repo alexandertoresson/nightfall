@@ -949,6 +949,7 @@ namespace Game
 				actiondata->goal_pos.y = y;
 				actiondata->goal_unit = NULL;
 				actiondata->arg = argument;
+				actiondata->visual_repr = NULL;
 
 				if (insert)
 				{
@@ -992,6 +993,7 @@ namespace Game
 				actiondata->goal_pos.y = 0;
 				actiondata->goal_unit = destination;
 				actiondata->arg = argument;
+				actiondata->visual_repr = NULL;
 
 				if (insert)
 				{
@@ -1056,6 +1058,8 @@ namespace Game
 
 			while (pUnit->actionQueue.size())
 			{
+				Game::Dimension::CheckGhostUnits(pUnit->actionQueue.front());
+
 				delete pUnit->actionQueue.front();
 				pUnit->actionQueue.pop_front();
 				if (pUnit->actionQueue.size())
@@ -1095,6 +1099,7 @@ namespace Game
 			{
 				Game::Dimension::CancelResearch(pUnit);
 			}
+
 			AI::SendUnitEventToLua_CommandCancelled(pUnit);
 			IssueNextAction(pUnit);
 		}
@@ -1215,6 +1220,7 @@ namespace Game
 				actiondata->goal_pos.y = goal_y;
 				actiondata->goal_unit = target;
 				actiondata->arg = arg;
+				actiondata->visual_repr = NULL;
 
 				pUnit->actionQueue.push_back(actiondata);
 			}

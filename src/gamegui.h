@@ -28,7 +28,6 @@ namespace Game
 #include "gui.h"
 #include "dimension.h"
 #include "unit.h"
-#include "filesystem.h"
 
 #endif
 
@@ -381,7 +380,7 @@ namespace Game
 
 			struct FileEntry
 			{
-				Utilities::FSData* file;
+//				Utilities::FSData* file;
 				int buttonId;
 			};
 
