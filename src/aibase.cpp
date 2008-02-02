@@ -934,22 +934,32 @@ namespace Game
 
 			if (pUnit->isCompleted && pUnit->pMovementData->action.action != ACTION_DIE)
 			{
+				Dimension::ActionData* actiondata = NULL;
+
 				if (!queue)
 				{
 					while (pUnit->actionQueue.size())
 					{
-						delete pUnit->actionQueue.front();
+						actiondata = pUnit->actionQueue.front();
+
+						if (actiondata->visual_repr)
+						{
+							if (actiondata->visual_repr->ghost)
+								DeleteGhostUnit(actiondata->visual_repr->ghost);
+						}
+
+						delete actiondata;
 						pUnit->actionQueue.pop_front();
 					}
 				}
 
-				Dimension::ActionData* actiondata = new Dimension::ActionData;
+				actiondata = new Dimension::ActionData;
 				actiondata->action = action;
 				actiondata->goal_pos.x = x;
 				actiondata->goal_pos.y = y;
 				actiondata->goal_unit = NULL;
 				actiondata->arg = argument;
-				actiondata->visual_repr = NULL;
+				actiondata->visual_repr = Dimension::PrepareActionDataForVisualRepr(pUnit, action, argument, x, y);
 
 				if (insert)
 				{
@@ -978,22 +988,31 @@ namespace Game
 
 			if (pUnit->isCompleted && pUnit->pMovementData->action.action != ACTION_DIE)
 			{
+				Dimension::ActionData* actiondata = NULL;
 				if (!queue)
 				{
 					while (pUnit->actionQueue.size())
 					{
-						delete pUnit->actionQueue.front();
+						actiondata = pUnit->actionQueue.front();
+
+						if (actiondata->visual_repr)
+						{
+							if (actiondata->visual_repr->ghost)
+								DeleteGhostUnit(actiondata->visual_repr->ghost);
+						}
+
+						delete actiondata;
 						pUnit->actionQueue.pop_front();
 					}
 				}
 
-				Dimension::ActionData* actiondata = new Dimension::ActionData;
+				actiondata = new Dimension::ActionData;
 				actiondata->action = action;
 				actiondata->goal_pos.x = 0;
 				actiondata->goal_pos.y = 0;
 				actiondata->goal_unit = destination;
 				actiondata->arg = argument;
-				actiondata->visual_repr = NULL;
+				actiondata->visual_repr = Dimension::PrepareActionDataForVisualRepr(pUnit, action, argument, 0, 0);
 
 				if (insert)
 				{
@@ -1220,7 +1239,7 @@ namespace Game
 				actiondata->goal_pos.y = goal_y;
 				actiondata->goal_unit = target;
 				actiondata->arg = arg;
-				actiondata->visual_repr = NULL;
+				actiondata->visual_repr = Dimension::PrepareActionDataForVisualRepr(pUnit, action, arg, goal_x, goal_y);
 
 				pUnit->actionQueue.push_back(actiondata);
 			}

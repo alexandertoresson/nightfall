@@ -3399,7 +3399,7 @@ namespace Game
 			return ((float)r_seed / 65535.0f);
 		}
 
-		void PrepareAnimationData(Unit* unit)
+		void PrepareAnimationData(Unit* const unit)
 		{
 			unit->animData.sAnimData[0] = new SingleAnimData*[10];
 			unit->animData.sAnimData[1] = new SingleAnimData*[10];
@@ -3413,7 +3413,7 @@ namespace Game
  			AI::InitMovementData(unit);
 		}
 
-		void PrepareUnitEssentials(Unit* unit, UnitType* type, Player* owner)
+		void PrepareUnitEssentials(Unit* const unit, UnitType* const type, Player* const owner)
 		{
 			if (!unit || !type)
 				return ;
@@ -3986,6 +3986,39 @@ namespace Game
 				if (data->visual_repr->ghost)
 					DeleteGhostUnit(data->visual_repr->ghost);
 			}
+		}
+		ActionQueueVisualRepresentation* PrepareActionDataForVisualRepr(const Unit* unit, AI::UnitAction action, void* argument, int x, int y)
+		{
+			if (!Dimension::unitsDisplayQueue.size())
+				return NULL;
+
+			vector<Unit*>::iterator it = Dimension::unitsDisplayQueue.begin();
+			bool found = false;
+			while (it != Dimension::unitsDisplayQueue.end())
+			{
+				if (*it == unit)
+				{
+					found = true;
+					break;
+				}
+				it++;
+			}
+
+			if (!found)
+				return NULL;
+
+			ActionQueueVisualRepresentation* repr = NULL;
+
+			if (action == AI::ACTION_BUILD)
+			{
+				repr = new ActionQueueVisualRepresentation;
+				repr->ghost = Dimension::CreateGhostUnit(static_cast<Dimension::UnitType*>(argument));
+
+				repr->ghost->pos.x = x;
+				repr->ghost->pos.y = y;
+			}
+
+			return repr;
 		}
 
 		void ScheduleUnitDeletion(Unit* unit)

@@ -478,8 +478,8 @@ namespace Game
 		bool UnitIsVisible(Unit *unit, Player *player);
 		Unit* GetUnitClicked(int clickx, int clicky, int map_x, int map_y);
 
-		void PrepareAnimationData(Unit*);
-		void PrepareUnitEssentials(Unit* unit, UnitType* type, Player* owner);
+		void PrepareAnimationData(Unit* const);
+		void PrepareUnitEssentials(Unit* const unit, UnitType* const type, Player* const owner);
 		Unit* CreateUnitNoDisplay(UnitType* type, Player* owner, int id = -1, bool complete = true);
 		Unit* CreateUnit(UnitType* type, Player* owner, int x, int y, int id = -1, bool complete = true);
 		bool ScheduleDisplayUnit(Unit* unit, int x, int y);
@@ -489,9 +489,12 @@ namespace Game
 		void ScheduleUnitDeletion(Unit* unit);
 		void DeleteScheduledUnits();
 
+		Unit* CreateGhostUnit(UnitType*);
+		void DeleteGhostUnit(Unit*&);
 		void PrepareUnitGhosts(Unit*);
 		void ClearUnitGhosts(Unit*&);
 		void CheckGhostUnits(ActionData*&);
+		ActionQueueVisualRepresentation* PrepareActionDataForVisualRepr(const Unit* unit, AI::UnitAction action, void* argument, int x, int y);
 
 		void UpdateSeenSquares(Unit* unit, int x, int y, int operation);
 		void UpdateLightedSquares(Unit* unit, int x, int y, int operation);

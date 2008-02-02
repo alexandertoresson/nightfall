@@ -708,17 +708,23 @@ namespace Game
 						}
 						case SDLK_q:
 						{
-							if (Game::Dimension::unitsSelected.size())
+							if (!pGame->input->GetKeyState(SDLK_q))
 							{
-								vector<Game::Dimension::Unit*>::iterator it = 
-									Game::Dimension::unitsSelected.begin();
-
-								while (it != Game::Dimension::unitsSelected.end())
+								if (Game::Dimension::unitsSelected.size())
 								{
-									Game::Dimension::PrepareUnitGhosts(*it);
-									it++;
+									vector<Game::Dimension::Unit*>::iterator it = 
+										Game::Dimension::unitsSelected.begin();
+
+									while (it != Game::Dimension::unitsSelected.end())
+									{
+										Game::Dimension::PrepareUnitGhosts(*it);
+										it++;
+									}
 								}
+
+								pGame->input->SetKeyState(SDLK_q, true);
 							}
+							break;
 						}
 						case SDLK_1:
 						{
@@ -916,6 +922,7 @@ namespace Game
 
 								Game::Dimension::unitsDisplayQueue.clear();
 							}
+							break;
 						}
 						default:
 							break;
