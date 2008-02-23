@@ -45,7 +45,7 @@ namespace UnitLuaInterface
 
 	Unit* _GetUnit(void* ptr)
 	{
-		Unit* unit = GetUnitByID((int)ptr);
+		Unit* unit = GetUnitByID((unsigned long)ptr);
 /*		if (unit == NULL || !IsDisplayedUnitPointer(unit))
 		{
 			std::cout << "[LUA SET] Failure: " << (int) ptr << " is not a valid unit id " << std::endl;

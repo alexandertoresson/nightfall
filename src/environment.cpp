@@ -598,7 +598,7 @@ namespace Game
 					int ret = LoadSkyBox(orig_file.str());
 					if (ret > -1)
 					{
-						unsigned pos = buffer.find_last_of('.');
+						size_t pos = buffer.find_last_of('.');
 						if (pos != std::string::npos)
 							buffer = buffer.substr(0, pos);
 

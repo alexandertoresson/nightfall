@@ -653,7 +653,7 @@ namespace Game
 
 		int _LuaAIThread(void* arg)
 		{
-			int i = (int) arg;
+			unsigned long i = (unsigned long)arg; // <~~ 64 bit compability
 			SDL_LockMutex(luaAIWaitMutexes[i]);
 
 			luaAIThreadsRunning[i] = true;
