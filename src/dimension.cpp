@@ -195,7 +195,7 @@ namespace Game
 				PlayerState* new_states = new PlayerState[pWorld->vPlayers.size()];
 				if (pWorld->vPlayers.at(i)->states)
 				{
-					memcpy(new_states, pWorld->vPlayers.at(i)->states, sizeof(PlayerState*) * (pWorld->vPlayers.size()-1));
+					memcpy(new_states, pWorld->vPlayers.at(i)->states, sizeof(PlayerState) * (pWorld->vPlayers.size()-1));
 					delete[] pWorld->vPlayers.at(i)->states;
 					new_states[pWorld->vPlayers.size()-1] = PLAYER_STATE_ENEMY;
 				}
