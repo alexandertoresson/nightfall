@@ -1,0 +1,204 @@
+bplist00�_WebMainResource�	
+^WebResourceURL_WebResourceTextEncodingName_WebResourceMIMEType_WebResourceData_WebResourceFrameName_Chttp://julovi.net/j/2007/11/12/installing-glut-in-mac-os-x-leopard/UUTF-8Ytext/htmlO+s<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head profile="http://gmpg.org/xfn/1">
+	<title>Julián Villegas’ webpage » Installing GLEW in Mac OS X (Leopard)</title>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+	<meta name="generator" content="WordPress 2.3.3"> <!-- leave this for stats please -->
+	<style type="text/css" media="screen">
+		@import url( http://julovi.net/j/wp-content/themes/bamboo-10/style.css );
+	</style>
+	<link rel="alternate" type="application/rss+xml" title="RSS 2.0" href="http://julovi.net/j/feed/">
+	<link rel="alternate" type="text/xml" title="RSS .92" href="http://julovi.net/j/feed/rss/">
+	<link rel="alternate" type="application/atom+xml" title="Atom 0.3" href="http://julovi.net/j/feed/atom/">
+
+	<link rel="pingback" href="http://julovi.net/j/xmlrpc.php">
+    	<link rel="archives" title="February 2008" href="http://julovi.net/j/2008/02/">
+	<link rel="archives" title="January 2008" href="http://julovi.net/j/2008/01/">
+	<link rel="archives" title="November 2007" href="http://julovi.net/j/2007/11/">
+	<link rel="archives" title="October 2007" href="http://julovi.net/j/2007/10/">
+	<link rel="archives" title="August 2007" href="http://julovi.net/j/2007/08/">
+			<link rel="EditURI" type="application/rsd+xml" title="RSD" href="http://julovi.net/j/xmlrpc.php?rsd">
+ <link rel="wlwmanifest" type="application/wlwmanifest+xml" href="http://julovi.net/j/wp-includes/wlwmanifest.xml"> <style type="text/css">
+
+  #header {
+   height: 160px;
+  width: 660px;
+  margin: 0 auto;
+  background:url(http://julovi.net/j/wp-content/themes/bamboo-10/images/bamboo.jpg) no-repeat;
+  }
+  #header *
+  {
+  color: #fff;
+  }
+</style>
+</head><body>
+<div id="wrapper">
+	<div id="header">
+		<h1><a href="http://julovi.net/j" title="Julián Villegas’ webpage">Julián Villegas’ webpage</a></h1>
+		<h2>A cyberplace to share some of my work.</h2>
+	</div>
+	<ul id="navigation">
+		<li><a href="http://julovi.net/j" title="Home">Home</a></li>
+	    <li class="page_item page-item-3"><a href="http://julovi.net/j/publications/" title="Publications">Publications</a></li>
+<li class="page_item page-item-4"><a href="http://julovi.net/j/about-me/" title="About me">About me</a></li>
+<li class="page_item page-item-7"><a href="http://julovi.net/j/downloads/" title="Downloads">Downloads</a></li>
+<li class="page_item page-item-46"><a href="http://julovi.net/j/admin/" title="Admin">Admin</a></li>
+	    <li id="feed"><a title="RSS Feed of Posts" href="http://julovi.net/j/feed/">RSS Feed</a></li>
+	</ul>	<div id="content">
+					<div class="entry">
+				<h2 class="entry-title">
+					<em class="date">Nov 12th 2007 07:13 pm</em>
+					<a href="http://julovi.net/j/2007/11/12/installing-glut-in-mac-os-x-leopard/" rel="bookmark" title="Permanent Link: Installing GLEW in Mac OS X (Leopard)">Installing GLEW in Mac OS X (Leopard)</a>
+				</h2>
+        		<div class="entry-content">
+					<p>I’ve been trying for a while to get <a href="http://glew.sourceforge.net/">GLEW</a> (The OpenGL Extension Wrangler Library)  working and finally I did it. I think this could be useful for other people. First let me define the platform this way:</p>
+<ul>
+<li>MacBook (2GHz Intel Core 2 Duo)</li>
+<li>Mac Os 10.5 (Leopard)</li>
+<li>Xcode version 3.0</li>
+<li>glew 1.4.0</li>
+</ul>
+<p><a href="https://sourceforge.net/project/showfiles.php?group_id=67586&amp;package_id=67942">Download</a> the last source files of GLEW (at this moment 1.4.0), be sure to downolad the .tgz file. Don’t try either the compiled or the .zip version of the files, there are some issues with them and apparently the .tgz file is the only one that works (read the <a href="https://sourceforge.net/project/showfiles.php?group_id=67586&amp;package_id=67942">newsgroup</a> of GLEW in sourceforge for more information about this).</p>
+<p>1. Unziping and untaring the file:</p>
+<p><strong>tar zxvf glew-1.4.0-src.tgz </strong></p>
+<p>2. Compile the sources from a terminal window:</p>
+<p><strong>make </strong></p>
+<p>There are some harmless warnings that don’t affect the compilation. Watch for errors, however I didn’t have a single one.</p>
+<p>3. Install the binaries (you need superuser permissions):</p>
+<p><strong>sudo -s</strong></p>
+<p><strong>make install</strong></p>
+<p><strong>make clean</strong></p>
+<p>The files are copied to /usr/lib and /usr/include/GL.</p>
+<p>3. Open Xcode</p>
+<p>4. Create a new project (The C++ Tool template is perfect)</p>
+<p>5. Right-click on the name of the project and choose Add &gt; existing frameworks…</p>
+<p>6. Add to your project <strong>GLUT.framework</strong>. Also, add the following files and select the option of ‘including the file if necessary’ in the popping-up dialog:</p>
+<p><strong>/usr/lib/libGLEW.a</strong> and <strong>/usr/include/GL/glew.h</strong></p>
+<p>7. Include the following lines in your code (e.g., main.cpp):</p>
+<p>#include &lt;glew.h&gt;<br>
+#include &lt;GLUT/glut.h&gt;</p>
+<p>8. Go to Project &gt; Edit Project settings. In the pop-up window:</p>
+<p>a) Select in Configuration tab: <strong>All configurations </strong><br>
+b) Select in Architectures tab: <strong>i386</strong> (you might need to change this according to your machine).</p>
+<p>c) In Valid Architectures, delete all the existing architectures and leave only <strong>i386.</strong><br>
+d) In ‘Other Linker Flags’ add this line:<br>
+<strong>-framework OpenGL -framework GLUT </strong></p>
+<p>That’s all. After that you can close the panel, and build, or ‘build and go’ your project and it should work.</p>
+<p>I found these links somewhat useful :</p>
+<p><a href="http://www.vis.uky.edu/~dnister/Teaching/CS535/macNotes.html">http://www.vis.uky.edu/~dnister/Teaching/CS535/macNotes.html</a></p>
+<p><a href="http://www.idevapps.com/forum/showthread.php?t=5951">http://www.idevapps.com/forum/showthread.php?t=5951</a></p>
+									
+					<p class="info">						
+						Posted by julovi / <a href="http://julovi.net/j/category/bitacora/" title="View all posts in Bitacora" rel="category tag">Bitacora</a> 					</p>
+					<!--
+						<rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+				xmlns:dc="http://purl.org/dc/elements/1.1/"
+				xmlns:trackback="http://madskills.com/public/xml/rss/module/trackback/">
+			<rdf:Description rdf:about="http://julovi.net/j/2007/11/12/installing-glut-in-mac-os-x-leopard/"
+    dc:identifier="http://julovi.net/j/2007/11/12/installing-glut-in-mac-os-x-leopard/"
+    dc:title="Installing GLEW in Mac OS X (Leopard)"
+    trackback:ping="http://julovi.net/j/2007/11/12/installing-glut-in-mac-os-x-leopard/trackback/" />
+</rdf:RDF>					-->
+				</div>
+				
+<!-- You can start editing here. -->
+
+
+   
+		<!-- If comments are open, but there are no comments. -->
+		
+	 <p class="commentsfeed">
+	<span class="trackback"><a href="http://julovi.net/j/2007/11/12/installing-glut-in-mac-os-x-leopard/trackback/">Trackback URI</a></span> | 
+	<span class="feed"><a href="http://julovi.net/j/2007/11/12/installing-glut-in-mac-os-x-leopard/feed/">Comments RSS</a></span>
+</p>
+
+
+
+<h3 id="respond">Leave a Reply</h3>
+
+<p>You must be <a href="http://julovi.net/j/wp-login.php?redirect_to=http://julovi.net/j/2007/11/12/installing-glut-in-mac-os-x-leopard/">logged in</a> to post a comment.</p>
+
+			</div>
+					<p align="center"></p>			
+	</div>
+	<div id="sidebar">
+	<div id="sidebar1">
+	<ul>
+				<li>
+			<h2>Search</h2>
+			<form id="searchform" method="get" action="http://julovi.net/j/">
+				<input type="text" name="s" id="s" class="textbox" value="">
+				<input id="btnSearch" type="submit" name="submit" value="Go">
+			</form>
+		</li>
+		<li>
+			<h2>Categories</h2>
+			<ul>
+					<li class="cat-item cat-item-6"><a href="http://julovi.net/j/category/bitacora/" title="View all posts filed under Bitacora">Bitacora</a>
+</li>
+	<li class="cat-item cat-item-7"><a href="http://julovi.net/j/category/saltnpepper/" title="From everything a little.">salt and pepper</a>
+</li>
+			</ul>
+		</li>
+		<li>
+			<ul>  <li id="linkcat-4" class="linkcat"><h2>Personal</h2>
+	<ul>
+<li><a href="http://colombiacuriosa.blogspot.com/" title="this is a nice inventory of some of the species you can find in Colombia">Fruits and species from Colombia</a></li>
+<li><a href="http://www.pacificbeatsdoc.blogspot.com/" title="About music from the Colombian Pacific Oacean coast.">Pacific Beats</a></li>
+<li><a href="http://picasaweb.google.co.uk/villegas.julian/" rel="me" title="a visual memory of my life">photo albums</a></li>
+
+	</ul>
+</li>
+  <li id="linkcat-5" class="linkcat"><h2>professional</h2>
+	<ul>
+<li><a href="http://sonic.u-aizu.ac.jp" rel="co-worker colleague" title="Repository of some applications I’ve developed">Sonic site</a></li>
+<li><a href="http://tallercroquis.com" title="A fashion shop website that I designed and implemented in 2004">Taller Croquis</a></li>
+
+	</ul>
+</li>
+</ul>
+		</li>
+			</ul>
+	</div>
+	<div id="sidebar2">
+	<ul>
+				<li>
+			<h2>Monthly</h2>
+			<ul>	<li><a href="http://julovi.net/j/2008/02/" title="February 2008">February 2008</a></li>
+	<li><a href="http://julovi.net/j/2008/01/" title="January 2008">January 2008</a></li>
+	<li><a href="http://julovi.net/j/2007/11/" title="November 2007">November 2007</a></li>
+	<li><a href="http://julovi.net/j/2007/10/" title="October 2007">October 2007</a></li>
+	<li><a href="http://julovi.net/j/2007/08/" title="August 2007">August 2007</a></li>
+</ul>
+		</li>
+		<li>
+			<h2>Pages</h2>
+			<ul><li class="page_item page-item-4"><a href="http://julovi.net/j/about-me/" title="About me">About me</a></li>
+<li class="page_item page-item-46"><a href="http://julovi.net/j/admin/" title="Admin">Admin</a></li>
+<li class="page_item page-item-7"><a href="http://julovi.net/j/downloads/" title="Downloads">Downloads</a></li>
+<li class="page_item page-item-3"><a href="http://julovi.net/j/publications/" title="Publications">Publications</a></li>
+</ul>
+		</li>	
+		<li>
+			<h2>Meta</h2>
+			<ul>
+				<li><a href="http://julovi.net/j/wp-login.php?action=register">Register</a></li>				<li><a href="http://julovi.net/j/wp-login.php">Login</a></li>
+				<li><a href="http://validator.w3.org/check/referer" title="This page validates as XHTML 1.0 Transitional">Valid <abbr title="eXtensible HyperText Markup Language">XHTML</abbr></a></li>
+				<li><a href="http://gmpg.org/xfn/"><abbr title="XHTML Friends Network">XFN</abbr></a></li>
+				<li><a href="http://wordpress.org/" title="Powered by WordPress, state-of-the-art semantic personal publishing platform.">WordPress</a></li>
+							</ul>			
+		</li>
+			</ul>
+	</div>
+	<div class="clear"></div>
+</div>
+<!-- CLOSE sidebar-->
+
+</div>
+<div id="footer">
+<p class="links">
+      <strong>Julián Villegas’ webpage</strong> Copyright © 2008 All Rights Reserved.<span>Thanks to <a href="http://wpthemeland.com/themes/bamboo/" title="Bamboo WordPress Theme" target="_blank">WordPress Theme</a> Land!</span></p>	
+</div>
+
+
+
+</body></html>P    ( 7 U k } � � � �,a                           ,b
