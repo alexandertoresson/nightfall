@@ -77,55 +77,33 @@ namespace Game
 
 		void SendCommandUnitToLua(int unitID, int playerIndex, int x, int y, UnitAction action, void* argument)
 		{
-			Utilities::Scripting::LuaVirtualMachine* pVM = Utilities::Scripting::GetPlayerVMInstance(playerIndex);
-			if (Dimension::pWorld->vPlayers[playerIndex]->type == Dimension::PLAYER_TYPE_REMOTE)
+			Utilities::Scripting::LuaVMState& pVM = Game::Dimension::pWorld->vPlayers[playerIndex]->aiState;
+			if (Dimension::pWorld->vPlayers[playerIndex]->isRemote)
 				return;
-			switch (Dimension::pWorld->vPlayers[playerIndex]->type)
-			{
-				case Dimension::PLAYER_TYPE_HUMAN:
-					pVM->SetFunction("CommandUnit_TargetPos_Human");
-					break;
-				case Dimension::PLAYER_TYPE_GAIA:
-					pVM->SetFunction("CommandUnit_TargetPos_Gaia");
-					break;
-				case Dimension::PLAYER_TYPE_AI:
-					pVM->SetFunction("CommandUnit_TargetPos_AI");
-					break;
-				case Dimension::PLAYER_TYPE_REMOTE:
-					break;
-			}
-			lua_pushlightuserdata(pVM->GetVM(), (void*) unitID);
-			lua_pushnumber(pVM->GetVM(), x);
-			lua_pushnumber(pVM->GetVM(), y);
-			lua_pushnumber(pVM->GetVM(), action);
-			lua_pushlightuserdata(pVM->GetVM(), argument);
-			pVM->CallFunction(5);
+
+			pVM.SetFunction(Dimension::pWorld->vPlayers[playerIndex]->playerAIFuncs.commandUnitTargetPos.func);
+
+			lua_pushlightuserdata(pVM.GetState(), (void*) unitID);
+			lua_pushnumber(pVM.GetState(), x);
+			lua_pushnumber(pVM.GetState(), y);
+			lua_pushnumber(pVM.GetState(), action);
+			lua_pushlightuserdata(pVM.GetState(), argument);
+			pVM.CallFunction(5);
 		}
 
 		void SendCommandUnitToLua(int unitID, int playerIndex, int destinationID, UnitAction action, void* argument)
 		{
-			Utilities::Scripting::LuaVirtualMachine* pVM = Utilities::Scripting::GetPlayerVMInstance(playerIndex);
-			if (Dimension::pWorld->vPlayers[playerIndex]->type == Dimension::PLAYER_TYPE_REMOTE)
+			Utilities::Scripting::LuaVMState& pVM = Game::Dimension::pWorld->vPlayers[playerIndex]->aiState;
+			if (Dimension::pWorld->vPlayers[playerIndex]->isRemote)
 				return;
-			switch (Dimension::pWorld->vPlayers[playerIndex]->type)
-			{
-				case Dimension::PLAYER_TYPE_HUMAN:
-					pVM->SetFunction("CommandUnit_TargetUnit_Human");
-					break;
-				case Dimension::PLAYER_TYPE_GAIA:
-					pVM->SetFunction("CommandUnit_TargetUnit_Gaia");
-					break;
-				case Dimension::PLAYER_TYPE_AI:
-					pVM->SetFunction("CommandUnit_TargetUnit_AI");
-					break;
-				case Dimension::PLAYER_TYPE_REMOTE:
-					break;
-			}
-			lua_pushlightuserdata(pVM->GetVM(), (void*) unitID);
-			lua_pushlightuserdata(pVM->GetVM(), (void*) destinationID);
-			lua_pushnumber(pVM->GetVM(), action);
-			lua_pushlightuserdata(pVM->GetVM(), argument);
-			pVM->CallFunction(4);
+
+			pVM.SetFunction(Dimension::pWorld->vPlayers[playerIndex]->playerAIFuncs.commandUnitTargetUnit.func);
+
+			lua_pushlightuserdata(pVM.GetState(), (void*) unitID);
+			lua_pushlightuserdata(pVM.GetState(), (void*) destinationID);
+			lua_pushnumber(pVM.GetState(), action);
+			lua_pushlightuserdata(pVM.GetState(), argument);
+			pVM.CallFunction(4);
 		}
 
 		struct ScheduledCommand
@@ -212,28 +190,28 @@ namespace Game
 			for (vector<UnitEvent*>::iterator it = scheduledUnitEvents.begin(); it != scheduledUnitEvents.end(); it++)
 			{
 				UnitEvent* event = *it;
-				Utilities::Scripting::LuaVirtualMachine* pVM = Utilities::Scripting::GetPlayerVMInstance(event->playerIndex);
-				pVM->SetFunction(*event->func);
+				Utilities::Scripting::LuaVMState& pVM = Game::Dimension::pWorld->vPlayers[event->playerIndex]->aiState;
+				pVM.SetFunction(*event->func);
 				switch (event->eventType)
 				{
 					case UNITEVENTTYPE_ACTION:
-						lua_pushlightuserdata(pVM->GetVM(), (void*) event->unitID);
-						lua_pushinteger(pVM->GetVM(), event->action);
-						lua_pushnumber(pVM->GetVM(), event->x);
-						lua_pushnumber(pVM->GetVM(), event->y);
-						lua_pushlightuserdata(pVM->GetVM(), (void*) event->targetID);
-						lua_pushlightuserdata(pVM->GetVM(), event->arg);
-						pVM->CallFunction(6);
+						lua_pushlightuserdata(pVM.GetState(), (void*) event->unitID);
+						lua_pushinteger(pVM.GetState(), event->action);
+						lua_pushnumber(pVM.GetState(), event->x);
+						lua_pushnumber(pVM.GetState(), event->y);
+						lua_pushlightuserdata(pVM.GetState(), (void*) event->targetID);
+						lua_pushlightuserdata(pVM.GetState(), event->arg);
+						pVM.CallFunction(6);
 						break;
 					case UNITEVENTTYPE_SIMPLE:
 //						std::cout << *event->func << " " << event->unitID << std::endl;
-						lua_pushlightuserdata(pVM->GetVM(), (void*) event->unitID);
-						pVM->CallFunction(1);
+						lua_pushlightuserdata(pVM.GetState(), (void*) event->unitID);
+						pVM.CallFunction(1);
 						break;
 					case UNITEVENTTYPE_ATTACK:
-						lua_pushlightuserdata(pVM->GetVM(), (void*) event->unitID);
-						lua_pushlightuserdata(pVM->GetVM(), (void*) event->targetID);
-						pVM->CallFunction(2);
+						lua_pushlightuserdata(pVM.GetState(), (void*) event->unitID);
+						lua_pushlightuserdata(pVM.GetState(), (void*) event->targetID);
+						pVM.CallFunction(2);
 						break;
 				}
 				delete event;
@@ -246,7 +224,7 @@ namespace Game
 		void ScheduleActionUnitEvent(Dimension::Unit* pUnit, EventAIFunc *aiEvent)
 		{
 
-			if (pUnit->owner->type == Dimension::PLAYER_TYPE_REMOTE)
+			if (pUnit->owner->isRemote)
 				return;
 
 			UnitEvent *event = new UnitEvent;
@@ -277,7 +255,7 @@ namespace Game
 		void ScheduleSimpleUnitEvent(Dimension::Unit* pUnit, EventAIFunc *aiEvent)
 		{
 
-			if (pUnit->owner->type == Dimension::PLAYER_TYPE_REMOTE)
+			if (pUnit->owner->isRemote)
 				return;
 
 			UnitEvent *event = new UnitEvent;
@@ -325,7 +303,7 @@ namespace Game
 		void SendUnitEventToLua_IsAttacked(Dimension::Unit* pUnit, Dimension::Unit* attacker)
 		{
 			
-			if (pUnit->owner->type == Dimension::PLAYER_TYPE_REMOTE)
+			if (pUnit->owner->isRemote)
 				return;
 
 			UnitEvent *event = new UnitEvent;
@@ -554,17 +532,17 @@ namespace Game
 
 				pUnit->aiFrame++;
 
-				if (pUnit->aiFrame >= pUnit->unitAIFuncs.performUnitAI.delay && pUnit->owner->type != Dimension::PLAYER_TYPE_REMOTE)
+				if (pUnit->aiFrame >= pUnit->unitAIFuncs.performUnitAI.delay && !pUnit->owner->isRemote)
 				{
-					Utilities::Scripting::LuaVirtualMachine* pVM = Utilities::Scripting::GetPlayerVMInstance(pUnit->owner->index);
+					Utilities::Scripting::LuaVMState& pVM = pUnit->owner->aiState;
 
 					if (pUnit->unitAIFuncs.performUnitAI.enabled)
 					{
-						pVM->SetFunction(pUnit->unitAIFuncs.performUnitAI.func);
+						pVM.SetFunction(pUnit->unitAIFuncs.performUnitAI.func);
 
-						lua_pushlightuserdata(pVM->GetVM(), (void*) pUnit->id);
-						lua_pushinteger(pVM->GetVM(), pUnit->pMovementData->action.action);
-						pVM->CallFunction(2);
+						lua_pushlightuserdata(pVM.GetState(), (void*) pUnit->id);
+						lua_pushinteger(pVM.GetState(), pUnit->pMovementData->action.action);
+						pVM.CallFunction(2);
 					}
 					pUnit->aiFrame = 0;
 				}
@@ -575,16 +553,16 @@ namespace Game
 		void PerformLuaPlayerAI(Dimension::Player* player)
 		{
 			player->aiFrame++;
-			if (player->aiFrame >= player->playerAIFuncs.performPlayerAI.delay && player->type != Dimension::PLAYER_TYPE_REMOTE)
+			if (player->aiFrame >= player->playerAIFuncs.performPlayerAI.delay && !player->isRemote)
 			{
-				Utilities::Scripting::LuaVirtualMachine* pVM = Utilities::Scripting::GetPlayerVMInstance(player->index);
+				Utilities::Scripting::LuaVMState& pVM = Game::Dimension::pWorld->vPlayers[player->index]->aiState;
 
 				if (player->playerAIFuncs.performPlayerAI.enabled)
 				{
-					pVM->SetFunction(player->playerAIFuncs.performPlayerAI.func);
+					pVM.SetFunction(player->playerAIFuncs.performPlayerAI.func);
 
-					lua_pushlightuserdata(pVM->GetVM(), player);
-					pVM->CallFunction(1);
+					lua_pushlightuserdata(pVM.GetState(), player);
+					pVM.CallFunction(1);
 				}
 				player->aiFrame = 0;
 			}

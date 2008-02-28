@@ -45,7 +45,6 @@ namespace Game
 		struct TransformData;
 		struct TransformAnim;
 		struct Animation;
-		extern map<string, UnitType*> unitTypeMap;
 		extern int** numUnitsPerAreaMap;
 		extern int numSentCommands;
 		
@@ -255,30 +254,8 @@ namespace Game
 			ActionQueueVisualRepresentation* visual_repr;
 		};
 
-		enum PrerequisiteType
-		{
-			PREREQUISITETYPE_RESEARCH,
-			PREREQUISITETYPE_UNIT_BUILT,
-			PREREQUISITETYPE_UNIT_EXISTING,
-			PREREQUISITETYPE_TIME_ELAPSED
-		};
-
-		struct Research;
-
-		struct Prerequisite
-		{
-			PrerequisiteType type;
-			union
-			{
-				Unit* unit;
-				Research* research;
-			} object;
-			int num;
-		};
-
 		struct Research
 		{
-			vector<Prerequisite*> prerequisites;
 			bool isResearched;
 			Unit** researcher;
 			std::string effectFunc;
@@ -481,7 +458,9 @@ namespace Game
 		void PrepareAnimationData(Unit* const);
 		void PrepareUnitEssentials(Unit* const unit, UnitType* const type, Player* const owner);
 		Unit* CreateUnitNoDisplay(UnitType* type, Player* owner, int id = -1, bool complete = true);
+		Unit* CreateUnitNoDisplay(unsigned type, Player* owner, int id = -1, bool complete = true);
 		Unit* CreateUnit(UnitType* type, Player* owner, int x, int y, int id = -1, bool complete = true);
+		Unit* CreateUnit(unsigned type, Player* owner, int x, int y, int id = -1, bool complete = true);
 		bool ScheduleDisplayUnit(Unit* unit, int x, int y);
 		void DisplayScheduledUnits();
 		void DeleteUnit(Unit* unit);

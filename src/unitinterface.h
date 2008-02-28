@@ -45,9 +45,9 @@ namespace UnitLuaInterface
 
 namespace UnitLuaInterface
 {
-	void Init(Utilities::Scripting::LuaVirtualMachine* pVM);
+	void Init(Utilities::Scripting::LuaVMState* pVM);
 	bool IsValidUnitTypePointer(Game::Dimension::UnitType* unittype);
-	Game::Dimension::UnitType *GetUnitTypeByID(std::string str);
+	Game::Dimension::UnitType *GetUnitTypeByID(Game::Dimension::Player* owner, std::string str);
 }
 
 #ifdef DEBUG_DEP

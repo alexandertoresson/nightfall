@@ -1124,10 +1124,6 @@ namespace Game
 			delete pSelected;
 			delete pActions;
 			delete pMap;
-			for (map<Dimension::UnitType*,UnitBuild*>::iterator iter = GUI_Build.begin(); iter != GUI_Build.end(); iter++)
-			{
-				delete (*iter).second;
-			}
 			if (!Game::Rules::noGraphics)
 				glDeleteTextures(1, &tmap);
 		}
@@ -1292,18 +1288,27 @@ namespace Game
 			}
 		}
 
+		UnitBuild *oldUnitBuilder = NULL;
+
 		void GamePlayBar::SwitchBuild()
 		{
 			if(buildSelected == false)
 			{
-				map<Dimension::UnitType*, UnitBuild*>::iterator match = GUI_Build.find(pUnit->type);
-				if(match != GUI_Build.end())
+				if (pUnit->type->canBuild.size())
 				{
+					Game::Dimension::UnitType* unitType = pUnit->type;
+					UnitBuild* unitBuilder = new UnitBuild(nopic, pGame);
 					Window::GUI::PanelWidget obj;
-					obj.pPanel = (*match).second;
+					obj.pPanel = unitBuilder;
+					CopyCoordianteSystem(build_panel, obj, typePanel); //Temporary Solution
+					unitBuilder->SetUnitType(unitType);
+					unitBuilder->SetUnit(pUnit);
 					SetElement(build_panel, obj, typePanel);
-					(*match).second->SetUnit(pUnit);
 					buildSelected = true;
+					if (oldUnitBuilder)
+					{
+						delete oldUnitBuilder;
+					}
 				}
 			}
 			else
@@ -1317,7 +1322,7 @@ namespace Game
 
 		void GamePlayBar::init()
 		{
-			GLuint nopic = Utilities::LoadTexture("textures/nopic.png");
+			nopic = Utilities::LoadTexture("textures/nopic.png");
 			texturesTop[0] = Utilities::LoadTexture("textures/gui/gui_player_intersect.png");
 			texturesTop[1] = Utilities::LoadTexture("textures/gui/gui_player_tile_x.png");
 			texturesTop[2] = Utilities::LoadTexture("textures/gui/gui_player_tile_y.png");
@@ -1338,16 +1343,18 @@ namespace Game
 
 			pActions->InitLayout();
 
-			vector<Game::Dimension::UnitType*> buildingUnits = Game::Dimension::modelLoader.GetBuildUnits();
-			for(vector<Game::Dimension::UnitType*>::iterator iter = buildingUnits.begin(); iter != buildingUnits.end(); iter++)
+			for(vector<Game::Dimension::UnitType*>::iterator iter = Dimension::currentPlayerView->vUnitTypes.begin(); iter != Dimension::currentPlayerView->vUnitTypes.end(); iter++)
 			{
 				Game::Dimension::UnitType* unitTyp = (*iter);
-				UnitBuild* unitBuilder = new UnitBuild(nopic, pGame);
-				Window::GUI::PanelWidget obj;
-				obj.pPanel = unitBuilder;
-				CopyCoordianteSystem(build_panel, obj, typePanel); //Temporary Solution
-				unitBuilder->SetUnitType(unitTyp);
-				GUI_Build[unitTyp] = unitBuilder;
+				if (unitTyp->canBuild.size() || unitTyp->canResearch.size())
+				{
+					UnitBuild* unitBuilder = new UnitBuild(nopic, pGame);
+					Window::GUI::PanelWidget obj;
+					obj.pPanel = unitBuilder;
+					CopyCoordianteSystem(build_panel, obj, typePanel); //Temporary Solution
+					unitBuilder->SetUnitType(unitTyp);
+					GUI_Build[unitTyp] = unitBuilder;
+				}
 			}
 		}
 

@@ -191,7 +191,7 @@ function Empty(table)
 	end
 end
 
-function InitAI_AI(Player)
+function InitAI(Player)
 
 	InitAI_Generic(Player)
 

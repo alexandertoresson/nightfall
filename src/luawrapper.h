@@ -19,7 +19,6 @@ extern "C" {
 
 //#define LUA_DEBUG
 #define LUA_FUNCTION
-#define LuaVM                  lua_State
 #define LuaNumResults          int
 
 #define LUA_FUNCTION_FAIL_LIMIT 15
@@ -28,21 +27,20 @@ namespace Utilities
 {
 	namespace Scripting
 	{
-		class LuaVirtualMachine;
+		class LuaVMState;
 
-		void StartVM(void);
-		void StartPlayerVMs(void);
+		void StartPlayerStates(void);
 		void InitAI(void);
-		void StopVM(void);
-		LuaVM* GetVM(void);
-		LuaVM* GetPlayerVM(unsigned player);
-		LuaVirtualMachine* GetPlayerVMInstance(unsigned player);
 	}
 }
 
 #define __LUAWRAPPER_H_PRE_END__
 
+#include "dimension.h"
+
 #endif
+
+#ifdef __DIMENSION_H_PRE_END__
 
 #ifndef __LUAWRAPPER_H__
 #define __LUAWRAPPER_H__
@@ -81,28 +79,32 @@ namespace Utilities
 {
 	namespace Scripting
 	{
-		class LuaVirtualMachine
+		class LuaVMState
 		{
 			private:
-				static LuaVirtualMachine* m_pInstance;
-				LuaVM* m_pVM;
+				lua_State* m_pState;
 				std::map<const void*, int> callErrs;
 				std::string curFunction;
 
 			public:
-				static LuaVirtualMachine* Instance(void);
-				static void Destroy(void);
 
-				LuaVirtualMachine(void);
-				~LuaVirtualMachine(void);
+				SDL_mutex *CallErrMutex;
 
-				void RegisterFunction(std::string alias, int (*fptr)(LuaVM*));
+				LuaVMState(Game::Dimension::Player* player);
+				~LuaVMState(void);
+
+				void RegisterFunction(std::string alias, int (*fptr)(lua_State*));
 
 				int DoFile(std::string file) const;
 				void SetFunction(std::string);
 				int CallFunction(unsigned int arguments, unsigned int rets = 0);
-				LuaVM* GetVM(void) const;
+				lua_State* GetState(void) const;
 		};
+
+		extern LuaVMState globalVMState;
+		
+		Game::Dimension::Player *GetPlayerByVMstate(lua_State *vmState);
+		LuaVMState *GetObjectByVMstate(lua_State *vmState);
 
 	}
 }
@@ -112,6 +114,8 @@ namespace Utilities
 #endif
 
 #define __LUAWRAPPER_H_END__
+
+#endif
 
 #endif
 

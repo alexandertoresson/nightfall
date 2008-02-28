@@ -2653,7 +2653,7 @@ namespace  Utilities
 #endif
 				UnitsIndex.push_back(pUnitType);
 
-				unitTypeMap[*pUnit->Name] = pUnitType;
+//				unitTypeMap[*pUnit->Name] = pUnitType;
 
 				if(pUnit->Model != NULL)
 				{
@@ -2701,7 +2701,7 @@ namespace  Utilities
 					}
 				}
 
-				if(pUnit->canBuild != NULL)
+/*				if(pUnit->canBuild != NULL)
 				{
 					int count = 0;
 					for(vector<string>::iterator Iterator = pUnit->canBuild->begin(); Iterator != pUnit->canBuild->end(); Iterator++)
@@ -2720,14 +2720,14 @@ namespace  Utilities
 					int count = 0;
 					for(vector<string>::iterator Iterator = pUnit->canResearch->begin(); Iterator != pUnit->canResearch->end(); Iterator++)
 					{
-						Game::Dimension::UnitType *typ = LoadUnitType(Iterator->c_str());
+//						Game::Dimension::UnitType *typ = LoadUnitType(Iterator->c_str());
 						if(typ != NULL)
 						{
 							pUnitType->canResearch.push_back(typ);
 							count++;
 						}
 					}
-				}
+				}*/
 
 				for (int i = 0; i < Audio::SFX_ACT_COUNT; i++)
 					pUnitType->actionSounds[i] = NULL;
@@ -2969,25 +2969,11 @@ namespace  Utilities
 		map<string, Game::Dimension::UnitType*>::iterator UnitIter = UnitsData.find(id); 
 		if(UnitIter != UnitsData.end())
 		{
-			unitTypeMap[id] = (*UnitIter).second;
+//			unitTypeMap[id] = (*UnitIter).second;
 			return (*UnitIter).second;
 		}
 		else
 			return NULL;
-	}
-
-	vector<Game::Dimension::UnitType*> ModelParser::GetBuildUnits(void)
-	{
-		vector<Game::Dimension::UnitType*> units;
-		for(vector<Game::Dimension::UnitType*>::iterator iter = pWorld->vUnitTypes.begin(); iter != pWorld->vUnitTypes.end(); iter++)
-		{
-			Game::Dimension::UnitType *unit = (*iter);
-			if(unit->canBuild.size() != 0)
-			{
-				units.push_back(unit);
-			}
-		}
-		return units;
 	}
 
 	int ModelParser::GetModelCount()

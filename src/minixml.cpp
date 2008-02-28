@@ -95,7 +95,6 @@ namespace Utilities
 
 	XMLReader::~XMLReader()
 	{
-		Deallocate();
 		delete xmlDataAlloc;
 		delete stringAlloc;
 	}

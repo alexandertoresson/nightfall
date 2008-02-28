@@ -206,6 +206,8 @@ namespace Game
 			GameWindow* pGame;
 			GLuint tmap;
 
+			GLuint nopic;
+
 			float location1;
 			float location2;
 

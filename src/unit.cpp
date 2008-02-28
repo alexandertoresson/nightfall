@@ -738,10 +738,10 @@ namespace Game
 		
 		bool IsSuitableForBuilding(UnitType* type, Player* player, int build_x, int build_y)
 		{
-			return (IsSuitableForBuilding(type, unitTypeMap["LargeTank"], player, build_x, build_y) && 
-			        IsSuitableForBuilding(type, unitTypeMap["SmallTank"], player, build_x, build_y) &&
-			        IsSuitableForBuilding(type, unitTypeMap["LargeAttackRobot"], player, build_x, build_y) &&
-			        IsSuitableForBuilding(type, unitTypeMap["SmallAttackRobot"], player, build_x, build_y));
+			return (IsSuitableForBuilding(type, player->unitTypeMap["LargeTank"], player, build_x, build_y) && 
+			        IsSuitableForBuilding(type, player->unitTypeMap["SmallTank"], player, build_x, build_y) &&
+			        IsSuitableForBuilding(type, player->unitTypeMap["LargeAttackRobot"], player, build_x, build_y) &&
+			        IsSuitableForBuilding(type, player->unitTypeMap["SmallAttackRobot"], player, build_x, build_y));
 		}
 
 		int PositionSearch_NumStepsTaken = 0;
@@ -1224,7 +1224,7 @@ namespace Game
 					{
 						if (SquaresAreWalkable(build_type, unit->owner, unit->pMovementData->action.goal.pos.x, unit->pMovementData->action.goal.pos.y, SIW_IGNORE_OWN_MOBILE_UNITS | SIW_ALLKNOWING))
 						{
-							if (unit->owner->type != PLAYER_TYPE_REMOTE)
+							if (!unit->owner->isRemote)
 							{
 								int start_x, start_y;
 								GetTypeUpperLeftCorner(build_type, unit->pMovementData->action.goal.pos.x, unit->pMovementData->action.goal.pos.y, start_x, start_y);
@@ -2246,7 +2246,7 @@ namespace Game
 			Uint16** NumUnitsSeeingSquare = unit->owner->NumUnitsSeeingSquare;
 			RangeScanlines* rangeScanlines = unit->type->sightRangeScanlines;
 
-			if (unit->owner->type == PLAYER_TYPE_REMOTE)
+			if (unit->owner->isRemote)
 			{
 				// Do not calculate seen squares for units not controlled by this client/server
 				return;
@@ -2905,7 +2905,7 @@ namespace Game
 
 			if (pUnit->pMovementData->pStart)
 			{
-				if ((action == AI::ACTION_FOLLOW || action == AI::ACTION_ATTACK) && pUnit->owner->type != PLAYER_TYPE_REMOTE)
+				if ((action == AI::ACTION_FOLLOW || action == AI::ACTION_ATTACK) && !pUnit->owner->isRemote)
 				{
 					if (pUnit->pMovementData->action.goal.unit->lastSeenPositions[pUnit->owner->index].x != pUnit->pMovementData->action.goal.pos.x ||
 					    pUnit->pMovementData->action.goal.unit->lastSeenPositions[pUnit->owner->index].y != pUnit->pMovementData->action.goal.pos.y)
@@ -2952,7 +2952,7 @@ namespace Game
 
 					if (recalc_path)
 					{
-						if (pUnit->owner->type != PLAYER_TYPE_REMOTE)
+						if (!pUnit->owner->isRemote)
 						{
 #ifdef CHECKSUM_DEBUG_HIGH
 							Networking::checksum_output << "INIT RECALC " << AI::currentFrame << ": " << pUnit->id << "\n";
@@ -3038,7 +3038,7 @@ namespace Game
 #endif
 				should_move = false;
 				pUnit->isMoving = false;
-				if (pUnit->owner->type != PLAYER_TYPE_REMOTE && !AI::IsUndergoingPathCalc(pUnit))
+				if (!pUnit->owner->isRemote && !AI::IsUndergoingPathCalc(pUnit))
 				{
 					ChangePath(pUnit, pUnit->pMovementData->action.goal.pos.x, pUnit->pMovementData->action.goal.pos.y, pUnit->pMovementData->action.action, pUnit->pMovementData->action.goal.unit, pUnit->pMovementData->action.arg);
 				}
@@ -3100,7 +3100,7 @@ namespace Game
 #ifdef CHECKSUM_DEBUG_HIGH
 								Networking::checksum_output << "RECALC " << AI::currentFrame << ": " << pUnit->id << "\n";
 #endif
-								if (pUnit->owner->type != PLAYER_TYPE_REMOTE && !AI::IsUndergoingPathCalc(pUnit))
+								if (!pUnit->owner->isRemote && !AI::IsUndergoingPathCalc(pUnit))
 								{
 									if (action == AI::ACTION_FOLLOW || action == AI::ACTION_ATTACK)
 									{
@@ -3530,6 +3530,15 @@ namespace Game
 			return unit;
 		}
 		
+		Unit* CreateUnitNoDisplay(unsigned type, Player* owner, int id, bool complete)
+		{
+			if (type < owner->vUnitTypes.size())
+			{
+				return CreateUnitNoDisplay(owner->vUnitTypes[type], owner, id, complete);
+			}
+			return NULL;
+		}
+
 		SDL_mutex* unitsScheduledForDisplayMutex = SDL_CreateMutex();
 
 		bool ScheduleDisplayUnit(Unit* unit, int x, int y)
@@ -3605,6 +3614,15 @@ namespace Game
 			Unit* unit = CreateUnitNoDisplay(type, owner, id, complete);
 			ScheduleDisplayUnit(unit, x, y);
 			return unit;
+		}
+		
+		Unit* CreateUnit(unsigned type, Player* owner, int x, int y, int id, bool complete)
+		{
+			if (type < owner->vUnitTypes.size())
+			{
+				return CreateUnit(owner->vUnitTypes[type], owner, x, y, id, complete);
+			}
+			return NULL;
 		}
 
 		void DisplayScheduledUnits()
@@ -3689,7 +3707,7 @@ namespace Game
 				return;
 			}
 
- 			validUnitPointers.erase(validUnitPointers.find(unit));
+ 			validUnitPointers.erase(unit);
  			displayedUnitPointers.remove(unit);
 
 //			std::cout << "Delete " << unit->id << std::endl;
@@ -3752,7 +3770,7 @@ namespace Game
 			}
 			
 			if (unitsScheduledForDeletion.find(unit) != unitsScheduledForDeletion.end())
-				unitsScheduledForDeletion.erase(unitsScheduledForDeletion.find(unit));
+				unitsScheduledForDeletion.erase(unit);
 
 			for (j = 0; j < 10; j++)
 			{
@@ -4178,8 +4196,6 @@ namespace Game
 			return animation;
 		}
 
-		map<string, UnitType*> unitTypeMap;
-
 		void InitUnits()
 		{
 
@@ -4251,10 +4267,16 @@ namespace Game
 
 			nextToRangeArray = GenerateRangeArray(1.5, 0);
 
-			CheckPrecomputedArrays(unitTypeMap["LargeTank"]);
-			CheckPrecomputedArrays(unitTypeMap["SmallTank"]);
-			CheckPrecomputedArrays(unitTypeMap["LargeAttackRobot"]);
-			CheckPrecomputedArrays(unitTypeMap["SmallAttackRobot"]);
+			for (vector<Player*>::iterator player = pWorld->vPlayers.begin(); player != pWorld->vPlayers.end(); player++)
+			{
+				if ((*player)->unitTypeMap["LargeTank"])
+				{
+					CheckPrecomputedArrays((*player)->unitTypeMap["LargeTank"]);
+					CheckPrecomputedArrays((*player)->unitTypeMap["SmallTank"]);
+					CheckPrecomputedArrays((*player)->unitTypeMap["LargeAttackRobot"]);
+					CheckPrecomputedArrays((*player)->unitTypeMap["SmallAttackRobot"]);
+				}
+			}
 		}
 
 		void HandleAnim(int (&a_frames)[2][4], int& animNum, float mix, Unit* pUnit, void* Anim, AnimType animtype, float (&pos_between_anim_frames)[2])

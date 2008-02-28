@@ -121,12 +121,12 @@ namespace Game
 		}
 
 		// add a player
-		Player* AddPlayer(std::string name, PlayerType playertype, const char* playertexture)
+		Player* AddPlayer(std::string name, PlayerType playertype, std::string playertexture, std::string raceScript, std::string aiScript)
 		{
 			Player* player = new Player;
 			player->name = name;
 			player->type = playertype;
-			player->texture = Utilities::LoadGLTexture(playertexture);
+			player->texture = Utilities::LoadGLTexture(playertexture.c_str());
 			player->index = pWorld->vPlayers.size();
 			player->states = NULL;
 			player->resources.money = 1000;
@@ -134,11 +134,16 @@ namespace Game
 			player->oldResources.money = 1000;
 			player->oldResources.power = 1000;
 			player->aiFrame = 0;
+			player->isRemote = false;
+			player->raceScript = raceScript;
+			player->aiScript = aiScript;
 
 			player->playerAIFuncs.performPlayerAI.func = "PerformAI_Player";
 			player->playerAIFuncs.performPlayerAI.delay = 6;
 			player->playerAIFuncs.performPlayerAI.enabled = true;
 			player->playerAIFuncs.unitCreation.func = "UnitEvent_UnitCreation";
+			player->playerAIFuncs.commandUnitTargetPos.func = "CommandUnit_TargetPos";
+			player->playerAIFuncs.commandUnitTargetUnit.func = "CommandUnit_TargetUnit";
 					
 			player->unitAIFuncs.performUnitAI.func = "PerformAI_Unit";
 			player->unitAIFuncs.performUnitAI.delay = 6;
@@ -155,6 +160,8 @@ namespace Game
 				case PLAYER_TYPE_HUMAN:
 					player->playerAIFuncs.performPlayerAI.func += "_Human";
 					player->playerAIFuncs.unitCreation.func += "_Human";
+					player->playerAIFuncs.commandUnitTargetPos.func += "_Human";
+					player->playerAIFuncs.commandUnitTargetUnit.func += "_Human";
 					player->unitAIFuncs.performUnitAI.func += "_Human";
 					player->unitAIFuncs.commandCompleted.func += "_Human";
 					player->unitAIFuncs.commandCancelled.func += "_Human";
@@ -163,20 +170,11 @@ namespace Game
 					player->unitAIFuncs.isAttacked.func += "_Human";
 					player->unitAIFuncs.unitKilled.func += "_Human";
 					break;
-				case PLAYER_TYPE_GAIA:
-					player->playerAIFuncs.performPlayerAI.func += "_Gaia";
-					player->playerAIFuncs.unitCreation.func += "_Gaia";
-					player->unitAIFuncs.performUnitAI.func += "_Gaia";
-					player->unitAIFuncs.commandCompleted.func += "_Gaia";
-					player->unitAIFuncs.commandCancelled.func += "_Gaia";
-					player->unitAIFuncs.newCommand.func += "_Gaia";
-					player->unitAIFuncs.becomeIdle.func += "_Gaia";
-					player->unitAIFuncs.isAttacked.func += "_Gaia";
-					player->unitAIFuncs.unitKilled.func += "_Gaia";
-					break;
 				case PLAYER_TYPE_AI:
 					player->playerAIFuncs.performPlayerAI.func += "_AI";
 					player->playerAIFuncs.unitCreation.func += "_AI";
+					player->playerAIFuncs.commandUnitTargetPos.func += "_AI";
+					player->playerAIFuncs.commandUnitTargetUnit.func += "_AI";
 					player->unitAIFuncs.performUnitAI.func += "_AI";
 					player->unitAIFuncs.commandCompleted.func += "_AI";
 					player->unitAIFuncs.commandCancelled.func += "_AI";
@@ -185,8 +183,6 @@ namespace Game
 					player->unitAIFuncs.isAttacked.func += "_AI";
 					player->unitAIFuncs.unitKilled.func += "_AI";
 					break;
-				case PLAYER_TYPE_REMOTE:
-					return NULL;
 			}
 
 			pWorld->vPlayers.push_back(player);
@@ -319,164 +315,25 @@ namespace Game
 			return NULL;
 		}
 		
-		UnitType* LoadUnitType(const char* unittype) //Can't handle animations yet
+		void UnloadUnitType(Player* player, UnitType* pUnitType)
 		{
-			UnitType* data;
-			char *file, *utname;
-			SplitString(unittype, '#', file, utname);
-			if((data = modelLoader.GetUnit(utname)) != NULL)
-			{
-				delete[] file;
-				delete[] utname;
-				return data;
-			}
-
-			int ret = modelLoader.Parse(file); 
-			if(ret != SUCCESS)
-			{
-				string errmess = "";
-				switch(ret)
-				{
-					case MODEL_ERROR_FILE_NOT_FOUND:
-					{
-						errmess = "File not found";
-						break;
-					}
-					case MODEL_ERROR_PARSE:
-					{
-						errmess = "Parse error";
-						break;
-					}
-					case MODEL_ERROR_UNEXPECTED_ERROR:
-					{
-						errmess = "Unexpected error";
-						break;
-					}
-					case MODEL_ERROR_INVALID_FORMAT:
-					{
-						errmess = "Invalid format";
-						break;
-					}
-					case MODEL_ERROR_NAME_CONFLICT:
-					{
-						errmess = "Name Conflict";
-						break;
-					}
-					case MODEL_ERROR_INVALID_SOUND_FORMAT:
-					{
-						errmess = "Invalid Sound Format";
-						break;
-					}
-					default:
-					{
-						errmess = "Unknown";
-						break;
-					}
-				}
-				console << Console::err << "Failed to load '" << file << "' UnitTypeLoader says: " << errmess << Console::nl;
-				delete[] file;
-				delete[] utname;
-				return NULL;
-			}
-			for (int i = 0; i < modelLoader.GetUnitCount(); i++)
-			{
-				pWorld->vUnitTypes.push_back(modelLoader.GetUnit(i));
-				pWorld->vUnitTypes.at(pWorld->vUnitTypes.size()-1)->index = pWorld->vUnitTypes.size()-1;
-			}
-			if(modelLoader.GetUnitCount() != 0)
-			{
-				UnitType* unitType = modelLoader.GetUnit(utname);
-				if (!unitType)
-				{
-//					cout << "Failed to get unittype \"" << utname << "\", falling back to getting latest unittype loaded..." << endl;
-					unitType = modelLoader.GetUnit(modelLoader.GetUnitCount() - 1);
-				}
-				delete[] file;
-				delete[] utname;
-				return unitType;
-			}
-			delete[] file;
-			delete[] utname;
-			return NULL;
-		}
-
-		void UnloadUnitType(UnitType* pUnitType)
-		{
-			int index = pUnitType->index;
-			pWorld->vUnitTypes.erase(pWorld->vUnitTypes.begin() + index);
+			// TODO
+/*			int index = pUnitType->index;
+			player->vUnitTypes.erase(player->vUnitTypes.begin() + index);
 			unitTypeMap.erase(unitTypeMap.find(pUnitType->name));
 			for (unsigned i = index; i < pWorld->vUnitTypes.size(); i++)
 			{
 				pWorld->vUnitTypes.at(i)->index = i;
-			}
+			}*/
 		}
 
 		void UnloadAllUnitTypes()
 		{
-			pWorld->vUnitTypes.clear();
-			unitTypeMap.clear();
+			// TODO
+/*			pWorld->vUnitTypes.clear();
+			unitTypeMap.clear();*/
 		}
 
-		void InitPlayers(unsigned players_to_init)
-		{
-			Player* human = NULL;
-			int     color = 1;
-		
-			AddPlayer("GAIA", PLAYER_TYPE_GAIA, "textures/player_gaia.png");
-			
-			PlayerType next_type = PLAYER_TYPE_HUMAN;
-			
-			for (unsigned i = 1; i <= players_to_init; i++)
-			{
-				std::stringstream texture;
-				std::stringstream player;
-				texture << "textures/player_" << color << ".png";
-				player << "player_" << i;
-				Player* p = AddPlayer(player.str(), next_type, texture.str().c_str());
-				if (!human)
-				{
-					human = p;
-				}
-				if (next_type == PLAYER_TYPE_HUMAN)
-				{
-					next_type = PLAYER_TYPE_AI;
-				}
-				
-				color++;
-			}
-			
-			currentPlayerView = human;
-			SetCurrentPlayer(human);
-		
-		}
-		
-		void InitPlayers(vector<PlayerType> playertypes)
-		{
-			Player* human = NULL;
-			int     color = 1;
-		
-			AddPlayer("GAIA", PLAYER_TYPE_GAIA, "textures/player_gaia.png");
-			
-			for (unsigned i = 0; i <= playertypes.size(); i++)
-			{
-				std::stringstream texture;
-				std::stringstream player;
-				texture << "textures/player_" << color << ".png";
-				player << "player_" << i+1;
-				Player* p = AddPlayer(player.str(), playertypes[i], texture.str().c_str());
-				if (!human)
-				{
-					human = p;
-				}
-				
-				color++;
-			}
-			
-			currentPlayerView = human;
-			SetCurrentPlayer(human);
-		
-		}
-		
 		Player* GetCurrentPlayer()
 		{
 			return currentPlayer;
@@ -485,6 +342,11 @@ namespace Game
 		void SetCurrentPlayer(Player* p)
 		{
 			currentPlayer = p;
+		}
+		
+		void SetCurrentPlayerView(Player* p)
+		{
+			currentPlayerView = p;
 		}
 	}
 }

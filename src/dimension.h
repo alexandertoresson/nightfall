@@ -22,9 +22,7 @@ namespace Game
 		enum PlayerType
 		{
 			PLAYER_TYPE_HUMAN,
-			PLAYER_TYPE_AI,
-			PLAYER_TYPE_GAIA,
-			PLAYER_TYPE_REMOTE
+			PLAYER_TYPE_AI
 		};
 
 		typedef int PlayerState;
@@ -42,6 +40,7 @@ namespace Game
 #include "model.h"
 #include "vector3d.h" // inclusions needed for __DIMENSION_H__
 #include "aibase.h"
+#include "luawrapper.h"
 
 #endif
 
@@ -50,6 +49,8 @@ namespace Game
 #ifdef __AIBASE_H_END__
 
 #ifdef __VECTOR3D_H_END__
+
+#ifdef __LUAWRAPPER_H_END__
 
 #ifndef __DIMENSION_H__
 #define __DIMENSION_H__
@@ -104,12 +105,19 @@ namespace Game
 			int y;
 		};
 
+		struct TempUnitTypeData
+		{
+			vector<const char*> canBuild;
+			vector<const char*> canResearch;
+		};
+
 		struct Player
 		{
 			std::string       name;
 			PlayerType        type;
 			vector<Unit*>     vUnits;
 			vector<Unit*>     vUnitsWithLuaAI;
+			vector<UnitType*> vUnitTypes;
 			vector<Projectile*> vProjectiles;
 			Uint16**          NumUnitsSeeingSquare;
 			PlayerState*      states;
@@ -120,6 +128,21 @@ namespace Game
 			AI::PlayerAIFuncs playerAIFuncs;
 			AI::UnitAIFuncs   unitAIFuncs;
 			int               aiFrame;
+			bool              isRemote;
+			std::map<std::string, UnitType*> unitTypeMap;
+			
+			std::string       raceScript;
+			std::string       aiScript;
+
+			Utilities::Scripting::LuaVMState raceState;
+			Utilities::Scripting::LuaVMState aiState;
+
+			vector<TempUnitTypeData*> tempUTDatas;
+
+			Player() : raceState(this), aiState(this)
+			{
+				
+			}
 		};
 		
 		struct World
@@ -130,7 +153,6 @@ namespace Game
 			Uint16**        NumLightsOnSquare;
 			vector<Unit*>   vUnits;
 			vector<Unit*>   vUnitsWithAI;
-			vector<UnitType*>   vUnitTypes;
 			vector<Player*> vPlayers;
 			int             width;
 			int             height;
@@ -154,7 +176,7 @@ namespace Game
 		
 		void GetApproximateMapPosOfClick(int clickx, int clicky, int &map_x, int &map_y);
 		bool GetTerrainPosClicked(int clickx, int clicky, int map_x, int map_y, int &ter_x, int &ter_y);
-		Player* AddPlayer(std::string name, PlayerType playertype, const char* playertexture);
+		Player* AddPlayer(std::string name, PlayerType playertype, std::string playertexture, std::string raceScript, std::string aiScript);
 
 		// Ladda modell ur textfil
 		Model*  LoadModel(const char* file);
@@ -170,6 +192,7 @@ namespace Game
 		
 		Player* GetCurrentPlayer();
 		void SetCurrentPlayer(Player*);
+		void SetCurrentPlayerView(Player*);
 		
 		void UnloadUnitType(UnitType* pUnitType);
 		bool IsValidPlayerPointer(Player* player);
@@ -182,6 +205,7 @@ namespace Game
 
 #define __DIMENSION_H_END__
 
+#endif
 #endif
 #endif
 #endif

@@ -11,12 +11,14 @@
 #include "camera.h"
 #include "gamegui.h"
 #include "aibase.h"
+#include "luawrapper.h"
 
 namespace UnitLuaInterface
 {
 	using namespace Game::Dimension;
 	using namespace Game::AI;
 	using namespace Utilities;
+	using namespace Utilities::Scripting;
 
 #define CHECK_UNIT_PTR(x) \
 	if ((x) == NULL) \
@@ -53,7 +55,7 @@ namespace UnitLuaInterface
 		return unit;
 	}
 
-	int LGetUnitHealth(LuaVM* pVM)
+	int LGetUnitHealth(lua_State* pVM)
 	{
 		float health = -1.0f;
 		Unit* pUnit = _GetUnit(lua_touserdata(pVM, 1));
@@ -67,7 +69,7 @@ namespace UnitLuaInterface
 		return 1;
 	}
 
-	int LGetUnitMaxHealth(LuaVM* pVM)
+	int LGetUnitMaxHealth(lua_State* pVM)
 	{
 		int health = -1;
 		Unit* pUnit = _GetUnit(lua_touserdata(pVM, 1));
@@ -79,7 +81,7 @@ namespace UnitLuaInterface
 		return 1;
 	}
 
-	int LGetUnitPower(LuaVM* pVM)
+	int LGetUnitPower(lua_State* pVM)
 	{
 		float power = -1.0f;
 		Unit* pUnit = _GetUnit(lua_touserdata(pVM, 1));
@@ -91,7 +93,7 @@ namespace UnitLuaInterface
 		return 1;
 	}
 
-	int LGetUnitMaxPower(LuaVM* pVM)
+	int LGetUnitMaxPower(lua_State* pVM)
 	{
 		int power = -1;
 		Unit* pUnit = _GetUnit(lua_touserdata(pVM, 1));
@@ -103,7 +105,7 @@ namespace UnitLuaInterface
 		return 1;
 	}
 
-	int LGetUnitAction(LuaVM* pVM)
+	int LGetUnitAction(lua_State* pVM)
 	{
 		UnitAction action = ACTION_NONE;
 		Unit* pUnit = _GetUnit(lua_touserdata(pVM, 1));
@@ -115,7 +117,7 @@ namespace UnitLuaInterface
 		return 1;
 	}
 
-	int LGetUnitActionArg(LuaVM* pVM)
+	int LGetUnitActionArg(lua_State* pVM)
 	{
 		void* arg = NULL;
 		Unit* pUnit = _GetUnit(lua_touserdata(pVM, 1));
@@ -127,7 +129,7 @@ namespace UnitLuaInterface
 		return 1;
 	}
 
-	int LGetUnitPosition(LuaVM* pVM)
+	int LGetUnitPosition(lua_State* pVM)
 	{
 		float position[2] = { 0, 0 };
 		Unit* pUnit = _GetUnit(lua_touserdata(pVM, 1));
@@ -143,7 +145,7 @@ namespace UnitLuaInterface
 		return 2;
 	}
 
-	int LGetUnitRotation(LuaVM* pVM)
+	int LGetUnitRotation(lua_State* pVM)
 	{
 		float rotation = 0;
 		Unit* pUnit = _GetUnit(lua_touserdata(pVM, 1));
@@ -155,7 +157,7 @@ namespace UnitLuaInterface
 		return 1;
 	}
 
-	int LGetUnitType(LuaVM* pVM)
+	int LGetUnitType(lua_State* pVM)
 	{
 		Unit* pUnit = _GetUnit(lua_touserdata(pVM, 1));
 		UnitType* pUType = NULL;
@@ -169,7 +171,7 @@ namespace UnitLuaInterface
 		return 1;
 	}
 
-	int LGetUnitOwner(LuaVM* pVM)
+	int LGetUnitOwner(lua_State* pVM)
 	{
 		Unit* pUnit = _GetUnit(lua_touserdata(pVM, 1));
 		Player* pPlayer = NULL;
@@ -186,7 +188,7 @@ namespace UnitLuaInterface
 		return 1;
 	}
 
-	int LGetUnitIsMobile(LuaVM* pVM)
+	int LGetUnitIsMobile(lua_State* pVM)
 	{
 		Unit* pUnit = _GetUnit(lua_touserdata(pVM, 1));
 		bool isMobile = false;
@@ -198,7 +200,7 @@ namespace UnitLuaInterface
 		return 1;
 	}
 
-	int LGetUnitTypeIsMobile(LuaVM* pVM)
+	int LGetUnitTypeIsMobile(lua_State* pVM)
 	{
 		UnitType* pUnitType = (UnitType*) lua_touserdata(pVM, 1);
 		bool isMobile = false;
@@ -210,7 +212,7 @@ namespace UnitLuaInterface
 		return 1;
 	}
 
-	int LGetUnitIsHurtByLight(LuaVM* pVM)
+	int LGetUnitIsHurtByLight(lua_State* pVM)
 	{
 		Unit* pUnit = _GetUnit(lua_touserdata(pVM, 1));
 		bool hurtByLight = false;
@@ -222,7 +224,7 @@ namespace UnitLuaInterface
 		return 1;
 	}
 
-	int LGetUnitLightAmount(LuaVM* pVM)
+	int LGetUnitLightAmount(lua_State* pVM)
 	{
 		Unit* pUnit = _GetUnit(lua_touserdata(pVM, 1));
 		float lightAmount = 0.0;
@@ -234,7 +236,7 @@ namespace UnitLuaInterface
 		return 1;
 	}
 
-	int LGetUnitCanAttack(LuaVM* pVM)
+	int LGetUnitCanAttack(lua_State* pVM)
 	{
 		Unit* pUnit = _GetUnit(lua_touserdata(pVM, 1));
 		bool canAttack = false;
@@ -246,7 +248,7 @@ namespace UnitLuaInterface
 		return 1;
 	}
 
-	int LGetUnitCanBuild(LuaVM* pVM)
+	int LGetUnitCanBuild(lua_State* pVM)
 	{
 		Unit* pUnit = _GetUnit(lua_touserdata(pVM, 1));
 		bool canBuild = false;
@@ -258,7 +260,7 @@ namespace UnitLuaInterface
 		return 1;
 	}
 
-	int LGetUnitLastAttack(LuaVM* pVM)
+	int LGetUnitLastAttack(lua_State* pVM)
 	{
 		Unit* pUnit = _GetUnit(lua_touserdata(pVM, 1));
 		Uint32 time = 0;
@@ -270,7 +272,7 @@ namespace UnitLuaInterface
 		return 1;
 	}
 
-	int LGetUnitLastAttacked(LuaVM* pVM)
+	int LGetUnitLastAttacked(lua_State* pVM)
 	{
 		Unit* pUnit = _GetUnit(lua_touserdata(pVM, 1));
 		Uint32 time = 0;
@@ -282,7 +284,7 @@ namespace UnitLuaInterface
 		return 1;
 	}
 
-	int LGetUnitTargetUnit(LuaVM* pVM)
+	int LGetUnitTargetUnit(lua_State* pVM)
 	{
 		Unit* pUnit = _GetUnit(lua_touserdata(pVM, 1));
 		Unit* target = NULL;
@@ -295,7 +297,7 @@ namespace UnitLuaInterface
 		return 1;
 	}
 
-	int LGetUnitTargetPos(LuaVM* pVM)
+	int LGetUnitTargetPos(lua_State* pVM)
 	{
 		Unit* pUnit = _GetUnit(lua_touserdata(pVM, 1));
 		IntPosition target;
@@ -312,7 +314,7 @@ namespace UnitLuaInterface
 		return 2;
 	}
 
-	int LGetNearestUnitInRange(LuaVM* pVM)
+	int LGetNearestUnitInRange(lua_State* pVM)
 	{
 		Unit* pUnit = _GetUnit(lua_touserdata(pVM, 1));
 		RangeType rangeType = (RangeType) lua_tointeger(pVM, 2);
@@ -336,7 +338,7 @@ namespace UnitLuaInterface
 		return 1;
 	}
 
-	int LGetNearestSuitableAndLightedPosition(LuaVM* pVM)
+	int LGetNearestSuitableAndLightedPosition(lua_State* pVM)
 	{
 		UnitType* pUnitType = (UnitType*) lua_touserdata(pVM, 1);
 		Player* player = (Player*) lua_touserdata(pVM, 2);
@@ -354,7 +356,7 @@ namespace UnitLuaInterface
 		return 3;
 	}
 
-	int LGetSuitablePositionForLightTower(LuaVM* pVM)
+	int LGetSuitablePositionForLightTower(lua_State* pVM)
 	{
 		UnitType* pUnitType = (UnitType*) lua_touserdata(pVM, 1);
 		Player* player = (Player*) lua_touserdata(pVM, 2);
@@ -372,26 +374,26 @@ namespace UnitLuaInterface
 		return 3;
 	}
 
-	int LGetCurrentFrame(LuaVM* pVM)
+	int LGetCurrentFrame(lua_State* pVM)
 	{
 		lua_pushinteger(pVM, Game::AI::currentFrame);
 		return 1;
 	}
 
-	int LGetAIFPS(LuaVM* pVM)
+	int LGetAIFPS(lua_State* pVM)
 	{
 		lua_pushinteger(pVM, Game::AI::aiFps);
 		return 1;
 	}
 
-	int LGetTime(LuaVM* pVM)
+	int LGetTime(lua_State* pVM)
 	{
 		Environment::FourthDimension* pDimension = Environment::FourthDimension::Instance();
 		lua_pushnumber(pVM, pDimension->GetCurrentHour());
 		return 1;
 	}
 
-	int LGetPower(LuaVM* pVM)
+	int LGetPower(lua_State* pVM)
 	{
 		Player* player = (Player*) lua_touserdata(pVM, 1);
 		float power = 0;
@@ -403,7 +405,7 @@ namespace UnitLuaInterface
 		return 1;
 	}
 
-	int LGetMoney(LuaVM* pVM)
+	int LGetMoney(lua_State* pVM)
 	{
 		Player* player = (Player*) lua_touserdata(pVM, 1);
 		float money = 0;
@@ -415,7 +417,7 @@ namespace UnitLuaInterface
 		return 1;
 	}
 
-	int LGetIncomeAtNoon(LuaVM* pVM)
+	int LGetIncomeAtNoon(lua_State* pVM)
 	{
 		Player* player = (Player*) lua_touserdata(pVM, 1);
 		float income = 0;
@@ -427,7 +429,7 @@ namespace UnitLuaInterface
 		return 1;
 	}
 	
-	int LGetIncomeAtNight(LuaVM* pVM)
+	int LGetIncomeAtNight(lua_State* pVM)
 	{
 		Player* player = (Player*) lua_touserdata(pVM, 1);
 		float income = 0;
@@ -439,7 +441,7 @@ namespace UnitLuaInterface
 		return 1;
 	}
 
-	int LGetUnitTypeIncomeAtNoon(LuaVM* pVM)
+	int LGetUnitTypeIncomeAtNoon(lua_State* pVM)
 	{
 		UnitType* pUnitType = (UnitType*) lua_touserdata(pVM, 1);
 		float income;
@@ -457,7 +459,7 @@ namespace UnitLuaInterface
 		return 1;
 	}
 
-	int LGetUnitTypeIncomeAtNight(LuaVM* pVM)
+	int LGetUnitTypeIncomeAtNight(lua_State* pVM)
 	{
 		UnitType* pUnitType = (UnitType*) lua_touserdata(pVM, 1);
 		float income;
@@ -478,7 +480,7 @@ namespace UnitLuaInterface
 		return 1;
 	}
 
-	int LGetPowerAtDawn(LuaVM* pVM)
+	int LGetPowerAtDawn(lua_State* pVM)
 	{
 		Player* player = (Player*) lua_touserdata(pVM, 1);
 		float power = 0;
@@ -490,7 +492,7 @@ namespace UnitLuaInterface
 		return 1;
 	}
 
-	int LGetPowerAtDusk(LuaVM* pVM)
+	int LGetPowerAtDusk(lua_State* pVM)
 	{
 		Player* player = (Player*) lua_touserdata(pVM, 1);
 		float power = 0;
@@ -502,7 +504,7 @@ namespace UnitLuaInterface
 		return 1;
 	}
 
-	int LSellPower(LuaVM* pVM)
+	int LSellPower(lua_State* pVM)
 	{
 		Player* player = (Player*) lua_touserdata(pVM, 1);
 		int power = lua_tointeger(pVM, 2);
@@ -522,19 +524,19 @@ namespace UnitLuaInterface
 		return 0;
 	}
 
-	int LGetDayLength(LuaVM* pVM)
+	int LGetDayLength(lua_State* pVM)
 	{
 		lua_pushnumber(pVM, GetDayLength());
 		return 1;
 	}
 
-	int LGetNightLength(LuaVM* pVM)
+	int LGetNightLength(lua_State* pVM)
 	{
 		lua_pushnumber(pVM, GetNightLength());
 		return 1;
 	}
 
-	int LGetMapDimensions(LuaVM* pVM)
+	int LGetMapDimensions(lua_State* pVM)
 	{
 		lua_pushinteger(pVM, pWorld->width);
 		lua_pushinteger(pVM, pWorld->height);
@@ -560,7 +562,7 @@ namespace UnitLuaInterface
 		return 1; \
 	}
 
-	int LSetUnitHealth(LuaVM* pVM)
+	int LSetUnitHealth(lua_State* pVM)
 	{
 		Unit* pUnit = _GetUnit(lua_touserdata(pVM, 1));
 
@@ -578,7 +580,7 @@ namespace UnitLuaInterface
 		LUA_SUCCESS
 	}
 
-	int LSetUnitPower(LuaVM* pVM)
+	int LSetUnitPower(lua_State* pVM)
 	{
 		Unit* pUnit = _GetUnit(lua_touserdata(pVM, 1));
 
@@ -596,7 +598,7 @@ namespace UnitLuaInterface
 		LUA_SUCCESS
 	}
 
-	int LSetUnitRotation(LuaVM* pVM)
+	int LSetUnitRotation(lua_State* pVM)
 	{
 		Unit* pUnit = _GetUnit(lua_touserdata(pVM, 1));
 
@@ -615,7 +617,7 @@ namespace UnitLuaInterface
 		LUA_SUCCESS
 	}
 
-	int LGetUnitTypeBuildCost(LuaVM* pVM)
+	int LGetUnitTypeBuildCost(lua_State* pVM)
 	{
 		UnitType* pUnitType = (UnitType*) lua_touserdata(pVM, 1);
 		int cost = 0;
@@ -627,7 +629,7 @@ namespace UnitLuaInterface
 		return 1;
 	}
 	
-	int LGetUnitTypeResearchCost(LuaVM* pVM)
+	int LGetUnitTypeResearchCost(lua_State* pVM)
 	{
 		UnitType* pUnitType = (UnitType*) lua_touserdata(pVM, 1);
 		int cost = 0;
@@ -639,7 +641,7 @@ namespace UnitLuaInterface
 		return 1;
 	}
 	
-	int LIsResearched(LuaVM* pVM)
+	int LIsResearched(lua_State* pVM)
 	{
 		Player* player = (Player*) lua_touserdata(pVM, 1);
 		UnitType* pUnitType = (UnitType*) lua_touserdata(pVM, 2);
@@ -652,10 +654,11 @@ namespace UnitLuaInterface
 		return 1;
 	}
 	
-	int LGetResearcher(LuaVM* pVM)
+	int LGetResearcher(lua_State* pVM)
 	{
 		UnitType* pUnitType = (UnitType*) lua_touserdata(pVM, 1);
-		for (vector<UnitType*>::iterator it = pWorld->vUnitTypes.begin(); it != pWorld->vUnitTypes.end(); it++)
+		Player *player = GetPlayerByVMstate(pVM);
+		for (vector<UnitType*>::iterator it = player->vUnitTypes.begin(); it != player->vUnitTypes.end(); it++)
 		{
 			for (vector<UnitType*>::iterator it2 = (*it)->canResearch.begin(); it2 != (*it)->canResearch.end(); it2++)
 			{
@@ -670,10 +673,11 @@ namespace UnitLuaInterface
 		return 1;
 	}
 	
-	int LGetBuilder(LuaVM* pVM)
+	int LGetBuilder(lua_State* pVM)
 	{
 		UnitType* pUnitType = (UnitType*) lua_touserdata(pVM, 1);
-		for (vector<UnitType*>::iterator it = pWorld->vUnitTypes.begin(); it != pWorld->vUnitTypes.end(); it++)
+		Player *player = GetPlayerByVMstate(pVM);
+		for (vector<UnitType*>::iterator it = player->vUnitTypes.begin(); it != player->vUnitTypes.end(); it++)
 		{
 			for (vector<UnitType*>::iterator it2 = (*it)->canBuild.begin(); it2 != (*it)->canBuild.end(); it2++)
 			{
@@ -688,7 +692,7 @@ namespace UnitLuaInterface
 		return 1;
 	}
 	
-	int LSquaresAreLightedAround(LuaVM* pVM)
+	int LSquaresAreLightedAround(lua_State* pVM)
 	{
 		UnitType* pUnitType = (UnitType*) lua_touserdata(pVM, 1);
 		Player* player = (Player*) lua_touserdata(pVM, 2);
@@ -701,7 +705,7 @@ namespace UnitLuaInterface
 		return 1;
 	}
 	
-	int LSquaresAreLighted(LuaVM* pVM)
+	int LSquaresAreLighted(lua_State* pVM)
 	{
 		UnitType* pUnitType = (UnitType*) lua_touserdata(pVM, 1);
 		Player* player = (Player*) lua_touserdata(pVM, 2);
@@ -714,7 +718,7 @@ namespace UnitLuaInterface
 		return 1;
 	}
 	
-	int LIsWithinRangeForBuilding(LuaVM* pVM)
+	int LIsWithinRangeForBuilding(lua_State* pVM)
 	{
 		Unit* pUnit = _GetUnit(lua_touserdata(pVM, 1));
 
@@ -747,7 +751,7 @@ namespace UnitLuaInterface
 		scheduledDamagings.clear();
 	}
 
-	int LAttack(LuaVM* pVM)
+	int LAttack(lua_State* pVM)
 	{
 		Unit* pUnit = _GetUnit(lua_touserdata(pVM, 1));
 
@@ -769,7 +773,7 @@ namespace UnitLuaInterface
 		return 0;
 	}
 
-	int LCanReach(LuaVM* pVM)
+	int LCanReach(lua_State* pVM)
 	{
 		Unit* pUnit01 = _GetUnit(lua_touserdata(pVM, 1));
 		Unit* pUnit02 = _GetUnit(lua_touserdata(pVM, 2));
@@ -870,7 +874,7 @@ namespace UnitLuaInterface
 		}
 	}
 
-	int LCommandUnit_TargetUnit(LuaVM* pVM)
+	int LCommandUnit_TargetUnit(lua_State* pVM)
 	{
 		Unit* pUnit01 = _GetUnit(lua_touserdata(pVM, 1));
 		Unit* pUnit02 = _GetUnit(lua_touserdata(pVM, 2));
@@ -883,7 +887,7 @@ namespace UnitLuaInterface
 		LUA_SUCCESS
 	}
 
-	int LCommandUnit_TargetPos(LuaVM* pVM)
+	int LCommandUnit_TargetPos(lua_State* pVM)
 	{
 		Unit* pUnit = _GetUnit(lua_touserdata(pVM, 1));
 
@@ -894,7 +898,7 @@ namespace UnitLuaInterface
 		LUA_SUCCESS
 	}
 
-	int LCommandGoto(LuaVM* pVM)
+	int LCommandGoto(lua_State* pVM)
 	{
 		Unit* pUnit = _GetUnit(lua_touserdata(pVM, 1));
 
@@ -907,7 +911,7 @@ namespace UnitLuaInterface
 		LUA_SUCCESS
 	}
 
-	int LCommandMoveAttack(LuaVM* pVM)
+	int LCommandMoveAttack(lua_State* pVM)
 	{
 		Unit* pUnit = _GetUnit(lua_touserdata(pVM, 1));
 
@@ -920,7 +924,7 @@ namespace UnitLuaInterface
 		LUA_SUCCESS
 	}
 
-	int LCommandBuild(LuaVM* pVM)
+	int LCommandBuild(lua_State* pVM)
 	{
 		Unit* pUnit = _GetUnit(lua_touserdata(pVM, 1));
 
@@ -935,7 +939,7 @@ namespace UnitLuaInterface
 		LUA_SUCCESS
 	}
 
-	int LCommandResearch(LuaVM* pVM)
+	int LCommandResearch(lua_State* pVM)
 	{
 		Unit* pUnit = _GetUnit(lua_touserdata(pVM, 1));
 
@@ -947,7 +951,7 @@ namespace UnitLuaInterface
 		LUA_SUCCESS
 	}
 
-	int LCommandFollow(LuaVM* pVM)
+	int LCommandFollow(lua_State* pVM)
 	{
 		Unit* pUnit01 = _GetUnit(lua_touserdata(pVM, 1));
 		Unit* pUnit02 = _GetUnit(lua_touserdata(pVM, 2));
@@ -959,7 +963,7 @@ namespace UnitLuaInterface
 		LUA_SUCCESS
 	}
 
-	int LCommandAttack(LuaVM* pVM)
+	int LCommandAttack(lua_State* pVM)
 	{
 		Unit* pUnit01 = _GetUnit(lua_touserdata(pVM, 1));
 		Unit* pUnit02 = _GetUnit(lua_touserdata(pVM, 2));
@@ -971,7 +975,7 @@ namespace UnitLuaInterface
 		LUA_SUCCESS
 	}
 
-	int LCommandCollect(LuaVM* pVM)
+	int LCommandCollect(lua_State* pVM)
 	{
 		Unit* pUnit01 = _GetUnit(lua_touserdata(pVM, 1));
 		Unit* pUnit02 = _GetUnit(lua_touserdata(pVM, 2));
@@ -983,7 +987,7 @@ namespace UnitLuaInterface
 		LUA_SUCCESS
 	}
 
-	int LCommandRepair(LuaVM* pVM)
+	int LCommandRepair(lua_State* pVM)
 	{
 		Unit* pUnit01 = _GetUnit(lua_touserdata(pVM, 1));
 		Unit* pUnit02 = _GetUnit(lua_touserdata(pVM, 2));
@@ -995,7 +999,7 @@ namespace UnitLuaInterface
 		LUA_SUCCESS
 	}
 
-	int LCommandMoveAttackUnit(LuaVM* pVM)
+	int LCommandMoveAttackUnit(lua_State* pVM)
 	{
 		Unit* pUnit01 = _GetUnit(lua_touserdata(pVM, 1));
 		Unit* pUnit02 = _GetUnit(lua_touserdata(pVM, 2));
@@ -1007,7 +1011,7 @@ namespace UnitLuaInterface
 		LUA_SUCCESS
 	}
 
-	int LMove(LuaVM* pVM)
+	int LMove(lua_State* pVM)
 	{
 		Unit* pUnit = _GetUnit(lua_touserdata(pVM, 1));
 
@@ -1017,7 +1021,7 @@ namespace UnitLuaInterface
 		LUA_SUCCESS
 	}
 
-	int LSetEventHandler(LuaVM* pVM)
+	int LSetEventHandler(lua_State* pVM)
 	{
 		void* context = lua_touserdata(pVM, 1);
 		EventType eventtype = (EventType) lua_tointeger(pVM, 2);
@@ -1150,7 +1154,7 @@ namespace UnitLuaInterface
 		LUA_SUCCESS
 	}
 
-	int LSetRegularAIDelay(LuaVM* pVM)
+	int LSetRegularAIDelay(lua_State* pVM)
 	{
 		void* context = lua_touserdata(pVM, 1);
 		EventType eventtype = (EventType) lua_tointeger(pVM, 2);
@@ -1217,7 +1221,7 @@ namespace UnitLuaInterface
 		LUA_SUCCESS
 	}
 
-	int LSetRegularAIEnabled(LuaVM* pVM)
+	int LSetRegularAIEnabled(lua_State* pVM)
 	{
 		void* context = lua_touserdata(pVM, 1);
 		EventType eventtype = (EventType) lua_tointeger(pVM, 2);
@@ -1284,12 +1288,12 @@ namespace UnitLuaInterface
 		LUA_SUCCESS
 	}
 
-	int LClearAllActions(LuaVM* pVM)
+	int LClearAllActions(lua_State* pVM)
 	{
 		LUA_FAILURE("Not yet implemented")
 	}
 
-	int LCreateUnit(LuaVM* pVM)
+	int LCreateUnit(lua_State* pVM)
 	{
 		UnitType* pUnitType = static_cast<UnitType*>(lua_touserdata(pVM, 1));
 		if (pUnitType == NULL)
@@ -1334,7 +1338,7 @@ namespace UnitLuaInterface
 		return 0;
 	}
 
-	int LCanCreateUnitAt(LuaVM* pVM)
+	int LCanCreateUnitAt(lua_State* pVM)
 	{
 		UnitType* pUnitType = static_cast<UnitType*>(lua_touserdata(pVM, 1));
 		if (pUnitType == NULL)
@@ -1354,27 +1358,31 @@ namespace UnitLuaInterface
 		LUA_SUCCESS
 	}
 
-	int LGetUnitTypeFromString(LuaVM* pVM)
+	int LGetUnitTypeFromString(lua_State* pVM)
 	{
+		Player *player = GetPlayerByVMstate(pVM);
 		const char *sz_name = lua_tostring(pVM, 1);
 		const string name = sz_name;
-		
-		lua_pushlightuserdata(pVM, unitTypeMap[name]);
+		if (!player)
+		{
+			player = (Player*) lua_touserdata(pVM, 2);
+		}
+		lua_pushlightuserdata(pVM, player->unitTypeMap[name]);
 		return 1;
 	}
 
-	int LGetPlayerByIndex(LuaVM* pVM)
+	int LGetPlayerByIndex(lua_State* pVM)
 	{
 		const Uint32 index = static_cast<const Uint32>(lua_tonumber(pVM, 1));
 
-		if (index > pWorld->vPlayers.size())
+		if (index >= pWorld->vPlayers.size())
 			LUA_FAILURE("Player index out of vector bounds")
 
 		lua_pushlightuserdata(pVM, static_cast<void*>(pWorld->vPlayers.at(index)));
 		return 1;
 	}
 
-	int LGetPlayerByName(LuaVM* pVM)
+	int LGetPlayerByName(lua_State* pVM)
 	{
 		const char* name = lua_tostring(pVM, 1);
 
@@ -1396,38 +1404,60 @@ namespace UnitLuaInterface
 		return 1;
 	}
 	
-	int LInitPlayers(LuaVM* pVM)
+	int LAddPlayer(lua_State* pVM)
 	{
-		if (lua_isnil(pVM, 1))
+		const char *sz_name = lua_tostring(pVM, 1);
+		PlayerType type = (PlayerType) lua_tointeger(pVM, 2);
+		const char *sz_texture = lua_tostring(pVM, 3);
+		const char *raceScript = lua_tostring(pVM, 4);
+		const char *aiScript = lua_tostring(pVM, 5);
+		std::string texture = sz_texture, name = sz_name;
+		if (name == "USER")
 		{
-			LUA_FAILURE("LInitPlayers: Invalid arguments")
+			std::stringstream ss("Player ");
+			ss << (pWorld->vPlayers.size() + 1);
+			name = ss.str();
 		}
-		
-		if (!lua_isnumber(pVM, 1))
+		if (texture == "USER")
 		{
-			LUA_FAILURE("LInitPlayers: First argument no number")
+			std::stringstream ss;
+			ss << "textures/player_" << pWorld->vPlayers.size() << ".png";
+			texture = ss.str();
 		}
-		
-		int value = (int)lua_tonumber(pVM, 1);
-		
-		Game::Dimension::InitPlayers(value);
+		if (!strcmp(raceScript, "USER"))
+		{
+			raceScript = "robots";
+		}
+		AddPlayer(name, type, texture, std::string(raceScript), std::string(aiScript));
 		LUA_SUCCESS
 	}
 
-	int LIsNonNull(LuaVM* pVM)
+	int LSetCurrentPlayer(lua_State* pVM)
+	{
+		currentPlayer = pWorld->vPlayers[lua_tointeger(pVM, 1)];
+		LUA_SUCCESS
+	}
+
+	int LSetCurrentPlayerView(lua_State* pVM)
+	{
+		currentPlayerView = pWorld->vPlayers[lua_tointeger(pVM, 1)];
+		LUA_SUCCESS
+	}
+
+	int LIsNonNull(lua_State* pVM)
 	{
 		void* val = lua_touserdata(pVM, 1);
 		lua_pushboolean(pVM, val != NULL);
 		return 1;
 	}
 
-	int LNull(LuaVM* pVM)
+	int LNull(lua_State* pVM)
 	{
 		lua_pushlightuserdata(pVM, NULL);
 		return 1;
 	}
 
-	int LIsValidUnit(LuaVM* pVM)
+	int LIsValidUnit(lua_State* pVM)
 	{
 		Unit* pUnit = _GetUnit(lua_touserdata(pVM, 1));
 		if (pUnit != NULL && IsDisplayedUnitPointer(pUnit) && pUnit->isDisplayed)
@@ -1440,7 +1470,7 @@ namespace UnitLuaInterface
 		}
 	}
 
-	int LGetUnitTypeName(LuaVM* pVM)
+	int LGetUnitTypeName(lua_State* pVM)
 	{
 		UnitType* pUnitType = (UnitType*) lua_touserdata(pVM, 1);
 		const char* name = "";
@@ -1451,14 +1481,14 @@ namespace UnitLuaInterface
 		return 1;
 	}
 
-	int LOutput(LuaVM* pVM)
+	int LOutput(lua_State* pVM)
 	{
 		const char *str = lua_tostring(pVM, 1);
 		cout << str;
 		return 0;
 	}
 	
-	int LLoadHeightmap(LuaVM* pVM)
+	int LLoadHeightmap(lua_State* pVM)
 	{
 		if (lua_isnil(pVM, 1))
 		{
@@ -1486,7 +1516,7 @@ namespace UnitLuaInterface
 		LUA_FAILURE("LLoadHeightmap: Should never happen!") // << huh, should never happen
 	}
 	
-	int LSetHeightmapModifier(LuaVM* pVM)
+	int LSetHeightmapModifier(lua_State* pVM)
 	{
 		if (lua_isnil(pVM, 1))
 		{
@@ -1509,7 +1539,7 @@ namespace UnitLuaInterface
 		LUA_SUCCESS
 	}
 	
-	int LSetMaximumBuildingAltitude(LuaVM* pVM)
+	int LSetMaximumBuildingAltitude(lua_State* pVM)
 	{
 		if (lua_isnil(pVM, 1))
 		{
@@ -1533,7 +1563,7 @@ namespace UnitLuaInterface
 		LUA_SUCCESS
 	}
 	
-	int LLoadTerrainTexture(LuaVM* pVM)
+	int LLoadTerrainTexture(lua_State* pVM)
 	{
 		if (lua_isnil(pVM, 1))
 		{
@@ -1569,7 +1599,7 @@ namespace UnitLuaInterface
 			LUA_FAILURE("Incorrect argument count") \
 	}
 
-	int LSetTerrainAmbientDiffuse(LuaVM* pVM)
+	int LSetTerrainAmbientDiffuse(lua_State* pVM)
 	{
 		ASSERT_PARAM_COUNT(6)
 
@@ -1627,7 +1657,7 @@ namespace UnitLuaInterface
 		LUA_SUCCESS
 	}
 
-	int LSetTerrainSpecular(LuaVM* pVM)
+	int LSetTerrainSpecular(lua_State* pVM)
 	{
 		ASSERT_PARAM_COUNT(4)
 
@@ -1654,7 +1684,7 @@ namespace UnitLuaInterface
 		LUA_SUCCESS
 	}
 
-	int LSetTerrainEmission(LuaVM* pVM)
+	int LSetTerrainEmission(lua_State* pVM)
 	{
 		ASSERT_PARAM_COUNT(4)
 
@@ -1681,7 +1711,7 @@ namespace UnitLuaInterface
 		LUA_SUCCESS
 	}
 
-	int LSetTerrainShininess(LuaVM* pVM)
+	int LSetTerrainShininess(lua_State* pVM)
 	{
 		if (lua_isnil(pVM, 1))
 		{
@@ -1698,7 +1728,7 @@ namespace UnitLuaInterface
 		LUA_SUCCESS
 	}
 	
-	int LSetWaterLevel(LuaVM* pVM)
+	int LSetWaterLevel(lua_State* pVM)
 	{
 		if (lua_isnil(pVM, 1))
 		{
@@ -1716,7 +1746,7 @@ namespace UnitLuaInterface
 		LUA_SUCCESS
 	}
 	
-	int LSetWaterHeight(LuaVM* pVM)
+	int LSetWaterHeight(lua_State* pVM)
 	{
 		if (lua_isnil(pVM, 1))
 		{
@@ -1734,7 +1764,7 @@ namespace UnitLuaInterface
 		LUA_SUCCESS
 	}
 
-	int LSetWaterAmbientDiffuse(LuaVM* pVM)
+	int LSetWaterAmbientDiffuse(lua_State* pVM)
 	{
 		ASSERT_PARAM_COUNT(6)
 
@@ -1792,7 +1822,7 @@ namespace UnitLuaInterface
 		LUA_SUCCESS
 	}
 
-	int LSetWaterSpecular(LuaVM* pVM)
+	int LSetWaterSpecular(lua_State* pVM)
 	{
 		ASSERT_PARAM_COUNT(4)
 
@@ -1819,7 +1849,7 @@ namespace UnitLuaInterface
 		LUA_SUCCESS
 	}
 
-	int LSetWaterEmission(LuaVM* pVM)
+	int LSetWaterEmission(lua_State* pVM)
 	{
 		ASSERT_PARAM_COUNT(4)
 
@@ -1846,7 +1876,7 @@ namespace UnitLuaInterface
 		LUA_SUCCESS
 	}
 
-	int LSetWaterShininess(LuaVM* pVM)
+	int LSetWaterShininess(lua_State* pVM)
 	{
 		if (lua_isnil(pVM, 1))
 		{
@@ -1863,7 +1893,7 @@ namespace UnitLuaInterface
 		LUA_SUCCESS
 	}
 	
-	int LSetWaterColor(LuaVM* pVM)
+	int LSetWaterColor(lua_State* pVM)
 	{
 		ASSERT_PARAM_COUNT(3)
 		
@@ -1890,7 +1920,7 @@ namespace UnitLuaInterface
 		LUA_SUCCESS
 	}
 	
-	int LPrepareGUI(LuaVM* pVM)
+	int LPrepareGUI(lua_State* pVM)
 	{
 		if (lua_isnil(pVM, 1))
 		{
@@ -1916,7 +1946,7 @@ namespace UnitLuaInterface
 		LUA_SUCCESS
 	}
 	
-	int LFreeSurface(LuaVM* pVM)
+	int LFreeSurface(lua_State* pVM)
 	{
 		if (lua_isnil(pVM, 1))
 		{
@@ -1940,7 +1970,7 @@ namespace UnitLuaInterface
 		LUA_SUCCESS
 	}
 	
-	int LAllocEnvironmentalCondition(LuaVM* pVM)
+	int LAllocEnvironmentalCondition(lua_State* pVM)
 	{
 		Game::Dimension::Environment::EnvironmentalCondition* env = new
 			Game::Dimension::Environment::EnvironmentalCondition;
@@ -1954,7 +1984,7 @@ namespace UnitLuaInterface
 		Game::Dimension::Environment::EnvironmentalCondition* (p) = \
 		(Game::Dimension::Environment::EnvironmentalCondition*) lua_touserdata(pVM, (index) );
 	
-	int LSetHours(LuaVM* pVM)
+	int LSetHours(lua_State* pVM)
 	{
 		ASSERT_PARAM_COUNT(3)
 		
@@ -1982,7 +2012,7 @@ namespace UnitLuaInterface
 		LUA_SUCCESS
 	}
 	
-	int LSetType(LuaVM* pVM)
+	int LSetType(lua_State* pVM)
 	{
 		ASSERT_PARAM_COUNT(2)
 		
@@ -2021,7 +2051,7 @@ namespace UnitLuaInterface
 		LUA_SUCCESS
 	}
 	
-	int LSetMusicList(LuaVM* pVM)
+	int LSetMusicList(lua_State* pVM)
 	{
 		ASSERT_PARAM_COUNT(2)
 		
@@ -2047,7 +2077,7 @@ namespace UnitLuaInterface
 		LUA_SUCCESS
 	}
 	
-	int LSetSkybox(LuaVM* pVM)
+	int LSetSkybox(lua_State* pVM)
 	{
 		ASSERT_PARAM_COUNT(2)
 		
@@ -2080,7 +2110,7 @@ namespace UnitLuaInterface
 		LUA_SUCCESS
 	}
 	
-	int LSetSunPos(LuaVM* pVM)
+	int LSetSunPos(lua_State* pVM)
 	{
 		ASSERT_PARAM_COUNT(5)
 		
@@ -2112,7 +2142,7 @@ namespace UnitLuaInterface
 		LUA_SUCCESS
 	}
 	
-	int LSetDiffuse(LuaVM* pVM)
+	int LSetDiffuse(lua_State* pVM)
 	{
 		ASSERT_PARAM_COUNT(5)
 		
@@ -2144,7 +2174,7 @@ namespace UnitLuaInterface
 		LUA_SUCCESS	
 	}
 	
-	int LSetAmbient(LuaVM* pVM)
+	int LSetAmbient(lua_State* pVM)
 	{
 		ASSERT_PARAM_COUNT(5)
 		
@@ -2176,7 +2206,7 @@ namespace UnitLuaInterface
 		LUA_SUCCESS
 	}
 	
-	int LSetFogParams(LuaVM* pVM)
+	int LSetFogParams(lua_State* pVM)
 	{
 		ASSERT_PARAM_COUNT(4)
 		
@@ -2207,7 +2237,7 @@ namespace UnitLuaInterface
 		LUA_SUCCESS
 	}
 	
-	int LSetFogColor(LuaVM* pVM)
+	int LSetFogColor(lua_State* pVM)
 	{
 		ASSERT_PARAM_COUNT(5)
 		
@@ -2239,7 +2269,7 @@ namespace UnitLuaInterface
 		LUA_SUCCESS
 	}
 	
-	int LAddEnvironmentalCondition(LuaVM* pVM)
+	int LAddEnvironmentalCondition(lua_State* pVM)
 	{
 		if (lua_isnil(pVM, 1))
 		{
@@ -2258,7 +2288,7 @@ namespace UnitLuaInterface
 		LUA_SUCCESS
 	}
 	
-	int LValidateEnvironmentalConditions(LuaVM* pVM)
+	int LValidateEnvironmentalConditions(lua_State* pVM)
 	{
 		if (!Game::Dimension::Environment::FourthDimension::Instance()->ValidateConditions())
 			LUA_FAIL
@@ -2266,7 +2296,7 @@ namespace UnitLuaInterface
 		LUA_SUCCESS
 	}
 	
-	int LInitSkybox(LuaVM* pVM)
+	int LInitSkybox(lua_State* pVM)
 	{
 		ASSERT_PARAM_COUNT(2)
 		
@@ -2289,7 +2319,7 @@ namespace UnitLuaInterface
 		LUA_SUCCESS
 	}
 	
-	int LSetDayLength(LuaVM* pVM)
+	int LSetDayLength(lua_State* pVM)
 	{
 		if (lua_isnil(pVM, 1))
 		{
@@ -2313,7 +2343,7 @@ namespace UnitLuaInterface
 		LUA_SUCCESS
 	}
 	
-	int LSetHourLength(LuaVM* pVM)
+	int LSetHourLength(lua_State* pVM)
 	{
 		if (lua_isnil(pVM, 1))
 		{
@@ -2337,7 +2367,7 @@ namespace UnitLuaInterface
 		LUA_SUCCESS
 	}
 	
-	int LSetCurrentHour(LuaVM* pVM)
+	int LSetCurrentHour(lua_State* pVM)
 	{
 		if (lua_isnil(pVM, 1))
 		{
@@ -2363,7 +2393,7 @@ namespace UnitLuaInterface
 		LUA_SUCCESS
 	}
 
-	int LFocusCameraOnUnit(LuaVM* pVM)
+	int LFocusCameraOnUnit(lua_State* pVM)
 	{
 		if (lua_isnil(pVM, 1))
 		{
@@ -2409,7 +2439,7 @@ namespace UnitLuaInterface
 		LUA_SUCCESS
 	}
 
-	int LFocusCameraOnCoord(LuaVM* pVM)
+	int LFocusCameraOnCoord(lua_State* pVM)
 	{
 		ASSERT_PARAM_COUNT(2)
 		
@@ -2465,7 +2495,7 @@ namespace UnitLuaInterface
 		LUA_SUCCESS
 	}
 
-	int LRotateCamera(LuaVM* pVM)
+	int LRotateCamera(lua_State* pVM)
 	{
 		if (lua_isnil(pVM, 1))
 		{
@@ -2489,7 +2519,7 @@ namespace UnitLuaInterface
 		LUA_SUCCESS
 	}
 
-	int LZoomCamera(LuaVM* pVM)
+	int LZoomCamera(lua_State* pVM)
 	{
 		if (lua_isnil(pVM, 1))
 		{
@@ -2508,7 +2538,7 @@ namespace UnitLuaInterface
 		LUA_SUCCESS
 	}
 
-	int LGetLUAScript(LuaVM* pVM)
+	int LGetLUAScript(lua_State* pVM)
 	{
 		const char* filename = lua_tostring(pVM, 1);
 		if (!filename)
@@ -2526,7 +2556,7 @@ namespace UnitLuaInterface
 		return 1;
 	}
 
-	int LGetDataFile(LuaVM* pVM)
+	int LGetDataFile(lua_State* pVM)
 	{
 		const char* filename = lua_tostring(pVM, 1);
 		std::string filepath = Utilities::GetDataFile(filename);
@@ -2540,7 +2570,7 @@ namespace UnitLuaInterface
 		return 1;
 	}
 
-	int LGetConfigFile(LuaVM* pVM)
+	int LGetConfigFile(lua_State* pVM)
 	{
 		const char* filename = lua_tostring(pVM, 1);
 		std::string filepath = Utilities::GetConfigFile(filename);
@@ -2554,7 +2584,7 @@ namespace UnitLuaInterface
 		return 1;
 	}
 
-	int LGetWritableConfigFile(LuaVM* pVM)
+	int LGetWritableConfigFile(lua_State* pVM)
 	{
 		const char* filename = lua_tostring(pVM, 1);
 		bool exists;
@@ -2570,14 +2600,14 @@ namespace UnitLuaInterface
 		return 2;
 	}
 
-	int LLoadLuaScript(LuaVM* pVM)
+	int LLoadLuaScript(lua_State* pVM)
 	{
 		const char* filename = lua_tostring(pVM, 1);
 	
 		if (!filename)
 			LUA_FAILURE("LLoadLuaScript: Invalid filename - null pointer")
 
-		Utilities::Scripting::LuaVirtualMachine* const pVM_object = Utilities::Scripting::LuaVirtualMachine::Instance();
+		Utilities::Scripting::LuaVMState* pVM_object = GetObjectByVMstate(pVM);
 
 		if (pVM_object->DoFile(filename))
 		{
@@ -2587,15 +2617,16 @@ namespace UnitLuaInterface
 		LUA_SUCCESS
 	}
 
-	int LUnloadAllUnitTypes(LuaVM* pVM)
+	int LUnloadAllUnitTypes(lua_State* pVM)
 	{
 		UnloadAllUnitTypes();
 		LUA_SUCCESS
 	}
 
-	int LUnloadUnitType(LuaVM* pVM)
+	int LUnloadUnitType(lua_State* pVM)
 	{
-		const char *sz_name = lua_tostring(pVM, 1);
+		// TODO
+/*		const char *sz_name = lua_tostring(pVM, 1);
 
 		if (!sz_name)
 			LUA_FAILURE("LUnloadUnitType: Invalid unittype string - null pointer")
@@ -2607,7 +2638,7 @@ namespace UnitLuaInterface
 		if (!pUnitType)
 			LUA_FAILURE("LUnloadUnitType: No such unittype found: " << name)
 		
-		UnloadUnitType(pUnitType);
+		UnloadUnitType(pUnitType);*/
 		LUA_SUCCESS
 	}
 
@@ -2716,15 +2747,7 @@ else \
 	lua_pop(pVM, 1); \
 }
 
-	struct TempUnitTypeData
-	{
-		vector<const char*> canBuild;
-		vector<const char*> canResearch;
-	};
-
-	vector<TempUnitTypeData*> temputdatas;
-
-	void InterpretStringTableField(LuaVM* pVM, const char *field, vector<const char*>& datadump)
+	void InterpretStringTableField(lua_State* pVM, const char *field, vector<const char*>& datadump)
 	{
 		lua_getfield(pVM, 1, field);
 		if (lua_istable(pVM, 2))
@@ -2761,16 +2784,18 @@ else \
 		return validUnitTypePointers[unittype];
 	}
 
-	UnitType *GetUnitTypeByID(std::string str)
+	UnitType *GetUnitTypeByID(Player* owner, std::string str)
 	{
-		return unitTypeMap[str];
+		return owner->unitTypeMap[str];
 	}
 
-	int LCreateUnitType(LuaVM* pVM)
+	int LCreateUnitType(lua_State* pVM)
 	{
 		UnitType *pUnitType;
 		TempUnitTypeData *temputdata;
 		const char* model;
+		Player *player = GetPlayerByVMstate(pVM);
+
 		if (!lua_istable(pVM, 1))
 			LUA_FAILURE("LCreateUnitType: Invalid argument, must be a table")
 
@@ -2876,43 +2901,44 @@ else \
 		InterpretStringTableField(pVM, "canBuild", temputdata->canBuild);
 		InterpretStringTableField(pVM, "canResearch", temputdata->canResearch);
 
-		for (unsigned i = 0; i < temputdatas.size(); i++)
+		
+		for (unsigned i = 0; i < player->tempUTDatas.size(); i++)
 		{
-			for (unsigned j = 0; j < temputdatas[i]->canBuild.size(); j++)
+			for (unsigned j = 0; j < player->tempUTDatas[i]->canBuild.size(); j++)
 			{
-				if (strcmp(pUnitType->id, temputdatas[i]->canBuild[j]) == 0)
+				if (strcmp(pUnitType->id, player->tempUTDatas[i]->canBuild[j]) == 0)
 				{
-					pWorld->vUnitTypes[i]->canBuild.push_back(pUnitType);
+					player->vUnitTypes[i]->canBuild.push_back(pUnitType);
 				}
 			}
-			for (unsigned j = 0; j < temputdatas[i]->canResearch.size(); j++)
+			for (unsigned j = 0; j < player->tempUTDatas[i]->canResearch.size(); j++)
 			{
-				if (strcmp(pUnitType->id, temputdatas[i]->canResearch[j]) == 0)
+				if (strcmp(pUnitType->id, player->tempUTDatas[i]->canResearch[j]) == 0)
 				{
-					pWorld->vUnitTypes[i]->canResearch.push_back(pUnitType);
+					player->vUnitTypes[i]->canResearch.push_back(pUnitType);
 				}
 			}
 		}
 
-		pUnitType->index = pWorld->vUnitTypes.size();
-		pWorld->vUnitTypes.push_back(pUnitType);
-		temputdatas.push_back(temputdata);
+		pUnitType->index = player->vUnitTypes.size();
+		player->vUnitTypes.push_back(pUnitType);
+		player->tempUTDatas.push_back(temputdata);
 
-		unitTypeMap[pUnitType->id] = pUnitType;
+		player->unitTypeMap[pUnitType->id] = pUnitType;
 
 		for (unsigned j = 0; j < temputdata->canBuild.size(); j++)
 		{
-			if (unitTypeMap[temputdata->canBuild[j]])
+			if (player->unitTypeMap[temputdata->canBuild[j]])
 			{
-				pUnitType->canBuild.push_back(unitTypeMap[temputdata->canBuild[j]]);
+				pUnitType->canBuild.push_back(player->unitTypeMap[temputdata->canBuild[j]]);
 			}
 		}
 			
 		for (unsigned j = 0; j < temputdata->canResearch.size(); j++)
 		{
-			if (unitTypeMap[temputdata->canResearch[j]])
+			if (player->unitTypeMap[temputdata->canResearch[j]])
 			{
-				pUnitType->canResearch.push_back(unitTypeMap[temputdata->canResearch[j]]);
+				pUnitType->canResearch.push_back(player->unitTypeMap[temputdata->canResearch[j]]);
 			}
 		}
 
@@ -3010,7 +3036,7 @@ else \
 		LUA_SUCCESS
 	}
 
-	void Init(Scripting::LuaVirtualMachine* pVM)
+	void Init(Scripting::LuaVMState* pVM)
 	{
 		pVM->RegisterFunction("GetUnitHealth", LGetUnitHealth);
 		pVM->RegisterFunction("GetUnitPower", LGetUnitPower);
@@ -3078,7 +3104,9 @@ else \
 
 		pVM->RegisterFunction("GetPlayerByIndex", LGetPlayerByIndex);
 		pVM->RegisterFunction("GetPlayerByName", LGetPlayerByName);
-		pVM->RegisterFunction("InitPlayers", LInitPlayers);
+		pVM->RegisterFunction("AddPlayer", LAddPlayer);
+		pVM->RegisterFunction("SetCurrentPlayer", LSetCurrentPlayer);
+		pVM->RegisterFunction("SetCurrentPlayerView", LSetCurrentPlayerView);
 		
 		pVM->RegisterFunction("GetCurrentFrame", LGetCurrentFrame);
 		pVM->RegisterFunction("GetAIFPS", LGetAIFPS);

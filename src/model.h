@@ -444,7 +444,6 @@ namespace Utilities
 			Game::Dimension::Model* GetModel(int);
 			Game::Dimension::UnitType* GetUnit(std::string);
 			Game::Dimension::UnitType* GetUnit(int);
-			vector<Game::Dimension::UnitType*> GetBuildUnits(void);
 			int GetModelCount();
 			int GetUnitCount();
 	};

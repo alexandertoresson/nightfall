@@ -542,7 +542,7 @@ namespace Game
 
 			xmlfile.Iterate(data, "type", ParseStringBlock);
 
-			type = UnitLuaInterface::GetUnitTypeByID(str);
+			type = UnitLuaInterface::GetUnitTypeByID(owner, str);
 
 			if (!type)
 			{
@@ -559,7 +559,7 @@ namespace Game
 			if (isDisplayed)
 			{
 				xmlfile.Iterate(data, "curAssociatedSquare", ParseIntPosition);
-				unit = CreateUnit(type, owner, pos_int.x, pos_int.y, id, isCompleted);
+				unit = CreateUnit(type->index, owner, pos_int.x, pos_int.y, id, isCompleted);
 
 				if (!unit)
 				{
@@ -586,7 +586,7 @@ namespace Game
 			}
 			else
 			{
-				unit = CreateUnitNoDisplay(type, owner, id, isCompleted);
+				unit = CreateUnitNoDisplay(type->index, owner, id, isCompleted);
 			}
 			
 			xmlfile.Iterate(data, "health", ParseDoubleBlock);
@@ -616,7 +616,7 @@ namespace Game
 		void ParseUnitArg(Utilities::XMLData *data)
 		{
 			xmlfile.Iterate(data, "unittype", ParseStringBlock);
-			arg = UnitLuaInterface::GetUnitTypeByID(str);
+			arg = UnitLuaInterface::GetUnitTypeByID(unit->owner, str);
 		}
 
 		std::vector<IntPosition> nodes;
@@ -738,7 +738,7 @@ namespace Game
 				{
 					if (is_back)
 					{
-						if (unit->owner->type != PLAYER_TYPE_REMOTE)
+						if (!unit->owner->isRemote)
 						{
 							AI::CommandPathfinding(unit, startPos.x, startPos.y, goal.pos.x, goal.pos.y, action, goal.unit, arg);
 						}

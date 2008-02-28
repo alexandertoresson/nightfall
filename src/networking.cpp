@@ -1165,11 +1165,10 @@ namespace Game
 					{
 						waitingCreations.erase(waitingCreations.begin() + i--);
 						
-						if (create->unittype_id < Dimension::pWorld->vUnitTypes.size() && create->owner_id < Dimension::pWorld->vPlayers.size())
+						if (create->owner_id < Dimension::pWorld->vPlayers.size())
 						{
-							Dimension::UnitType* unittype = Dimension::pWorld->vUnitTypes.at(create->unittype_id);
 							Dimension::Player* owner = Dimension::pWorld->vPlayers.at(create->owner_id);
-							Dimension::Unit* unit = Dimension::CreateUnit(unittype, owner, create->x, create->y);
+							Dimension::Unit* unit = Dimension::CreateUnit(create->unittype_id, owner, create->x, create->y);
 							if (unit)
 							{
 								unit->rotation = create->rot;
@@ -1769,7 +1768,7 @@ namespace Game
 			{
 				for (unsigned i = 2; i < numClients+1; i++)
 				{
-					Dimension::pWorld->vPlayers.at(i)->type = Dimension::PLAYER_TYPE_REMOTE;
+					Dimension::pWorld->vPlayers.at(i)->isRemote = true;
 				}
 				Dimension::currentPlayer = Dimension::pWorld->vPlayers.at(1);
 				Dimension::currentPlayerView = Dimension::pWorld->vPlayers.at(1);
@@ -1779,7 +1778,7 @@ namespace Game
 				for (unsigned i = 0; i < Dimension::pWorld->vPlayers.size(); i++)
 				{
 					if (i != clientID)
-						Dimension::pWorld->vPlayers.at(i)->type = Dimension::PLAYER_TYPE_REMOTE;
+						Dimension::pWorld->vPlayers.at(i)->isRemote = true;
 				}
 				Dimension::currentPlayer = Dimension::pWorld->vPlayers.at(clientID);
 				Dimension::currentPlayerView = Dimension::pWorld->vPlayers.at(clientID);
@@ -2597,14 +2596,22 @@ namespace Game
 			arg_id = READ16BIT(data);
 			actiondata->action = (AI::UnitAction) READ8BIT(data);
 
-			if (arg_id != 0xFFFF && arg_id >= Dimension::pWorld->vUnitTypes.size())
+			Dimension::Unit* unit = Dimension::GetUnitByID(actiondata->unit_id);
+
+			if (!unit)
+			{
+				delete actiondata;
+				return ERROR_GENERAL;
+			}
+
+			if (arg_id != 0xFFFF && arg_id >= unit->owner->vUnitTypes.size())
 			{
 				delete actiondata;
 				return ERROR_GENERAL;
 			}
 			
 			if (arg_id != 0xFFFF)
-				actiondata->arg = Dimension::pWorld->vUnitTypes.at(arg_id);
+				actiondata->arg = unit->owner->vUnitTypes.at(arg_id);
 			else
 				actiondata->arg = NULL;
 

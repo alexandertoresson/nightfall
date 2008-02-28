@@ -13,14 +13,19 @@ namespace Utilities
 {
 	namespace Scripting
 	{
-		void SetEnum(LuaVM *L, const char* field, int value)
+		map<lua_State*, Game::Dimension::Player*> luaStateToPlayer;
+		map<lua_State*, LuaVMState*> luaStateToObject;
+		
+		LuaVMState globalVMState(NULL);
+
+		void SetEnum(lua_State *L, const char* field, int value)
 		{
 			lua_pushstring(L, field);
 			lua_pushinteger(L, value);
 			lua_settable(L, -3);
 		}
 
-		void InitializeEnums(LuaVM *L)
+		void InitializeEnums(lua_State *L)
 		{
 			lua_newtable(L);
 			SetEnum(L, "None", Game::AI::ACTION_NONE);
@@ -49,8 +54,6 @@ namespace Utilities
 			lua_newtable(L);
 			SetEnum(L, "Human", Game::Dimension::PLAYER_TYPE_HUMAN);
 			SetEnum(L, "AI", Game::Dimension::PLAYER_TYPE_AI);
-			SetEnum(L, "Gaia", Game::Dimension::PLAYER_TYPE_GAIA);
-			SetEnum(L, "Remote", Game::Dimension::PLAYER_TYPE_REMOTE);
 			lua_setglobal(L, "PlayerType");
 			
 			lua_newtable(L);
@@ -88,62 +91,54 @@ namespace Utilities
 			lua_setglobal(L, "Console");
 		}
 
-		LuaVirtualMachine* LuaVirtualMachine::m_pInstance = NULL;
-
-		LuaVirtualMachine* LuaVirtualMachine::Instance(void)
-		{
-			if (m_pInstance == NULL)
-				m_pInstance = new LuaVirtualMachine;
-
-			return LuaVirtualMachine::m_pInstance;
-		}
-
-		void LuaVirtualMachine::Destroy(void)
-		{
-			if (m_pInstance == NULL)
-				return;
-
-			delete m_pInstance;
-			m_pInstance = NULL;
-		}
-
-		LuaVirtualMachine::LuaVirtualMachine(void)
+		LuaVMState::LuaVMState(Game::Dimension::Player* player)
 		{
 #ifdef LUA_DEBUG
 			std::cout << "[Lua VM] Constructing" << std::endl;
 #endif
-			m_pVM = lua_open();
+			m_pState = lua_open();
+
+			if (player)
+				luaStateToPlayer[m_pState] = player;
+
+			luaStateToObject[m_pState] = this;
 			
-			if (m_pVM == NULL)
+			if (m_pState == NULL)
 			{
-				std::cerr << "[Lua VM] Failed to initialize Lua." << std::endl;
+				std::cerr << "[Lua VM] Failed to initialize Lua State." << std::endl;
 				return;
 			}
 
-			luaL_openlibs(m_pVM);
-			InitializeEnums(m_pVM);
+			luaL_openlibs(m_pState);
+			InitializeEnums(m_pState);
 			UnitLuaInterface::Init(this);
+
+			CallErrMutex = SDL_CreateMutex();
 		}
 
-		LuaVirtualMachine::~LuaVirtualMachine(void)
+		LuaVMState::~LuaVMState(void)
 		{
-			if (m_pVM == NULL)
-				lua_close(m_pVM);
+			if (m_pState == NULL)
+			{
+				luaStateToPlayer.erase(m_pState);
+				luaStateToObject.erase(m_pState);
+				lua_close(m_pState);
+			}
 		}
 
-		void LuaVirtualMachine::RegisterFunction(std::string alias, int (*fptr)(LuaVM*))
+		void LuaVMState::RegisterFunction(std::string alias, int (*fptr)(lua_State*))
 		{
-			if (m_pVM == NULL)
+			if (m_pState == NULL)
 				return;
 #ifdef LUA_DEBUG
 			std::cout << "[Lua VM] Registering function " << alias << std::endl;
 #endif
-			lua_register(m_pVM, alias.c_str(), fptr);
+			lua_register(m_pState, alias.c_str(), fptr);
 		}
 
-		int LuaVirtualMachine::DoFile(std::string file) const
+		int LuaVMState::DoFile(std::string file) const
 		{
-			if (m_pVM == NULL)
+			if (m_pState == NULL)
 				return 1;
 			std::string filepath = Utilities::GetDataFile(file);
 
@@ -152,39 +147,36 @@ namespace Utilities
 				std::cout << "Could not locate LUA script " << file << "!" << endl;
 			}
 		
-			int result = luaL_dofile(m_pVM, filepath.c_str());
+			int result = luaL_dofile(m_pState, filepath.c_str());
 #ifdef LUA_DEBUG
 			std::cout << "Executing " << filepath << ". ";
 			if (result)
-				std::cout << "Error: " << lua_tostring(m_pVM, -1) << std::endl;
+				std::cout << "Error: " << lua_tostring(m_pState, -1) << std::endl;
 			else
 				std::cout << "Success!!" << std::endl;
 #else
 			if (result)
-				std::cout << "Error executing " << filepath << ": " << lua_tostring(m_pVM, -1) << std::endl;
+				std::cout << "Error executing " << filepath << ": " << lua_tostring(m_pState, -1) << std::endl;
 #endif
 			return result;
 		}
 
-		void LuaVirtualMachine::SetFunction(std::string luaFunction)
+		void LuaVMState::SetFunction(std::string luaFunction)
 		{
-//			cout << luaFunction << endl;
-			lua_getglobal(m_pVM,  luaFunction.c_str());
+			lua_getglobal(m_pState,  luaFunction.c_str());
 			curFunction = luaFunction;
 		}
 
-		SDL_mutex *CallErrMutex = SDL_CreateMutex();
-
-		int LuaVirtualMachine::CallFunction(unsigned int arguments, unsigned int rets)
+		int LuaVMState::CallFunction(unsigned int arguments, unsigned int rets)
 		{
-			const void *func = lua_topointer(m_pVM, -(1 + arguments));
+			const void *func = lua_topointer(m_pState, -(1 + arguments));
 			SDL_LockMutex(CallErrMutex);
 			if (callErrs[func] < LUA_FUNCTION_FAIL_LIMIT)
 			{
 				SDL_UnlockMutex(CallErrMutex);
-				if (lua_pcall(m_pVM, arguments, rets, 0) != 0)
+				if (lua_pcall(m_pState, arguments, rets, 0) != 0)
 				{
-					std::cerr << "[Lua VM] Error on call to " << curFunction << ": " << lua_tostring(m_pVM, -1) << std::endl;
+					std::cerr << "[Lua VM] Error on call to " << curFunction << ": " << lua_tostring(m_pState, -1) << std::endl;
 					SDL_LockMutex(CallErrMutex);
 					callErrs[func]++;
 					SDL_UnlockMutex(CallErrMutex);
@@ -194,66 +186,49 @@ namespace Utilities
 					}
 					if (rets)
 					{
-						lua_pop(m_pVM, rets);
+						lua_pop(m_pState, rets);
 					}
 					return ERROR_GENERAL;
 				}
 			}
 			else
 			{
-				lua_pop(m_pVM, 1 + arguments);
+				lua_pop(m_pState, 1 + arguments);
 				return ERROR_GENERAL;
 			}
 			
 			bool ret = SUCCESS;
 
-			if (lua_isboolean(m_pVM, 1))
+			if (lua_isboolean(m_pState, 1))
 			{
-				if (!lua_toboolean(m_pVM, 1))
+				if (!lua_toboolean(m_pState, 1))
 				{
 					ret = ERROR_GENERAL;
 				}
 			}
 			if (rets)
 			{
-				lua_pop(m_pVM, rets);
+				lua_pop(m_pState, rets);
 			}
 			return ret;
 		}
 
-		LuaVM* LuaVirtualMachine::GetVM() const
+		lua_State* LuaVMState::GetState() const
 		{
-			return m_pVM;
+			return m_pState;
 		}
 		
-		LuaVirtualMachine** m_pPlayerInstances;
-
-		void StartVM(void)
+		void StartPlayerStates(void)
 		{
-			std::cout << "Initializing global LUA state" << std::endl;
-			LuaVirtualMachine::Instance();
-		}
-
-		void StartPlayerVMs(void)
-		{
-			m_pPlayerInstances = new LuaVirtualMachine*[Game::Dimension::pWorld->vPlayers.size()];
-			for (unsigned i = 0; i < Game::Dimension::pWorld->vPlayers.size(); i++)
+			int i = 1;
+			for (vector<Game::Dimension::Player*>::iterator it = Game::Dimension::pWorld->vPlayers.begin(); it != Game::Dimension::pWorld->vPlayers.end(); it++)
 			{
-				std::cout << "Initializing LUA state for player " << i+1 << std::endl;
-				m_pPlayerInstances[i] = new LuaVirtualMachine;
-				switch (Game::Dimension::pWorld->vPlayers[i]->type)
+				Game::Dimension::Player* player = *it;
+				if (!player->isRemote)
 				{
-					case Game::Dimension::PLAYER_TYPE_HUMAN:
-						m_pPlayerInstances[i]->DoFile("scripts/ai_human.lua");
-						break;
-					case Game::Dimension::PLAYER_TYPE_GAIA:
-						m_pPlayerInstances[i]->DoFile("scripts/ai_gaia.lua");
-						break;
-					case Game::Dimension::PLAYER_TYPE_AI:
-						m_pPlayerInstances[i]->DoFile("scripts/ai_ai.lua");
-						break;
-					case Game::Dimension::PLAYER_TYPE_REMOTE:
-						break;
+					std::cout << "Initializing LUA states for player " << i++ << std::endl;
+					player->aiState.DoFile("scripts/race/" + player->raceScript + "/" + player->raceScript + ".lua");
+					player->aiState.DoFile("scripts/race/" + player->raceScript + "/" + player->aiScript + "/" + player->aiScript + ".lua");
 				}
 			}
 		}
@@ -262,47 +237,29 @@ namespace Utilities
 		{
 			for (unsigned i = 0; i < Game::Dimension::pWorld->vPlayers.size(); i++)
 			{
-				switch (Game::Dimension::pWorld->vPlayers[i]->type)
+				Game::Dimension::Player* player = Game::Dimension::pWorld->vPlayers[i];
+				if (!player->isRemote)
 				{
-					case Game::Dimension::PLAYER_TYPE_HUMAN:
-						m_pPlayerInstances[i]->SetFunction("InitAI_Human");
-						break;
-					case Game::Dimension::PLAYER_TYPE_GAIA:
-						m_pPlayerInstances[i]->SetFunction("InitAI_Gaia");
-						break;
-					case Game::Dimension::PLAYER_TYPE_AI:
-						m_pPlayerInstances[i]->SetFunction("InitAI_AI");
-						break;
-					case Game::Dimension::PLAYER_TYPE_REMOTE:
-						break;
+					player->aiState.SetFunction("InitRace");
+					lua_pushlightuserdata(player->aiState.GetState(), player);
+					player->aiState.CallFunction(1);
+
+					player->aiState.SetFunction("InitAI");
+					lua_pushlightuserdata(player->aiState.GetState(), player);
+					player->aiState.CallFunction(1);
 				}
-				lua_pushlightuserdata(m_pPlayerInstances[i]->GetVM(), Game::Dimension::pWorld->vPlayers[i]);
-				m_pPlayerInstances[i]->CallFunction(1);
 			}
 		}
 
-		void StopVM(void)
+		Game::Dimension::Player *GetPlayerByVMstate(lua_State *vmState)
 		{
-			LuaVirtualMachine::Destroy();
+			return luaStateToPlayer[vmState];
 		}
 
-		LuaVM* GetVM(void)
+		LuaVMState *GetObjectByVMstate(lua_State *vmState)
 		{
-			return LuaVirtualMachine::Instance()->GetVM();
-		}
-		
-		LuaVirtualMachine* GetPlayerVMInstance(unsigned player)
-		{
-			if (player < Game::Dimension::pWorld->vPlayers.size())
-			{
-				return m_pPlayerInstances[player];
-			}
-			return NULL;
+			return luaStateToObject[vmState];
 		}
 
-		LuaVM* GetPlayerVM(unsigned player)
-		{
-			return GetPlayerVMInstance(player)->GetVM();
-		}
 	}
 }

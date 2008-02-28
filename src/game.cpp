@@ -40,7 +40,7 @@ namespace Game
 		std::string host = "localhost";
 		std::string checksumLog = "";
 
-		std::string CurrentLevel = "aivsai";
+		std::string CurrentLevel = "default";
 
 		GameWindow* GameWindow::pInstance = NULL;
 
@@ -536,7 +536,6 @@ namespace Game
 			Dimension::UnloadWorld();
 			Dimension::Environment::FourthDimension::Destroy();
 			DestroyGUI();
-			Utilities::Scripting::StopVM();
 			if (Networking::isNetworked)
 			{
 				Networking::ShutdownNetwork();
@@ -554,6 +553,8 @@ namespace Game
 			float increment = 0.9f / 13.0f; //0.9 (90%) divided on 12 updates...
 			Dimension::pWorld = new Dimension::World;
 
+			Utilities::Scripting::LuaVMState& pVM = Utilities::Scripting::globalVMState;
+
 			if (noGraphics)
 			{
 				graphicsLoaded = false;
@@ -563,9 +564,6 @@ namespace Game
 				graphicsLoaded = true;
 			}
 
-			Utilities::Scripting::StartVM();
-			
-			Utilities::Scripting::LuaVirtualMachine* const pVM = Utilities::Scripting::LuaVirtualMachine::Instance();
 			Dimension::Environment::FourthDimension* pDimension = Dimension::Environment::FourthDimension::Instance();
 			
 			////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -574,16 +572,11 @@ namespace Game
 			
 			////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 			std::string level_script = "levels/" + CurrentLevel + "_level.lua";
-			if (pVM->DoFile(level_script) != SUCCESS)
+			if (pVM.DoFile(level_script) != SUCCESS)
 			{
 				return ERROR_GENERAL;
 			}
 
-			std::string generic_level_script = "scripts/init_level.lua";
-			if (pVM->DoFile(generic_level_script) != SUCCESS)
-			{
-				return ERROR_GENERAL;
-			}
 			pLoading->Increment(increment);
 			
 			////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -602,19 +595,19 @@ namespace Game
 			pLoading->Increment(increment);
 			
 			////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-			pVM->SetFunction("SetPlayers");
-			if (pVM->CallFunction(0, 1) != SUCCESS)
+			pVM.SetFunction("SetPlayers");
+			if (pVM.CallFunction(0, 1) != SUCCESS)
 			{
 				return ERROR_GENERAL;
 			}
 			pLoading->Increment(increment);
 
-			Utilities::Scripting::StartPlayerVMs();
+			Utilities::Scripting::StartPlayerStates();
 			pLoading->Increment(increment);
 
 			////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-			pVM->SetFunction("InitLevel");
-			if (pVM->CallFunction(0, 1) != SUCCESS)
+			pVM.SetFunction("InitLevel");
+			if (pVM.CallFunction(0, 1) != SUCCESS)
 			{
 				return ERROR_GENERAL;
 			}
@@ -646,8 +639,8 @@ namespace Game
 			////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 			if (is_new_game && (!Networking::isNetworked || Networking::networkType == Networking::SERVER))
 			{
-				pVM->SetFunction("InitLevelUnits");
-				if (pVM->CallFunction(0, 1) != SUCCESS)
+				pVM.SetFunction("InitLevelUnits");
+				if (pVM.CallFunction(0, 1) != SUCCESS)
 				{
 					return ERROR_GENERAL;
 				}
