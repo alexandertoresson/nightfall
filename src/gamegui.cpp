@@ -440,6 +440,11 @@ namespace Game
 
 		void GameInput::MouseDownLeft(SDL_Event* event,Window::GUI::TranslatedMouse* translatedMouse)
 		{
+#ifdef MAC
+			if (pGame->input->GetKeyState(SDLK_LCTRL))
+				return;
+#endif
+		
 			start_fx = translatedMouse->x;
 			start_fy = translatedMouse->y;
 			end_fx = translatedMouse->x;
@@ -451,14 +456,6 @@ namespace Game
 
 		void GameInput::MouseDownRight(SDL_Event* event,Window::GUI::TranslatedMouse* translatedMouse)
 		{
-			/* ~~~ this shouldn't be neccessary! / Leo
-			start_fx = translatedMouse->x;
-			start_fy = translatedMouse->y;
-			end_fx = translatedMouse->x;
-			end_fy = translatedMouse->y;
-			pGame->start_drag_x = (*event).button.x;
-			pGame->start_drag_y = (*event).button.y;
-			*/
 			int map_x = 0;
 			int map_y = 0;
 			Dimension::GetApproximateMapPosOfClick((*event).button.x, (*event).button.y, map_x, map_y);
@@ -1013,13 +1010,6 @@ namespace Game
 					{
 					case SDL_BUTTON_LEFT:
 						{
-#ifdef MAC
-							if (pGame->input->GetKeyState(SDLK_LCTRL))
-							{
-								MouseUpRight(event, translatedMouse);
-								break;
-							}
-#endif
 							MouseUpLeft(event, translatedMouse);
 							break;
 						}
