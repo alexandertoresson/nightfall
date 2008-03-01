@@ -37,12 +37,12 @@ ut.symbol = "textures/builder.png"
 
 ut.canBuild = {"MainBuilding",
                "Barracks",
-	       "TankFactory",
-	       "SmallLightTower",
-	       "MediumLightTower",
-	       "LargeLightTower",
-	       "DefenseTower",
-	       "SurfaceGeothermal",
-	       "DeepGeothermal",
-	       "SolarPanel"}
+               "TankFactory",
+               "SmallLightTower",
+               "MediumLightTower",
+               "LargeLightTower",
+               "DefenseTower",
+               "SurfaceGeothermal",
+               "DeepGeothermal",
+               "SolarPanel"}
 CreateUnitType(ut);

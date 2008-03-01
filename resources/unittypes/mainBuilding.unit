@@ -15,7 +15,7 @@ ut.buildCost = 500
 ut.researchTime = 360.0
 ut.researchCost = 2000
 
-ut.lightRange = 17.0
+ut.lightRange = 13.0
 
 ut.powerUsage = 2.0
 ut.lightPowerUsage = 3.0
@@ -25,13 +25,13 @@ ut.model = "models/mainBuilding.wrl#MainBuilding"
 ut.symbol = "textures/mainbuilding.png"
 
 ut.canBuild = {"Builder",
-	       "Explorer"}
+               "Explorer"}
 
 ut.canResearch = {"MainBuilding",
-		  "TankFactory",
-		  "MediumLightTower",
-		  "LargeLightTower",
-		  "SurfaceGeothermal",
-		  "DeepGeothermal"}
+                  "TankFactory",
+                  "MediumLightTower",
+                  "LargeLightTower",
+                  "SurfaceGeothermal",
+                  "DeepGeothermal"}
 
 CreateUnitType(ut)

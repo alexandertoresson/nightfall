@@ -14,7 +14,7 @@ ut.buildCost = 100
 ut.researchTime = 180.0
 ut.researchCost = 200
 
-ut.lightRange = 15.0
+ut.lightRange = 12.0
 	
 ut.powerUsage = 2.0
 ut.lightPowerUsage = 3.0

@@ -1,6 +1,6 @@
 local ut = {}
 ut.id = "Grue"
-ut.maxHealth = 1000
+ut.maxHealth = 10000
 ut.maxPower = 100
 ut.minAttack = 75
 ut.maxAttack = 125
