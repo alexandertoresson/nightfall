@@ -237,6 +237,7 @@ namespace Game
 			float end_fx;
 			float end_fy;
 
+			void UnitActionEventHandler(SDL_Event*);
 			void MouseDownLeft(SDL_Event*,Window::GUI::TranslatedMouse*);
 			void MouseDownRight(SDL_Event*,Window::GUI::TranslatedMouse*);
 			void MouseUpLeft(SDL_Event*,Window::GUI::TranslatedMouse*);

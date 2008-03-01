@@ -1,4 +1,4 @@
-//§#include "memfragdebug.h" // Enable for memory fragmentation debugging
+//ÃŸ#include "memfragdebug.h" // Enable for memory fragmentation debugging
 
 #ifdef __CONFIG_H__
 #include "config.h"
@@ -31,6 +31,7 @@
 	*/
 	
 	#define SDL_EVENT_DUMP_CONSOLE 31
+	#define MAC
 #else
 
 	#include <SDL.h>

@@ -325,6 +325,118 @@ namespace Game
 
 			return SUCCESS;
 		}
+		
+		void GameInput::UnitActionEventHandler(SDL_Event* event)
+		{
+			if (pGame->build_type)
+			{
+				pGame->build_type = NULL;
+				return;
+			}
+
+			if (Dimension::unitsSelected.size())
+			{
+				int map_x = 0, map_y = 0;
+				int ter_x = 0, ter_y = 0;
+				
+				bool clicked_on_unit   = false, 
+					 clicked_on_ground = false, 
+					 shift_pressed     = pGame->input->GetKeyState(SDLK_LSHIFT);
+
+				void* arg             = NULL;
+				AI::UnitAction action = AI::ACTION_NONE;
+				Dimension::Unit* unit = NULL;
+				
+				Dimension::GetApproximateMapPosOfClick((*event).button.x, (*event).button.y, map_x, map_y);
+				unit = Dimension::GetUnitClicked((*event).button.x, (*event).button.y, map_x, map_y);
+
+				if (unit)
+				{
+					if (Dimension::GetCurrentPlayer()->states[unit->owner->index] != Dimension::PLAYER_STATE_ALLY)
+					{
+						if (!pGame->input->GetKeyState(SDLK_LALT))
+						{
+							action = AI::ACTION_ATTACK;
+						}
+						else
+						{
+							action = AI::ACTION_MOVE_ATTACK_UNIT;
+						}
+					}
+					else
+					{
+						bool canRepair = false;
+						for (unsigned int i = 0; i < Dimension::unitsSelected.at(0)->type->canBuild.size(); i++)
+						{
+							if (Dimension::unitsSelected.at(0)->type->canBuild.at(i) == unit->type)
+							{
+								canRepair = true;
+								break;
+							}
+						}
+						if (!pGame->input->GetKeyState(SDLK_LSHIFT) && unit->health < unit->type->maxHealth && canRepair)
+						{
+							action = AI::ACTION_BUILD;
+						}
+						else
+						{
+							if (!unit->type->isMobile)
+							{
+								if (unit->rallypoint != NULL)
+								{
+									delete unit->rallypoint;
+									unit->rallypoint = NULL;
+								}
+								return;
+							}
+							else
+								action = AI::ACTION_FOLLOW;
+						}
+					}
+				}
+				else
+				{
+					if (Dimension::GetTerrainPosClicked((*event).button.x, (*event).button.y, map_x, map_y, ter_x, ter_y))
+					{
+						clicked_on_ground = true;
+						pGame->goto_x = ter_x;
+						pGame->goto_y = ter_y;
+						pGame->goto_time = SDL_GetTicks();
+						if (!pGame->input->GetKeyState(SDLK_LALT))
+						{
+							action = AI::ACTION_GOTO;
+						}
+						else
+						{
+							action = AI::ACTION_MOVE_ATTACK;
+						}
+					}
+				}
+
+				if (Dimension::unitsSelected.size() == 1)
+				{
+					if (clicked_on_unit)
+					{
+						AI::CommandUnit(Dimension::unitsSelected.at(0), unit, action, arg, shift_pressed, false);
+					}
+					else if (clicked_on_ground)
+					{
+						AI::CommandUnit(Dimension::unitsSelected.at(0), ter_x, ter_y, action, arg, shift_pressed, false);
+					}
+				}
+				else
+				{
+					if (clicked_on_unit)
+					{
+						AI::CommandUnits(Dimension::unitsSelected, unit, action, arg, shift_pressed, false);
+					}
+					else if (clicked_on_ground)
+					{
+						AI::CommandUnits(Dimension::unitsSelected, ter_x, ter_y, action, arg, shift_pressed, false);
+					}
+				}
+			}
+		}
 
 		void GameInput::MouseDownLeft(SDL_Event* event,Window::GUI::TranslatedMouse* translatedMouse)
 		{
@@ -385,6 +497,13 @@ namespace Game
 
 		void GameInput::MouseUpLeft(SDL_Event* event,Window::GUI::TranslatedMouse* translatedMouse)
 		{
+#ifdef MAC
+			if (pGame->input->GetKeyState(SDLK_LCTRL))
+			{
+				UnitActionEventHandler(event);
+				return;
+			}
+#endif
 			int map_x, map_y;
 			int ter_x, ter_y;
 			int tmp;
@@ -483,111 +602,7 @@ namespace Game
 
 		void GameInput::MouseUpRight(SDL_Event* event,Window::GUI::TranslatedMouse* translatedMouse)
 		{
-			int map_x = 0, map_y = 0;
-			int ter_x = 0, ter_y = 0;
-			bool clicked_on_unit = false, clicked_on_ground = false, shift_pressed = pGame->input->GetKeyState(SDLK_LSHIFT);
-			void* arg = NULL;
-			AI::UnitAction action = AI::ACTION_NONE;
-			Dimension::Unit *unit = NULL;
-
-			if (pGame->build_type)
-			{
-				pGame->build_type = NULL;
-				return;
-			}
-
-			if (Dimension::unitsSelected.size())
-			{
-				Dimension::GetApproximateMapPosOfClick((*event).button.x, (*event).button.y, map_x, map_y);
-				unit = Dimension::GetUnitClicked((*event).button.x, (*event).button.y, map_x, map_y);
-
-				if (unit)
-				{
-					clicked_on_unit = true;
-					if (Dimension::GetCurrentPlayer()->states[unit->owner->index] != Dimension::PLAYER_STATE_ALLY)
-					{
-						if (!pGame->input->GetKeyState(SDLK_LALT))
-						{
-							action = AI::ACTION_ATTACK;
-						}
-						else
-						{
-							action = AI::ACTION_MOVE_ATTACK_UNIT;
-						}
-					}
-					else
-					{
-						bool canRepair = false;
-						for (unsigned int i = 0; i < Dimension::unitsSelected.at(0)->type->canBuild.size(); i++)
-						{
-							if (Dimension::unitsSelected.at(0)->type->canBuild.at(i) == unit->type)
-							{
-								canRepair = true;
-								break;
-							}
-						}
-						if (!pGame->input->GetKeyState(SDLK_LSHIFT) && unit->health < unit->type->maxHealth && canRepair)
-						{
-							action = AI::ACTION_BUILD;
-						}
-						else
-						{
-							if (!unit->type->isMobile)
-							{
-								if (unit->rallypoint != NULL)
-								{
-									delete unit->rallypoint;
-									unit->rallypoint = NULL;
-								}
-								return;
-							}
-							else
-								action = AI::ACTION_FOLLOW;
-						}
-					}
-				}
-				else
-				{
-					if (Dimension::GetTerrainPosClicked((*event).button.x, (*event).button.y, map_x, map_y, ter_x, ter_y))
-					{
-						clicked_on_ground = true;
-						pGame->goto_x = ter_x;
-						pGame->goto_y = ter_y;
-						pGame->goto_time = SDL_GetTicks();
-						if (!pGame->input->GetKeyState(SDLK_LALT))
-						{
-							action = AI::ACTION_GOTO;
-						}
-						else
-						{
-							action = AI::ACTION_MOVE_ATTACK;
-						}
-					}
-				}
-
-				if (Dimension::unitsSelected.size() == 1)
-				{
-					if (clicked_on_unit)
-					{
-						AI::CommandUnit(Dimension::unitsSelected.at(0), unit, action, arg, shift_pressed, false);
-					}
-					else if (clicked_on_ground)
-					{
-						AI::CommandUnit(Dimension::unitsSelected.at(0), ter_x, ter_y, action, arg, shift_pressed, false);
-					}
-				}
-				else
-				{
-					if (clicked_on_unit)
-					{
-						AI::CommandUnits(Dimension::unitsSelected, unit, action, arg, shift_pressed, false);
-					}
-					else if (clicked_on_ground)
-					{
-						AI::CommandUnits(Dimension::unitsSelected, ter_x, ter_y, action, arg, shift_pressed, false);
-					}
-				}
-			}
+			UnitActionEventHandler(event);
 		}
 
 		void GameInput::SetTypeToBuild(unsigned int num)
@@ -977,13 +992,6 @@ namespace Game
 						}
 						case SDL_BUTTON_LEFT:
 						{
-#ifdef MAC
-							if (pGame->input->GetKeyState(SDLK_LCTRL))
-							{
-								MouseDownRight(event, translatedMouse);
-								break;
-							}
-#endif
 							MouseDownLeft(event, translatedMouse);
 							break;
 						}
