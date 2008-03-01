@@ -740,18 +740,6 @@ namespace Game
 
 				switch(event->type)
 				{
-#ifdef MAC
-					case SDL_EVENT_DUMP_CONSOLE:
-					{
-						fstream stream("console.txt");
-						if (!stream.bad())
-						{
-							stream << console.GetBuffer();
-						}
-						stream.close();
-						break;
-					}
-#endif
 					case SDL_QUIT:
 					{
 						go = false;
