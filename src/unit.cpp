@@ -4650,7 +4650,6 @@ namespace Game
 			{
 
 				tempModel = morphAnim->tempModel;
-				
 				if (Window::hasVBOs)
 				{
 					if (model->staticArrays.vertexArray == 0)
@@ -4692,6 +4691,7 @@ namespace Game
 								index++;
 							}
 						}
+						
 						glBindBufferARB(GL_ARRAY_BUFFER_ARB, model->staticArrays.vertexArray);
 						glBufferDataARB(GL_ARRAY_BUFFER_ARB, model->tri_count * 9 * sizeof(GLfloat), vertices, GL_STATIC_DRAW_ARB);
 						glBindBufferARB(GL_ARRAY_BUFFER_ARB, model->staticArrays.normalArray);
@@ -4707,7 +4707,7 @@ namespace Game
 						delete[] texCoords;
 					}
 
-					glEnable(GL_NORMAL_ARRAY);
+					glEnableClientState(GL_NORMAL_ARRAY);
 
 /*					if (unit->completeness < 100.0f)
 					{
@@ -4739,25 +4739,26 @@ namespace Game
 						glNormalPointer(GL_FLOAT, 0, NULL);
 //					}
 
-					glEnable(GL_VERTEX_ARRAY);
+					glEnableClientState(GL_VERTEX_ARRAY);
 					glBindBufferARB(GL_ARRAY_BUFFER_ARB, model->staticArrays.vertexArray);
 					glVertexPointer(3, GL_FLOAT, 0, NULL);
 					if (model->texCoords)
 					{
 						glBindBufferARB(GL_ARRAY_BUFFER_ARB, model->staticArrays.texCoordArray);
 						glTexCoordPointer(2, GL_FLOAT, 0, NULL);
-						glEnable(GL_TEXTURE_COORD_ARRAY);
+						glEnableClientState(GL_TEXTURE_COORD_ARRAY);
 					}
+					
 					glDrawArrays(GL_TRIANGLES, 0, model->tri_count*3);
 					glBindBufferARB(GL_ARRAY_BUFFER_ARB, 0);
-					
+
 					if (model->texCoords)
 					{
-						glDisable(GL_TEXTURE_COORD_ARRAY);
+						glDisableClientState(GL_TEXTURE_COORD_ARRAY);
 					}
-					glDisable(GL_NORMAL_ARRAY);
-					glDisable(GL_VERTEX_ARRAY);
 
+					glDisableClientState(GL_VERTEX_ARRAY);
+					glDisableClientState(GL_NORMAL_ARRAY);
 				}
 				else
 				{
