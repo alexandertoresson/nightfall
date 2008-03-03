@@ -21,6 +21,7 @@ namespace UnitLuaInterface
 	};
 	void ApplyScheduledActions();
 	void ApplyScheduledDamagings();
+	void PostProcessStrings();
 }
 #define __UNITINTERFACE_H_PRE_END__
 
@@ -48,6 +49,7 @@ namespace UnitLuaInterface
 	void Init(Utilities::Scripting::LuaVMState* pVM);
 	bool IsValidUnitTypePointer(Game::Dimension::UnitType* unittype);
 	Game::Dimension::UnitType *GetUnitTypeByID(Game::Dimension::Player* owner, std::string str);
+	Game::Dimension::Research *GetResearchByID(Game::Dimension::Player* owner, std::string str);
 }
 
 #ifdef DEBUG_DEP

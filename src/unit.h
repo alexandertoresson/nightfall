@@ -254,13 +254,6 @@ namespace Game
 			ActionQueueVisualRepresentation* visual_repr;
 		};
 
-		struct Research
-		{
-			bool isResearched;
-			Unit** researcher;
-			std::string effectFunc;
-		};
-
 		struct Scanline;
 		struct RangeScanlines;
 		struct RangeArray;
@@ -304,28 +297,30 @@ namespace Game
 			float       movementSpeed;   // in squares per second
 			float       attackSpeed;     // in times per second
 			vector<UnitType*> canBuild;  // vector of what the unit can build, if anything at all
-			vector<UnitType*> canResearch;// vector of what the unit can research, if anything at all
+			vector<Research*> canResearch;// vector of what the unit can research, if anything at all
+			vector<std::string> canBuildIDs; // IDs of builds as string; this is used before loading is finished
+			vector<std::string> canResearchIDs; // IDs of researches as string; this is used before loading is finished
 			bool        hasAI;           // whether the unit has an AI
 			bool        hasLuaAI;        // whether the unit has a lua AI
-			bool*       isResearched;    // whether the unit is researched, for each player
 			bool        hurtByLight;
-			Unit**      isBeingResearchedBy;
 			float       size;            // size of unit -- how to scale it
 			int         heightOnMap;     // this width and height only affect how much space the unit takes on the map.
 			int         widthOnMap;
 			float       height;          // this affects the actual height of the unit on screen (before being scaled by this->size)
 			                             // and thus where the health meter should be placed
-			int         buildTime;       // seconds to build
-			int         researchTime;    // seconds to research
-			int         buildCost;       // cost to build
-			int         researchCost;    // cost to research
+			ObjectRequirements requirements;
+
 			ProjectileType*     projectileType; // set to NULL to make the unit have normal, non-ranged attacks.
 			MovementType movementType;   // Type of movement the unit has
 			int         index;           // index of the unit in vUnitTypes
 			GLuint	    Symbol;	     // Build symbol or Unit Symbol
-			AI::UnitAIFuncs *unitAIFuncs; // UnitAIFuncs, one for each player
-			AI::PlayerAIFuncs *playerAIFuncs; // PlayerAIFuncs, one for each player
+			AI::UnitAIFuncs unitAIFuncs; // UnitAIFuncs
+			AI::PlayerAIFuncs playerAIFuncs; // PlayerAIFuncs
 			Audio::AudioFXInfo* actionSounds[Audio::SFX_ACT_COUNT];
+
+			Player *player;              // The player the unittype belongs so
+			int numBuilt;
+			int numExisting;
 		};
 
 		struct ProjectileType
@@ -419,8 +414,8 @@ namespace Game
 		void GetUnitUpperLeftCorner(Unit* unit, int& lx, int& uy);
 		
 		bool IsWithinRangeForBuilding(Unit* unit);
-		void Build(Unit* unit);
-		void Research(Unit* unit);
+		void PerformBuild(Unit* unit);
+		void PerformResearch(Unit* unit);
 		void CancelBuild(Dimension::Unit* pUnit);
 		void CancelResearch(Dimension::Unit* pUnit);
 		float CalcUnitDamage(Unit* target, Unit* attacker);

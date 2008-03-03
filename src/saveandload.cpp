@@ -10,6 +10,8 @@
 #include "aibase.h"
 #include <string>
 
+#define CURRENT_SAVEGAME_VERSION 1
+
 namespace Game
 {
 	namespace Dimension
@@ -132,9 +134,16 @@ namespace Game
 				if (actionData->arg)
 				{
 					xmlfile.BeginTag("arg");
-						if (UnitLuaInterface::IsValidUnitTypePointer((UnitType*) actionData->arg))
+						if (actionData->action == Game::AI::ACTION_RESEARCH)
 						{
-							OutputString(xmlfile, "unittype", ((UnitType*) actionData->arg)->id);
+							OutputString(xmlfile, "research", ((Research*) actionData->arg)->name);
+						}
+						else
+						{
+							if (UnitLuaInterface::IsValidUnitTypePointer((UnitType*) actionData->arg))
+							{
+								OutputString(xmlfile, "unittype", ((UnitType*) actionData->arg)->id);
+							}
 						}
 					xmlfile.EndTag();
 				}
@@ -296,6 +305,8 @@ namespace Game
 
 			xmlfile.BeginTag("nightfall_save_file");
 
+				OutputInt(xmlfile, "version", CURRENT_SAVEGAME_VERSION);
+
 				OutputString(xmlfile, "level", Rules::CurrentLevel);
 
 				Environment::FourthDimension* pDimension = Environment::FourthDimension::Instance();
@@ -341,7 +352,7 @@ namespace Game
 			AI::ResumePathfinding();
 		}
 
-		Utilities::XMLReader xmlfile;
+		Utilities::XMLReader xmlreader;
 
 		// Data returned through the Parse* functions
 		std::string str;
@@ -389,63 +400,63 @@ namespace Game
 		void ParseUint32Block(Utilities::XMLData *data)
 		{
 			ui = 0;
-			xmlfile.Iterate(data, ParseUint32);
+			xmlreader.Iterate(data, ParseUint32);
 		}
 
 		void ParseIntBlock(Utilities::XMLData *data)
 		{
 			i = 0;
-			xmlfile.Iterate(data, ParseInt);
+			xmlreader.Iterate(data, ParseInt);
 		}
 
 		void ParseFloatBlock(Utilities::XMLData *data)
 		{
 			f = 0.0f;
-			xmlfile.Iterate(data, ParseFloat);
+			xmlreader.Iterate(data, ParseFloat);
 		}
 
 		void ParseDoubleBlock(Utilities::XMLData *data)
 		{
 			d = 0.0;
-			xmlfile.Iterate(data, ParseDouble);
+			xmlreader.Iterate(data, ParseDouble);
 		}
 
 		void ParseStringBlock(Utilities::XMLData *data)
 		{
 			str = "";
-			xmlfile.Iterate(data, ParseString);
+			xmlreader.Iterate(data, ParseString);
 		}
 
 		void ParseBoolBlock(Utilities::XMLData *data)
 		{
 			b = false;
-			xmlfile.Iterate(data, ParseBool);
+			xmlreader.Iterate(data, ParseBool);
 		}
 
 		// More advanced, composite types. A layer between the basic types and the game-specific types.
 		void ParsePosition(Utilities::XMLData *data)
 		{
-			xmlfile.Iterate(data, "x", ParseFloatBlock);
+			xmlreader.Iterate(data, "x", ParseFloatBlock);
 			pos.x = f;
-			xmlfile.Iterate(data, "y", ParseFloatBlock);
+			xmlreader.Iterate(data, "y", ParseFloatBlock);
 			pos.y = f;
 		}
 
 		void ParseIntPosition(Utilities::XMLData *data)
 		{
-			xmlfile.Iterate(data, "x", ParseIntBlock);
+			xmlreader.Iterate(data, "x", ParseIntBlock);
 			pos_int.x = i;
-			xmlfile.Iterate(data, "y", ParseIntBlock);
+			xmlreader.Iterate(data, "y", ParseIntBlock);
 			pos_int.y = i;
 		}
 
 		void ParseVector3D(Utilities::XMLData *data)
 		{
-			xmlfile.Iterate(data, "x", ParseFloatBlock);
+			xmlreader.Iterate(data, "x", ParseFloatBlock);
 			vec.x = f;
-			xmlfile.Iterate(data, "y", ParseFloatBlock);
+			xmlreader.Iterate(data, "y", ParseFloatBlock);
 			vec.y = f;
-			xmlfile.Iterate(data, "z", ParseFloatBlock);
+			xmlreader.Iterate(data, "z", ParseFloatBlock);
 			vec.z = f;
 		}
 
@@ -459,7 +470,7 @@ namespace Game
 				return;
 			}
 
-			xmlfile.Iterate(data, ParseInt);
+			xmlreader.Iterate(data, ParseInt);
 
 			player->states[data->index] = (PlayerState) i;
 		}
@@ -474,22 +485,22 @@ namespace Game
 
 			player = pWorld->vPlayers[data->index];
 
-			xmlfile.Iterate(data, "name", ParseStringBlock);
+			xmlreader.Iterate(data, "name", ParseStringBlock);
 			player->name = str;
 
-			xmlfile.Iterate(data, "playerType", ParseIntBlock);
+			xmlreader.Iterate(data, "playerType", ParseIntBlock);
 			player->type = (PlayerType) i;
 			
-			xmlfile.Iterate(data, "aiFrame", ParseIntBlock);
+			xmlreader.Iterate(data, "aiFrame", ParseIntBlock);
 			player->aiFrame = i;
 			
-			xmlfile.Iterate(data, "money", ParseDoubleBlock);
+			xmlreader.Iterate(data, "money", ParseDoubleBlock);
 			player->resources.money = d;
 			
-			xmlfile.Iterate(data, "power", ParseDoubleBlock);
+			xmlreader.Iterate(data, "power", ParseDoubleBlock);
 			player->resources.power = d;
 
-			xmlfile.Iterate(data, "stance", ParseStances);
+			xmlreader.Iterate(data, "stance", ParseStances);
 		}
 
 		Unit* unit;
@@ -497,7 +508,7 @@ namespace Game
 		void ParseLastSeenPosition(Utilities::XMLData *data)
 		{
 			int player;
-			xmlfile.Iterate(data, "player", ParseIntBlock);
+			xmlreader.Iterate(data, "player", ParseIntBlock);
 			player = i;
 
 			if ((unsigned) player >= pWorld->vPlayers.size())
@@ -506,7 +517,7 @@ namespace Game
 				return;
 			}
 
-			xmlfile.Iterate(data, "pos", ParseIntPosition);
+			xmlreader.Iterate(data, "pos", ParseIntPosition);
 			unit->lastSeenPositions[player] = pos_int;
 		}
 
@@ -519,7 +530,7 @@ namespace Game
 
 			unit = NULL;
 
-			xmlfile.Iterate(data, "id", ParseIntBlock);
+			xmlreader.Iterate(data, "id", ParseIntBlock);
 			
 			if ((unsigned) i >= 65535)
 			{
@@ -529,7 +540,7 @@ namespace Game
 
 			id = i;
 
-			xmlfile.Iterate(data, "owner", ParseIntBlock);
+			xmlreader.Iterate(data, "owner", ParseIntBlock);
 
 			if ((unsigned) i >= pWorld->vPlayers.size())
 			{
@@ -540,7 +551,7 @@ namespace Game
 			owner = pWorld->vPlayers[i];
 			
 
-			xmlfile.Iterate(data, "type", ParseStringBlock);
+			xmlreader.Iterate(data, "type", ParseStringBlock);
 
 			type = UnitLuaInterface::GetUnitTypeByID(owner, str);
 
@@ -550,15 +561,15 @@ namespace Game
 				return;
 			}
 
-			xmlfile.Iterate(data, "isDisplayed", ParseBoolBlock);
+			xmlreader.Iterate(data, "isDisplayed", ParseBoolBlock);
 			isDisplayed = b;
 
-			xmlfile.Iterate(data, "isCompleted", ParseBoolBlock);
+			xmlreader.Iterate(data, "isCompleted", ParseBoolBlock);
 			isCompleted = b;
 
 			if (isDisplayed)
 			{
-				xmlfile.Iterate(data, "curAssociatedSquare", ParseIntPosition);
+				xmlreader.Iterate(data, "curAssociatedSquare", ParseIntPosition);
 				unit = CreateUnit(type->index, owner, pos_int.x, pos_int.y, id, isCompleted);
 
 				if (!unit)
@@ -569,18 +580,18 @@ namespace Game
 
 				Dimension::DisplayScheduledUnits();
 
-				xmlfile.Iterate(data, "rotation", ParseDoubleBlock);
+				xmlreader.Iterate(data, "rotation", ParseDoubleBlock);
 				unit->rotation = d;
 
-				xmlfile.Iterate(data, "isMoving", ParseBoolBlock);
+				xmlreader.Iterate(data, "isMoving", ParseBoolBlock);
 				unit->isMoving = b;
 				
-				xmlfile.Iterate(data, "action_completeness", ParseDoubleBlock);
+				xmlreader.Iterate(data, "action_completeness", ParseDoubleBlock);
 				unit->action_completeness = d;
 
-				xmlfile.Iterate(data, "lastSeenPosition", ParseLastSeenPosition);
+				xmlreader.Iterate(data, "lastSeenPosition", ParseLastSeenPosition);
 
-				xmlfile.Iterate(data, "pos", ParsePosition);
+				xmlreader.Iterate(data, "pos", ParsePosition);
 				unit->pos = pos;
 
 			}
@@ -589,13 +600,13 @@ namespace Game
 				unit = CreateUnitNoDisplay(type->index, owner, id, isCompleted);
 			}
 			
-			xmlfile.Iterate(data, "health", ParseDoubleBlock);
+			xmlreader.Iterate(data, "health", ParseDoubleBlock);
 			unit->health = d;
 
-			xmlfile.Iterate(data, "power", ParseDoubleBlock);
+			xmlreader.Iterate(data, "power", ParseDoubleBlock);
 			unit->power = d;
 
-			xmlfile.Iterate(data, "completeness", ParseDoubleBlock);
+			xmlreader.Iterate(data, "completeness", ParseDoubleBlock);
 			unit->completeness = d;
 			
 		}
@@ -606,26 +617,32 @@ namespace Game
 
 		void ParseUnitGoal(Utilities::XMLData *data)
 		{
-			xmlfile.Iterate(data, "pos", ParseIntPosition);
+			xmlreader.Iterate(data, "pos", ParseIntPosition);
 			goal.pos = pos_int;
 			
-			xmlfile.Iterate(data, "unit", ParseIntBlock);
+			xmlreader.Iterate(data, "unit", ParseIntBlock);
 			goal.unit = GetUnitByID(i);
 		}
 
-		void ParseUnitArg(Utilities::XMLData *data)
+		void ParseUnitArgUnitType(Utilities::XMLData *data)
 		{
-			xmlfile.Iterate(data, "unittype", ParseStringBlock);
+			xmlreader.Iterate(data, "unittype", ParseStringBlock);
 			arg = UnitLuaInterface::GetUnitTypeByID(unit->owner, str);
+		}
+
+		void ParseUnitArgResearch(Utilities::XMLData *data)
+		{
+			xmlreader.Iterate(data, "research", ParseStringBlock);
+			arg = UnitLuaInterface::GetResearchByID(unit->owner, str);
 		}
 
 		std::vector<IntPosition> nodes;
 
 		void ParseNode(Utilities::XMLData *data)
 		{
-			xmlfile.Iterate(data, "x", ParseIntBlock);
+			xmlreader.Iterate(data, "x", ParseIntBlock);
 			pos_int.x = i;
-			xmlfile.Iterate(data, "y", ParseIntBlock);
+			xmlreader.Iterate(data, "y", ParseIntBlock);
 			pos_int.y = i;
 
 			nodes.push_back(pos_int);
@@ -635,7 +652,7 @@ namespace Game
 		{
 			AI::Node *pStart = NULL, *pGoal = NULL, *pCur = NULL, *pLast = NULL;
 
-			xmlfile.Iterate(data, "node", ParseNode);
+			xmlreader.Iterate(data, "node", ParseNode);
 
 			AI::Node *pNodes = new AI::Node[nodes.size()];
 
@@ -672,9 +689,9 @@ namespace Game
 		void ParseCurGoalNode(Utilities::XMLData *data)
 		{
 			AI::Node *pCur = unit->pMovementData->pGoal;
-			xmlfile.Iterate(data, "x", ParseIntBlock);
+			xmlreader.Iterate(data, "x", ParseIntBlock);
 			pos_int.x = i;
-			xmlfile.Iterate(data, "y", ParseIntBlock);
+			xmlreader.Iterate(data, "y", ParseIntBlock);
 			pos_int.y = i;
 
 			while (pCur)
@@ -695,14 +712,21 @@ namespace Game
 			AI::UnitAction action;
 			IntPosition startPos;
 
-			xmlfile.Iterate(data, "action", ParseIntBlock);
+			xmlreader.Iterate(data, "action", ParseIntBlock);
 			action = (AI::UnitAction) i;
 
-			xmlfile.Iterate(data, "goal", ParseUnitGoal);
+			xmlreader.Iterate(data, "goal", ParseUnitGoal);
 			
-			xmlfile.Iterate(data, "arg", ParseUnitArg);
+			if (action == Game::AI::ACTION_RESEARCH)
+			{
+				xmlreader.Iterate(data, "arg", ParseUnitArgResearch);
+			}
+			else
+			{
+				xmlreader.Iterate(data, "arg", ParseUnitArgUnitType);
+			}
 
-			xmlfile.Iterate(data, "startPos", ParseIntPosition);
+			xmlreader.Iterate(data, "startPos", ParseIntPosition);
 			startPos = pos_int;
 
 			if (action == AI::ACTION_ATTACK || action == AI::ACTION_FOLLOW || action == AI::ACTION_MOVE_ATTACK_UNIT)
@@ -757,25 +781,25 @@ namespace Game
 
 		void ParseMovementData(Utilities::XMLData *data)
 		{
-			xmlfile.Iterate(data, "path", ParsePath);
-			xmlfile.Iterate(data, "curGoalNode", ParseCurGoalNode);
+			xmlreader.Iterate(data, "path", ParsePath);
+			xmlreader.Iterate(data, "curGoalNode", ParseCurGoalNode);
 
 			is_back = false;
-			xmlfile.Iterate(data, "actionData", ParseActionData);
+			xmlreader.Iterate(data, "actionData", ParseActionData);
 			
 			is_back = true;
-			xmlfile.Iterate(data, "_actionData", ParseActionData);
+			xmlreader.Iterate(data, "_actionData", ParseActionData);
 		}
 
 		void ParseUnit_Pass2(Utilities::XMLData *data)
 		{
 			unit = NULL;
 
-			xmlfile.Iterate(data, "id", ParseIntBlock);
+			xmlreader.Iterate(data, "id", ParseIntBlock);
 
 			unit = GetUnitByID(i);
 
-			xmlfile.Iterate(data, "isDisplayed", ParseBoolBlock);
+			xmlreader.Iterate(data, "isDisplayed", ParseBoolBlock);
 			isDisplayed = b;
 
 			if (!unit)
@@ -784,7 +808,7 @@ namespace Game
 				return;
 			}
 
-			xmlfile.Iterate(data, "movementData", ParseMovementData);
+			xmlreader.Iterate(data, "movementData", ParseMovementData);
 			
 		}
 
@@ -793,7 +817,7 @@ namespace Game
 			Unit *owner, *goalUnit;
 			Projectile *proj;
 			Utilities::Vector3D pos, direction, goalPos;
-			xmlfile.Iterate(data, "owner", ParseIntBlock);
+			xmlreader.Iterate(data, "owner", ParseIntBlock);
 			owner = GetUnitByID(i);
 
 			if (!owner)
@@ -802,16 +826,16 @@ namespace Game
 				return;
 			}
 
-			xmlfile.Iterate(data, "goalUnit", ParseIntBlock);
+			xmlreader.Iterate(data, "goalUnit", ParseIntBlock);
 			goalUnit = GetUnitByID(i);
 			
-			xmlfile.Iterate(data, "pos", ParseVector3D);
+			xmlreader.Iterate(data, "pos", ParseVector3D);
 			pos = vec;
 			
-			xmlfile.Iterate(data, "direction", ParseVector3D);
+			xmlreader.Iterate(data, "direction", ParseVector3D);
 			direction = vec;
 			
-			xmlfile.Iterate(data, "goalPos", ParseVector3D);
+			xmlreader.Iterate(data, "goalPos", ParseVector3D);
 			goalPos = vec;
 			
 			proj = CreateProjectile(owner->type->projectileType, pos, goalPos);
@@ -826,13 +850,13 @@ namespace Game
 			Utilities::Vector3D focus;
 			float zoom, rotation;
 			
-			xmlfile.Iterate(data, "focus", ParseVector3D);
+			xmlreader.Iterate(data, "focus", ParseVector3D);
 			focus = vec;
 			
-			xmlfile.Iterate(data, "zoom", ParseFloatBlock);
+			xmlreader.Iterate(data, "zoom", ParseFloatBlock);
 			zoom = f;
 			
-			xmlfile.Iterate(data, "rotation", ParseFloatBlock);
+			xmlreader.Iterate(data, "rotation", ParseFloatBlock);
 			rotation = f;
 
 			Rules::GameWindow::Instance()->GetCamera()->SetCamera(focus, zoom, rotation);
@@ -841,43 +865,50 @@ namespace Game
 		void ParseMain(Utilities::XMLData *data)
 		{
 			Environment::FourthDimension* pDimension = Environment::FourthDimension::Instance();
-			xmlfile.Iterate(data, "hour", ParseFloatBlock);
+			xmlreader.Iterate(data, "hour", ParseFloatBlock);
 			pDimension->SetCurrentHour(f);
 
-			xmlfile.Iterate(data, "currentFrame", ParseUint32Block);
+			xmlreader.Iterate(data, "currentFrame", ParseUint32Block);
 			AI::currentFrame = ui;
 			
-			xmlfile.Iterate(data, "camera", ParseCamera);
+			xmlreader.Iterate(data, "camera", ParseCamera);
 			
-			xmlfile.Iterate(data, "aiFps", ParseIntBlock);
+			xmlreader.Iterate(data, "aiFps", ParseIntBlock);
 			AI::aiFps = i;
 
-			xmlfile.Iterate(data, "player", ParsePlayer);
+			xmlreader.Iterate(data, "player", ParsePlayer);
 
-			xmlfile.Iterate(data, "unit", ParseUnit_Pass1);
-			xmlfile.Iterate(data, "unit", ParseUnit_Pass2);
+			xmlreader.Iterate(data, "unit", ParseUnit_Pass1);
+			xmlreader.Iterate(data, "unit", ParseUnit_Pass2);
 
-			xmlfile.Iterate(data, "projectile", ParseProjectile);
+			xmlreader.Iterate(data, "projectile", ParseProjectile);
 		}
 
 		void ParseLevel(Utilities::XMLData *data)
 		{
-			xmlfile.Iterate(data, "level", ParseStringBlock);
+			xmlreader.Iterate(data, "version", ParseIntBlock);
+			if (i != CURRENT_SAVEGAME_VERSION)
+			{
+				std::cout << "Invalid version on save file! This build of Nightfall only loads savegames of version " << CURRENT_SAVEGAME_VERSION << ", while the version of this savegame is " << i << std::endl;
+				Rules::CurrentLevel = "ERROR";
+				return;
+			}
+			xmlreader.Iterate(data, "level", ParseStringBlock);
 			Rules::CurrentLevel = str;
 		}
 
 		void LoadGameSaveFile(std::string filename)
 		{
 			std::cout << "Parsing save game file " << filename << "..." << std::endl;
-			xmlfile.Read(filename);
-			xmlfile.Iterate("nightfall_save_file", ParseLevel);
+			xmlreader.Read(filename);
+			xmlreader.Iterate("nightfall_save_file", ParseLevel);
 		}
 
 		void LoadGame_PostLoad()
 		{
-			xmlfile.Iterate("nightfall_save_file", ParseMain);
+			xmlreader.Iterate("nightfall_save_file", ParseMain);
 #ifndef WIN32
-			xmlfile.Deallocate();
+			xmlreader.Deallocate();
 #endif	
 			AI::SendScheduledUnitEvents();
 			UnitLuaInterface::ApplyScheduledActions();

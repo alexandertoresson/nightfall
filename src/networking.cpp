@@ -2555,9 +2555,17 @@ namespace Game
 			chunk->id[3] = 'N';
 			chunk->length = ACTION_CHUNK_SIZE;
 			chunk->data = data;
-			// right now, the argument of an action can only be a unittype. this might change in the future, though.
 			if (actiondata->arg)
-				arg_id = ((Dimension::UnitType*) actiondata->arg)->index;
+			{
+				if (actiondata->action == Game::AI::ACTION_RESEARCH)
+				{
+					arg_id = ((Dimension::Research*) actiondata->arg)->index;
+				}
+				else
+				{
+					arg_id = ((Dimension::UnitType*) actiondata->arg)->index;
+				}
+			}
 			if (actiondata->arg && arg_id == -1)
 			{
 				delete[] data;
@@ -2611,9 +2619,20 @@ namespace Game
 			}
 			
 			if (arg_id != 0xFFFF)
-				actiondata->arg = unit->owner->vUnitTypes.at(arg_id);
+			{
+				if (actiondata->action == Game::AI::ACTION_RESEARCH)
+				{
+					actiondata->arg = unit->owner->vResearchs.at(arg_id);
+				}
+				else
+				{
+					actiondata->arg = unit->owner->vUnitTypes.at(arg_id);
+				}
+			}
 			else
+			{
 				actiondata->arg = NULL;
+			}
 
 			waitingActions.push_back(actiondata);
 			if (networkType == SERVER)

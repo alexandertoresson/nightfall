@@ -348,5 +348,129 @@ namespace Game
 		{
 			currentPlayerView = p;
 		}
+
+		static struct
+		{
+			std::set<UnitType*> sUnitTypes;
+			std::set<Research*> sResearchs;
+		} notMeetingExistanceReqs;
+
+		void CheckRequirements(Player *player, DisjunctiveRequirements &requirements)
+		{
+			bool isSatisfied = true;
+			for (std::vector<ConjunctiveRequirements>::iterator it_req = requirements.dreqs.begin(); it_req != requirements.dreqs.end(); it_req++)
+			{
+				ConjunctiveRequirements &creq = *it_req;
+				isSatisfied = true;
+				for (std::vector<ResearchRequirement>::iterator it = creq.researchs.begin(); it != creq.researchs.end(); it++)
+				{
+					if (it->research->isResearched != it->desiredState)
+					{
+						isSatisfied = false;
+						break;
+					}
+				}
+
+				if (isSatisfied)
+				{
+					for (std::vector<UnitRequirement>::iterator it = creq.units.begin(); it != creq.units.end(); it++)
+					{
+						UnitType* unitType = it->type;
+						if (unitType->numBuilt > it->maxBuilt || unitType->numBuilt < it->minBuilt ||
+					    	    unitType->numExisting > it->maxExisting || unitType->numExisting < it->minExisting)
+						{
+							isSatisfied = false;
+							break;
+						}
+					}
+				}
+
+				if (isSatisfied)
+				{
+					break;
+				}
+			}
+			requirements.isSatisfied = isSatisfied;
+		}
+
+		void CheckObjectRequirements(Player *player, ObjectRequirements &requirements)
+		{
+			CheckRequirements(player, requirements.creation);
+			CheckRequirements(player, requirements.existance);
+		}
+
+		void RecheckAllRequirements(Player *player)
+		{
+			for (std::vector<Research*>::iterator it = player->vResearchs.begin(); it != player->vResearchs.end(); it++)
+			{
+				Research* research = *it;
+				CheckObjectRequirements(player, research->requirements);
+				if (!research->requirements.existance.isSatisfied && research->isResearched)
+				{
+					notMeetingExistanceReqs.sResearchs.insert(research);
+				}
+			}
+
+			for (std::vector<UnitType*>::iterator it = player->vUnitTypes.begin(); it != player->vUnitTypes.end(); it++)
+			{
+				UnitType* unitType = *it;
+				CheckObjectRequirements(player, unitType->requirements);
+				if (!unitType->requirements.existance.isSatisfied && unitType->numExisting)
+				{
+					notMeetingExistanceReqs.sUnitTypes.insert(unitType);
+				}
+			}
+			
+		}
+		
+		void EnforceMinimumExistanceRequirements()
+		{
+			int n = 0;
+			while ((notMeetingExistanceReqs.sResearchs.size() || notMeetingExistanceReqs.sUnitTypes.size()) && n < 5)
+			{
+				std::set<Research*> &researchs = notMeetingExistanceReqs.sResearchs;
+				std::set<UnitType*> &unitTypes = notMeetingExistanceReqs.sUnitTypes;
+				for (std::set<Research*>::iterator it = researchs.begin(); it != researchs.end(); it++)
+				{
+					Research* research = *it;
+					research->isResearched = false;
+
+ 					if (research->luaEffectObj.length())
+ 					{
+ 						lua_State *pVM = research->player->aiState.GetState();
+
+						// Make the luawrapper code believe that we're calling this function...
+						research->player->aiState.SetCurFunction(research->luaEffectObj + ".undo");
+
+						// Get the "apply" function from the user-supplied table
+ 						lua_getglobal(pVM, research->luaEffectObj.c_str());
+ 						lua_getfield(pVM, -1, "undo");
+ 						lua_pushlightuserdata(pVM, research->player);
+ 						research->player->aiState.CallFunction(1);
+ 					}
+				}
+				for (std::set<UnitType*>::iterator it = unitTypes.begin(); it != unitTypes.end(); it++)
+				{
+					for (unsigned i = 0; i < pWorld->vUnits.size(); )
+					{
+						Unit* unit = pWorld->vUnits[i];
+						if (unit->type == *it && unit->isDisplayed)
+						{
+							DeleteUnit(unit);
+						}
+						else
+						{
+							i++;
+						}
+					}
+				}
+				for (std::vector<Player*>::iterator it = pWorld->vPlayers.begin(); it != pWorld->vPlayers.end(); it++)
+				{
+					RecheckAllRequirements(*it);
+				}
+				n++;
+			}
+		}
+		
 	}
 }

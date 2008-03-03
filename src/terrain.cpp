@@ -719,7 +719,6 @@ namespace Game
 						{
 							if (HeightMipmaps[0][0].ppSquareHasWater[y*q_square_size+y2][x*q_square_size+x2])
 							{
-								cout << x*q_square_size+x2 << " " << y*q_square_size+y2 << endl;
 								big_square_has_water[y][x] = true;
 								numbigwater += 1;
 								goto next_big_square;

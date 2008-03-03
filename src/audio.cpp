@@ -918,20 +918,17 @@ namespace Audio
 
 	SoundListNode* CreateSoundNode(Sound* pSound, float x, float y, float dx, float dy, float strength, int numPlay)
 	{
-		if (soundIsEnabled)
-		{
-			if (pSound == NULL)
-				return NULL;
+		if (pSound == NULL)
+			return NULL;
 
-			SoundNode* pNode = new SoundNode(pSound, x, y, dx, dy, strength, numPlay);
-			if (!pNode)
-				return NULL;
-				
-			pNode->pSpeaker = NULL;
+		SoundNode* pNode = new SoundNode(pSound, x, y, dx, dy, strength, numPlay);
+		if (!pNode)
+			return NULL;
+			
+		pNode->pSpeaker = NULL;
 
-			return (SoundListNode*)pNodesList->Add(pNode);
-		}
-		
+		return (SoundListNode*)pNodesList->Add(pNode);
+	
 		return NULL;
 	}
 

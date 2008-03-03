@@ -546,7 +546,7 @@ namespace UnitLuaInterface
 #define LUA_FAILURE(x) \
 	{ \
 		lua_pushboolean(pVM, 0); \
-		std::cout << "[LUA] Failure: " x << std::endl; \
+		std::cout << "[LUA] Failure: " << __FUNCTION__ << ": " <<  x << std::endl; \
 		return 1; \
 	}
 
@@ -623,19 +623,7 @@ namespace UnitLuaInterface
 		int cost = 0;
 
 		if (pUnitType)
-			cost = pUnitType->buildCost;
-
-		lua_pushinteger(pVM, cost);
-		return 1;
-	}
-	
-	int LGetUnitTypeResearchCost(lua_State* pVM)
-	{
-		UnitType* pUnitType = (UnitType*) lua_touserdata(pVM, 1);
-		int cost = 0;
-
-		if (pUnitType)
-			cost = pUnitType->researchCost;
+			cost = pUnitType->requirements.money;
 
 		lua_pushinteger(pVM, cost);
 		return 1;
@@ -643,20 +631,21 @@ namespace UnitLuaInterface
 	
 	int LIsResearched(lua_State* pVM)
 	{
-		Player* player = (Player*) lua_touserdata(pVM, 1);
+/*		Player* player = (Player*) lua_touserdata(pVM, 1);
 		UnitType* pUnitType = (UnitType*) lua_touserdata(pVM, 2);
 		if (pUnitType == NULL)
 		{
 			lua_pushboolean(pVM, false);
 			return 1;
 		}
-		lua_pushboolean(pVM, pUnitType->isResearched[player->index]);
+		lua_pushboolean(pVM, pUnitType->isResearched[player->index]);*/
+		lua_pushboolean(pVM, false);
 		return 1;
 	}
 	
 	int LGetResearcher(lua_State* pVM)
 	{
-		UnitType* pUnitType = (UnitType*) lua_touserdata(pVM, 1);
+/*		UnitType* pUnitType = (UnitType*) lua_touserdata(pVM, 1);
 		Player *player = GetPlayerByVMstate(pVM);
 		for (vector<UnitType*>::iterator it = player->vUnitTypes.begin(); it != player->vUnitTypes.end(); it++)
 		{
@@ -668,7 +657,7 @@ namespace UnitLuaInterface
 					return 1;
 				}
 			}
-		}
+		}*/
 		lua_pushlightuserdata(pVM, NULL);
 		return 1;
 	}
@@ -1029,14 +1018,14 @@ namespace UnitLuaInterface
 
 		if (!handler)
 		{
-			LUA_FAILURE("LSetEventHandler: Null pointer handler string received")
+			LUA_FAILURE("Null pointer handler string received")
 		}
 
 		std::string handlerString = (std::string) handler;
 
 		if (!context)
 		{
-			LUA_FAILURE("LSetEventHandler: Null pointer context received")
+			LUA_FAILURE("Null pointer context received")
 		}
 
 		if (IsValidUnitTypePointer((UnitType*)context))
@@ -1048,36 +1037,36 @@ namespace UnitLuaInterface
 				switch (eventtype)
 				{
 					case EVENTTYPE_COMMANDCOMPLETED:
-						unittype->unitAIFuncs[player->index].commandCompleted.func = handlerString;
+						unittype->unitAIFuncs.commandCompleted.func = handlerString;
 						break;
 					case EVENTTYPE_COMMANDCANCELLED:
-						unittype->unitAIFuncs[player->index].commandCancelled.func = handlerString;
+						unittype->unitAIFuncs.commandCancelled.func = handlerString;
 						break;
 					case EVENTTYPE_NEWCOMMAND:
-						unittype->unitAIFuncs[player->index].newCommand.func = handlerString;
+						unittype->unitAIFuncs.newCommand.func = handlerString;
 						break;
 					case EVENTTYPE_BECOMEIDLE:
-						unittype->unitAIFuncs[player->index].becomeIdle.func = handlerString;
+						unittype->unitAIFuncs.becomeIdle.func = handlerString;
 						break;
 					case EVENTTYPE_ISATTACKED:
-						unittype->unitAIFuncs[player->index].isAttacked.func = handlerString;
+						unittype->unitAIFuncs.isAttacked.func = handlerString;
 						break;
 					case EVENTTYPE_UNITKILLED:
-						unittype->unitAIFuncs[player->index].unitKilled.func = handlerString;
+						unittype->unitAIFuncs.unitKilled.func = handlerString;
 						break;
 					case EVENTTYPE_PERFORMUNITAI:
-						unittype->unitAIFuncs[player->index].performUnitAI.func = handlerString;
+						unittype->unitAIFuncs.performUnitAI.func = handlerString;
 						break;
 					case EVENTTYPE_UNITCREATION:
-						unittype->playerAIFuncs[player->index].unitCreation.func = handlerString;
+						unittype->playerAIFuncs.unitCreation.func = handlerString;
 						break;
 					default:
-						LUA_FAILURE("LSetEventHandler: Event type not valid for unit type")
+						LUA_FAILURE("Event type not valid for unit type")
 				}
 			}
 			else
 			{
-				LUA_FAILURE("LSetEventHandler: Invalid player pointer received")
+				LUA_FAILURE("Invalid player pointer received")
 			}
 		}
 		else if (IsValidPlayerPointer((Player*)context))
@@ -1113,7 +1102,7 @@ namespace UnitLuaInterface
 					player->playerAIFuncs.performPlayerAI.func = handlerString;
 					break;
 				default:
-					LUA_FAILURE("LSetEventHandler: Event type not valid for player")
+					LUA_FAILURE("Event type not valid for player")
 			}
 		}
 		else if (IsDisplayedUnitPointer(_GetUnit(context)))
@@ -1143,12 +1132,12 @@ namespace UnitLuaInterface
 					unit->unitAIFuncs.performUnitAI.func = handlerString;
 					break;
 				default:
-					LUA_FAILURE("LSetEventHandler: Event type not valid for unit")
+					LUA_FAILURE("Event type not valid for unit")
 			}
 		}
 		else
 		{
-			LUA_FAILURE("LSetEventHandler: Invalid pointer received")
+			LUA_FAILURE("Invalid pointer received")
 		}
 
 		LUA_SUCCESS
@@ -1162,7 +1151,7 @@ namespace UnitLuaInterface
 
 		if (!context)
 		{
-			LUA_FAILURE("LSetRegularAIDelay: Null pointer context received")
+			LUA_FAILURE("Null pointer context received")
 		}
 		
 		if (IsValidUnitTypePointer((UnitType*)context))
@@ -1173,16 +1162,16 @@ namespace UnitLuaInterface
 			{
 				if (eventtype == EVENTTYPE_PERFORMUNITAI)
 				{
-					unittype->unitAIFuncs[player->index].performUnitAI.delay = delay;
+					unittype->unitAIFuncs.performUnitAI.delay = delay;
 				}
 				else
 				{
-					LUA_FAILURE("LSetRegularAIDelay: Event type not valid for unit type")
+					LUA_FAILURE("Event type not valid for unit type")
 				}
 			}
 			else
 			{
-				LUA_FAILURE("LSetEventHandler: Invalid player pointer received")
+				LUA_FAILURE("Invalid player pointer received")
 			}
 		}
 		else if (IsValidPlayerPointer((Player*)context))
@@ -1198,7 +1187,7 @@ namespace UnitLuaInterface
 			}
 			else
 			{
-				LUA_FAILURE("LSetRegularAIDelay: Event type not valid for player")
+				LUA_FAILURE("Event type not valid for player")
 			}
 		}
 		else if (IsDisplayedUnitPointer(_GetUnit(context)))
@@ -1210,12 +1199,12 @@ namespace UnitLuaInterface
 			}
 			else
 			{
-				LUA_FAILURE("LSetRegularAIDelay: Event type not valid for unit")
+				LUA_FAILURE("Event type not valid for unit")
 			}
 		}
 		else
 		{
-			LUA_FAILURE("LSetRegularAIDelay: Invalid pointer received")
+			LUA_FAILURE("Invalid pointer received")
 		}
 
 		LUA_SUCCESS
@@ -1229,7 +1218,7 @@ namespace UnitLuaInterface
 
 		if (!context)
 		{
-			LUA_FAILURE("LSetRegularAIEnabled: Null pointer context received")
+			LUA_FAILURE("Null pointer context received")
 		}
 		
 		if (IsValidUnitTypePointer((UnitType*)context))
@@ -1240,16 +1229,16 @@ namespace UnitLuaInterface
 			{
 				if (eventtype == EVENTTYPE_PERFORMUNITAI)
 				{
-					unittype->unitAIFuncs[player->index].performUnitAI.enabled = enabled;
+					unittype->unitAIFuncs.performUnitAI.enabled = enabled;
 				}
 				else
 				{
-					LUA_FAILURE("LSetRegularAIEnabled: Event type not valid for unit type")
+					LUA_FAILURE("Event type not valid for unit type")
 				}
 			}
 			else
 			{
-				LUA_FAILURE("LSetEventHandler: Invalid player pointer received")
+				LUA_FAILURE("Invalid player pointer received")
 			}
 		}
 		else if (IsValidPlayerPointer((Player*)context))
@@ -1265,7 +1254,7 @@ namespace UnitLuaInterface
 			}
 			else
 			{
-				LUA_FAILURE("LSetRegularAIEnabled: Event type not valid for player")
+				LUA_FAILURE("Event type not valid for player")
 			}
 		}
 		else if (IsDisplayedUnitPointer(_GetUnit(context)))
@@ -1277,12 +1266,12 @@ namespace UnitLuaInterface
 			}
 			else
 			{
-				LUA_FAILURE("LSetRegularAIEnabled: Event type not valid for unit")
+				LUA_FAILURE("Event type not valid for unit")
 			}
 		}
 		else
 		{
-			LUA_FAILURE("LSetRegularAIEnabled: Invalid pointer received")
+			LUA_FAILURE("Invalid pointer received")
 		}
 
 		LUA_SUCCESS
@@ -1510,29 +1499,29 @@ namespace UnitLuaInterface
 		{
 			if (ret == FILE_DOES_NOT_EXIST)
 				std::cout << filename << " doesn't exist!!!!" << std::endl;
-			LUA_FAILURE("LLoadHeightmap: Error during world load")
+			LUA_FAILURE("Error during world load")
 		}
 		
-		LUA_FAILURE("LLoadHeightmap: Should never happen!") // << huh, should never happen
+		LUA_FAILURE("Should never happen!") // << huh, should never happen
 	}
 	
 	int LSetHeightmapModifier(lua_State* pVM)
 	{
 		if (lua_isnil(pVM, 1))
 		{
-			LUA_FAILURE("LSetHeightmapModifier: Incorrect arguments")
+			LUA_FAILURE("Incorrect arguments")
 		}
 		
 		if (!lua_isnumber(pVM, 1))
 		{
-			LUA_FAILURE("LSetHeightmapModifier: First argument no number")
+			LUA_FAILURE("First argument no number")
 		}
 		
 		float value = (float)lua_tonumber(pVM, 1);
 		
 		if (value < 0)
 		{
-			LUA_FAILURE("LSetHeightmapModifier: Invalid argument, below zero")
+			LUA_FAILURE("Invalid argument, below zero")
 		}
 		
 		Game::Dimension::terrainHeight = value;
@@ -1543,19 +1532,19 @@ namespace UnitLuaInterface
 	{
 		if (lua_isnil(pVM, 1))
 		{
-			LUA_FAILURE("LSetMaximumBuildingAltitude: Incorrect arguments")
+			LUA_FAILURE("Incorrect arguments")
 		}
 		
 		if (!lua_isnumber(pVM, 1))
 		{
-			LUA_FAILURE("LSetMaxiumBuildingAltitude: Firsta rgument no number")
+			LUA_FAILURE("Firsta argument no number")
 		}
 		
 		GLfloat value = (GLfloat)lua_tonumber(pVM, 1);
 		
 		if (value > 1.0f || value <= -1.0f)
 		{
-			LUA_FAILURE("LSetMaximumBuildingAltitude: Invalid altitude. Using preset.")
+			LUA_FAILURE("Invalid altitude. Using preset.")
 		}
 		
 		Game::Dimension::unitBuildingMaximumAltitude = value;
@@ -1605,26 +1594,26 @@ namespace UnitLuaInterface
 
 		if (!lua_isboolean(pVM, 1))
 		{
-			LUA_FAILURE("LSetTerrainAmbientDiffuse: First argument no boolean")
+			LUA_FAILURE("First argument no boolean")
 		}
 
 		if (!lua_isboolean(pVM, 2))
 		{
-			LUA_FAILURE("LSetTerrainAmbientDiffuse: Second argument no boolean")
+			LUA_FAILURE("Second argument no boolean")
 		}
 
 		for (int i = 3; i <= 6; i++)
 		{
 			if (!lua_isnumber(pVM, i))
 			{
-				LUA_FAILURE("LSetTerrainAmbientDiffuse: Invalid arguments. No numeric values.")
+				LUA_FAILURE("Invalid arguments. No numeric values.")
 			}
 
 			GLfloat tmp = (GLfloat)lua_tonumber(pVM, i);
 
 			if (tmp < 0 || tmp > 1.0f)
 			{
-				LUA_FAILURE("LSetTerrainAmbientDiffuse: Invalid colour range. Valid range: 0 - 1.0")
+				LUA_FAILURE("Invalid colour range. Valid range: 0 - 1.0")
 			}
 		}
 
@@ -1665,14 +1654,14 @@ namespace UnitLuaInterface
 		{
 			if (!lua_isnumber(pVM, i))
 			{
-				LUA_FAILURE("LSetTerrainSpecular: Invalid arguments. No numeric values")
+				LUA_FAILURE("Invalid arguments. No numeric values")
 			}
 
 			GLfloat tmp = (GLfloat)lua_tonumber(pVM, i);
 
 			if (tmp < 0 || tmp > 1.0f)
 			{
-				LUA_FAILURE("LSetTerrainSpecular: Invalid colour range. Valid range: 0 - 1.0")
+				LUA_FAILURE("Invalid colour range. Valid range: 0 - 1.0")
 			}
 		}
 
@@ -1692,14 +1681,14 @@ namespace UnitLuaInterface
 		{
 			if (!lua_isnumber(pVM, i))
 			{
-				LUA_FAILURE("LSetTerrainEmission: Invalid arguments. No numeric values")
+				LUA_FAILURE("Invalid arguments. No numeric values")
 			}
 
 			GLfloat tmp = (GLfloat)lua_tonumber(pVM, i);
 
 			if (tmp < 0 || tmp > 1.0f)
 			{
-				LUA_FAILURE("LSetTerrainEmission: Invalid colour range. Valid range: 0 - 1.0")
+				LUA_FAILURE("Invalid colour range. Valid range: 0 - 1.0")
 			}
 		}
 
@@ -1715,12 +1704,12 @@ namespace UnitLuaInterface
 	{
 		if (lua_isnil(pVM, 1))
 		{
-			LUA_FAILURE("LSetTerrainShininess: Incorrect argument count")
+			LUA_FAILURE("Incorrect argument count")
 		}
 
 		if (!lua_isnumber(pVM, 1))
 		{
-			LUA_FAILURE("LSetTerrainShininess: First argument no number")
+			LUA_FAILURE("First argument no number")
 		}
 
 		Game::Dimension::terrainMaterialShininess = (GLfloat)lua_tonumber(pVM, 1);
@@ -1732,12 +1721,12 @@ namespace UnitLuaInterface
 	{
 		if (lua_isnil(pVM, 1))
 		{
-			LUA_FAILURE("LSetWaterLevel: Incorrect arguments")
+			LUA_FAILURE("Incorrect arguments")
 		}
 		
 		if (!lua_isnumber(pVM, 1))
 		{
-			LUA_FAILURE("LSetWaterLevel: First argument no string")
+			LUA_FAILURE("First argument no string")
 		}
 		
 		float value = (float)lua_tonumber(pVM, 1);
@@ -1750,12 +1739,12 @@ namespace UnitLuaInterface
 	{
 		if (lua_isnil(pVM, 1))
 		{
-			LUA_FAILURE("LSetWaterHeight: Incorrect arguments")
+			LUA_FAILURE("Incorrect arguments")
 		}
 		
 		if (!lua_isnumber(pVM, 1))
 		{
-			LUA_FAILURE("LSetWaterHeight: First argument no string")
+			LUA_FAILURE("First argument no string")
 		}
 		
 		float value = (float)lua_tonumber(pVM, 1);
@@ -1770,26 +1759,26 @@ namespace UnitLuaInterface
 
 		if (!lua_isboolean(pVM, 1))
 		{
-			LUA_FAILURE("LSetWaterAmbientDiffuse: First argument no boolean")
+			LUA_FAILURE("First argument no boolean")
 		}
 
 		if (!lua_isboolean(pVM, 2))
 		{
-			LUA_FAILURE("LSetWaterAmbientDiffuse: Second argument no boolean")
+			LUA_FAILURE("Second argument no boolean")
 		}
 
 		for (int i = 3; i <= 6; i++)
 		{
 			if (!lua_isnumber(pVM, i))
 			{
-				LUA_FAILURE("LSetWaterAmbientDiffuse: Invalid arguments. No numeric values.")
+				LUA_FAILURE("Invalid arguments. No numeric values.")
 			}
 
 			GLfloat tmp = (GLfloat)lua_tonumber(pVM, i);
 
 			if (tmp < 0 || tmp > 1.0f)
 			{
-				LUA_FAILURE("LSetWaterAmbientDiffuse: Invalid colour range. Valid range: 0 - 1.0")
+				LUA_FAILURE("Invalid colour range. Valid range: 0 - 1.0")
 			}
 		}
 
@@ -1830,14 +1819,14 @@ namespace UnitLuaInterface
 		{
 			if (!lua_isnumber(pVM, i))
 			{
-				LUA_FAILURE("LSetWaterSpecular: Invalid arguments. No numeric values")
+				LUA_FAILURE("Invalid arguments. No numeric values")
 			}
 
 			GLfloat tmp = (GLfloat)lua_tonumber(pVM, i);
 
 			if (tmp < 0 || tmp > 1.0f)
 			{
-				LUA_FAILURE("LSetWaterSpecular: Invalid colour range. Valid range: 0 - 1.0")
+				LUA_FAILURE("Invalid colour range. Valid range: 0 - 1.0")
 			}
 		}
 
@@ -1857,14 +1846,14 @@ namespace UnitLuaInterface
 		{
 			if (!lua_isnumber(pVM, i))
 			{
-				LUA_FAILURE("LSetWaterEmission: Invalid arguments. No numeric values")
+				LUA_FAILURE("Invalid arguments. No numeric values")
 			}
 
 			GLfloat tmp = (GLfloat)lua_tonumber(pVM, i);
 
 			if (tmp < 0 || tmp > 1.0f)
 			{
-				LUA_FAILURE("LSetWaterEmission: Invalid colour range. Valid range: 0 - 1.0")
+				LUA_FAILURE("Invalid colour range. Valid range: 0 - 1.0")
 			}
 		}
 
@@ -1880,12 +1869,12 @@ namespace UnitLuaInterface
 	{
 		if (lua_isnil(pVM, 1))
 		{
-			LUA_FAILURE("LSetWaterShininess: Incorrect argument count")
+			LUA_FAILURE("Incorrect argument count")
 		}
 		
 		if (!lua_isnumber(pVM, 1))
 		{
-			LUA_FAILURE("LSetWaterShininess: First argument no number")
+			LUA_FAILURE("First argument no number")
 		}
 
 		Game::Dimension::waterMaterialShininess = (GLfloat)lua_tonumber(pVM, 1);
@@ -1903,14 +1892,14 @@ namespace UnitLuaInterface
 		{
 			if (!lua_isnumber(pVM, i))
 			{
-				LUA_FAILURE("LSetWaterColor: non-numeric values was provided")
+				LUA_FAILURE("non-numeric values was provided")
 			}
 			
 			values[i - 1] = (GLfloat)lua_tonumber(pVM, i);
 			
 			if (values[i - 1] > 1.0f || values[ i - 1 ] < 0)
 			{
-				LUA_FAILURE("LSetWaterColor: invalid value (too high/low)")
+				LUA_FAILURE("invalid value (too high/low)")
 			}
 		}
 		
@@ -1924,19 +1913,19 @@ namespace UnitLuaInterface
 	{
 		if (lua_isnil(pVM, 1))
 		{
-			LUA_FAILURE("LPrepareGUI: Incorrect arguments")
+			LUA_FAILURE("Incorrect arguments")
 		}
 		
 		if (!lua_isuserdata(pVM, 1))
 		{
-			LUA_FAILURE("LPrepareGUI: First argument no pointer")
+			LUA_FAILURE("First argument no pointer")
 		}
 		
 		SDL_Surface* p = (SDL_Surface*) lua_touserdata(pVM, 1);
 		
 		if (p == NULL)
 		{
-			LUA_FAILURE("LPrepareGUI: Null pointer")
+			LUA_FAILURE("Null pointer")
 		}
 		
 		Game::Rules::GameWindow::Instance()->InitGUI(p);
@@ -1950,12 +1939,12 @@ namespace UnitLuaInterface
 	{
 		if (lua_isnil(pVM, 1))
 		{
-			LUA_FAILURE("LFreeSurface: Incorrect arguments")
+			LUA_FAILURE("Incorrect arguments")
 		}
 		
 		if (!lua_isuserdata(pVM, 1))
 		{
-			LUA_FAILURE("LFreeSurface: First argument no pointer")
+			LUA_FAILURE("First argument no pointer")
 		}
 		
 		SDL_Surface* p = (SDL_Surface*) lua_touserdata(pVM, 1);
@@ -1990,20 +1979,20 @@ namespace UnitLuaInterface
 		
 		if (!lua_isuserdata(pVM, 1))
 		{
-			LUA_FAILURE("LSetHours: First argument no pointer")
+			LUA_FAILURE("First argument no pointer")
 		}
 		
 		if (!lua_isnumber(pVM, 2) ||
 			!lua_isnumber(pVM, 3))
 		{
-			LUA_FAILURE("LSetHours: Second or third argument no number")
+			LUA_FAILURE("Second or third argument no number")
 		}
 		
 		GET_ENVIRONMENTAL_CONDITION(1, p)
 		
 		if (p == NULL)
 		{
-			LUA_FAILURE("LSetHours: Null pointer")
+			LUA_FAILURE("Null pointer")
 		}
 		
 		p->hourBegin = (float) lua_tonumber(pVM, 2);
@@ -2018,19 +2007,19 @@ namespace UnitLuaInterface
 		
 		if (!lua_isuserdata(pVM, 1))
 		{
-			LUA_FAILURE("LSetType: First argument no pointer")
+			LUA_FAILURE("First argument no pointer")
 		}
 		
 		if (!lua_isstring(pVM, 2))
 		{
-			LUA_FAILURE("LSetType: Incorrect arguments")
+			LUA_FAILURE("Incorrect arguments")
 		}
 		
 		GET_ENVIRONMENTAL_CONDITION(1, p)
 		
 		if (p == NULL)
 		{
-			LUA_FAILURE("LSetType: Null pointer")
+			LUA_FAILURE("Null pointer")
 		}
 		
 		const char* type = lua_tostring(pVM, 2);
@@ -2045,7 +2034,7 @@ namespace UnitLuaInterface
 			p->isDusk = true;
 		else
 		{
-			LUA_FAILURE("LSetType: Invalid environmental condition type")
+			LUA_FAILURE("Invalid environmental condition type")
 		}
 		
 		LUA_SUCCESS
@@ -2057,19 +2046,19 @@ namespace UnitLuaInterface
 		
 		if (!lua_isuserdata(pVM, 1))
 		{
-			LUA_FAILURE("LSetMusicList: First argument no pointer")
+			LUA_FAILURE("First argument no pointer")
 		}
 		
 		if (!lua_isstring(pVM, 2))
 		{
-			LUA_FAILURE("LSetMusicList: Second argument no string")
+			LUA_FAILURE("Second argument no string")
 		}
 		
 		GET_ENVIRONMENTAL_CONDITION(1, p)
 		
 		if (p == NULL)
 		{
-			LUA_FAILURE("LSetMusicList: Null pointer")
+			LUA_FAILURE("Null pointer")
 		}
 		
 		p->musicListTag = lua_tostring(pVM, 2);
@@ -2083,26 +2072,26 @@ namespace UnitLuaInterface
 		
 		if (!lua_isuserdata(pVM, 1))
 		{
-			LUA_FAILURE("LSetSkybox: First argument no pointer")
+			LUA_FAILURE("First argument no pointer")
 		}
 		
 		if (!lua_isstring(pVM, 2))
 		{
-			LUA_FAILURE("LSetSkybox: Second argument no string")
+			LUA_FAILURE("Second argument no string")
 		}
 		
 		GET_ENVIRONMENTAL_CONDITION(1, p)
 		
 		if (p == NULL)
 		{
-			LUA_FAILURE("LSetSkybox: Null pointer")
+			LUA_FAILURE("Null pointer")
 		}
 		
 		int idx = Game::Dimension::Environment::FourthDimension::Instance()->GetSkybox(lua_tostring(pVM, 2));
 		
 		if (idx == -1)
 		{
-			LUA_FAILURE("LSetSkybox: Invalid skybox tag")
+			LUA_FAILURE("Invalid skybox tag")
 		}
 		
 		p->skybox = idx;
@@ -2116,14 +2105,14 @@ namespace UnitLuaInterface
 		
 		if (!lua_isuserdata(pVM, 1))
 		{
-			LUA_FAILURE("LSetSunPos: First argument no pointer")
+			LUA_FAILURE("First argument no pointer")
 		}
 		
 		for (int i = 2; i < 6; i++)
 		{
 			if (!lua_isnumber(pVM, i))
 			{
-				LUA_FAILURE("LSetSunPos: Invalid arguments")
+				LUA_FAILURE("Invalid arguments")
 			}
 		}
 		
@@ -2131,7 +2120,7 @@ namespace UnitLuaInterface
 		
 		if (p == NULL)
 		{
-			LUA_FAILURE("LSetSunPos: Null pointer")
+			LUA_FAILURE("Null pointer")
 		}
 		
 		for (int i = 0; i < 4; i++)
@@ -2148,14 +2137,14 @@ namespace UnitLuaInterface
 		
 		if (!lua_isuserdata(pVM, 1))
 		{
-			LUA_FAILURE("LSetDiffuse: First argument no pointer")
+			LUA_FAILURE("First argument no pointer")
 		}
 		
 		for (int i = 2; i < 6; i++)
 		{
 			if (!lua_isnumber(pVM, i))
 			{
-				LUA_FAILURE("LSetDiffuse: Invalid arguments")
+				LUA_FAILURE("Invalid arguments")
 			}
 		}
 		
@@ -2163,7 +2152,7 @@ namespace UnitLuaInterface
 		
 		if (p == NULL)
 		{
-			LUA_FAILURE("LSetDiffuse: Null pointer")
+			LUA_FAILURE("Null pointer")
 		}
 		
 		for (int i = 0; i < 4; i++)
@@ -2180,14 +2169,14 @@ namespace UnitLuaInterface
 		
 		if (!lua_isuserdata(pVM, 1))
 		{
-			LUA_FAILURE("LSetAmbient: First argument no pointer")
+			LUA_FAILURE("First argument no pointer")
 		}
 		
 		for (int i = 2; i < 6; i++)
 		{
 			if (!lua_isnumber(pVM, i))
 			{
-				LUA_FAILURE("LSetAmbient: Invalid arguments")
+				LUA_FAILURE("Invalid arguments")
 			}
 		}
 		
@@ -2195,7 +2184,7 @@ namespace UnitLuaInterface
 		
 		if (p == NULL)
 		{
-			LUA_FAILURE("LSetAmbient: Null pointer")
+			LUA_FAILURE("Null pointer")
 		}
 		
 		for (int i = 0; i < 4; i++)
@@ -2212,14 +2201,14 @@ namespace UnitLuaInterface
 		
 		if (!lua_isuserdata(pVM, 1))
 		{
-			LUA_FAILURE("LSetFogParams: First argument no pointer")
+			LUA_FAILURE("First argument no pointer")
 		}
 		
 		for (int i = 2; i < 5; i++)
 		{
 			if (!lua_isnumber(pVM, i))
 			{
-				LUA_FAILURE("LSetFogParams: Invalid arguments")
+				LUA_FAILURE("Invalid arguments")
 			}
 		}
 		
@@ -2227,7 +2216,7 @@ namespace UnitLuaInterface
 		
 		if (p == NULL)
 		{
-			LUA_FAILURE("LSetFogParams: Null pointer")
+			LUA_FAILURE("Null pointer")
 		}
 		
 		p->fogBegin     = (float) lua_tonumber(pVM, 2);
@@ -2243,14 +2232,14 @@ namespace UnitLuaInterface
 		
 		if (!lua_isuserdata(pVM, 1))
 		{
-			LUA_FAILURE("LSetFogColor: First argument no pointer")
+			LUA_FAILURE("First argument no pointer")
 		}
 		
 		for (int i = 2; i < 6; i++)
 		{
 			if (!lua_isnumber(pVM, i))
 			{
-				LUA_FAILURE("LSetFogColor: Invalid arguments")
+				LUA_FAILURE("Invalid arguments")
 			}
 		}
 		
@@ -2258,7 +2247,7 @@ namespace UnitLuaInterface
 		
 		if (p == NULL)
 		{
-			LUA_FAILURE("LSetFogColor: Null pointer")
+			LUA_FAILURE("Null pointer")
 		}
 		
 		for (int i = 0; i < 4; i++)
@@ -2273,14 +2262,14 @@ namespace UnitLuaInterface
 	{
 		if (lua_isnil(pVM, 1))
 		{
-			LUA_FAILURE("LAddEnvironmentalCondition: Incorrect arguments")
+			LUA_FAILURE("Incorrect arguments")
 		}
 		
 		GET_ENVIRONMENTAL_CONDITION(1, p)
 		
 		if (p == NULL)
 		{
-			LUA_FAILURE("LAddEnvironmentalCondition: Null pointer")
+			LUA_FAILURE("Null pointer")
 		}
 		
 		Game::Dimension::Environment::FourthDimension::Instance()->AddCondition(p);
@@ -2303,7 +2292,7 @@ namespace UnitLuaInterface
 		if (!lua_isnumber(pVM, 1) ||
 		    !lua_isnumber(pVM, 2))
 		{
-			LUA_FAILURE("LInitSkybox: Invalid arguments")
+			LUA_FAILURE("Invalid arguments")
 		}
 	
 		int detail  = (int)lua_tonumber(pVM, 1),
@@ -2311,7 +2300,7 @@ namespace UnitLuaInterface
 			
 		if (detail > 100 || hdetail > 50)
 		{
-			LUA_FAILURE("LInitSkybox: Too detailed skybox")
+			LUA_FAILURE("Too detailed skybox")
 		}
 	
 		Game::Dimension::Environment::FourthDimension::Instance()->InitSkyBox(detail, hdetail);
@@ -2323,19 +2312,19 @@ namespace UnitLuaInterface
 	{
 		if (lua_isnil(pVM, 1))
 		{
-			LUA_FAILURE("LSetDayLength: Invalid arguments")
+			LUA_FAILURE("Invalid arguments")
 		}
 		
 		if (!lua_isnumber(pVM, 1))
 		{
-			LUA_FAILURE("LSetDayLength: First argument no number")
+			LUA_FAILURE("First argument no number")
 		}
 		
 		double length = lua_tonumber(pVM, 1);
 		
 		if (length < 0 || length > 1000)
 		{
-			LUA_FAILURE("LSetDayLength: Invalid value")
+			LUA_FAILURE("Invalid value")
 		}
 		
 		Game::Dimension::Environment::FourthDimension::Instance()->SetDayLength((int)length);
@@ -2347,19 +2336,19 @@ namespace UnitLuaInterface
 	{
 		if (lua_isnil(pVM, 1))
 		{
-			LUA_FAILURE("LSetHourLength: Invalid arguments")
+			LUA_FAILURE("Invalid arguments")
 		}
 		
 		if (!lua_isnumber(pVM, 1))
 		{
-			LUA_FAILURE("LSetHourLength: First argument no number")
+			LUA_FAILURE("First argument no number")
 		}
 		
 		double length = lua_tonumber(pVM, 1);
 		
 		if (length < 0 || length > 1000)
 		{
-			LUA_FAILURE("LSetHourLength: Invalid value")
+			LUA_FAILURE("Invalid value")
 		}
 		
 		Game::Dimension::Environment::FourthDimension::Instance()->SetHourLength((float)length);
@@ -2371,12 +2360,12 @@ namespace UnitLuaInterface
 	{
 		if (lua_isnil(pVM, 1))
 		{
-			LUA_FAILURE("LSetCurrentHour: Incorrect arguments")
+			LUA_FAILURE("Incorrect arguments")
 		}
 		
 		if (!lua_isnumber(pVM, 1))
 		{
-			LUA_FAILURE("LSetCurrentHour: Incorrect arguments")
+			LUA_FAILURE("Incorrect arguments")
 		}
 		
 		int n = (int)lua_tonumber(pVM, 1);
@@ -2385,7 +2374,7 @@ namespace UnitLuaInterface
 		
 		if (n < 0 || n > p->GetDayLength())
 		{
-			LUA_FAILURE("LSetCurrentHour: Invalid value")
+			LUA_FAILURE("Invalid value")
 		}
 	
 		p->SetCurrentHour((float)n);
@@ -2397,19 +2386,19 @@ namespace UnitLuaInterface
 	{
 		if (lua_isnil(pVM, 1))
 		{
-			LUA_FAILURE("LFocusCameraOnUnit: Incorrect arguments")
+			LUA_FAILURE("Incorrect arguments")
 		}
 
 		if (!lua_islightuserdata(pVM, 1))
 		{
-			LUA_FAILURE("LFocusCameraOnUnit: First argument no unit pointer")
+			LUA_FAILURE("First argument no unit pointer")
 		}
 
 		Game::Dimension::Unit* unit = (Game::Dimension::Unit*)lua_touserdata(pVM, 1);
 
 		if (unit == NULL)
 		{
-			LUA_FAILURE("LFocusCameraOnUnit: Null pointer")
+			LUA_FAILURE("Null pointer")
 		}
 
 		Game::Dimension::Camera* camera = Game::Rules::GameWindow::Instance()->GetCamera();
@@ -2445,12 +2434,12 @@ namespace UnitLuaInterface
 		
 		if (!lua_isnumber(pVM, 1))
 		{
-			LUA_FAILURE("LFocusCameraOnCoord: First argument no number")
+			LUA_FAILURE("First argument no number")
 		}
 
 		if (!lua_isnumber(pVM, 2))
 		{
-			LUA_FAILURE("LFocusCameraOnCoord: Second argument no number")
+			LUA_FAILURE("Second argument no number")
 		}
 
 		GLfloat x = (GLfloat)lua_tonumber(pVM, 1);
@@ -2458,12 +2447,12 @@ namespace UnitLuaInterface
 
 		if (x < 0 || x > Game::Dimension::pWorld->width)
 		{
-			LUA_FAILURE("LFocusCameraOnCoord: Invalid X - value")
+			LUA_FAILURE("Invalid X - value")
 		}
 
 		if (y < 0 || y > Game::Dimension::pWorld->height)
 		{
-			LUA_FAILURE("LFocusCameraOnCoord: Invalid Y - value")
+			LUA_FAILURE("Invalid Y - value")
 		}
 
 		Game::Dimension::Camera* camera = Game::Rules::GameWindow::Instance()->GetCamera();
@@ -2499,19 +2488,19 @@ namespace UnitLuaInterface
 	{
 		if (lua_isnil(pVM, 1))
 		{
-			LUA_FAILURE("LRotateCamera: Incorrect arguments")
+			LUA_FAILURE("Incorrect arguments")
 		}
 
 		if (!lua_isnumber(pVM, 1))
 		{
-			LUA_FAILURE("LRotateCamera: First argumetn no number")
+			LUA_FAILURE("First argumetn no number")
 		}
 
 		GLfloat rotation = (GLfloat)lua_tonumber(pVM, 1);
 
 		if (rotation <= -360.0f || rotation >= 360.0f || rotation == 0)
 		{
-			LUA_FAILURE("LRotateCamera: Invalid rotation value. -360 < r < 360  r != 1")
+			LUA_FAILURE("Invalid rotation value. -360 < r < 360  r != 1")
 		}
 
 		Game::Rules::GameWindow::Instance()->GetCamera()->Rotate(rotation);
@@ -2523,12 +2512,12 @@ namespace UnitLuaInterface
 	{
 		if (lua_isnil(pVM, 1))
 		{
-			LUA_FAILURE("LZoomCamera: Incorrect arguments")
+			LUA_FAILURE("Incorrect arguments")
 		}
 
 		if (!lua_isnumber(pVM, 1))
 		{
-			LUA_FAILURE("LZoomCamera: First argument no number")
+			LUA_FAILURE("First argument no number")
 		}
 
 		GLfloat zoom = (GLfloat)lua_tonumber(pVM, 1);
@@ -2543,13 +2532,13 @@ namespace UnitLuaInterface
 		const char* filename = lua_tostring(pVM, 1);
 		if (!filename)
 		{
-			LUA_FAILURE("LGetLUAScript: Invalid String")
+			LUA_FAILURE("Invalid String")
 		}
 		std::string filepath = Utilities::GetDataFile("scripts/" + (std::string) filename);
 
 		if (!filepath.length())
 		{
-			LUA_FAILURE("LGetLUAScript: Script not found")
+			LUA_FAILURE("Script not found")
 		}
 
 		lua_pushstring(pVM, filepath.c_str());
@@ -2563,7 +2552,7 @@ namespace UnitLuaInterface
 
 		if (!filepath.length())
 		{
-			LUA_FAILURE("LGetDataFile: File not found")
+			LUA_FAILURE("File not found")
 		}
 
 		lua_pushstring(pVM, filepath.c_str());
@@ -2577,7 +2566,7 @@ namespace UnitLuaInterface
 
 		if (!filepath.length())
 		{
-			LUA_FAILURE("LGetConfigFile: File not found")
+			LUA_FAILURE("File not found")
 		}
 
 		lua_pushstring(pVM, filepath.c_str());
@@ -2592,7 +2581,7 @@ namespace UnitLuaInterface
 
 		if (!filepath.length())
 		{
-			LUA_FAILURE("LGetWritableConfigFile: Could not find a directory to write in")
+			LUA_FAILURE("Could not find a directory to write in")
 		}
 
 		lua_pushstring(pVM, filepath.c_str());
@@ -2605,13 +2594,13 @@ namespace UnitLuaInterface
 		const char* filename = lua_tostring(pVM, 1);
 	
 		if (!filename)
-			LUA_FAILURE("LLoadLuaScript: Invalid filename - null pointer")
+			LUA_FAILURE("Invalid filename - null pointer")
 
 		Utilities::Scripting::LuaVMState* pVM_object = GetObjectByVMstate(pVM);
 
 		if (pVM_object->DoFile(filename))
 		{
-			LUA_FAILURE("LLoadLuaSCript: Error loading LUA script " << filename)
+			LUA_FAILURE("Error loading LUA script " << filename)
 		}
 
 		LUA_SUCCESS
@@ -2629,14 +2618,14 @@ namespace UnitLuaInterface
 /*		const char *sz_name = lua_tostring(pVM, 1);
 
 		if (!sz_name)
-			LUA_FAILURE("LUnloadUnitType: Invalid unittype string - null pointer")
+			LUA_FAILURE("Invalid unittype string - null pointer")
 
 		const string name = sz_name;
 
 		UnitType* pUnitType = unitTypeMap[name];
 	
 		if (!pUnitType)
-			LUA_FAILURE("LUnloadUnitType: No such unittype found: " << name)
+			LUA_FAILURE("No such unittype found: " << name)
 		
 		UnloadUnitType(pUnitType);*/
 		LUA_SUCCESS
@@ -2647,7 +2636,7 @@ lua_getfield(pVM, -1, field); \
 if (!lua_isnumber(pVM, -1)) \
 { \
 	lua_pop(pVM, 1); \
-	LUA_FAILURE("LCreateUnitType: Required field \"" field  "\" not found in unit description or is not a number") \
+	LUA_FAILURE("Required field \"" field  "\" not found in unit description or is not a number") \
 } \
 dest = lua_tointeger(pVM, -1); \
 lua_pop(pVM, 1);
@@ -2683,7 +2672,7 @@ lua_getfield(pVM, -1, field); \
 if (!lua_isboolean(pVM, -1)) \
 { \
 	lua_pop(pVM, 1); \
-	LUA_FAILURE("LCreateUnitType: Required field \"" field  "\" not found in unit description or is not a boolean") \
+	LUA_FAILURE("Required field \""field"\" not found in unit description or is not a boolean") \
 } \
 dest = lua_toboolean(pVM, -1); \
 lua_pop(pVM, 1);
@@ -2706,7 +2695,7 @@ lua_getfield(pVM, -1, field); \
 if (!lua_isnumber(pVM, -1)) \
 { \
 	lua_pop(pVM, 1); \
-	LUA_FAILURE("LCreateUnitType: Required field \"" field  "\" not found in unit description or is not a number") \
+	LUA_FAILURE("Required field \""field"\" not found in unit description or is not a number") \
 } \
 dest = (float) lua_tonumber(pVM, -1); \
 lua_pop(pVM, 1);
@@ -2729,7 +2718,7 @@ lua_getfield(pVM, -1, field); \
 if (!lua_isstring(pVM, -1)) \
 { \
 	lua_pop(pVM, 1); \
-	LUA_FAILURE("LCreateUnitType: Required field \"" field  "\" not found in unit description or is not a string") \
+	LUA_FAILURE("Required field \""field"\" not found in unit description or is not a string") \
 } \
 dest = lua_tostring(pVM, -1); \
 lua_pop(pVM, 1);
@@ -2747,7 +2736,30 @@ else \
 	lua_pop(pVM, 1); \
 }
 
-	void InterpretStringTableField(lua_State* pVM, const char *field, vector<const char*>& datadump)
+#define	GET_STDSTRING_FIELD(dest, field) \
+lua_getfield(pVM, -1, field); \
+if (!lua_isstring(pVM, -1)) \
+{ \
+	lua_pop(pVM, 1); \
+	LUA_FAILURE("Required field \""field"\" not found in unit description or is not a string") \
+} \
+dest = std::string(lua_tostring(pVM, -1)); \
+lua_pop(pVM, 1);
+
+#define	GET_STDSTRING_FIELD_OPTIONAL(dest, field, def) \
+lua_getfield(pVM, -1, field); \
+if (!lua_isstring(pVM, -1)) \
+{ \
+	dest = def; \
+	lua_pop(pVM, 1); \
+} \
+else \
+{ \
+	dest = std::string(lua_tostring(pVM, -1)); \
+	lua_pop(pVM, 1); \
+}
+
+	void InterpretStringTableField(lua_State* pVM, const char *field, vector<std::string>& datadump)
 	{
 		lua_getfield(pVM, 1, field);
 		if (lua_istable(pVM, 2))
@@ -2770,7 +2782,7 @@ else \
 			{
 				lua_pushinteger(pVM, i);
 				lua_gettable(pVM, 2);
-				datadump.push_back(lua_tostring(pVM, 3));
+				datadump.push_back(std::string(lua_tostring(pVM, 3)));
 				lua_pop(pVM, 1);
 			}
 		}
@@ -2789,32 +2801,41 @@ else \
 		return owner->unitTypeMap[str];
 	}
 
+	Research *GetResearchByID(Player* owner, std::string str)
+	{
+		return owner->researchMap[str];
+	}
+
 	int LCreateUnitType(lua_State* pVM)
 	{
 		UnitType *pUnitType;
-		TempUnitTypeData *temputdata;
 		const char* model;
 		Player *player = GetPlayerByVMstate(pVM);
 
 		if (!lua_istable(pVM, 1))
-			LUA_FAILURE("LCreateUnitType: Invalid argument, must be a table")
+			LUA_FAILURE("Invalid argument, must be a table")
 
 		pUnitType = new UnitType;
-		temputdata = new TempUnitTypeData;
+
+		pUnitType->player = player;
 
 		GET_STRING_FIELD(pUnitType->id, "id")
+
 		GET_STRING_FIELD_OPTIONAL(pUnitType->name, "name", pUnitType->id)
 
-		GET_INT_FIELD_OPTIONAL(pUnitType->maxHealth, "maxHealth", 0)
+		GET_INT_FIELD(pUnitType->maxHealth, "maxHealth")
+		GET_INT_FIELD(pUnitType->heightOnMap, "heightOnMap")
+		GET_INT_FIELD(pUnitType->widthOnMap, "widthOnMap")
+		
+		GET_FLOAT_FIELD(pUnitType->size, "size")
+		GET_FLOAT_FIELD(pUnitType->height, "height")
+
 		GET_INT_FIELD_OPTIONAL(pUnitType->maxPower, "maxPower", 0)
 		GET_INT_FIELD_OPTIONAL(pUnitType->minAttack, "minAttack", 0)
 		GET_INT_FIELD_OPTIONAL(pUnitType->maxAttack, "maxAttack", 0)
-		GET_INT_FIELD_OPTIONAL(pUnitType->heightOnMap, "heightOnMap", 0)
-		GET_INT_FIELD_OPTIONAL(pUnitType->widthOnMap, "widthOnMap", 0)
-		GET_INT_FIELD_OPTIONAL(pUnitType->buildCost, "buildCost", 0)
-		GET_INT_FIELD_OPTIONAL(pUnitType->researchCost, "researchCost", 0)
-		GET_INT_FIELD_OPTIONAL(pUnitType->buildTime, "buildTime", 0)
-		GET_INT_FIELD_OPTIONAL(pUnitType->researchTime, "researchTime", 0)
+		GET_INT_FIELD_OPTIONAL(pUnitType->requirements.money, "buildCost", 0)
+		GET_INT_FIELD_OPTIONAL(pUnitType->requirements.time, "buildTime", 0)
+		GET_INT_FIELD_OPTIONAL(pUnitType->requirements.power, "buildPower", 0)
 
 		GET_ENUM_FIELD_OPTIONAL(pUnitType->powerType, "powerType", POWERTYPE_TWENTYFOURSEVEN, PowerType)
 		GET_ENUM_FIELD_OPTIONAL(pUnitType->movementType, "movementType", MOVEMENT_SMALLVEHICLE, MovementType)
@@ -2840,28 +2861,6 @@ else \
 		GET_FLOAT_FIELD_OPTIONAL(pUnitType->buildPowerUsage, "buildPowerUsage", 0.0)
 		GET_FLOAT_FIELD_OPTIONAL(pUnitType->movementSpeed, "movementSpeed", 0.0)
 		GET_FLOAT_FIELD_OPTIONAL(pUnitType->attackSpeed, "attackSpeed", 0.0)
-		GET_FLOAT_FIELD_OPTIONAL(pUnitType->size, "size", 0.0)
-		GET_FLOAT_FIELD_OPTIONAL(pUnitType->height, "height", 0.0)
-
-		bool isResearched = false;
-
-		lua_getfield(pVM, 1, "isResearched");
-		if (lua_isboolean(pVM, 2))
-		{
-			isResearched = lua_toboolean(pVM, 2);
-		}
-		lua_pop(pVM, 1);
-
-		pUnitType->isResearched = new bool[Game::Dimension::pWorld->vPlayers.size()];
-		pUnitType->isBeingResearchedBy = new Game::Dimension::Unit*[Game::Dimension::pWorld->vPlayers.size()];
-		for (unsigned int i = 0; i < Game::Dimension::pWorld->vPlayers.size(); i++)
-		{
-			pUnitType->isResearched[i] = isResearched;
-			pUnitType->isBeingResearchedBy[i] = NULL;
-		}
-
-		for (int i = 0; i < Audio::SFX_ACT_COUNT; i++)
-			pUnitType->actionSounds[i] = NULL;
 
 		lua_getfield(pVM, 1, "symbol");
 		if (lua_isstring(pVM, 2))
@@ -2879,7 +2878,7 @@ else \
 		if (!lua_isstring(pVM, 2))
 		{
 			lua_pop(pVM, 1);
-			LUA_FAILURE("LCreateUnitType: Required field \"model\" not found in unit description or is not a string")
+			LUA_FAILURE("Required field \"model\" not found in unit description or is not a string")
 		}
 		model = lua_tostring(pVM, 2);
 		lua_pop(pVM, 1);
@@ -2888,7 +2887,7 @@ else \
 					
 		if(pUnitType->model == NULL)
 		{
-			LUA_FAILURE("LCreateUnitType: Model could not be found or loaded")
+			LUA_FAILURE("Model could not be found or loaded")
 		}
 		else
 		{
@@ -2898,49 +2897,56 @@ else \
 			}
 		}
 
-		InterpretStringTableField(pVM, "canBuild", temputdata->canBuild);
-		InterpretStringTableField(pVM, "canResearch", temputdata->canResearch);
+		InterpretStringTableField(pVM, "canBuild", pUnitType->canBuildIDs);
+		InterpretStringTableField(pVM, "canResearch", pUnitType->canResearchIDs);
 
-		
-		for (unsigned i = 0; i < player->tempUTDatas.size(); i++)
+		bool isResearched = false;
+
+		lua_getfield(pVM, 1, "isResearched");
+		if (lua_isboolean(pVM, 2))
 		{
-			for (unsigned j = 0; j < player->tempUTDatas[i]->canBuild.size(); j++)
-			{
-				if (strcmp(pUnitType->id, player->tempUTDatas[i]->canBuild[j]) == 0)
-				{
-					player->vUnitTypes[i]->canBuild.push_back(pUnitType);
-				}
-			}
-			for (unsigned j = 0; j < player->tempUTDatas[i]->canResearch.size(); j++)
-			{
-				if (strcmp(pUnitType->id, player->tempUTDatas[i]->canResearch[j]) == 0)
-				{
-					player->vUnitTypes[i]->canResearch.push_back(pUnitType);
-				}
-			}
+			isResearched = lua_toboolean(pVM, 2);
 		}
+		lua_pop(pVM, 1);
+
+		if (!isResearched)
+		{
+			Research *research = new Research;
+			ResearchRequirement res_req;
+			ConjunctiveRequirements creq;
+
+			research->id = "Research" + std::string(pUnitType->id);
+			research->name = "Research " + std::string(pUnitType->name);
+			research->description = "Research " + std::string(pUnitType->name);
+			research->isResearched = false;
+			research->luaEffectObj = "";
+			research->icon = pUnitType->Symbol;
+			research->player = player;
+
+			GET_INT_FIELD(research->requirements.money, "researchCost")
+			GET_INT_FIELD(research->requirements.time, "researchTime")
+			GET_INT_FIELD_OPTIONAL(research->requirements.power, "researchPower", 0)
+
+			res_req.research = research;
+			res_req.desiredState = true;
+
+			creq.researchs.push_back(res_req);
+
+			pUnitType->requirements.creation.dreqs.push_back(creq);
+			research->index = player->vResearchs.size();
+			player->researchMap[research->id] = research;
+		}
+		else
+		{
+			GET_STDSTRING_FIELD_OPTIONAL(pUnitType->requirements.creation.dReqString, "crequirements", "")
+		}
+
+		GET_STDSTRING_FIELD_OPTIONAL(pUnitType->requirements.existance.dReqString, "erequirements", "")
 
 		pUnitType->index = player->vUnitTypes.size();
 		player->vUnitTypes.push_back(pUnitType);
-		player->tempUTDatas.push_back(temputdata);
 
 		player->unitTypeMap[pUnitType->id] = pUnitType;
-
-		for (unsigned j = 0; j < temputdata->canBuild.size(); j++)
-		{
-			if (player->unitTypeMap[temputdata->canBuild[j]])
-			{
-				pUnitType->canBuild.push_back(player->unitTypeMap[temputdata->canBuild[j]]);
-			}
-		}
-			
-		for (unsigned j = 0; j < temputdata->canResearch.size(); j++)
-		{
-			if (player->unitTypeMap[temputdata->canResearch[j]])
-			{
-				pUnitType->canResearch.push_back(player->unitTypeMap[temputdata->canResearch[j]]);
-			}
-		}
 
 		lua_getfield(pVM, 1, "projectileType");
 		if (lua_istable(pVM, 2))
@@ -2951,7 +2957,7 @@ else \
 			if (!lua_isstring(pVM, -1))
 			{
 				lua_pop(pVM, 1);
-				LUA_FAILURE("LCreateUnitType: Required field \"model\" not found in projectiletype table or is not a string")
+				LUA_FAILURE("Required field \"model\" not found in projectiletype table or is not a string")
 			}
 			pUnitType->projectileType->model = LoadModel(lua_tostring(pVM, -1));
 			lua_pop(pVM, 1);
@@ -2997,6 +3003,11 @@ else \
 		}
 		lua_pop(pVM, 1);
 
+		for (int i = 0; i < Audio::SFX_ACT_COUNT; i++)
+		{
+			pUnitType->actionSounds[i] = NULL;
+		}
+
 		lua_pushlightuserdata(pVM, pUnitType);
 		lua_setfield(pVM, 1, "pointer");
 
@@ -3015,25 +3026,396 @@ else \
 		lua_setfield(pVM, 2, pUnitType->id);
 		lua_pop(pVM, 1);
 
-		pUnitType->playerAIFuncs = new PlayerAIFuncs[pWorld->vPlayers.size()];
+		pUnitType->playerAIFuncs = pWorld->vPlayers[player->index]->playerAIFuncs;
 
-		for (unsigned i = 0; i < pWorld->vPlayers.size(); i++)
-		{
-			pUnitType->playerAIFuncs[i] = pWorld->vPlayers[i]->playerAIFuncs;
-		}
-
-		pUnitType->unitAIFuncs = new UnitAIFuncs[pWorld->vPlayers.size()];
-
-		for (unsigned i = 0; i < pWorld->vPlayers.size(); i++)
-		{
-			pUnitType->unitAIFuncs[i] = pWorld->vPlayers[i]->unitAIFuncs;
-		}
+		pUnitType->unitAIFuncs = pWorld->vPlayers[player->index]->unitAIFuncs;
 
 		GenerateUnitTypeRanges(pUnitType);
 
 		validUnitTypePointers[pUnitType] = true;
 
 		LUA_SUCCESS
+	}
+
+	int LCreateResearch(lua_State* pVM)
+	{
+		Research *pResearch;
+		Player *player = GetPlayerByVMstate(pVM);
+
+		if (!lua_istable(pVM, 1))
+			LUA_FAILURE("Invalid argument, must be a table")
+
+		pResearch = new Research;
+
+		pResearch->player = player;
+
+		GET_STRING_FIELD(pResearch->id, "id")
+		GET_STRING_FIELD(pResearch->name, "name")
+		GET_STRING_FIELD(pResearch->description, "description")
+		GET_STRING_FIELD_OPTIONAL(pResearch->luaEffectObj, "luaEffectObj", "")
+		GET_INT_FIELD_OPTIONAL(pResearch->requirements.money, "cost", 0)
+		GET_INT_FIELD_OPTIONAL(pResearch->requirements.time, "time", 0)
+		GET_INT_FIELD_OPTIONAL(pResearch->requirements.power, "power", 0)
+
+		pResearch->icon = 0;
+		pResearch->isResearched = false;
+
+		GET_STDSTRING_FIELD_OPTIONAL(pResearch->requirements.creation.dReqString, "crequirements", "")
+		GET_STDSTRING_FIELD_OPTIONAL(pResearch->requirements.existance.dReqString, "erequirements", "")
+			
+		pResearch->index = player->vResearchs.size();
+		player->vResearchs.push_back(pResearch);
+		player->researchMap[pResearch->id] = pResearch;
+
+		LUA_SUCCESS
+	}
+
+	std::string GetReqStringSymbol(const char *&reqstring)
+	{
+		std::string symbol;
+		int lastAddedChar = 0;
+		bool hasCharsBefore = false;
+		while (1)
+		{
+			char c = *reqstring;
+			if ((c < 'a' || c > 'z') && (c < 'A' || c > 'Z') && c != ' ')
+			{
+				return symbol;
+			}
+			if (c == ' ')
+			{
+				
+			}
+			else
+			{
+				if (hasCharsBefore && lastAddedChar > 0)
+				{
+					symbol += std::string(reqstring-lastAddedChar, lastAddedChar+1);
+				}
+				else
+				{
+					symbol += c;
+				}
+				lastAddedChar = -1;
+				hasCharsBefore = true;
+			}
+			reqstring++;
+			lastAddedChar++;
+		}
+	}
+
+	void InterpretRequirementsString(Player *player, const char *reqstring, DisjunctiveRequirements &requirements)
+	{
+		if (!reqstring || *reqstring == 0)
+		{
+			return;
+		}
+
+		while (1)
+		{
+			ConjunctiveRequirements creqs;
+			while (1)
+			{
+				bool negated = false;
+				while (*reqstring == ' ') reqstring++;
+				if (*reqstring == '!')
+				{
+					negated = true;
+					reqstring++;
+				}
+				std::string symbol = GetReqStringSymbol(reqstring);
+				UnitType* unitType = GetUnitTypeByID(player, symbol);
+				Research* research = GetResearchByID(player, symbol);
+				UnitRequirement unit_req;
+				ResearchRequirement res_req;
+	
+				if (unitType && research)
+				{
+					std::cout << "Ambiguous symbol '" << symbol << "', can both be unittype and research" << std::endl;
+					return;
+				}
+				else if (unitType)
+				{
+					unit_req.type = unitType;
+					unit_req.minBuilt = 0;
+					unit_req.maxBuilt = INT_MAX;
+					unit_req.minExisting = 1;
+					unit_req.maxExisting = INT_MAX;
+					if (negated)
+					{
+						std::cout << "Unit requirements cannot be negated" << std::endl;
+						return;
+					}
+				}
+				else if (research)
+				{
+					res_req.research = research;
+					res_req.desiredState = !negated;
+				}
+				else
+				{
+					std::cout << "Symbol '" << symbol << "' could not be resolved" << std::endl;
+					return;
+				}
+
+				if (unitType && *reqstring == '(')
+				{
+					unit_req.minExisting = 0;
+					unit_req.maxExisting = INT_MAX;
+					reqstring++;
+					while (1)
+					{
+
+						while (*reqstring == ' ') reqstring++;
+
+						int type;
+
+						if (*reqstring == 'b')
+						{
+							type = 1;
+						}
+						else if (*reqstring == 'e')
+						{
+							type = 2;
+						}
+						else
+						{
+							std::cout << "Error detected while parsing requirements string, 'b' or 'e' expected; '" << *reqstring << "' found" << std::endl;
+						}
+						
+						reqstring++;
+
+						while (*reqstring == ' ') reqstring++;
+
+						int ctype = 0;
+
+						switch (*reqstring)
+						{
+							case '>':
+								reqstring++;
+								if (*reqstring == '=')
+								{
+									reqstring++;
+									ctype = 2;
+								}
+								else
+								{
+									ctype = 1;
+								}
+								break;
+							case '<':
+								reqstring++;
+								if (*reqstring == '=')
+								{
+									reqstring++;
+									ctype = 4;
+								}
+								else
+								{
+									ctype = 5;
+								}
+								break;
+							case '=':
+								ctype = 3;
+								reqstring++;
+								break;
+							default:
+								std::cout << "Error detected while parsing requirements string, '>', '=' or '<' expected; '" << *reqstring << "' found" << std::endl;
+								return;
+						}
+
+						while (*reqstring == ' ') reqstring++;
+
+						int value = 0;
+
+						while (*reqstring >= '0' && *reqstring <= '9')
+						{
+							value = value * 10 + *reqstring - '0';
+							reqstring++;
+						}
+
+						switch (ctype)
+						{
+							case 1:
+								if (type == 1)
+								{
+									unit_req.minBuilt = value+1;
+								}
+								else if (type == 2)
+								{
+									unit_req.minExisting = value+1;
+								}
+								break;
+							case 2:
+								if (type == 1)
+								{
+									unit_req.minBuilt = value;
+								}
+								else if (type == 2)
+								{
+									unit_req.minExisting = value;
+								}
+								break;
+							case 3:
+								if (type == 1)
+								{
+									unit_req.minBuilt = value;
+									unit_req.maxBuilt = value;
+								}
+								else if (type == 2)
+								{
+									unit_req.minExisting = value;
+									unit_req.maxExisting = value;
+								}
+								break;
+							case 4:
+								if (type == 1)
+								{
+									unit_req.maxBuilt = value;
+								}
+								else if (type == 2)
+								{
+									unit_req.maxExisting = value;
+								}
+								break;
+							case 5:
+								if (type == 1)
+								{
+									unit_req.maxBuilt = value-1;
+								}
+								else if (type == 2)
+								{
+									unit_req.maxExisting = value-1;
+								}
+								break;
+						}
+						
+						while (*reqstring == ' ') reqstring++;
+
+						char c = *reqstring;
+						if (c == ')')
+						{
+							reqstring++;
+							break;
+						}
+
+						if (c == ',')
+						{
+							reqstring++;
+						}
+						else
+						{
+							std::cout << "Error detected while parsing requirements string, ',' or ')' expected; '" << c << "' found" << std::endl;
+						}
+					}
+
+				}
+
+				if (unitType)
+				{
+					creqs.units.push_back(unit_req);
+				}
+				else if (research)
+				{
+					creqs.researchs.push_back(res_req);
+				}
+
+				char c = *reqstring;
+				if (c == '|' || c == 0)
+				{
+					break;
+				}
+
+				if (c == ',')
+				{
+					reqstring++;
+				}
+				else
+				{
+					std::cout << "Error detected while parsing requirements string, ',', '|' or end-of-line expected; '" << c << "' found" << std::endl;
+					return;
+				}
+			}
+
+			requirements.dreqs.push_back(creqs);
+
+			char c = *reqstring;
+			if (c == 0)
+			{
+				break;
+			}
+			if (c == '|')
+			{
+				reqstring++;
+			}
+			else
+			{
+				std::cout << "Error detected while parsing requirements string, '|' or end-of-line expected; '" << c << "' found" << std::endl;
+				return;
+			}
+		}
+	}
+
+	void PostProcessReqStrings(Player *player, ObjectRequirements &requirements)
+	{
+		InterpretRequirementsString(player, requirements.creation.dReqString.c_str(), requirements.creation);
+		InterpretRequirementsString(player, requirements.existance.dReqString.c_str(), requirements.existance);
+	}
+
+	void PostProcessBuildResearch(UnitType* unitType)
+	{
+		for (std::vector<std::string>::iterator it_bld = unitType->canBuildIDs.begin(); it_bld != unitType->canBuildIDs.end(); it_bld++)
+		{
+			std::string id = *it_bld;
+			if (GetUnitTypeByID(unitType->player, id))
+			{
+				unitType->canBuild.push_back(GetUnitTypeByID(unitType->player, id));
+			}
+			else
+			{
+				std::cout << "Cannot resolve unit type with id '" << id << "'" << std::endl;
+			}
+		}
+		for (std::vector<std::string>::iterator it_rch = unitType->canResearchIDs.begin(); it_rch != unitType->canResearchIDs.end(); it_rch++)
+		{
+			std::string id = *it_rch;
+			Research* res1 = GetResearchByID(unitType->player, id);
+			Research* res2 = GetResearchByID(unitType->player, "Research" + id);
+			if (res1 || res2)
+			{
+				if (res1)
+				{
+					unitType->canResearch.push_back(res1);
+				}
+				else
+				{
+					unitType->canResearch.push_back(res2);
+				}
+			}
+			else
+			{
+				std::cout << "Cannot resolve research with id '" << id << "'" << std::endl;
+			}
+		}
+	}
+
+	void PostProcessStrings()
+	{
+		for (std::vector<Player*>::iterator it = pWorld->vPlayers.begin(); it != pWorld->vPlayers.end(); it++)
+		{
+			Player *player = *it;
+			for (std::vector<Research*>::iterator it_res = player->vResearchs.begin(); it_res != player->vResearchs.end(); it_res++)
+			{
+				Research *research = *it_res;
+				PostProcessReqStrings(player, research->requirements);
+			}
+			for (std::vector<UnitType*>::iterator it_unt = player->vUnitTypes.begin(); it_unt != player->vUnitTypes.end(); it_unt++)
+			{
+				UnitType *unitType = *it_unt;
+				PostProcessReqStrings(player, unitType->requirements);
+				PostProcessBuildResearch(unitType);
+			}
+		}
 	}
 
 	void Init(Scripting::LuaVMState* pVM)
@@ -3098,7 +3480,6 @@ else \
 		pVM->RegisterFunction("GetUnitTypeIncomeAtNight", LGetUnitTypeIncomeAtNight);
 		
 		pVM->RegisterFunction("GetUnitTypeBuildCost", LGetUnitTypeBuildCost);
-		pVM->RegisterFunction("GetUnitTypeResearchCost", LGetUnitTypeResearchCost);
 		pVM->RegisterFunction("GetUnitTypeFromString", LGetUnitTypeFromString);
 		pVM->RegisterFunction("GetUnitTypeIsMobile", LGetUnitTypeIsMobile);
 
@@ -3179,6 +3560,7 @@ else \
 		pVM->RegisterFunction("UnloadAllUnitTypes", LUnloadAllUnitTypes);
 		
 		pVM->RegisterFunction("CreateUnitType", LCreateUnitType);
+		pVM->RegisterFunction("CreateResearch", LCreateResearch);
 		
 		pVM->RegisterFunction("SetEventHandler", LSetEventHandler);
 		pVM->RegisterFunction("SetRegularAIDelay", LSetRegularAIDelay);

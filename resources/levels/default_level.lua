@@ -98,12 +98,6 @@ end
 	
 function InitLevelUnits()
 
-	cur_player = GetPlayerByIndex(0) -- GAIA
-	CreateUnit(GetUnitTypeFromString("MediumLightTower", cur_player), cur_player, 107.5,  117.5, 0)
-	CreateUnit(GetUnitTypeFromString("SolarPanel", cur_player),       cur_player, 103.5,  124.5, 0)
-	CreateUnit(GetUnitTypeFromString("SolarPanel", cur_player),       cur_player, 100.5,  111.5, 0)
-	CreateUnit(GetUnitTypeFromString("SolarPanel", cur_player),       cur_player, 112.5,  117.5, 0)
-
 	cur_player = GetPlayerByIndex(1)
 	CreateUnit(GetUnitTypeFromString("MainBuilding", cur_player), cur_player, 39.5,  40.5, 0)
 	CreateUnit(GetUnitTypeFromString("Builder", cur_player),      cur_player, 43.5,  50.5, 0)

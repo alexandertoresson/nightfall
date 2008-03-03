@@ -13,6 +13,8 @@ namespace Game
 		struct Player;
 		struct Position;
 		struct Resources;
+		struct ObjectRequirements;
+		struct Research;
 		
 		extern Player*       currentPlayerView;
 		extern Player*       currentPlayer;
@@ -32,6 +34,7 @@ namespace Game
 		          PLAYER_STATE_ENEMY = 4;
 		
 		void UnloadAllUnitTypes();
+		void EnforceMinimumExistanceRequirements();
 	}
 }
 
@@ -65,7 +68,6 @@ namespace Game
 #include <iostream>
 #include "sdlheader.h"
 
-using namespace std;
 namespace Game
 {
 	namespace Dimension
@@ -105,20 +107,74 @@ namespace Game
 			int y;
 		};
 
-		struct TempUnitTypeData
+		struct UnitRequirement
 		{
-			vector<const char*> canBuild;
-			vector<const char*> canResearch;
+			UnitType *type;
+			int minExisting, maxExisting;
+			int minBuilt, maxBuilt;
+		};
+
+		struct ResearchRequirement
+		{
+			Research *research;
+			bool desiredState;
+		};
+
+		struct ConjunctiveRequirements
+		{
+			std::vector<ResearchRequirement> researchs;
+			std::vector<UnitRequirement> units;
+		};
+
+		struct DisjunctiveRequirements
+		{
+			std::vector<ConjunctiveRequirements> dreqs;
+			std::string dReqString;
+			bool isSatisfied;
+			
+			DisjunctiveRequirements()
+			{
+				isSatisfied = false;
+			}
+		};
+
+		struct ObjectRequirements
+		{
+			DisjunctiveRequirements creation;
+			DisjunctiveRequirements existance;
+			int time;
+			int money;
+			int power;
+		};
+
+		struct Research
+		{
+			std::string id;
+			std::string name;
+			std::string description;
+			bool isResearched;
+			Unit* researcher;
+			std::string luaEffectObj;
+			ObjectRequirements requirements;
+			GLuint icon;
+			int index;
+			Player *player;
+
+			Research()
+			{
+				researcher = NULL;
+			}
 		};
 
 		struct Player
 		{
 			std::string       name;
 			PlayerType        type;
-			vector<Unit*>     vUnits;
-			vector<Unit*>     vUnitsWithLuaAI;
-			vector<UnitType*> vUnitTypes;
-			vector<Projectile*> vProjectiles;
+			std::vector<Unit*>       vUnits;
+			std::vector<Unit*>       vUnitsWithLuaAI;
+			std::vector<UnitType*>   vUnitTypes;
+			std::vector<Projectile*> vProjectiles;
+			std::vector<Research*>   vResearchs;
 			Uint16**          NumUnitsSeeingSquare;
 			PlayerState*      states;
 			Resources         resources;
@@ -130,14 +186,13 @@ namespace Game
 			int               aiFrame;
 			bool              isRemote;
 			std::map<std::string, UnitType*> unitTypeMap;
+			std::map<std::string, Research*> researchMap;
 			
 			std::string       raceScript;
 			std::string       aiScript;
 
 			Utilities::Scripting::LuaVMState raceState;
 			Utilities::Scripting::LuaVMState aiState;
-
-			vector<TempUnitTypeData*> tempUTDatas;
 
 			Player() : raceState(this), aiState(this)
 			{
@@ -151,9 +206,9 @@ namespace Game
 			Uint16**        ppSteepness;
 			float**         ppWater[3];
 			Uint16**        NumLightsOnSquare;
-			vector<Unit*>   vUnits;
-			vector<Unit*>   vUnitsWithAI;
-			vector<Player*> vPlayers;
+			std::vector<Unit*>   vUnits;
+			std::vector<Unit*>   vUnitsWithAI;
+			std::vector<Player*> vPlayers;
 			int             width;
 			int             height;
 		};
@@ -196,6 +251,10 @@ namespace Game
 		
 		void UnloadUnitType(UnitType* pUnitType);
 		bool IsValidPlayerPointer(Player* player);
+
+		void RecheckAllRequirements(Player *player);
+
+		void AddResearch(Player *player, Research *research);
 	}
 }
 

@@ -97,6 +97,7 @@ namespace Utilities
 
 				int DoFile(std::string file) const;
 				void SetFunction(std::string);
+				void SetCurFunction(std::string);
 				int CallFunction(unsigned int arguments, unsigned int rets = 0);
 				lua_State* GetState(void) const;
 		};

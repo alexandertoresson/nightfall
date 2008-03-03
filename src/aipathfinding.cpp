@@ -477,6 +477,7 @@ namespace Game
 			}
 			
 			delete[] pThreadDatas;
+			pThreadDatas = NULL;
 		}
 		
 		void PausePathfinding()

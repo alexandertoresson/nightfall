@@ -1528,14 +1528,14 @@ namespace Game
 				cout << "Build ID: " << obj->buildID << endl;
 				if (obj->parent->pUnit->type->canBuild.size() <= (unsigned) obj->buildID)
 				{
-					Game::Dimension::UnitType* research_type = obj->parent->pUnit->type->canResearch.at(obj->buildID - obj->parent->pUnit->type->canBuild.size());
+					Game::Dimension::Research* research = obj->parent->pUnit->type->canResearch.at(obj->buildID - obj->parent->pUnit->type->canBuild.size());
 					if (Dimension::unitsSelected.size() == 1)
 					{
-						AI::CommandUnit(obj->parent->pGame->buildingUnit, 0, 0, AI::ACTION_RESEARCH, (void*)research_type, true, false);
+						AI::CommandUnit(obj->parent->pGame->buildingUnit, 0, 0, AI::ACTION_RESEARCH, (void*)research, true, false);
 					}
 					else
 					{
-						AI::CommandUnits(Dimension::unitsSelected, 0, 0, AI::ACTION_RESEARCH, (void*)research_type, true, false);
+						AI::CommandUnits(Dimension::unitsSelected, 0, 0, AI::ACTION_RESEARCH, (void*)research, true, false);
 					}
 				}
 				else
@@ -1820,8 +1820,8 @@ namespace Game
 			}
 			else if (pUnit->pMovementData->action.action == AI::ACTION_RESEARCH)
 			{
-				Dimension::UnitType* research_type = (Dimension::UnitType*) pUnit->pMovementData->action.arg;
-				if((unsigned) id >= pUnit->type->canBuild.size() && pUnit->type->canResearch.at(id - pUnit->type->canBuild.size()) == research_type)
+				Dimension::Research* research = (Dimension::Research*) pUnit->pMovementData->action.arg;
+				if((unsigned) id >= pUnit->type->canBuild.size() && pUnit->type->canResearch.at(id - pUnit->type->canBuild.size()) == research)
 				{
 					stringstream status;
 					int size = pUnit->actionQueue.size();
@@ -1899,7 +1899,7 @@ namespace Game
 				picbtn->SetTooltip((*iter)->name);
 				objects.push_back(picbtn);
 			}
-			for(vector<Dimension::UnitType*>::iterator iter = this->pUnitType->canResearch.begin(); iter != this->pUnitType->canResearch.end(); iter++, cx += ow, c++)
+			for(vector<Dimension::Research*>::iterator iter = this->pUnitType->canResearch.begin(); iter != this->pUnitType->canResearch.end(); iter++, cx += ow, c++)
 			{
 				if(c == nxt)
 				{
@@ -1915,12 +1915,12 @@ namespace Game
 				picbtn->SetTag((void*)pTag);
 				picbtn->AttachHandler(&BuildSelected);
 				picbtn->SetColor(1.0f, 0.0f, 0.75f, 0.25f);
-				if((*iter)->Symbol == 0)
+				if((*iter)->icon == 0)
 					picbtn->SetPicture(this->nopic);
 				else
-					picbtn->SetPicture((*iter)->Symbol);
+					picbtn->SetPicture((*iter)->icon);
 
-				picbtn->SetTooltip("Research " + (const string) (*iter)->name);
+				picbtn->SetTooltip((*iter)->name);
 				objects.push_back(picbtn);
 			}
 		}

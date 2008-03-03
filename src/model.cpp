@@ -2552,7 +2552,7 @@ namespace  Utilities
 				//Dealloc model in memory...
 				DeleteInnerModel(Model);
 			}
-			else if((*handleIter)->type == tUnit)
+/*			else if((*handleIter)->type == tUnit)
 			{
 				InnerUnit *pUnit = (*handleIter)->data.typeUnit;
 				Game::Dimension::UnitType *pUnitType = new Game::Dimension::UnitType;
@@ -2701,7 +2701,7 @@ namespace  Utilities
 					}
 				}
 
-/*				if(pUnit->canBuild != NULL)
+				if(pUnit->canBuild != NULL)
 				{
 					int count = 0;
 					for(vector<string>::iterator Iterator = pUnit->canBuild->begin(); Iterator != pUnit->canBuild->end(); Iterator++)
@@ -2727,7 +2727,7 @@ namespace  Utilities
 							count++;
 						}
 					}
-				}*/
+				}
 
 				for (int i = 0; i < Audio::SFX_ACT_COUNT; i++)
 					pUnitType->actionSounds[i] = NULL;
@@ -2876,7 +2876,7 @@ namespace  Utilities
 				}
 
 				DeleteInnerUnit(pUnit);
-			}
+			}*/
 			delete *handleIter;
 		}
 		return SUCCESS;

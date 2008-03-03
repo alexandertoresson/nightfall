@@ -41,6 +41,7 @@ namespace Game
 		std::string checksumLog = "";
 
 		std::string CurrentLevel = "default";
+		std::string CurrentLevelScript;
 
 		GameWindow* GameWindow::pInstance = NULL;
 
@@ -528,10 +529,6 @@ namespace Game
 
 		void GameWindow::EndGame()
 		{
-#ifdef USE_MULTITHREADED_CALCULATIONS
-			AI::QuitPathfindingThreading();
-#endif
-
 			//Deletes terrain, water, player and unit.
 			Dimension::UnloadWorld();
 			Dimension::Environment::FourthDimension::Destroy();
@@ -540,6 +537,10 @@ namespace Game
 			{
 				Networking::ShutdownNetwork();
 			}
+
+#ifdef USE_MULTITHREADED_CALCULATIONS
+			AI::QuitPathfindingThreading();
+#endif
 
 			delete this->worldCamera;
 			delete this->input;
@@ -571,8 +572,8 @@ namespace Game
 			pLoading->Increment(increment);
 			
 			////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-			std::string level_script = "levels/" + CurrentLevel + "_level.lua";
-			if (pVM.DoFile(level_script) != SUCCESS)
+			CurrentLevelScript = "levels/" + CurrentLevel + "_level.lua";
+			if (pVM.DoFile(CurrentLevelScript) != SUCCESS)
 			{
 				return ERROR_GENERAL;
 			}

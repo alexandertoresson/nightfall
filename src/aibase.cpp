@@ -292,7 +292,7 @@ namespace Game
 
 		void SendUnitEventToLua_UnitCreation(Dimension::Unit* pUnit)
 		{
-			ScheduleSimpleUnitEvent(pUnit, &pUnit->type->playerAIFuncs[pUnit->owner->index].unitCreation);
+			ScheduleSimpleUnitEvent(pUnit, &pUnit->type->playerAIFuncs.unitCreation);
 		}
 
 		void SendUnitEventToLua_UnitKilled(Dimension::Unit* pUnit)
@@ -312,7 +312,7 @@ namespace Game
 			event->unitID = pUnit->id;
 			event->playerIndex = pUnit->owner->index;
 			event->targetID = attacker->id;
-			event->func = &pUnit->type->unitAIFuncs[pUnit->owner->index].isAttacked.func;
+			event->func = &pUnit->type->unitAIFuncs.isAttacked.func;
 
 			SDL_LockMutex(scheduleUnitEventMutex);
 			scheduledUnitEvents.push_back(event);
@@ -420,7 +420,7 @@ namespace Game
 					{
 						if (IsWithinRangeForBuilding(pUnit))
 						{
-							Dimension::Build(pUnit);
+							Dimension::PerformBuild(pUnit);
 							AI::DeallocPathfindingNodes(pUnit);
 							if (should_move)
 							{
@@ -432,7 +432,7 @@ namespace Game
 
 					if (action == ACTION_RESEARCH)
 					{
-						Dimension::Research(pUnit);
+						Dimension::PerformResearch(pUnit);
 					}
 
 					if (should_move)
@@ -853,15 +853,18 @@ namespace Game
 				// Send unit commands that could not be sent while lua ai was running
 				ApplyScheduledCommandUnits();
 
-				// DisplayScheduledUnits() and ApplyScheduledActions() will have queued up more 
-				// events, so we do this as the last thing before deleting units, to avoid that
-				// events survive onto the next frame.
-				SendScheduledUnitEvents();
-
 				// Apply deletions last, so it may 'undo' actions that have been applied before,
 				// otherwise if you apply actions after it, you may apply actions with targets
 				// that are deleted units.
 				Dimension::DeleteScheduledUnits(); 
+
+				// Delete units that have lost their ground for existance, and 'undo' researches
+				// that also have.
+				Dimension::EnforceMinimumExistanceRequirements();
+
+				// The functions above might have queued up more events, so we do this as the
+				// last thing before deleting units, to avoid that events survive onto the next frame.
+				SendScheduledUnitEvents();
 
 			}
 			else

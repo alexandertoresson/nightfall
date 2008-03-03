@@ -26,4 +26,13 @@ function InitRace()
 	LoadLuaScript("unittypes/smallTank.unit")
 	LoadLuaScript("unittypes/largeTank.unit")
 
+	local r = {}
+	r.id = "Blah"
+	r.name = "Blah"
+	r.description = "Bleh"
+	r.luaEffectObj = "Testing"
+	r.crequirements = "MainBuilding, Builder(b >= 1, e >= 4), ResearchMediumLightTower | MainBuilding, TankFactory, !ResearchLargeLightTower"
+	r.erequirements = "MainBuilding"
+	CreateResearch(r)
+
 end			

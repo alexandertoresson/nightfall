@@ -7,6 +7,7 @@
 #include "paths.h"
 #include "unitinterface.h"
 #include "console.h"
+#include "game.h"
 #include <cassert>
 
 namespace Utilities
@@ -167,6 +168,11 @@ namespace Utilities
 			curFunction = luaFunction;
 		}
 
+		void LuaVMState::SetCurFunction(std::string luaFunction)
+		{
+			curFunction = luaFunction;
+		}
+
 		int LuaVMState::CallFunction(unsigned int arguments, unsigned int rets)
 		{
 			const void *func = lua_topointer(m_pState, -(1 + arguments));
@@ -193,6 +199,7 @@ namespace Utilities
 			}
 			else
 			{
+				SDL_UnlockMutex(CallErrMutex);
 				lua_pop(m_pState, 1 + arguments);
 				return ERROR_GENERAL;
 			}
@@ -229,6 +236,7 @@ namespace Utilities
 					std::cout << "Initializing LUA states for player " << i++ << std::endl;
 					player->aiState.DoFile("scripts/race/" + player->raceScript + "/" + player->raceScript + ".lua");
 					player->aiState.DoFile("scripts/race/" + player->raceScript + "/" + player->aiScript + "/" + player->aiScript + ".lua");
+					player->aiState.DoFile(Game::Rules::CurrentLevelScript);
 				}
 			}
 		}
@@ -247,8 +255,12 @@ namespace Utilities
 					player->aiState.SetFunction("InitAI");
 					lua_pushlightuserdata(player->aiState.GetState(), player);
 					player->aiState.CallFunction(1);
+
+					RecheckAllRequirements(player);
+
 				}
 			}
+			UnitLuaInterface::PostProcessStrings();
 		}
 
 		Game::Dimension::Player *GetPlayerByVMstate(lua_State *vmState)

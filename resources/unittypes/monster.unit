@@ -10,6 +10,7 @@ ut.hasAI = true
 ut.hasLuaAI = true
 ut.isMobile = true
 ut.hurtByLight = true
+ut.isResearched = true
 	
 ut.canAttack = true
 ut.attackMaxRange = 1.2

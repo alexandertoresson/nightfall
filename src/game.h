@@ -14,6 +14,7 @@ namespace Game
 
 		extern float time_since_last_frame;
 		extern std::string CurrentLevel;
+		extern std::string CurrentLevelScript;
 
 		extern bool noGraphics;
 		extern bool graphicsLoaded;

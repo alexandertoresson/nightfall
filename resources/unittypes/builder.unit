@@ -20,6 +20,7 @@ ut.movementSpeed = 6.0
 ut.movementType = MovementType.SmallVehicle
 ut.attackSpeed = 1.0
 ut.size = 1.0
+ut.height = 0.0
 ut.buildTime = 10.0
 ut.buildCost = 75
 ut.researchTime = 20.0

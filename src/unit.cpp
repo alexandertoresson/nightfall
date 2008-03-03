@@ -1178,7 +1178,7 @@ namespace Game
 			UpdateSeenSquares(unit, unit->curAssociatedSquare.x, unit->curAssociatedSquare.y, 1);
 		}
 
-		void Build(Unit* unit)
+		void PerformBuild(Unit* unit)
 		{
 			double build_cost;
 			double power_usage = unit->type->buildPowerUsage / AI::aiFps;
@@ -1194,7 +1194,7 @@ namespace Game
 
 			if (!unit->pMovementData->action.goal.unit)
 			{
-				if (!build_type->isResearched[unit->owner->index])
+				if (!build_type->requirements.creation.isSatisfied || !build_type->requirements.existance.isSatisfied)
 				{
 #ifdef CHECKSUM_DEBUG_HIGH
 					Networking::checksum_output << "BUILD CANCEL NORESEARCH " << AI::currentFrame << ": " << unit->id << "\n";
@@ -1258,7 +1258,10 @@ namespace Game
 				}
 			}
 
-			if (unit->pMovementData->action.goal.unit->pMovementData->action.action == AI::ACTION_DIE)
+			Unit* newUnit = unit->pMovementData->action.goal.unit;
+			ObjectRequirements &requirements = newUnit->type->requirements;
+
+			if (newUnit->pMovementData->action.action == AI::ACTION_DIE)
 			{
 #ifdef CHECKSUM_DEBUG_HIGH
 				Networking::checksum_output << "BUILD CANCEL TARGETDYING " << AI::currentFrame << ": " << unit->id << "\n";
@@ -1267,13 +1270,13 @@ namespace Game
 				return;
 			}
 
-			if (unit->type->isMobile && unit->faceTarget != FACETARGET_TARGET && unit->pMovementData->action.goal.unit->isDisplayed)
+			if (unit->type->isMobile && unit->faceTarget != FACETARGET_TARGET && newUnit->isDisplayed)
 			{
-				FaceUnit(unit, unit->pMovementData->action.goal.unit);
+				FaceUnit(unit, newUnit);
 				unit->faceTarget = FACETARGET_TARGET;
 			}
 
-			build_cost = (float) unit->pMovementData->action.goal.unit->type->buildCost / (float) (unit->pMovementData->action.goal.unit->type->buildTime * AI::aiFps);
+			build_cost = (float) requirements.money / (float) (requirements.time * AI::aiFps);
 
 			if (unit->owner->resources.money < build_cost)
 			{
@@ -1284,43 +1287,47 @@ namespace Game
 			}
 
 #ifdef CHECKSUM_DEBUG_HIGH
-			Networking::checksum_output << "BUILD " << AI::currentFrame << ": " << unit->id << " " << unit->pMovementData->action.goal.unit->id << " " << build_cost << " " << power_usage << "\n";
+			Networking::checksum_output << "BUILD " << AI::currentFrame << ": " << unit->id << " " << newUnit->id << " " << build_cost << " " << power_usage << "\n";
 #endif
 
 			unit->owner->resources.power -= power_usage;
 
 			unit->owner->resources.money -= build_cost;
 
-			unit->pMovementData->action.goal.unit->completeness += 100.0f / float(unit->pMovementData->action.goal.unit->type->buildTime * AI::aiFps);
-			unit->pMovementData->action.goal.unit->health += (float) unit->pMovementData->action.goal.unit->type->maxHealth / float(unit->pMovementData->action.goal.unit->type->buildTime * AI::aiFps);
+			newUnit->completeness += 100.0f / float(requirements.time * AI::aiFps);
+			newUnit->health += (float) newUnit->type->maxHealth / float(requirements.time * AI::aiFps);
 
-			if (unit->pMovementData->action.goal.unit->health >= unit->pMovementData->action.goal.unit->type->maxHealth)
+			if (newUnit->health >= newUnit->type->maxHealth)
 			{
-				unit->pMovementData->action.goal.unit->health = (float) unit->pMovementData->action.goal.unit->type->maxHealth;
+				newUnit->health = (float) newUnit->type->maxHealth;
 			}
 
-			if (unit->pMovementData->action.goal.unit->completeness >= 100.0)
+			if (newUnit->completeness >= 100.0)
 			{
-				unit->pMovementData->action.goal.unit->completeness = 100.0;
-				if (unit->pMovementData->action.goal.unit->isCompleted == false)
+				newUnit->completeness = 100.0;
+				if (newUnit->isCompleted == false)
 				{
 #ifdef CHECKSUM_DEBUG_HIGH
-					Networking::checksum_output << "BUILD DONE " << AI::currentFrame << ": " << unit->id << " " << unit->pMovementData->action.goal.unit->id << "\n";
+					Networking::checksum_output << "BUILD DONE " << AI::currentFrame << ": " << unit->id << " " << newUnit->id << "\n";
 #endif
-					unit->pMovementData->action.goal.unit->isCompleted = true;
-					if (unit->pMovementData->action.goal.unit->type->isMobile)
+					newUnit->isCompleted = true;
+
+ 					unit->type->numBuilt++;
+ 					unit->type->numExisting++;
+
+ 					RecheckAllRequirements(newUnit->owner);
+
+					if (newUnit->type->isMobile)
 					{
 						int new_x = unit->curAssociatedSquare.x, new_y = unit->curAssociatedSquare.y;
-						GetNearestUnoccupiedPosition(unit->pMovementData->action.goal.unit->type, new_x, new_y);
-						ScheduleDisplayUnit(unit->pMovementData->action.goal.unit, new_x, new_y);
+						GetNearestUnoccupiedPosition(newUnit->type, new_x, new_y);
+						ScheduleDisplayUnit(newUnit, new_x, new_y);
 					}
 					else
 					{
-						Complete(unit->pMovementData->action.goal.unit);
+						Complete(newUnit);
 					}
 				}
-
-				Unit* newUnit = unit->pMovementData->action.goal.unit;
 
 				AI::CompleteAction(unit);
 				
@@ -1333,18 +1340,28 @@ namespace Game
 
 		}
 		
-		void Research(Unit* unit)
+		void PerformResearch(Unit* unit)
 		{
 			double research_cost;
-			double power_usage = unit->type->buildPowerUsage / AI::aiFps;
-			UnitType* research_type = (UnitType*) unit->pMovementData->action.arg;
+			Research* research = (Research*) unit->pMovementData->action.arg;
+			double power_usage = (unit->type->buildPowerUsage + research->requirements.power / research->requirements.time) / AI::aiFps;
 
-			if ((research_type->isBeingResearchedBy[unit->owner->index] && research_type->isBeingResearchedBy[unit->owner->index] != unit) || research_type->isResearched[unit->owner->index])
+			
+			if (!research->requirements.creation.isSatisfied || !research->requirements.existance.isSatisfied)
 			{
 #ifdef CHECKSUM_DEBUG_HIGH
-				if (research_type->isBeingResearchedBy[unit->owner->index] && research_type->isBeingResearchedBy[unit->owner->index] != unit)
+				Networking::checksum_output << "RESEARCH CANCEL NORESEARCH " << AI::currentFrame << ": " << unit->id << "\n";
+#endif
+				AI::CancelAction(unit);
+				return;
+			}
+
+			if ((research->researcher && research->researcher != unit) || research->isResearched)
+			{
+#ifdef CHECKSUM_DEBUG_HIGH
+				if (research->researcher && research->researcher != unit)
 				{
-					Networking::checksum_output << "RESEARCH CANCEL ISBEINGRESEARCHEDBY " << AI::currentFrame << ": " << unit->id << " " << research_type->isBeingResearchedBy[unit->owner->index] << "\n";
+					Networking::checksum_output << "RESEARCH CANCEL ISBEINGRESEARCHEDBY " << AI::currentFrame << ": " << unit->id << " " << research->researcher << "\n";
 				}
 				else
 				{
@@ -1355,7 +1372,7 @@ namespace Game
 				return;
 			}
 
-			research_type->isBeingResearchedBy[unit->owner->index] = unit;
+			research->researcher = unit;
 
 			if (unit->owner->resources.power < power_usage)
 			{
@@ -1365,7 +1382,7 @@ namespace Game
 				return;
 			}
 
-			research_cost = (float) research_type->researchCost / (research_type->researchTime * AI::aiFps);
+			research_cost = (float) research->requirements.money / (research->requirements.time * AI::aiFps);
 
 			if (unit->owner->resources.money < research_cost)
 			{
@@ -1383,13 +1400,30 @@ namespace Game
 
 			unit->owner->resources.money -= research_cost;
 
-			unit->action_completeness += 100.0f / float(research_type->researchTime * AI::aiFps);
+			unit->action_completeness += 100.0f / float(research->requirements.time * AI::aiFps);
 
 			if (unit->action_completeness >= 100.0)
 			{
-				research_type->isBeingResearchedBy[unit->owner->index] = NULL;
-				research_type->isResearched[unit->owner->index] = true;
+				research->researcher = NULL;
+				research->isResearched = true;
 				AI::CompleteAction(unit);
+ 				RecheckAllRequirements(unit->owner);
+
+ 				if (research->luaEffectObj.length())
+ 				{
+ 					lua_State *pVM = unit->owner->aiState.GetState();
+
+					// Make the luawrapper code believe that we're calling this function...
+					unit->owner->aiState.SetCurFunction(research->luaEffectObj + ".apply");
+
+					// Get the "apply" function from the user-supplied table
+ 					lua_getglobal(pVM, research->luaEffectObj.c_str());
+ 					lua_getfield(pVM, -1, "apply");
+ 					lua_pushlightuserdata(pVM, unit->owner);
+ 					lua_pushlightuserdata(pVM, unit->type);
+ 					lua_pushlightuserdata(pVM, unit);
+ 					unit->owner->aiState.CallFunction(3);
+ 				}
 			}
 			
 		}
@@ -1415,7 +1449,7 @@ namespace Game
 				{
 					int new_x = pUnit->curAssociatedSquare.x, new_y = pUnit->curAssociatedSquare.y;
 
-					cost = build_type->buildCost;
+					cost = build_type->requirements.money;
 					pUnit->owner->resources.money += (float) cost * target->completeness / 200;
 
 					// The following is needed because DeleteUnit() expects the unit to be complete and visible.
@@ -1439,8 +1473,8 @@ namespace Game
 		void CancelResearch(Dimension::Unit* pUnit)
 		{
 			int cost;
-			Dimension::UnitType* research_type = (Dimension::UnitType*) pUnit->pMovementData->action.arg;
-			cost = research_type->researchCost;
+			Research* research = (Research*) pUnit->pMovementData->action.arg;
+			cost = research->requirements.money;
 			pUnit->owner->resources.money += (float)cost * pUnit->action_completeness / 200;
 		}
 
@@ -3467,7 +3501,7 @@ namespace Game
 			PrepareAnimationData(unit);
 
 			unit->lastSeenPositions = new IntPosition[pWorld->vPlayers.size()];
-			unit->unitAIFuncs = type->unitAIFuncs[owner->index];
+			unit->unitAIFuncs = type->unitAIFuncs;
 
 			if (!complete)
 			{
@@ -3595,9 +3629,15 @@ namespace Game
 			{
 				Incomplete(unit);
 			}
+			else
+			{
+ 				unit->type->numBuilt++;
+ 				unit->type->numExisting++;
+ 				RecheckAllRequirements(unit->owner);
+			}
 
  			displayedUnitPointers.set(unit, true);
-			
+
 //			std::cout << "Display " << unit->id << std::endl;
 
 			return true;
@@ -3707,6 +3747,12 @@ namespace Game
 				return;
 			}
 
+			if (unit->isCompleted)
+			{
+				unit->type->numExisting--;
+ 				RecheckAllRequirements(unit->owner);
+			}
+
  			validUnitPointers.erase(unit);
  			displayedUnitPointers.remove(unit);
 
@@ -3722,6 +3768,7 @@ namespace Game
 					break;
 				}
 			}
+
 			if (unit->type->hasAI)
 			{
 				for (vector<Unit*>::iterator it = pWorld->vUnitsWithAI.begin(); it != pWorld->vUnitsWithAI.end(); it++)
