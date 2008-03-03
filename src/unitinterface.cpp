@@ -3181,6 +3181,7 @@ else \
 						else
 						{
 							std::cout << "Error detected while parsing requirements string, 'b' or 'e' expected; '" << *reqstring << "' found" << std::endl;
+							return;
 						}
 						
 						reqstring++;
