@@ -5,48 +5,6 @@
  *
  */
 
-#ifndef __COMPOSITOR_H_PRE__
-#define __COMPOSITOR_H_PRE__ 
-
-#ifdef DEBUG_DEP
-	#warning "compositor.h-pre"
-#endif
-
-namespace GUI
-{
-	namespace Core
-	{
-		struct MouseEvent;
-		struct KeyboardEvent;
-		struct WindowEvent;
-		
-		struct Listener;
-		
-		typedef void(*mouse)(MouseEvent, void*);
-		typedef void(*keyboard)(KeyboardEvent, void*);
-		typedef void(*window)(WindowEvent, void*);
-		typedef void(*render)(float diff, void*);
-	}
-	
-	typedef void(*universalCallback)(void*);
-	
-	class Event;
-	class Window;
-	class Compositor;
-	class Metrics;
-	
-}
-
-#define __COMPOSITOR_H_PRE_END__
-
-#include <iostream.h>
-#include <string.h>
-#include <sdlheader.h>
-
-#endif
-
-
-
 #ifndef __COMPOSITOR_H__
 #define __COMPOSITOR_H__ 
 
@@ -54,7 +12,8 @@ namespace GUI
 	#warning "compositor.h"
 #endif
 
-using namespace std;
+#include <string>
+#include <sdlheader.h>
 
 namespace GUI
 {
@@ -249,7 +208,7 @@ namespace GUI
 				
 				DialogButtons(int buttoncount)
 				{
-					names = new string[buttoncount];
+					names = new std::string[buttoncount];
 					namesLen = buttoncount;
 					focused = -1;
 				}
@@ -259,24 +218,24 @@ namespace GUI
 					switch(standard)
 					{
 						case B_OK:
-							names = new string[] {"OK"};
+							names = new std::string[] {"OK"};
 							namesLen = 1;
 							focused = 0;
 							break;
 						case B_OKCANCEL:
-							names = new string[] {"OK", "Cancel"}
+							names = new std::string[] {"OK", "Cancel"}
 							namesLen = 2;
 							focused = 1;
 							break;
 						case B_YESNO:
-							names = new string[] {"Yes", "No"}
+							names = new std::string[] {"Yes", "No"}
 							namesLen = 2;
 							focused = 1;
 							break;
 					}
 				}
 				
-				string* names;
+				std::string* names;
 				int namesLen;
 				int focused;
 			};
@@ -304,7 +263,7 @@ namespace GUI
 				float w;
 				float h;
 				
-				string text;
+				std::string text;
 			};
 		
 			bool add(Window* win, WindowParamaters params);
@@ -389,5 +348,4 @@ namespace GUI
 	#warning "compositor.h-end"
 #endif
 
-#define __COMPOSITOR_H_END__  // signal that the main section of foo.h has been fully included
 #endif

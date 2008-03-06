@@ -4,10 +4,14 @@
 #include "aipathfinding.h"
 #include "unit.h"
 #include "game.h"
+#include "camera.h"
 #include <fstream>
+#include <cmath>
 
 //#define NET_DEBUG
 //#define NET_DEBUG_CONNECTION
+
+using namespace std;
 
 namespace Game
 {

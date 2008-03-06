@@ -21,6 +21,8 @@
 #include "gui.h"
 #include "networking.h"
 #include "paths.h"
+#include "camera.h"
+#include "aipathfinding.h"
 
 #if USE_FONT == 1
 #include "font.h"
@@ -31,6 +33,8 @@
 #endif
 #define USE_LUA
 #include "luawrapper.h"
+
+using namespace std;
 
 void ParseArguments(int argc, char** argv);
 void KillAll(void);

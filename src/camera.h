@@ -1,25 +1,4 @@
-#ifndef __CAMERA_H_PRE__
-#define __CAMERA_H_PRE__
-
-#ifdef DEBUG_DEP
-#warning "camera.h-pre"
-#endif
-
-namespace Game
-{
-	namespace Dimension
-	{
-		class Camera;
-	}
-}
-
-#define __CAMERA_H_PRE_END__
-
-#include "unit.h"
-
-#endif
-
-#ifdef __UNIT_H_PRE_END__
+#include "unit-pre.h"
 
 #ifndef __CAMERA_H__
 #define __CAMERA_H__
@@ -27,6 +6,9 @@ namespace Game
 #ifdef DEBUG_DEP
 #warning "camera.h"
 #endif
+
+#include "vector3d.h"
+#include "sdlheader.h"
 
 namespace Game
 {
@@ -96,8 +78,4 @@ namespace Game
 #warning "camera.h-end"
 #endif
 
-#define __CAMERA_H_END__
-
 #endif
-#endif
-

@@ -12,6 +12,9 @@
 #include "gamegui.h"
 #include "aibase.h"
 #include "luawrapper.h"
+#include "gui.h"
+#include "game.h"
+#include <sstream>
 
 namespace UnitLuaInterface
 {
@@ -19,6 +22,7 @@ namespace UnitLuaInterface
 	using namespace Game::AI;
 	using namespace Utilities;
 	using namespace Utilities::Scripting;
+	using namespace std;
 
 #define CHECK_UNIT_PTR(x) \
 	if ((x) == NULL) \
@@ -1417,7 +1421,7 @@ namespace UnitLuaInterface
 		{
 			raceScript = "robots";
 		}
-		AddPlayer(name, type, texture, std::string(raceScript), std::string(aiScript));
+		new Player(name, type, texture, std::string(raceScript), std::string(aiScript));
 		LUA_SUCCESS
 	}
 
@@ -1464,7 +1468,7 @@ namespace UnitLuaInterface
 		UnitType* pUnitType = (UnitType*) lua_touserdata(pVM, 1);
 		const char* name = "";
 		if (pUnitType)
-			name = pUnitType->id;
+			name = pUnitType->id.c_str();
 
 		lua_pushstring(pVM, name);
 		return 1;
@@ -2713,29 +2717,6 @@ else \
 	lua_pop(pVM, 1); \
 }
 
-#define	GET_STRING_FIELD(dest, field) \
-lua_getfield(pVM, -1, field); \
-if (!lua_isstring(pVM, -1)) \
-{ \
-	lua_pop(pVM, 1); \
-	LUA_FAILURE("Required field \""field"\" not found in unit description or is not a string") \
-} \
-dest = lua_tostring(pVM, -1); \
-lua_pop(pVM, 1);
-
-#define	GET_STRING_FIELD_OPTIONAL(dest, field, def) \
-lua_getfield(pVM, -1, field); \
-if (!lua_isstring(pVM, -1)) \
-{ \
-	dest = def; \
-	lua_pop(pVM, 1); \
-} \
-else \
-{ \
-	dest = lua_tostring(pVM, -1); \
-	lua_pop(pVM, 1); \
-}
-
 #define	GET_STDSTRING_FIELD(dest, field) \
 lua_getfield(pVM, -1, field); \
 if (!lua_isstring(pVM, -1)) \
@@ -2818,10 +2799,12 @@ else \
 		pUnitType = new UnitType;
 
 		pUnitType->player = player;
+		pUnitType->numBuilt = 0;
+		pUnitType->numExisting = 0;
 
-		GET_STRING_FIELD(pUnitType->id, "id")
+		GET_STDSTRING_FIELD(pUnitType->id, "id")
 
-		GET_STRING_FIELD_OPTIONAL(pUnitType->name, "name", pUnitType->id)
+		GET_STDSTRING_FIELD_OPTIONAL(pUnitType->name, "name", pUnitType->id)
 
 		GET_INT_FIELD(pUnitType->maxHealth, "maxHealth")
 		GET_INT_FIELD(pUnitType->heightOnMap, "heightOnMap")
@@ -3012,7 +2995,7 @@ else \
 		lua_setfield(pVM, 1, "pointer");
 
 		lua_pushvalue(pVM, 1); // Create a copy of the unittype table
-		lua_setglobal(pVM, pUnitType->id); // Set it as a new global
+		lua_setglobal(pVM, pUnitType->id.c_str()); // Set it as a new global
 
 		lua_getglobal(pVM, "UnitTypes");
 		if (lua_isnil(pVM, 2))
@@ -3023,7 +3006,7 @@ else \
 		}
 
 		lua_pushvalue(pVM, 1); // Create a copy of the unittype table
-		lua_setfield(pVM, 2, pUnitType->id);
+		lua_setfield(pVM, 2, pUnitType->id.c_str());
 		lua_pop(pVM, 1);
 
 		pUnitType->playerAIFuncs = pWorld->vPlayers[player->index]->playerAIFuncs;
@@ -3049,10 +3032,10 @@ else \
 
 		pResearch->player = player;
 
-		GET_STRING_FIELD(pResearch->id, "id")
-		GET_STRING_FIELD(pResearch->name, "name")
-		GET_STRING_FIELD(pResearch->description, "description")
-		GET_STRING_FIELD_OPTIONAL(pResearch->luaEffectObj, "luaEffectObj", "")
+		GET_STDSTRING_FIELD(pResearch->id, "id")
+		GET_STDSTRING_FIELD(pResearch->name, "name")
+		GET_STDSTRING_FIELD(pResearch->description, "description")
+		GET_STDSTRING_FIELD_OPTIONAL(pResearch->luaEffectObj, "luaEffectObj", "")
 		GET_INT_FIELD_OPTIONAL(pResearch->requirements.money, "cost", 0)
 		GET_INT_FIELD_OPTIONAL(pResearch->requirements.time, "time", 0)
 		GET_INT_FIELD_OPTIONAL(pResearch->requirements.power, "power", 0)

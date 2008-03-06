@@ -1,3 +1,6 @@
+#ifndef __CHUNKALLOCATOR_H__
+#define __CHUNKALLOCATOR_H__
+
 #include <stack>
 
 namespace Utilities
@@ -62,3 +65,4 @@ namespace Utilities
 	};
 }
 
+#endif

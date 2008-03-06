@@ -1,18 +1,3 @@
-#ifndef __WINDOW_H_PRE__
-#define __WINDOW_H_PRE__
-
-#ifdef DEBUG_DEP
-#warning "window.h-pre"
-#endif
-
-#define __WINDOW_H_PRE_END__
-
-#include "utilities.h"
-
-#endif
-
-#ifdef __UTILITIES_H_PRE_END__
-
 #ifndef __WINDOW_H__
 #define __WINDOW_H__
 
@@ -20,6 +5,7 @@
 #warning "window.h"
 #endif
 
+#include "utilities-pre.h"
 #include "sdlheader.h"
 
 namespace Window
@@ -69,7 +55,4 @@ namespace Window
 #warning "window.h-end"
 #endif
 
-#define __WINDOW_H_END__
-
-#endif
 #endif

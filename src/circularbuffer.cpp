@@ -1,5 +1,10 @@
 #include "circularbuffer.h"
 
+#include <sstream>
+#include <fstream>
+
+using namespace std;
+
 CircularBuffer::CircularBuffer(int lines, std::string filename)
 {
 	m_buffer = new std::string[lines];

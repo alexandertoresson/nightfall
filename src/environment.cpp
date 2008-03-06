@@ -1,8 +1,21 @@
-#include "environment.h"
+#include <queue>
+#include <map>
+#include <string>
+#include <iostream>
+#include <ctime>
+#include <sstream>
+#include <fstream>
+#include "sdlheader.h"
 
+#include "terrain.h"
+
+#include "environment.h"
 #include "dimension.h"
 #include "console.h"
 #include "paths.h"
+#include "filesystem.h"
+#include "utilities.h"
+#include <cmath>
 
 namespace Game
 {
@@ -152,6 +165,15 @@ namespace Game
 					
 					m_skyboxesGLContainer.clear();
 				}
+
+				if (sphere_faces)
+					delete[] sphere_faces;
+
+				if (sphere_texcoords)
+					delete[] sphere_texcoords;
+
+				if (sphere_coords)
+					delete[] sphere_coords;
 			}
 
 			void FourthDimension::SetHourLength(const float val)
@@ -464,6 +486,15 @@ namespace Game
 			{
 				LoadSkyboxes();
 			
+				if (sphere_faces)
+					delete[] sphere_faces;
+
+				if (sphere_texcoords)
+					delete[] sphere_texcoords;
+
+				if (sphere_coords)
+					delete[] sphere_coords;
+
 				float* coords = new float[hdetail * detail * 3];
 				float* texcoords = new float[hdetail * detail * 2];
 

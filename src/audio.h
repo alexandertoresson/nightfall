@@ -2,20 +2,8 @@
 // I AM WORKING ON THIS FILE AT THE MOMENT
 // Please do not, and never, consider this the final version! :)
 //
-#ifndef __AUDIO_H_PRE__
-#define __AUDIO_H_PRE__
-
-#ifdef DEBUG_DEP
-#warning "audio.h-pre"
-#endif
-
-#define __AUDIO_H_PRE_END__
-
-#include "vector3d.h"
-
-#endif
-
-#ifdef __VECTOR3D_H_PRE_END__
+//
+#include "vector3d-pre.h"
 
 #ifndef __AUDIO_H__
 #define __AUDIO_H__
@@ -24,13 +12,13 @@
 #warning "audio.h"
 #endif
 
-#include <vector>
-#include <map>
-#include <string>
-#include <cassert>
 #include "sdlheader.h"
+
 #include "terrain.h"
 #include "linkedlist.h"
+
+#include <map>
+#include <string>
 
 #define AUDIO_DEFAULT_SIGNAL_STRENGTH 5.0f
 
@@ -179,7 +167,4 @@ namespace Audio
 #warning "audio.h-end"
 #endif
 
-#define __AUDIO_H_END__
-
-#endif
 #endif

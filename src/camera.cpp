@@ -1,5 +1,7 @@
 #include "camera.h"
 
+#include "unit.h"
+
 namespace Game
 {
 	namespace Dimension

@@ -1,22 +1,3 @@
-#ifndef __FONT_H_PRE__
-#define __FONT_H_PRE__
-
-#ifdef DEBUG_DEP
-#warning "font.h-pre"
-#endif
-
-namespace Window
-{
-	namespace GUI
-	{
-		class FontCache;
-	}
-}
-
-#define __FONT_H_PRE_END__
-
-#endif
-
 #ifndef __FONT_H__
 #define __FONT_H__
 
@@ -24,12 +5,12 @@ namespace Window
 #warning "font.h"
 #endif
 
+#include "font-pre.h"
+
 #include <queue>
 #include <map>
 #include <string>
 #include "sdlheader.h"
-
-using namespace std;
 
 namespace Window
 {
@@ -52,7 +33,7 @@ namespace Window
 					float h; //0 - 1
 					GLuint Texture;
 					GLfloat *texCoords;
-					string Text;
+					std::string Text;
 					int fonttype;
 					int fontcolor;
 					FontTexture *nxt;
@@ -64,8 +45,8 @@ namespace Window
 				};
 
 				int GetPointSize(float size);
-				map<std::string, FontContainer> CachedText;
-				queue<FontTexture*> CachedTexture;
+				std::map<std::string, FontContainer> CachedText;
+				std::queue<FontTexture*> CachedTexture;
 			public:
 				struct RenderedText
 				{
@@ -84,12 +65,12 @@ namespace Window
 				FontCache();
 				FontCache(int);
 				~FontCache();
-				int LoadFont(string path);
+				int LoadFont(std::string path);
 
 				float GetLineHeight(float resolution);
-				TextDimension GetTextSize(string text, float resolution);
-				int RenderText(string text, FontCache::RenderedText& Fonten);
-				int RenderText(string text, FontCache::RenderedText& Fonten, float resolution);
+				TextDimension GetTextSize(std::string text, float resolution);
+				int RenderText(std::string text, FontCache::RenderedText& Fonten);
+				int RenderText(std::string text, FontCache::RenderedText& Fonten, float resolution);
 				void SetColor(Uint8 r, Uint8 b, Uint8 g);
 				void SetFontType(int type);
 		};
@@ -102,8 +83,6 @@ namespace Window
 #ifdef DEBUG_DEP
 #warning "font.h-end"
 #endif
-
-#define __FONT_H_END__
 
 #endif
 

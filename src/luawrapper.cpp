@@ -10,6 +10,8 @@
 #include "game.h"
 #include <cassert>
 
+using namespace std;
+
 namespace Utilities
 {
 	namespace Scripting
@@ -119,12 +121,13 @@ namespace Utilities
 
 		LuaVMState::~LuaVMState(void)
 		{
-			if (m_pState == NULL)
+			if (m_pState)
 			{
 				luaStateToPlayer.erase(m_pState);
 				luaStateToObject.erase(m_pState);
 				lua_close(m_pState);
 			}
+			SDL_DestroyMutex(CallErrMutex);
 		}
 
 		void LuaVMState::RegisterFunction(std::string alias, int (*fptr)(lua_State*))

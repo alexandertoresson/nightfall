@@ -1,60 +1,3 @@
-#ifndef __GUI_H_PRE__
-#define __GUI_H_PRE__
-
-#ifdef DEBUG_DEP
-#warning "gui.h-pre"
-#endif
-
-namespace Window
-{
-	namespace GUI
-	{
-		class Panel;
-		class FixedPanel;
-		class GUIWindow;
-		class Widget;
-		struct Event;
-		struct PanelInfo;
-		struct TranslatedMouse;
-		
-		class TextButton;
-		class PicButton;
-		class Label;
-		class Picture;
-		class Selector;
-		
-		enum EventType
-		{
-			MOUSE_PRESS = 0,
-			MOUSE_UP = 1,
-			MOUSE_DOWN = 2,
-			MOUSE_SCROLL = 3,
-			MOUSE_MOVE = 4,
-			KB_DOWN = 5,
-			KB_UP = 6,
-			MOUSE_OUT = 7,
-			FOCUS = 8,
-			FOCUS_OUT = 9,
-			EVENT_COUNT = 10
-		};
-
-	}
-}
-
-#include "errors.h"
-
-#define __GUI_H_PRE_END__
-
-#include "terrain.h"
-#include "font.h"
-#include "console.h"
-
-#endif
-
-#ifdef __FONT_H_PRE_END__
-
-#ifdef __TERRAIN_H_PRE_END__
-
 #ifndef __GUI_H__
 #define __GUI_H__
 
@@ -62,13 +5,16 @@ namespace Window
 #warning "gui.h"
 #endif
 
+#include "gui-pre.h"
+
+#include "terrain-pre.h"
+#include "font.h"
+
 #include "sdlheader.h"
+#include "errors.h"
 #include <vector>
-#include <deque>
 #include <string>
 #include <map>
-
-using namespace std;
 
 /* Standards:
  *	xUnit & yUnit: Pixel Unit at this location, gets bigger as smaller the element gets. If over 1 then the widget is below 1 pixel big.
@@ -196,8 +142,8 @@ namespace Window
 				float xUnit;
 				float yUnit;
 
-				vector<ObjectInfo*> ObjectInformation;
-				map<int, ObjectInfo*> ObjectMap;
+				std::vector<ObjectInfo*> ObjectInformation;
+				std::map<int, ObjectInfo*> ObjectMap;
 				int counter;
 				
 				PanelWidget Focused;
@@ -265,12 +211,12 @@ namespace Window
 		};
 		// End of GUI Core
 
-		typedef string(*InfoLabelfptr)(void);
+		typedef std::string(*InfoLabelfptr)(void);
 
 		class Tooltip : virtual public Widget
 		{
 			protected:	
-				string tooltip;
+				std::string tooltip;
 				bool painttooltip;
 				float mx;
 				float my;
@@ -278,7 +224,7 @@ namespace Window
 			public:
 				Tooltip() {tooltiptype = 0; painttooltip = false;}
 				virtual void PaintTooltip();
-				void SetTooltip(string tooltip);
+				void SetTooltip(std::string tooltip);
 		};
 
 		class Picture : virtual public Widget, virtual public Tooltip
@@ -307,7 +253,7 @@ namespace Window
 		class Label : virtual public Widget , virtual public Tooltip
 		{
 			protected:
-				string text;
+				std::string text;
 				int type;
 				void PaintLabel(Window::GUI::FontCache::RenderedText obj, float tx, float ty);
 				void PaintLabel();
@@ -316,7 +262,7 @@ namespace Window
 				virtual int Paint();
 				virtual int HandleEvent(EventType,SDL_Event*,TranslatedMouse*);
 				virtual void SetType(int sizeType) { type = sizeType; }
-				void SetText(string text);
+				void SetText(std::string text);
 				virtual ~Label() {}
 		};
 
@@ -338,7 +284,7 @@ namespace Window
 		class Selector : virtual public Widget, virtual public Tooltip
 		{
 			protected:
-				vector<string> selections;
+				std::vector<std::string> selections;
 				int selected;
 			public:
 				Selector();
@@ -355,8 +301,8 @@ namespace Window
 				unsigned marker;
 				int markerbyte;
 				float translateX;
-				string text;
-				vector<Uint16> textBlocks;
+				std::string text;
+				std::vector<Uint16> textBlocks;
 				unsigned maxSize;
 
 				float markerX;
@@ -374,8 +320,8 @@ namespace Window
 				virtual int Paint();
 				virtual int HandleEvent(EventType,SDL_Event*,TranslatedMouse*);
 				void SetMaxLen(int len);
-				void SetText(string text);
-				string GetText();
+				void SetText(std::string text);
+				std::string GetText();
 				virtual ~TextBox() {}
 
 		};
@@ -456,7 +402,7 @@ namespace Window
 				LoadWindow(float maxProgress);
 				virtual int RunLoop() { return SUCCESS; }
 				void SetProgress(float val);
-				void SetMessage(string message);
+				void SetMessage(std::string message);
 				void Increment(float val);
 				int Update();
 				virtual ~LoadWindow();				
@@ -485,14 +431,14 @@ namespace Window
 		class Selector : public Label
 		{
 			private:
-				vector<string> selections;
+				std::vector<std::string> selections;
 				int current;
 				void PaintArrows();
 			public:
 				Selector() { current = 0 };
 				int Paint();
 				int HandleEvent(EventType,SDL_Event*,TranslatedMouse*);
-				void AddSelection(string name);
+				void AddSelection(std::string name);
 				void SetSelectedID(int id);
 				int GetSelectedID();
 
@@ -512,10 +458,5 @@ namespace Window
 #warning "gui.h-end"
 #endif
 
-#define __GUI_H_END__
-
 #endif
 
-#endif
-
-#endif

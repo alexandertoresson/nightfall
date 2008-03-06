@@ -1,27 +1,3 @@
-#ifndef __VECTOR3D_H_PRE__
-#define __VECTOR3D_H_PRE__
-
-#ifdef DEBUG_DEP
-#warning "vector3d.h-pre"
-#endif
-
-#include <iostream>
-
-namespace Utilities
-{
-	class Vector3D;
-}
-
-#define PI 3.14159265
-
-#define __VECTOR3D_H_PRE_END__
-
-#include "terrain.h"
-
-#endif
-
-#ifdef __TERRAIN_H_PRE_END__
-
 #ifndef __VECTOR3D_H__
 #define __VECTOR3D_H__
 
@@ -29,7 +5,10 @@ namespace Utilities
 #warning "vector3d.h"
 #endif
 
-using namespace std;
+#include "vector3d-pre.h"
+
+#include "terrain-pre.h"
+#include <ostream>
 
 namespace Utilities
 {
@@ -134,16 +113,12 @@ namespace Utilities
 			void rotate(float degrees, const Vector3D& axis);
 	};
 	
-	ostream& operator<<(ostream& out, const Vector3D& v);
+	std::ostream& operator<<(std::ostream& out, const Vector3D& v);
 	
 }
-
-#define __VECTOR3D_H_END__
 
 #ifdef DEBUG_DEP
 #warning "vector3d.h-end"
 #endif
 
 #endif
-#endif
-

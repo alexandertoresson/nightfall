@@ -4,9 +4,13 @@
 #include "game.h"
 #include "networking.h"
 #include "paths.h"
+#include "utilities.h"
+#include "window.h"
 #include <iostream>
 #include <fstream>
 #include <cmath>
+
+using namespace std;
 
 namespace Game
 {
@@ -2962,7 +2966,7 @@ namespace Game
 									delete texcoords_2[y2+1][x2+1];
 								}
 							}
-							if (y != new_width-1)
+							if (y != new_height-1)
 							{
 								delete normals_2[y2+1][x2];
 								delete texcoords_2[y2+1][x2];
@@ -2983,7 +2987,7 @@ namespace Game
 
 					for(int y=0;y<new_height;y++)
 					{
-						for(int x=0;x<new_height;x++)
+						for(int x=0;x<new_width;x++)
 						{
 							delete HeightMipmaps[0][mipmap_num].ppTexCoords[y][x];
 							delete HeightMipmaps[0][mipmap_num].ppNormals[y][x];
@@ -3035,36 +3039,5 @@ namespace Game
 			delete [] pppElements;
 		}
 
-		void UnloadWorld(void)
-		{
-			if (pWorld == NULL)
-				return;
-			
-			//Deallocate Units
-			while(pWorld->vUnits.size() > 0)
-				DeleteUnit(pWorld->vUnits.at(0));
-
-//			AI::ClearPathNodeStack();
-
-			//Deallocate Player
-			for(unsigned int i = 0; i < pWorld->vPlayers.size(); i++)
-			{
-				Player *pPlayer = pWorld->vPlayers.at(i);
-				for(int y = 0; y < pWorld->height; y++)
-				{
-					delete [] pPlayer->NumUnitsSeeingSquare[y];
-				}
-				delete [] pPlayer->NumUnitsSeeingSquare;
-				delete [] pPlayer->states;
-
-				delete pPlayer;
-			}			
-
-			//Deallocate Terrain & Water & Heightmap
-			UnloadTerrain();
-			glDeleteTextures(1, &Dimension::terraintexture);
-				
-			delete pWorld;
-		}
 	}
 }	

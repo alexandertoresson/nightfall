@@ -2,9 +2,6 @@
 #define __CIRCULARBUFFER_H__
 
 #include <string>
-#include <sstream>
-#include <fstream>
-#include <iostream>
 
 class CircularBuffer
 {

@@ -6,6 +6,8 @@
 #include "terrain.h"
 #include "networking.h"
 #include "game.h"
+#include "utilities.h"
+#include <cmath>
 
 using namespace std;
 using namespace Window;

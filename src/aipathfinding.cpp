@@ -45,10 +45,14 @@
 #include "binaryheap.h"
 #include <map>
 #include <set>
+#include <cassert>
+#include <cmath>
 
 #define MAXIMUM_PATH_CALCULATIONS 10000
 #define RECALC_TRACE_LIMIT 1000
 #define RECALC_FLOODFILL_LIMIT 4000
+
+using namespace std;
 
 namespace Game
 {
@@ -90,6 +94,8 @@ namespace Game
 		};
 
 		int width, height;
+
+		int  _ThreadMethod(void* arg);
 
 		struct ThreadData
 		{
@@ -164,6 +170,82 @@ namespace Game
 
 			int *openList, openListSize, nextFreeNode;
 
+			ThreadData(int index)
+			{
+				this->threadIndex = index;
+				this->threadRuntime = true;
+				this->pMutex = SDL_CreateMutex();
+				this->pUnit = NULL;
+				this->pThread = SDL_CreateThread(Game::AI::_ThreadMethod, (void*)this);
+
+				this->squareTypes = (unsigned char**) malloc(height * sizeof(unsigned char*));
+				this->squareNums = (int**) malloc(height * sizeof(int*));
+				this->nodeTypes = (unsigned char**) malloc(height * sizeof(unsigned char*));
+				this->nodeNums = (int**) malloc(height * sizeof(int*));
+				for (int y = 0; y < height; y++)
+				{
+					this->squareTypes[y] = (unsigned char*) calloc(width, sizeof(unsigned char));
+					this->squareNums[y] = (int*) calloc(width, sizeof(int));
+					this->nodeTypes[y] = (unsigned char*) calloc(width, sizeof(unsigned char));
+					this->nodeNums[y] = (int*) calloc(width, sizeof(int));
+				}
+				if (MAXIMUM_PATH_CALCULATIONS < width*height)
+				{
+					this->openListSize = MAXIMUM_PATH_CALCULATIONS;
+				}
+				else
+				{
+					this->openListSize = width * height;
+				}
+				this->nodes = new node[this->openListSize];
+				this->scores = new Uint32[this->openListSize];
+				this->positions = new int[this->openListSize];
+				this->openList = new int[this->openListSize];
+
+				this->scanlines = (scanline*) malloc(sizeof(scanline) * 1024);
+				this->scanlineArraySize = 1024;
+				
+				this->scanlineQueue = new int[width + height];
+				this->scanlineQueueSize = width + height;
+
+				this->heap = binary_heap_create(this->scores, this->openList, this->positions);
+
+				this->SQUARE_TYPE_OPEN = 1;
+				this->SQUARE_TYPE_CLOSED = 2;
+				this->SQUARE_TYPE_BLOCKED = 3;
+				
+				this->NODE_TYPE_OPEN = 1;
+				this->NODE_TYPE_CLOSED = 2;
+			}
+
+			~ThreadData()
+			{
+				SDL_DestroyMutex(this->pMutex);
+
+				for (int y = 0; y < height; y++)
+				{
+					free(this->squareTypes[y]);
+					free(this->squareNums[y]);
+					free(this->nodeTypes[y]);
+					free(this->nodeNums[y]);
+				}
+				free(this->squareTypes);
+				free(this->squareNums);
+				free(this->nodeTypes);
+				free(this->nodeNums);
+
+				delete[] this->nodes;
+				delete[] this->scores;
+				delete[] this->positions;
+				delete[] this->openList;
+
+				free(this->scanlines);
+				
+				delete[] this->scanlineQueue;
+
+				binary_heap_destroy(this->heap);
+
+			}
 		};
 
 #define FLOODFILL_FLAG_CALCULATE_NEAREST 1
@@ -205,7 +287,7 @@ namespace Game
 			{
 				for (x = 0; x < width; x++)
 				{
-					if (IsWalkable_MType(x, y, mt, size) && areaMaps[size][mt][y][x] == 0)
+					if (areaMaps[size][mt][y][x] == 0 && IsWalkable_MType(x, y, mt, size))
 					{
 						if (InitFloodfill(tdata, x, y, FLOODFILL_FLAG_SET_AREA_CODE) == PATHSTATE_OK)
 						{
@@ -340,11 +422,8 @@ namespace Game
 			}
 		}
 
-		int  _ThreadMethod(void* arg);
-
 		void InitPathfindingThreading(void)
 		{
-			int y;
 			width = Game::Dimension::pWorld->width;
 			height = Game::Dimension::pWorld->width;
 			if (pThreadDatas != NULL)
@@ -361,71 +440,28 @@ namespace Game
 			gpmxAreaMap = SDL_CreateMutex();
 			gpmxHConst = SDL_CreateMutex();
 
+			numNotReached = new volatile int*[4];
+			changedSinceLastRegen = new volatile bool*[4];
+			regenerateAreaCodes = new volatile bool*[4];
+			areaMaps = new volatile Uint16***[4];
+			for (int j = 0; j < 4; j++)
+			{
+				numNotReached[j] = new volatile int[Game::Dimension::MOVEMENT_TYPES_NUM];;
+				changedSinceLastRegen[j] = new volatile bool[Game::Dimension::MOVEMENT_TYPES_NUM];
+				regenerateAreaCodes[j] = new volatile bool[Game::Dimension::MOVEMENT_TYPES_NUM];
+				areaMaps[j] = new volatile Uint16**[Game::Dimension::MOVEMENT_TYPES_NUM];
+				for (int i = 0; i < Game::Dimension::MOVEMENT_TYPES_NUM; i++)
+				{
+					numNotReached[j][i] = 0;
+					changedSinceLastRegen[j][i] = true;
+					regenerateAreaCodes[j][i] = true;
+					areaMaps[j][i] = NULL;
+				}
+			}
+
 			for (int i = 0; i < numPathfindingThreads; i++)
 			{
-				ThreadData* tdata = pThreadDatas[i] = new ThreadData;
-				tdata->threadIndex = i;
-				tdata->threadRuntime = true;
-				tdata->pMutex = SDL_CreateMutex();
-				tdata->pUnit = NULL;
-				tdata->pThread = SDL_CreateThread(Game::AI::_ThreadMethod, (void*)tdata);
-
-				tdata->squareTypes = (unsigned char**) malloc(height * sizeof(unsigned char*));
-				tdata->squareNums = (int**) malloc(height * sizeof(int*));
-				tdata->nodeTypes = (unsigned char**) malloc(height * sizeof(unsigned char*));
-				tdata->nodeNums = (int**) malloc(height * sizeof(int*));
-				for (y = 0; y < height; y++)
-				{
-					tdata->squareTypes[y] = (unsigned char*) calloc(width, sizeof(unsigned char));
-					tdata->squareNums[y] = (int*) calloc(width, sizeof(int));
-					tdata->nodeTypes[y] = (unsigned char*) calloc(width, sizeof(unsigned char));
-					tdata->nodeNums[y] = (int*) calloc(width, sizeof(int));
-				}
-				numNotReached = new volatile int*[4];
-				changedSinceLastRegen = new volatile bool*[4];
-				regenerateAreaCodes = new volatile bool*[4];
-				areaMaps = new volatile Uint16***[4];
-				for (int j = 0; j < 4; j++)
-				{
-					numNotReached[j] = new volatile int[Game::Dimension::MOVEMENT_TYPES_NUM];;
-					changedSinceLastRegen[j] = new volatile bool[Game::Dimension::MOVEMENT_TYPES_NUM];
-					regenerateAreaCodes[j] = new volatile bool[Game::Dimension::MOVEMENT_TYPES_NUM];
-					areaMaps[j] = new volatile Uint16**[Game::Dimension::MOVEMENT_TYPES_NUM];
-					for (int i = 0; i < Game::Dimension::MOVEMENT_TYPES_NUM; i++)
-					{
-						numNotReached[j][i] = 0;
-						changedSinceLastRegen[j][i] = true;
-						regenerateAreaCodes[j][i] = true;
-						areaMaps[j][i] = NULL;
-					}
-				}
-				if (MAXIMUM_PATH_CALCULATIONS < width*height)
-				{
-					tdata->openListSize = MAXIMUM_PATH_CALCULATIONS;
-				}
-				else
-				{
-					tdata->openListSize = width * height;
-				}
-				tdata->nodes = new node[tdata->openListSize];
-				tdata->scores = new Uint32[tdata->openListSize];
-				tdata->positions = new int[tdata->openListSize];
-				tdata->openList = new int[tdata->openListSize];
-
-				tdata->scanlines = (scanline*) malloc(sizeof(scanline) * 1024);
-				tdata->scanlineArraySize = 1024;
-				
-				tdata->scanlineQueue = new int[width + height];
-				tdata->scanlineQueueSize = width + height;
-
-				tdata->heap = binary_heap_create(tdata->scores, tdata->openList, tdata->positions);
-
-				tdata->SQUARE_TYPE_OPEN = 1;
-				tdata->SQUARE_TYPE_CLOSED = 2;
-				tdata->SQUARE_TYPE_BLOCKED = 3;
-				
-				tdata->NODE_TYPE_OPEN = 1;
-				tdata->NODE_TYPE_CLOSED = 2;
+				pThreadDatas[i] = new ThreadData(i);
 			}
 
 			hConstWidth = width;
@@ -476,6 +512,30 @@ namespace Game
 				gpmxQueue = NULL;
 			}
 			
+			for (int j = 0; j < 4; j++)
+			{
+				for (int i = 0; i < Game::Dimension::MOVEMENT_TYPES_NUM; i++)
+				{
+					if (areaMaps[j][i])
+					{
+						for (int y = 0; y < height; y++)
+						{
+							delete[] areaMaps[j][i][y];
+						}
+						delete areaMaps[j][i];
+					}
+				}
+
+				delete[] numNotReached[j];
+				delete[] changedSinceLastRegen[j];
+				delete[] regenerateAreaCodes[j];
+				delete[] areaMaps[j];
+			}
+			delete[] numNotReached;
+			delete[] changedSinceLastRegen;
+			delete[] regenerateAreaCodes;
+			delete[] areaMaps;
+
 			delete[] pThreadDatas;
 			pThreadDatas = NULL;
 		}
@@ -530,8 +590,6 @@ namespace Game
 				
 				SDL_Delay(10);
 			}
-
-			SDL_DestroyMutex(tdata->pMutex);
 
 			delete tdata;
 			tdata = NULL;

@@ -5,6 +5,8 @@
 #include "errors.h"
 #include "dimension.h"
 #include "paths.h"
+#include "console.h"
+
 #include <iostream>
 #include <fstream>
 #include <stack>

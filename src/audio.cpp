@@ -5,11 +5,15 @@
 #include "console.h"
 #include "dimension.h"
 #include "unit.h"
+#include "utilities.h"
 #include <vector>
 #include <map>
 #include <queue>
 #include <iostream>
 #include <cmath>
+#include <cassert>
+
+using namespace std;
 
 namespace Audio
 {

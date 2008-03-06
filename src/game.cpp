@@ -16,6 +16,8 @@
 #include "aipathfinding.h"
 #include "saveandload.h"
 #include "paths.h"
+#include "camera.h"
+#include "effect.h"
 #include <iostream>
 #include <fstream>
 #include <cmath>
@@ -26,6 +28,7 @@
 #define SKYBOX 0
 
 using namespace Window::GUI;
+using namespace std;
 
 namespace Game
 {

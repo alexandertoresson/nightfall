@@ -1,75 +1,3 @@
-#ifndef __GAME_H_PRE__
-#define __GAME_H_PRE__
-
-#ifdef DEBUG_DEP
-#warning "game.h-pre"
-#endif
-
-#include <string>
-
-namespace Game
-{
-	namespace Rules
-	{
-
-		extern float time_since_last_frame;
-		extern std::string CurrentLevel;
-		extern std::string CurrentLevelScript;
-
-		extern bool noGraphics;
-		extern bool graphicsLoaded;
-		extern bool noSound;
-		extern int numPlayersGoal;
-		extern std::string host;
-		extern std::string checksumLog;
-
-		extern float time_passed_since_last_water_pass;
-
-		//All game related run loop shall return a switchstate.
-		enum SwitchState
-		{
-			QUIT = 0,
-			SETTINGS,
-			INGAMEMENU,
-			GAME,
-			NEWGAME,
-			LOADGAME,
-			ENDGAME,
-			CREDITS,
-			MENU,
-			MULTIPLAYER,
-			NETWORKCREATE,
-			NETWORKJOIN
-		};
-
-		extern SwitchState startState;
-
-		class GameWindow;
-	}
-}
-
-#define __GAME_H_PRE_END__
-
-#include "dimension.h"
-#include "unit.h"
-#include "gui.h"
-#include "gamegui.h"
-#include "effect.h"
-#include "camera.h"
-#include "gamegui.h"
-#include "networking.h"
-
-#endif
-
-#ifdef __GAMEGUI_H_PRE_END__
-#ifdef __EFFECT_H_PRE_END__
-#ifdef __DIMENSION_H_PRE_END__
-#ifdef __UNIT_H_PRE_END__
-#ifdef __GUI_H_END__
-#ifdef __GAMEGUI_H_END__
-#ifdef __CAMERA_H_PRE_END__
-#ifdef __NETWORKING_H_PRE_END__
-
 #ifndef __GAME_H__
 #define __GAME_H__
 
@@ -77,12 +5,19 @@ namespace Game
 #warning "game.h"
 #endif
 
+#include "dimension-pre.h"
+#include "unit-pre.h"
+#include "gui.h"
+#include "gamegui.h"
+#include "effect-pre.h"
+#include "camera-pre.h"
+#include "gamegui-pre.h"
+#include "networking-pre.h"
+
 #include <vector>
 #include <queue>
 #include <sstream>
 #include <iomanip>
-
-using namespace std;
 
 namespace Game
 {
@@ -115,9 +50,7 @@ namespace Game
 				bool particleRunning;
 				bool gameRunning;
 				
-				//map<Dimension::UnitType*, UnitBuild*> GUI_Build;
 				Dimension::Unit* buildingUnit;
-				//UnitBuild* buildingGUI;
 
 				//Animation variables
 				int frames;
@@ -184,26 +117,6 @@ namespace Game
 
 #ifdef DEBUG_DEP
 #warning "game.h-end"
-#endif
-
-#define __GAME_H_END__
-
-#include "luawrapper.h" // << needed for loading missions.
-
-#endif
-
-#endif
-
-#endif
-
-#endif
-
-#endif
-
-#endif
-
-#endif
-
 #endif
 
 #endif

@@ -1,23 +1,3 @@
-#ifndef __VRMLPARSER_H_PRE__
-#define __VRMLPARSER_H_PRE__
-
-#ifdef DEBUG_DEP
-#warning "model.h-pre"
-#endif
-
-namespace Utilities
-{
-	class ModelParser;
-}
-
-#define __VRMLPARSER_H_PRE_END__
-
-#include "unit.h"
-
-#endif
-
-#ifdef __UNIT_H_PRE_END__
-
 #ifndef __VRMLPARSER_H__
 #define __VRMLPARSER_H__
 
@@ -25,24 +5,23 @@ namespace Utilities
 #warning "model.h"
 #endif
 
+#include "sdlheader.h"
+#include "unit.h"
 #include <string>
 #include <map>
 #include <vector>
-#include "sdlheader.h"
-
-using namespace std;
 
 namespace Utilities
 {
 	class ModelParser
 	{
 		private:
-			string mFile;
-			vector<Game::Dimension::Model*> ModelsIndex;
-			map<string, Game::Dimension::Model*> ModelsData;
-			vector<Game::Dimension::UnitType*> UnitsIndex;
-			map<string, Game::Dimension::UnitType*> UnitsData;
-			map<string, bool> LoadedFiles;
+			std::string mFile;
+			std::vector<Game::Dimension::Model*> ModelsIndex;
+			std::map<std::string, Game::Dimension::Model*> ModelsData;
+			std::vector<Game::Dimension::UnitType*> UnitsIndex;
+			std::map<std::string, Game::Dimension::UnitType*> UnitsData;
+			std::map<std::string, bool> LoadedFiles;
 			bool ValidateHeader(std::string);	
 		
 			enum TokenType
@@ -148,7 +127,7 @@ namespace Utilities
 				
 			};	
 
-			map<string, TokenType> TokenEnums;
+			std::map<std::string, TokenType> TokenEnums;
 
 			
 			enum DefinitionType
@@ -173,8 +152,8 @@ namespace Utilities
 				Coordinate3D
 			};
 			
-			TokenType GetTokenType(vector<string>::iterator&, vector<string>&);
-			DataType GetDataType(string&);
+			TokenType GetTokenType(std::vector<std::string>::iterator&, std::vector<std::string>&);
+			DataType GetDataType(std::string&);
 
 			struct VRMLDefinition
 			{
@@ -196,7 +175,7 @@ namespace Utilities
 			
 			struct VRMLTextureURL
 			{
-				string path;
+				std::string path;
 			};
 
 			struct VRMLClause
@@ -224,7 +203,7 @@ namespace Utilities
 			struct VRMLFaces
 			{
 				FCType type;
-				vector<int> points;
+				std::vector<int> points;
 				int faceCount;
 			};
 
@@ -240,7 +219,7 @@ namespace Utilities
 
 			struct InnerModel
 			{
-				vector<VRMLParameter*>* Parameters;
+				std::vector<VRMLParameter*>* Parameters;
 				VRMLCoordinates* Coordinates;
 				VRMLCoordinates* TextureCoordinates;
 				VRMLFaces* CoordinateFaces;
@@ -249,14 +228,14 @@ namespace Utilities
 				VRMLMaterial* Material;
 				VRMLTRS* TRS_Translate;
 				VRMLTRS* TRS_Scale;
-				string TextureURL;
+				std::string TextureURL;
 			};		
 			
 			struct UnitProjectileType;
 
 			struct InnerUnit
 			{
-				string*     Name;
+				std::string*     Name;
 				int         maxHealth;
 				int         maxPower;
 				int         minAttack;     // in hitpoints
@@ -294,11 +273,11 @@ namespace Utilities
 
 				UnitProjectileType *projectileType;
 				
-				vector<string>*		canBuild;
-				vector<string>*		canResearch;
-				vector<string>*		sound;
-				string*     Model;
-				string*	    Symbol;
+				std::vector<std::string>*		canBuild;
+				std::vector<std::string>*		canResearch;
+				std::vector<std::string>*		sound;
+				std::string*     Model;
+				std::string*	    Symbol;
 
 				TokenType movementType;	
 			};
@@ -336,9 +315,9 @@ namespace Utilities
 					bool boolean;
 					float floating;
 					TokenType enums;
-					string* str;
-					vector<float>* floatArray;
-					vector<string>* stringArray;
+					std::string* str;
+					std::vector<float>* floatArray;
+					std::vector<std::string>* stringArray;
 					UnitProjectileType *projectileType;
 				} param;
 				UnitData *children; //For example Animation grouping.
@@ -347,7 +326,7 @@ namespace Utilities
 			
 			struct UnitProjectileType
 			{
-				string* model;
+				std::string* model;
 				float size;
 				float areaOfEffect;
 				float* startPos;
@@ -387,8 +366,8 @@ namespace Utilities
 				SpecifiedChar
 			};
 
-			bool CheckAhead(vector<string>::iterator&, vector<string>&,int);
-			bool SearchAhead(vector<string>::iterator& CurrentPosition, vector<string>::iterator EndPosition,SearchTypes Find,char specifiedchar);
+			bool CheckAhead(std::vector<std::string>::iterator&, std::vector<std::string>&,int);
+			bool SearchAhead(std::vector<std::string>::iterator& CurrentPosition, std::vector<std::string>::iterator EndPosition,SearchTypes Find,char specifiedchar);
 			void CreateVRMLData(VRMLData*&);
 			void CreateInnerModel(InnerModel*&);
 
@@ -412,25 +391,25 @@ namespace Utilities
 			{
 				int integer;
 				float floating;
-				string* str;
+				std::string* str;
 				float* floatArray;
 				bool boolean;
 			} DataParameter;
 			
-			bool ReadParameter(DataType dTyp, DataParameter&, vector<string>::iterator& Position, vector<string>& tokens);
-			bool ReadUnitParameter(TokenType tTyp, DataType dTyp, UnitData*& current, vector<string>::iterator& Postion, vector<string>& tokens);
-			bool ReadUnitArray(TokenType tTyp, DataType dTyp, UnitData*& Current, vector<string>::iterator& Position, vector<string>& tokens);
+			bool ReadParameter(DataType dTyp, DataParameter&, std::vector<std::string>::iterator& Position, std::vector<std::string>& tokens);
+			bool ReadUnitParameter(TokenType tTyp, DataType dTyp, UnitData*& current, std::vector<std::string>::iterator& Postion, std::vector<std::string>& tokens);
+			bool ReadUnitArray(TokenType tTyp, DataType dTyp, UnitData*& Current, std::vector<std::string>::iterator& Position, std::vector<std::string>& tokens);
 
 			// Validates Number
 			bool IsCoordinate(std::string&);
-			bool GetNextType(vector<string>::iterator& position, vector<string>& tokens, ModelParser::DataType Type);
+			bool GetNextType(std::vector<std::string>::iterator& position, std::vector<std::string>& tokens, ModelParser::DataType Type);
 
 			void InitEnum();
 
-			int ProcessFile(string mFile, vector<string>& tokens);
-			int ProcessTokens(vector<DataGroup*>& blocks, vector<string>& tokens);
-			int ProcessGroups(vector<DataGroup*>& blocks, vector<innerHandling*>& ObjectBlocks);
-			int PrepareForGameCore(vector<innerHandling*>& ObjectBlocks, string& mFile);
+			int ProcessFile(std::string mFile, std::vector<std::string>& tokens);
+			int ProcessTokens(std::vector<DataGroup*>& blocks, std::vector<std::string>& tokens);
+			int ProcessGroups(std::vector<DataGroup*>& blocks, std::vector<innerHandling*>& ObjectBlocks);
+			int PrepareForGameCore(std::vector<innerHandling*>& ObjectBlocks, std::string& mFile);
 		public:				
 			ModelParser(std::string);
 			ModelParser();
@@ -453,7 +432,4 @@ namespace Utilities
 #warning "model.h-end"
 #endif
 
-#define __VRMLPARSER_H_END__
-
-#endif
 #endif

@@ -67,6 +67,4 @@ namespace Window
 #warning "loader.h-end"
 #endif
 
-#define __GAME_H_END__
-
 #endif

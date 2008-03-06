@@ -1,41 +1,3 @@
-#ifndef __GAMEGUI_H_PRE__
-#define __GAMEGUI_H_PRE__
-
-#ifdef DEBUG_DEP
-#warning "gamegui.h-pre"
-#endif
-
-namespace Game
-{
-	namespace Rules
-	{
-		class GameTopBar;
-		class GamePlayBar;
-		class UnitSelected;
-		class UnitBuild;
-		class UnitActions;
-
-		class BuildButton;
-		class GameMap;
-		class GameInput;
-		class GameMenu;
-	}
-}
-
-#define __GAMEGUI_H_PRE_END__
-
-#include "game.h"
-#include "gui.h"
-#include "dimension.h"
-#include "unit.h"
-
-#endif
-
-#ifdef __UNIT_H_PRE_END__
-#ifdef __DIMENSION_H_PRE_END__
-#ifdef __GUI_H_END__
-#ifdef __GAME_H_PRE_END__
-
 #ifndef __GAMEGUI_H__
 #define __GAMEGUI_H__
 
@@ -43,9 +5,14 @@ namespace Game
 #warning "gamegui.h"
 #endif
 
-#include <string>
+#include "gamegui-pre.h"
 
-using namespace std;
+#include "game-pre.h"
+#include "gui.h"
+#include "unit-pre.h"
+#include <string>
+#include <vector>
+#include <map>
 
 namespace Game
 {
@@ -122,7 +89,7 @@ namespace Game
 		class UnitBuild : public Window::GUI::Panel
 		{
 		protected:
-			vector<BuildButton*> objects;
+			std::vector<BuildButton*> objects;
 
 			Dimension::UnitType *pUnitType;
 			Dimension::Unit *pUnit;
@@ -140,7 +107,7 @@ namespace Game
 			GLuint nopic;
 
 			GameWindow* pGame;
-			void GetBuildPercentage(int id, float& value, string& lbl);
+			void GetBuildPercentage(int id, float& value, std::string& lbl);
 		public:
 			UnitBuild(GLuint, GameWindow*);
 			void SetUnitType(Dimension::UnitType*);
@@ -202,7 +169,7 @@ namespace Game
 
 			Dimension::Unit* pUnit;
 
-			map<Dimension::UnitType*, UnitBuild*> GUI_Build;
+			std::map<Dimension::UnitType*, UnitBuild*> GUI_Build;
 			GameWindow* pGame;
 			GLuint tmap;
 
@@ -441,24 +408,14 @@ namespace Game
 			~GameInGameMenu();
 		};
 
-		string GetPower();
-		string GetMoney();
-		string GetTime();
+		std::string GetPower();
+		std::string GetMoney();
+		std::string GetTime();
 	}
 }
 
-#define __GAMEGUI_H_END__
-
 #ifdef DEBUG_DEP
 #warning "gamegui.h-end"
-#endif
-
-#endif
-
-#endif
-
-#endif
-
 #endif
 
 #endif

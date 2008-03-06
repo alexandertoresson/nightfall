@@ -1,67 +1,18 @@
-#ifndef __EFFECT_H_PRE__
-#define __EFFECT_H_PRE__
-
-#ifdef DEBUG_DEP
-#warning "effect.h-pre"
-#endif
-
-namespace Game
-{
-	namespace FX
-	{
-		enum ParticleStats
-		{
-			RUNNING = 0,
-			DONE
-		};
-
-		enum StepType
-		{
-			START = 0, //i.e. Spark
-			DURATION, //i.e. Fire
-			FINISH, //i.e. Smoke
-			COUNT
-		};
-
-		enum EffectType
-		{
-			PARTICLE_SPHERICAL_EXPLOSION,
-			PARTICLE_DIRECTIONAL_EXPLOSION,
-			NOT_INITED
-		};
-
-		class ParticleSystem;
-		class Explosion;
-		class CircularParticles;
-		class DirectionalExplosion;
-		class ParticleSystemHandler;
-
-	}
-}
-
-#define __EFFECT_H_PRE_END__
-
-#include "utilities.h"
-#include "vector3d.h"
-#include "unit.h"
-
-#endif
-
-#ifdef __VECTOR3D_H_END__
-#ifdef __UTILITIES_H_PRE_END__
-#ifdef __UNIT_H_PRE_END__
-
 #ifndef __EFFECT_H__
 #define __EFFECT_H__
+
+#include "utilities-pre.h"
+#include "vector3d.h"
+#include "unit-pre.h"
 
 #ifdef DEBUG_DEP
 #warning "effect.h"
 #endif
 
+#include "effect-pre.h"
+
 #include "sdlheader.h"
 #include "randomgenerator.h"
-
-using namespace std;
 
 namespace Game
 {
@@ -300,14 +251,8 @@ namespace Game
 	}
 }
 
-#define __EFFECT_H_END__
-
 #ifdef DEBUG_DEP
 #warning "effect.h-end"
 #endif
 
 #endif
-#endif
-#endif
-#endif
-

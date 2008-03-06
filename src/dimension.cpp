@@ -8,8 +8,14 @@
 #include "console.h"
 #include "networking.h"
 #include "game.h"
+#include "model.h"
+#include "utilities.h"
+#include <cmath>
+#include <set>
 
 #define OVERLAY 1
+
+using namespace std;
 
 namespace Game
 {
@@ -120,72 +126,70 @@ namespace Game
 			}
 		}
 
-		// add a player
-		Player* AddPlayer(std::string name, PlayerType playertype, std::string playertexture, std::string raceScript, std::string aiScript)
+		Player::Player(std::string name, PlayerType playertype, std::string playertexture, std::string raceScript, std::string aiScript) : raceState(this), aiState(this)
 		{
-			Player* player = new Player;
-			player->name = name;
-			player->type = playertype;
-			player->texture = Utilities::LoadGLTexture(playertexture.c_str());
-			player->index = pWorld->vPlayers.size();
-			player->states = NULL;
-			player->resources.money = 1000;
-			player->resources.power = 1000;
-			player->oldResources.money = 1000;
-			player->oldResources.power = 1000;
-			player->aiFrame = 0;
-			player->isRemote = false;
-			player->raceScript = raceScript;
-			player->aiScript = aiScript;
+			this->name = name;
+			this->type = playertype;
+			this->texture = Utilities::LoadGLTexture(playertexture.c_str());
+			this->index = pWorld->vPlayers.size();
+			this->states = NULL;
+			this->resources.money = 1000;
+			this->resources.power = 1000;
+			this->oldResources.money = 1000;
+			this->oldResources.power = 1000;
+			this->aiFrame = 0;
+			this->isRemote = false;
+			this->raceScript = raceScript;
+			this->aiScript = aiScript;
 
-			player->playerAIFuncs.performPlayerAI.func = "PerformAI_Player";
-			player->playerAIFuncs.performPlayerAI.delay = 6;
-			player->playerAIFuncs.performPlayerAI.enabled = true;
-			player->playerAIFuncs.unitCreation.func = "UnitEvent_UnitCreation";
-			player->playerAIFuncs.commandUnitTargetPos.func = "CommandUnit_TargetPos";
-			player->playerAIFuncs.commandUnitTargetUnit.func = "CommandUnit_TargetUnit";
+			this->playerAIFuncs.performPlayerAI.func = "PerformAI_Player";
+			this->playerAIFuncs.performPlayerAI.delay = 6;
+			this->playerAIFuncs.performPlayerAI.enabled = true;
+			this->playerAIFuncs.unitCreation.func = "UnitEvent_UnitCreation";
+			this->playerAIFuncs.commandUnitTargetPos.func = "CommandUnit_TargetPos";
+			this->playerAIFuncs.commandUnitTargetUnit.func = "CommandUnit_TargetUnit";
 					
-			player->unitAIFuncs.performUnitAI.func = "PerformAI_Unit";
-			player->unitAIFuncs.performUnitAI.delay = 6;
-			player->unitAIFuncs.performUnitAI.enabled = true;
-			player->unitAIFuncs.commandCompleted.func = "UnitEvent_CommandCompleted";
-			player->unitAIFuncs.commandCancelled.func = "UnitEvent_CommandCancelled";
-			player->unitAIFuncs.newCommand.func = "UnitEvent_NewCommand";
-			player->unitAIFuncs.becomeIdle.func = "UnitEvent_BecomeIdle";
-			player->unitAIFuncs.isAttacked.func = "UnitEvent_IsAttacked";
-			player->unitAIFuncs.unitKilled.func = "UnitEvent_UnitKilled";
+			this->unitAIFuncs.performUnitAI.func = "PerformAI_Unit";
+			this->unitAIFuncs.performUnitAI.delay = 6;
+			this->unitAIFuncs.performUnitAI.enabled = true;
+			this->unitAIFuncs.commandCompleted.func = "UnitEvent_CommandCompleted";
+			this->unitAIFuncs.commandCancelled.func = "UnitEvent_CommandCancelled";
+			this->unitAIFuncs.newCommand.func = "UnitEvent_NewCommand";
+			this->unitAIFuncs.becomeIdle.func = "UnitEvent_BecomeIdle";
+			this->unitAIFuncs.isAttacked.func = "UnitEvent_IsAttacked";
+			this->unitAIFuncs.unitKilled.func = "UnitEvent_UnitKilled";
 
 			switch (playertype)
 			{
 				case PLAYER_TYPE_HUMAN:
-					player->playerAIFuncs.performPlayerAI.func += "_Human";
-					player->playerAIFuncs.unitCreation.func += "_Human";
-					player->playerAIFuncs.commandUnitTargetPos.func += "_Human";
-					player->playerAIFuncs.commandUnitTargetUnit.func += "_Human";
-					player->unitAIFuncs.performUnitAI.func += "_Human";
-					player->unitAIFuncs.commandCompleted.func += "_Human";
-					player->unitAIFuncs.commandCancelled.func += "_Human";
-					player->unitAIFuncs.newCommand.func += "_Human";
-					player->unitAIFuncs.becomeIdle.func += "_Human";
-					player->unitAIFuncs.isAttacked.func += "_Human";
-					player->unitAIFuncs.unitKilled.func += "_Human";
+					this->playerAIFuncs.performPlayerAI.func += "_Human";
+					this->playerAIFuncs.unitCreation.func += "_Human";
+					this->playerAIFuncs.commandUnitTargetPos.func += "_Human";
+					this->playerAIFuncs.commandUnitTargetUnit.func += "_Human";
+					this->unitAIFuncs.performUnitAI.func += "_Human";
+					this->unitAIFuncs.commandCompleted.func += "_Human";
+					this->unitAIFuncs.commandCancelled.func += "_Human";
+					this->unitAIFuncs.newCommand.func += "_Human";
+					this->unitAIFuncs.becomeIdle.func += "_Human";
+					this->unitAIFuncs.isAttacked.func += "_Human";
+					this->unitAIFuncs.unitKilled.func += "_Human";
 					break;
 				case PLAYER_TYPE_AI:
-					player->playerAIFuncs.performPlayerAI.func += "_AI";
-					player->playerAIFuncs.unitCreation.func += "_AI";
-					player->playerAIFuncs.commandUnitTargetPos.func += "_AI";
-					player->playerAIFuncs.commandUnitTargetUnit.func += "_AI";
-					player->unitAIFuncs.performUnitAI.func += "_AI";
-					player->unitAIFuncs.commandCompleted.func += "_AI";
-					player->unitAIFuncs.commandCancelled.func += "_AI";
-					player->unitAIFuncs.newCommand.func += "_AI";
-					player->unitAIFuncs.becomeIdle.func += "_AI";
-					player->unitAIFuncs.isAttacked.func += "_AI";
-					player->unitAIFuncs.unitKilled.func += "_AI";
+					this->playerAIFuncs.performPlayerAI.func += "_AI";
+					this->playerAIFuncs.unitCreation.func += "_AI";
+					this->playerAIFuncs.commandUnitTargetPos.func += "_AI";
+					this->playerAIFuncs.commandUnitTargetUnit.func += "_AI";
+					this->unitAIFuncs.performUnitAI.func += "_AI";
+					this->unitAIFuncs.commandCompleted.func += "_AI";
+					this->unitAIFuncs.commandCancelled.func += "_AI";
+					this->unitAIFuncs.newCommand.func += "_AI";
+					this->unitAIFuncs.becomeIdle.func += "_AI";
+					this->unitAIFuncs.isAttacked.func += "_AI";
+					this->unitAIFuncs.unitKilled.func += "_AI";
 					break;
 			}
 
-			pWorld->vPlayers.push_back(player);
+			pWorld->vPlayers.push_back(this);
 			for (unsigned int i = 0; i < pWorld->vPlayers.size(); i++)
 			{
 				PlayerState* new_states = new PlayerState[pWorld->vPlayers.size()];
@@ -206,8 +210,26 @@ namespace Game
 				}
 				pWorld->vPlayers.at(i)->states = new_states;
 			}
-			validPlayerPointers[player] = true;
-			return player;
+			validPlayerPointers[this] = true;
+		}
+
+		Player::~Player()
+		{
+			validPlayerPointers.erase(this);
+			for (unsigned i = 0; i < this->vUnitTypes.size(); i++)
+			{
+				delete this->vUnitTypes[i];
+			}
+			for (unsigned i = 0; i < this->vResearchs.size(); i++)
+			{
+				delete this->vResearchs[i];
+			}
+			for(int y = 0; y < pWorld->height; y++)
+			{
+				delete [] this->NumUnitsSeeingSquare[y];
+			}
+			delete [] this->NumUnitsSeeingSquare;
+			delete [] this->states;
 		}
 
 		void SetPlayerState(int player1, int player2, PlayerState state)
@@ -470,6 +492,33 @@ namespace Game
 				}
 				n++;
 			}
+		}
+		
+		void UnloadWorld(void)
+		{
+			if (pWorld == NULL)
+				return;
+			
+			//Deallocate Units
+			while(pWorld->vUnits.size() > 0)
+				DeleteUnit(pWorld->vUnits.at(0));
+
+//			AI::ClearPathNodeStack();
+
+			//Deallocate Players
+			for(unsigned int i = 0; i < pWorld->vPlayers.size(); i++)
+			{
+				Player *pPlayer = pWorld->vPlayers.at(i);
+				delete pPlayer;
+			}
+
+			pWorld->vPlayers.clear();
+
+			//Deallocate Terrain & Water & Heightmap
+			UnloadTerrain();
+			glDeleteTextures(1, &Dimension::terraintexture);
+				
+			delete pWorld;
 		}
 		
 	}

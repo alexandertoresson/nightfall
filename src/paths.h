@@ -1,12 +1,12 @@
 
-#include <string>
-
 #ifndef __PATHS_H__
 #define __PATHS_H__
 
 #ifdef DEBUG_DEP
 #warning "paths.h"
 #endif
+
+#include <string>
 
 namespace Utilities
 {
@@ -30,8 +30,6 @@ namespace Utilities
 #ifdef DEBUG_DEP
 #warning "paths.h-end"
 #endif
-
-#define __PATHS_H_END__
 
 #endif
 

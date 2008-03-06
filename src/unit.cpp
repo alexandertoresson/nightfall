@@ -7,10 +7,14 @@
 #include "textures.h"
 #include "environment.h"
 #include "game.h"
+#include "camera.h"
+#include "window.h"
 #include <cstdarg>
 #include <set>
 #include <list>
 #include "hashmap.h"
+
+using namespace std;
 
 namespace Game
 {
@@ -43,6 +47,19 @@ namespace Game
 			int yOffset;
 			int height;
 			Scanline *scanlines;
+
+			RangeScanlines() : scanlines(NULL)
+			{
+				
+			}
+
+			~RangeScanlines()
+			{
+				if (scanlines != NULL)
+				{
+					delete[] scanlines;
+				}
+			}
 		};
 
 		struct RangeArray
@@ -50,6 +67,20 @@ namespace Game
 			int offset;
 			int size;
 			char **array;
+
+			RangeArray() : array(NULL)
+			{
+				
+			}
+
+			~RangeArray()
+			{
+				for (int i = 0; i < size; i++)
+				{
+					delete[] array[i];
+				}
+				delete[] array;
+			}
 		};
 		
 		GLfloat    unitMaterialAmbient[2][2][4] = {
@@ -108,6 +139,24 @@ namespace Game
 							 };
 							 
 		GLfloat unitBuildingMaximumAltitude = -0.3f;
+
+		UnitType::~UnitType()
+		{
+			if (attackRangeArray)
+				delete attackRangeArray;
+			
+			if (sightRangeArray)
+				delete sightRangeArray;
+			
+			if (lightRangeArray)
+				delete lightRangeArray;
+			
+			if (lightRangeScanlines)
+				delete lightRangeScanlines;
+			
+			if (sightRangeScanlines)
+				delete sightRangeScanlines;
+		}
 
 		void PlayActionSound(Unit* unit, Audio::SoundNodeAction action)
 		{
@@ -855,7 +904,7 @@ namespace Game
 			int num_steps = 1;
 			Dimension::Environment::FourthDimension* pDimension = Dimension::Environment::FourthDimension::Instance();
 			double curTime = pDimension->GetCurrentHour();
-			if (curTime > 6.0 && curTime < 9.0 && strcmp(type->id, "SmallLightTower") == 0)
+			if (curTime > 6.0 && curTime < 9.0 && type->id == "SmallLightTower")
 			{
 				if (IsSuitableForBuilding(type, player, x, y) && SquaresAreWalkable(type, player, x, y) && PercentLightedAtPosition(type, x, y) < 0.66)
 				{

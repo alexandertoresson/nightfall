@@ -11,8 +11,13 @@
 #include "networking.h"
 #include "aipathfinding.h"
 #include "saveandload.h"
+#include "filesystem.h"
+#include "console.h"
+#include "camera.h"
+#include "window.h"
 
 using namespace Window::GUI;
+using namespace std;
 
 namespace Game
 {

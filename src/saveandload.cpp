@@ -8,9 +8,13 @@
 #include "environment.h"
 #include "unit.h"
 #include "aibase.h"
+#include "aipathfinding.h"
+#include "camera.h"
 #include <string>
 
 #define CURRENT_SAVEGAME_VERSION 1
+
+using namespace std;
 
 namespace Game
 {

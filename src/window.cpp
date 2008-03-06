@@ -7,6 +7,8 @@
 #include <fstream>
 #include <sstream>
 
+using namespace std;
+
 namespace Window
 {
 	SDL_Surface* pWindow;

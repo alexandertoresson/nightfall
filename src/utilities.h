@@ -1,39 +1,3 @@
-#ifndef __UTILITIES_H_PRE__
-#define __UTILITIES_H_PRE__
-
-#ifdef DEBUG_DEP
-#warning "utilities.h-pre"
-#endif
-
-#include <string>
-#include <map>
-#include <iostream>
-#include <fstream>
-#include <cmath>
-#include <cassert>
-
-typedef std::map<std::string, std::string>           Hashtable;
-typedef std::map<std::string, std::string>::iterator HashtableIterator;
-
-namespace Utilities
-{
-	class ConfigurationFile;
-	int power_of_two(int);
-	bool IsOGLExtensionSupported(const char *extension);
-}
-
-
-#define __UTILITIES_H_PRE_END__
-
-#include "window.h"
-#include "vector3d.h"
-
-#endif
-
-#ifdef __VECTOR3D_H_END__
-
-#ifdef __WINDOW_H_END__
-
 #ifndef __UTILITIES_H__
 #define __UTILITIES_H__
 
@@ -41,9 +5,12 @@ namespace Utilities
 #warning "utilities.h"
 #endif
 
-#include <vector>
+#include "utilities-pre.h"
 
-using namespace std;
+#include "vector3d.h"
+
+#include <fstream>
+#include <vector>
 
 namespace Utilities
 {
@@ -57,7 +24,7 @@ namespace Utilities
 			ConfigurationFile(void);
 			ConfigurationFile(const std::string);
 			
-			~ConfigurationFile(void) {};
+			~ConfigurationFile(void);
 			
 			void SetFile(const std::string);
 			
@@ -104,7 +71,7 @@ namespace Utilities
 			StructuredInstructionsItem* NextItem(void);
 	};
 
-	void ReadLineFromFile(ifstream& file, std::string& buffer);
+	void ReadLineFromFile(std::ifstream& file, std::string& buffer);
 
 	// Tar bort intendentering
 	void StringRemoveIntendent(std::string& target);
@@ -157,6 +124,4 @@ namespace Utilities
 
 #define __UTILITIES_H_END__
 
-#endif
-#endif
 #endif

@@ -1,31 +1,3 @@
-#ifndef __AIPATHFINDING_H_PRE__
-#define __AIPATHFINDING_H_PRE__
-
-#ifdef DEBUG_DEP
-#warning "aipathfinding.h-pre"
-#endif
-
-namespace Game
-{
-	namespace AI
-	{
-		struct MovementData;
-		struct UnitGoal;
-	}
-}
-
-#define __AIPATHFINDING_H_PRE_END__
-
-#include "dimension.h"
-#include "unit.h"
-#include "utilities.h"
-
-#endif
-
-#ifdef __DIMENSION_H_END__
-#ifdef __UNIT_H_PRE_END__
-#ifdef __UTILITIES_H_END__
-
 #ifndef __AIPATHFINDING_H__
 #define __AIPATHFINDING_H__
 
@@ -41,17 +13,14 @@ namespace Game
 	#define MAXIMUM_CALCULATIONS_PER_FRAME 1000
 #endif
 
-#include <vector>
-#include <list>
-#include <queue>
-#include <set>
-#include <algorithm>
-#include <queue>
-#include <cassert>
 #include "sdlheader.h"
 #include "ainode.h"
 
-using namespace std;
+#include "dimension.h"
+#include "unit-pre.h"
+#include "utilities.h"
+
+#include <vector>
 
 namespace Game
 {
@@ -296,11 +265,5 @@ namespace Game
 #endif
 
 #define __AIPATHFINDING_H_END__
-
-#endif
-
-#endif
-
-#endif
 
 #endif

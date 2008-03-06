@@ -1,26 +1,3 @@
-#ifndef __ENVIRONMENT_H_PRE__
-#define __ENVIRONMENT_H_PRE__
-
-#ifdef DEBUG_DEP
-#warning "environment.h-pre"
-#endif
-
-namespace Game
-{
-	namespace Dimension
-	{
-		namespace Environment
-		{
-			class Vector4D;
-			struct EnvironmentalCondition;
-			class FourthDimension;
-		}
-	}
-}
-
-#define __ENVIRONMENT_H_END__
-#endif
-
 #ifndef __ENVIRONMENT_H__
 #define __ENVIRONMENT_H__
 
@@ -28,18 +5,8 @@ namespace Game
 #warning "environment.h"
 #endif
 
-#include <queue>
-#include <map>
-#include <string>
-#include <iostream>
-#include <ctime>
-#include <sstream>
-#include "sdlheader.h"
-
 #define DEFAULT_ENVIRONMENT_FPS 20
 #define ENVIRONMENT_ENUM_DEACTIVATE -1.0f
-
-using namespace std;
 
 namespace Game
 {
@@ -93,7 +60,7 @@ namespace Game
 				bool     isDay;
 				bool     isDawn;
 				bool     isDusk;
-				string   musicListTag;
+				std::string   musicListTag;
 
 				EnvironmentalCondition* _next; // Private! Do not set!
 				EnvironmentalCondition* _last; // Private! Do not set!
@@ -219,6 +186,7 @@ namespace Game
 								m_frames(0), m_conditionsCount(0), m_prepared(false),
 								m_skyboxes(NULL), m_skyboxesCount(0), m_skyboxCurIndex(0), m_skyboxOpacity(0),
 								m_skyboxRotation(0),m_hourLength(0), m_dayLength(24), m_currentHour(0.0),
+								sphere_coords(NULL), sphere_texcoords(NULL), sphere_faces(NULL),
 								m_curFogIntensity(0), m_curAlpha(0.0f)
 					{
 						PrepareFog();
@@ -254,8 +222,5 @@ namespace Game
 #warning "environment.h-end"
 #endif
 
-#define __ENVIRONMENT_H_END__
-#include <fstream>
-#include "filesystem.h"
 #endif
 

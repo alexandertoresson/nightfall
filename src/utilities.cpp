@@ -1,13 +1,20 @@
 #include "vector3d.h"
 
+#include "utilities.h"
+
+#include "vector3d.h"
 #include "sdlheader.h"
 #include "networking.h"
 #include "paths.h"
 #include "errors.h"
 #include "game.h"
 #include "console.h"
+#include "window.h"
+#include <cmath>
+#include <cassert>
 
 using namespace Window;
+using namespace std;
 
 namespace Utilities
 {
@@ -318,6 +325,14 @@ namespace Utilities
 	{
 		mFile = NULL;
 		SetFile(file);
+	}
+	
+	ConfigurationFile::~ConfigurationFile(void)
+	{
+		if (mFile)
+		{
+			delete mFile;
+		}
 	}
 	
 	void ConfigurationFile::SetFile(const std::string file)

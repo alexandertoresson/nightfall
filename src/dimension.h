@@ -1,71 +1,15 @@
-#ifndef __DIMENSION_H_PRE__
-#define __DIMENSION_H_PRE__
-
-#ifdef DEBUG_DEP
-#warning "dimension.h-pre"
-#endif
-
-namespace Game
-{
-	namespace Dimension
-	{
-		struct World;
-		struct Player;
-		struct Position;
-		struct Resources;
-		struct ObjectRequirements;
-		struct Research;
-		
-		extern Player*       currentPlayerView;
-		extern Player*       currentPlayer;
-		
-		class InputController;
-		
-		enum PlayerType
-		{
-			PLAYER_TYPE_HUMAN,
-			PLAYER_TYPE_AI
-		};
-
-		typedef int PlayerState;
-
-		const int PLAYER_STATE_ALLY = 1,
-		          PLAYER_STATE_NEUTRAL = 2,
-		          PLAYER_STATE_ENEMY = 4;
-		
-		void UnloadAllUnitTypes();
-		void EnforceMinimumExistanceRequirements();
-	}
-}
-
-#define __DIMENSION_H_PRE_END__
-
-#include "model.h"
-#include "vector3d.h" // inclusions needed for __DIMENSION_H__
-#include "aibase.h"
-#include "luawrapper.h"
-
-#endif
-
-#ifdef __VRMLPARSER_H_PRE_END__
-
-#ifdef __AIBASE_H_END__
-
-#ifdef __VECTOR3D_H_END__
-
-#ifdef __LUAWRAPPER_H_END__
-
 #ifndef __DIMENSION_H__
 #define __DIMENSION_H__
+
+#include "model-pre.h"
+#include "aibase.h"
+#include "luawrapper.h"
 
 #ifdef DEBUG_DEP
 #warning "dimension.h"
 #endif
 
 #include <vector>
-#include <cmath>
-#include <cassert>
-#include <iostream>
 #include "sdlheader.h"
 
 namespace Game
@@ -194,10 +138,9 @@ namespace Game
 			Utilities::Scripting::LuaVMState raceState;
 			Utilities::Scripting::LuaVMState aiState;
 
-			Player() : raceState(this), aiState(this)
-			{
-				
-			}
+			Player(std::string name, PlayerType playertype, std::string playertexture, std::string raceScript, std::string aiScript);
+
+			~Player();
 		};
 		
 		struct World
@@ -231,7 +174,6 @@ namespace Game
 		
 		void GetApproximateMapPosOfClick(int clickx, int clicky, int &map_x, int &map_y);
 		bool GetTerrainPosClicked(int clickx, int clicky, int map_x, int map_y, int &ter_x, int &ter_y);
-		Player* AddPlayer(std::string name, PlayerType playertype, std::string playertexture, std::string raceScript, std::string aiScript);
 
 		// Ladda modell ur textfil
 		Model*  LoadModel(const char* file);
@@ -240,7 +182,7 @@ namespace Game
 		UnitType*  LoadUnitType(const char* file);
 
 		void InitPlayers(unsigned players_to_init);
-		void InitPlayers(vector<PlayerType> playertypes);
+		void InitPlayers(std::vector<PlayerType> playertypes);
 		
 		// Deallokerar modellen Model*
 		void    UnloadModel(const Model*);
@@ -262,10 +204,4 @@ namespace Game
 #warning "dimension.h-end"
 #endif
 
-#define __DIMENSION_H_END__
-
-#endif
-#endif
-#endif
-#endif
 #endif

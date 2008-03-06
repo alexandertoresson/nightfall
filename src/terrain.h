@@ -1,85 +1,15 @@
-#ifndef __TERRAIN_H_PRE__
-#define __TERRAIN_H_PRE__
-
-#define TERRAIN_HIGH_QUALITY
-
-#ifdef DEBUG_DEP
-#warning "terrain.h-pre"
-#endif
-
-#include "sdlheader.h"
-#include <string>
-
-namespace Game
-{
-	namespace Dimension
-	{
-		struct XYZCoord;
-
-		struct UVCoord;
-
-		struct UVWCoord;
-
-		struct RGBA;
-
-		struct SphereNormal;
-
-		struct HeightMap;
-		
-		extern GLuint terraintexture;
-		
-		extern float terrainOffsetX, terrainOffsetY;
-		extern float terrainHeight;
-		extern float waterLevel;
-		extern HeightMap HeightMipmaps[2][32];
-		extern int water_cur_front, water_cur_back;
-
-		// overall quality of terrain; increase to increase terrain detail
-		extern float quality;
-		// water mipmap level, decrease to increase quality level
-		extern int waterQuality;
-		
-		float GetTerrainHeight(float x, float y);
-		float GetTerrainHeightHighestLevel(float x, float y);
-		float GetTerrainHeightHighestLevel(int x, int y);
-		
-		int DrawTerrain();
-		void DrawWater();
-		void CalculateWater();
-		float GetWaterDepth(int x, int y);
-		bool BigSquareIsRendered(int x, int y);
-		bool BigSquaresAreRendered(int x1, int y1, int x2, int y2);
-
-		void InitFog();
-
-		// Ladda världen ur bin'r/textfil
-		int LoadWorld(std::string filename);
-
-		// Stänger ned världen
-		void UnloadWorld(void);
-		void UnloadTerrain();
-		
-	}
-}
-
-#define __TERRAIN_H_PRE_END__
-
-#include "vector3d.h"
-#include "unit.h"
-#include "utilities.h"
-
-#endif
-
-#ifdef __UTILITIES_H_END__
-#ifdef __VECTOR3D_H_END__
-#ifdef __UNIT_H_PRE_END__
-
 #ifndef __TERRAIN_H__
 #define __TERRAIN_H__
 
 #ifdef DEBUG_DEP
 #warning "terrain.h"
 #endif
+
+#include "terrain-pre.h"
+
+#include "vector3d.h"
+#include "unit-pre.h"
+#include "dimension.h"
 
 namespace Game
 {
@@ -157,9 +87,4 @@ namespace Game
 #warning "terrain.h-end"
 #endif
 
-#define __TERRAIN_H_END__
-
-#endif
-#endif
-#endif
 #endif

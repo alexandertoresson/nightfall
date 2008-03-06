@@ -4,7 +4,9 @@
 #include "errors.h"
 #include "game.h"
 #include "paths.h"
+#include "window.h"
 #include <sstream>
+#include <cmath>
 
 using namespace std;
 

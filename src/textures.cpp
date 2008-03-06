@@ -6,13 +6,14 @@
 
 namespace Utilities
 {	
-	GLuint *texture;
+	GLuint *texture = NULL;
 	int cur_texture = 0, num_textures = 0;
 
 	// Initializes texture storage
 	void InitTextures(int num_text)
 	{
-		texture = new GLuint[num_text];
+		if (!texture)
+			texture = new GLuint[num_text];
 		glGenTextures(num_text, &texture[0]);
 		num_textures = num_text;
 	}

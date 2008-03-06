@@ -18,6 +18,10 @@
 #include "networking.h"
 #include "environment.h"
 #include "unitinterface.h"
+#include "effect.h"
+#include <cmath>
+
+using namespace std;
 
 namespace Game
 {
@@ -588,6 +592,7 @@ namespace Game
 		int* numUnitsPerLuaThread;
 		volatile int aiThreadsDone;
 		volatile bool aiIsFired;
+		volatile bool quitAIThreads;
 
 		int _SimpleAIThread(void* arg)
 		{
@@ -596,7 +601,7 @@ namespace Game
 
 			simpleAIThreadRunning = true;
 
-			while (1)
+			while (!quitAIThreads)
 			{
 
 				do
@@ -636,7 +641,7 @@ namespace Game
 
 			luaAIThreadsRunning[i] = true;
 
-			while (1)
+			while (!quitAIThreads)
 			{
 
 				do
@@ -669,6 +674,7 @@ namespace Game
 		{
 			if (numLuaAIThreads)
 			{
+				quitAIThreads = false;
 				simpleAIdoneCond = SDL_CreateCond();
 				simpleAIWaitMutex = SDL_CreateMutex();
 
@@ -717,6 +723,51 @@ namespace Game
 						SDL_Delay(1);
 					}
 				}
+
+			}
+
+		}
+
+		void QuitAIThreads()
+		{
+			if (numLuaAIThreads)
+			{
+				quitAIThreads = true;
+
+				SDL_UnlockMutex(simpleAIWaitMutex);
+				for (int i = 0; i < numLuaAIThreads; i++)
+				{
+					SDL_UnlockMutex(luaAIWaitMutexes[i]);
+				}
+				
+				SDL_WaitThread(simpleAIThread, NULL);
+				
+				for (int i = 0; i < numLuaAIThreads; i++)
+				{
+					SDL_WaitThread(luaAIThreads[i], NULL);
+				}
+				
+				SDL_DestroyCond(simpleAIdoneCond);
+				SDL_DestroyMutex(simpleAIWaitMutex);
+
+				for (int i = 0; i < numLuaAIThreads; i++)
+				{
+					SDL_DestroyCond(luaAIdoneConds[i]);
+					SDL_DestroyMutex(luaAIWaitMutexes[i]);
+				}
+				delete[] luaAIdoneConds;
+				delete[] luaAIWaitMutexes;
+				delete[] luaAIThreadsRunning;
+				delete[] playersHandledPerLuaThread;
+				delete[] numUnitsPerLuaThread;
+
+				for (int i = 0; i < numLuaAIThreads+1; i++)
+				{
+					SDL_DestroyCond(fireAIConds[i]);
+					SDL_DestroyMutex(mainAIWaitMutexes[i]);
+				}
+				delete[] fireAIConds;
+				delete[] mainAIWaitMutexes;
 
 			}
 

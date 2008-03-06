@@ -1,8 +1,8 @@
 #ifndef __MINIXML_H__
 #define __MINIXML_H__
 
-#include "chunkallocator.h"
 #include "sdlheader.h"
+#include "chunkallocator.h"
 #include <string>
 #include <fstream>
 #include <stack>
@@ -101,8 +101,6 @@ namespace Utilities
 #ifdef DEBUG_DEP
 #warning "minixml.h-end"
 #endif
-
-#define __MINIXML_H_END__
 
 #endif
 

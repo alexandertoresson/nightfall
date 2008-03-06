@@ -1,81 +1,20 @@
-#ifndef __UNIT_H_PRE__
-#define __UNIT_H_PRE__
-
-#ifdef DEBUG_DEP
-#warning "unit.h-pre"
-#endif
-
-#include <map>
-#include <string>
-#include <deque>
-
-using namespace std;
-
-namespace Game
-{
-	namespace Dimension
-	{
-		struct Unit;
-		struct ActionData;
-		struct UnitType;
-		struct Model;
-		struct ProjectileType;
-		struct Projectile;
-		struct MorphAnim;
-		struct TransformAnim;
-		struct TransData;
-		struct Animation;
-		
-		Unit *GetUnitByID(unsigned id);
-		bool IsValidUnitPointer(Unit* unit); // May not be called from another thread
-		bool IsDisplayedUnitPointer(Unit* unit); // May be calle from synced threads
-
-		inline int GetTraversalTime(Unit *unit, int x, int y, int dx, int dy);
-		int GetTraversalTimeAdjusted(Unit *unit, int x, int y, int dx, int dy);
-		bool MoveUnit(Unit* unit);
-		void ApplyScheduledBigSquareUpdates();
-		bool SquareIsGoal(Unit *unit, int x, int y, bool use_internal = false);
-		
-		bool SquareIsWalkable(Unit *unit, int x, int y, int flags);
-		bool SquaresAreWalkable(Unit *unit, int x, int y, int flags);
-		inline bool SquareIsWalkable(Unit *unit, int x, int y);
-		bool SquaresAreWalkable(Unit *unit, int x, int y);
-		bool SquaresAreWalkable(UnitType *type, int x, int y, int flags);
-		
-		struct TransformData;
-		struct TransformAnim;
-		struct Animation;
-		extern int** numUnitsPerAreaMap;
-		extern int numSentCommands;
-		
-		void GenerateUnitTypeRanges(UnitType* type);
-	}
-}
-
-#define __UNIT_H_PRE_END__
-
-#include "dimension.h"
-#include "vector3d.h"
-#include "aipathfinding.h"
-#include "aibase.h"
-#include "terrain.h"
-#include "audio.h"
-
-#endif
-
-#ifdef __AIBASE_H_PRE_END__
-#ifdef __AIPATHFINDING_H_PRE_END__
-#ifdef __DIMENSION_H_END__
-#ifdef __VECTOR3D_H_END__
-#ifdef __TERRAIN_H_END__
-#ifdef __AUDIO_H_END__
-
 #ifndef __UNIT_H__
 #define __UNIT_H__
 
 #ifdef DEBUG_DEP
 #warning "unit.h"
 #endif
+
+#include "aipathfinding-pre.h"
+#include "aibase-pre.h"
+#include "terrain.h"
+#include "audio.h"
+#include "dimension.h"
+#include "vector3d.h"
+
+#include <string>
+#include <deque>
+#include <vector>
 
 namespace Game
 {
@@ -260,8 +199,8 @@ namespace Game
 
 		struct UnitType
 		{
-			const char* name;
-			const char* id;
+			std::string name;
+			std::string id;
 			Model*      model;
 			Animation*  animations[AI::ACTION_NUM];    // one per action, NULL if an animation doesn't exist for that action
 			float       armor;
@@ -296,10 +235,10 @@ namespace Game
 			double      movePowerUsage;  // the power moving uses per second
 			float       movementSpeed;   // in squares per second
 			float       attackSpeed;     // in times per second
-			vector<UnitType*> canBuild;  // vector of what the unit can build, if anything at all
-			vector<Research*> canResearch;// vector of what the unit can research, if anything at all
-			vector<std::string> canBuildIDs; // IDs of builds as string; this is used before loading is finished
-			vector<std::string> canResearchIDs; // IDs of researches as string; this is used before loading is finished
+			std::vector<UnitType*> canBuild;  // vector of what the unit can build, if anything at all
+			std::vector<Research*> canResearch;// vector of what the unit can research, if anything at all
+			std::vector<std::string> canBuildIDs; // IDs of builds as string; this is used before loading is finished
+			std::vector<std::string> canResearchIDs; // IDs of researches as string; this is used before loading is finished
 			bool        hasAI;           // whether the unit has an AI
 			bool        hasLuaAI;        // whether the unit has a lua AI
 			bool        hurtByLight;
@@ -321,6 +260,13 @@ namespace Game
 			Player *player;              // The player the unittype belongs so
 			int numBuilt;
 			int numExisting;
+
+			UnitType() : attackRangeArray(NULL), sightRangeArray(NULL), sightRangeScanlines(NULL), lightRangeArray(NULL), lightRangeScanlines(NULL) 
+			{
+				
+			}
+
+			~UnitType();
 		};
 
 		struct ProjectileType
@@ -361,9 +307,9 @@ namespace Game
 			IntPosition         curAssociatedBigSquare;
 			float               rotation;  // how rotated the model is
 			UnitAnimData        animData;
-			deque<ActionData*>  actionQueue;
+			std::deque<ActionData*>  actionQueue;
 			AI::MovementData*   pMovementData;
-			vector<Projectile*> projectiles;
+			std::vector<Projectile*> projectiles;
 			Uint32              lastAttack;    // frame of the last attack done by the unit
 			Uint32              lastAttacked;    // frame of the last attack done at the unit
 			Uint32              lastCommand;
@@ -389,11 +335,11 @@ namespace Game
 			FaceTarget          faceTarget;
 		};
 
-		extern vector<Unit*> **unitBigSquares;
+		extern std::vector<Unit*> **unitBigSquares;
 
-		extern vector<Unit*> unitsSelected;
-		extern vector<Unit*> unitsDisplayQueue;
-		extern vector<Unit*> unitGroups[10];
+		extern std::vector<Unit*> unitsSelected;
+		extern std::vector<Unit*> unitsDisplayQueue;
+		extern std::vector<Unit*> unitGroups[10];
 		extern GLfloat unitMaterialAmbient[2][2][4];
 		extern GLfloat unitMaterialDiffuse[2][2][4];
 		extern GLfloat unitMaterialSpecular[2][2][4];
@@ -405,7 +351,7 @@ namespace Game
 		void PlayRepeatingActionSound(Unit* unit, Audio::SoundNodeAction action);
 		void StopRepeatingActionSound(Unit* unit, Audio::SoundNodeAction action);
 
-		bool IsUnitSelected(Unit* unit, string action);
+		bool IsUnitSelected(Unit* unit, std::string action);
 		void SetUnitCoordSpace(Unit* unit, bool ignoreCompleteness = false);
 		void SetParticleCoordSpace(float x, float y, float z, float scale = 1.0f);
 		bool DoesHitUnit(Unit* unit, int clickx, int clicky, float& distance);
@@ -512,12 +458,4 @@ namespace Game
 #warning "unit.h-end"
 #endif
 
-#define __UNIT_H_END__
-
-#endif
-#endif
-#endif
-#endif
-#endif
-#endif
 #endif

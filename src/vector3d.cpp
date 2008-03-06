@@ -1,4 +1,6 @@
 #include "vector3d.h"
+#include "terrain.h"
+#include <cmath>
 
 namespace Utilities
 {
@@ -240,7 +242,7 @@ namespace Utilities
 		return sqrt((x - a.x) * (x - a.x) + (y - a.y) * (y - a.y) + (z - a.z) * (z - a.z));
 	}
 	
-	ostream& operator<<(ostream& out, const Vector3D& v)
+	std::ostream& operator<<(std::ostream& out, const Vector3D& v)
 	{
 		out << "{" << v.x << ", " << v.y << ", " << v.z << "}";
 		return out;
