@@ -6,6 +6,8 @@
 #include "gui.h"
 #include "dimension.h"
 #include "unit.h"
+#include "unitsquares.h"
+#include "unitrender.h"
 #include "effect.h"
 #include "environment.h"
 #include "networking.h"

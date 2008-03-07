@@ -18,6 +18,7 @@
 #include "paths.h"
 #include "camera.h"
 #include "effect.h"
+#include "unitrender.h"
 #include <iostream>
 #include <fstream>
 #include <cmath>

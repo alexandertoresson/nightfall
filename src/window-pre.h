@@ -6,5 +6,17 @@
 #warning "window.h-pre"
 #endif
 
+namespace Window
+{
+	extern bool initialized;
+
+	extern int windowWidth, windowHeight;
+	extern float guiWidth, guiHeight, guiResolution;
+
+	extern bool noWindow;
+
+	extern bool hasVBOs;
+}
+
 #endif
 

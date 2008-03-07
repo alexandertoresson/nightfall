@@ -5,6 +5,8 @@
 #warning "window.h"
 #endif
 
+#include "window-pre.h"
+
 #include "utilities-pre.h"
 #include "sdlheader.h"
 
@@ -19,14 +21,6 @@ namespace Window
 	//              blir "unknown symbol exception"
 	//              annars när man kallar Init.
 	extern SDL_Surface* pWindow;
-	extern bool initialized;
-
-	extern int windowWidth, windowHeight;
-	extern float guiWidth, guiHeight, guiResolution;
-
-	extern bool noWindow;
-
-	extern bool hasVBOs;
 	
 	// Initierar SDL
 	int   Init();

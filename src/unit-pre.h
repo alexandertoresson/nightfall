@@ -9,6 +9,31 @@ namespace Game
 {
 	namespace Dimension
 	{
+		enum MovementType
+		{
+			MOVEMENT_HUMAN = 0,
+			MOVEMENT_SMALLVEHICLE,
+			MOVEMENT_MEDIUMVEHICLE,
+			MOVEMENT_LARGEVEHICLE,
+			MOVEMENT_BUILDING,
+			MOVEMENT_AIRBORNE,
+			MOVEMENT_SEA,
+			MOVEMENT_TYPES_NUM
+		};
+
+		enum PowerType
+		{
+			POWERTYPE_DAYLIGHT,
+			POWERTYPE_TWENTYFOURSEVEN
+		};
+
+		enum LightState
+		{
+			LIGHT_OFF,
+			LIGHT_AUTO,
+			LIGHT_ON
+		};
+
 		struct Unit;
 		struct ActionData;
 		struct UnitType;
@@ -24,25 +49,10 @@ namespace Game
 		bool IsValidUnitPointer(Unit* unit); // May not be called from another thread
 		bool IsDisplayedUnitPointer(Unit* unit); // May be calle from synced threads
 
-		inline int GetTraversalTime(Unit *unit, int x, int y, int dx, int dy);
-		int GetTraversalTimeAdjusted(Unit *unit, int x, int y, int dx, int dy);
 		bool MoveUnit(Unit* unit);
-		void ApplyScheduledBigSquareUpdates();
-		bool SquareIsGoal(Unit *unit, int x, int y, bool use_internal = false);
 		
-		bool SquareIsWalkable(Unit *unit, int x, int y, int flags);
-		bool SquaresAreWalkable(Unit *unit, int x, int y, int flags);
-		inline bool SquareIsWalkable(Unit *unit, int x, int y);
-		bool SquaresAreWalkable(Unit *unit, int x, int y);
-		bool SquaresAreWalkable(UnitType *type, int x, int y, int flags);
-		
-		struct TransformData;
-		struct TransformAnim;
-		struct Animation;
 		extern int** numUnitsPerAreaMap;
 		extern int numSentCommands;
-		
-		void GenerateUnitTypeRanges(UnitType* type);
 	}
 }
 

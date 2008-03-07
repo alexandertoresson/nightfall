@@ -40,6 +40,7 @@
 #include "dimension.h"
 #include "ainode.h"
 #include "unit.h"
+#include "unitsquares.h"
 #include "networking.h"
 #define BINARY_HEAP_DATATYPE int
 #include "binaryheap.h"

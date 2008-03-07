@@ -4,6 +4,7 @@
 #include "vector3d.h"
 #include "console.h"
 #include "dimension.h"
+#include "unitsquares.h"
 #include "unit.h"
 #include "utilities.h"
 #include <vector>

@@ -2,6 +2,8 @@
 
 #include "terrain.h"
 #include "unit.h"
+#include "unitsquares.h"
+#include "unitrender.h"
 #include "aipathfinding.h"
 #include "environment.h"
 #include "networking.h"
@@ -3013,7 +3015,7 @@ else \
 
 		pUnitType->unitAIFuncs = pWorld->vPlayers[player->index]->unitAIFuncs;
 
-		GenerateUnitTypeRanges(pUnitType);
+		pUnitType->GenerateRanges();
 
 		validUnitTypePointers[pUnitType] = true;
 

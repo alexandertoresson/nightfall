@@ -2,6 +2,7 @@
 
 #include "errors.h"
 #include "unit.h"
+#include "unitsquares.h"
 #include "dimension.h"
 #include "aibase.h"
 #include "paths.h"

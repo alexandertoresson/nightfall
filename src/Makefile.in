@@ -54,7 +54,8 @@ am_rts_OBJECTS = main.$(OBJEXT) window.$(OBJEXT) game.$(OBJEXT) \
 	effect.$(OBJEXT) camera.$(OBJEXT) gamegui.$(OBJEXT) \
 	randomgenerator.$(OBJEXT) networking.$(OBJEXT) \
 	filesystem.$(OBJEXT) paths.$(OBJEXT) circularbuffer.$(OBJEXT) \
-	minixml.$(OBJEXT) saveandload.$(OBJEXT)
+	minixml.$(OBJEXT) saveandload.$(OBJEXT) unittype.$(OBJEXT) \
+	unitsquares.$(OBJEXT) unitrender.$(OBJEXT)
 rts_OBJECTS = $(am_rts_OBJECTS)
 rts_LDADD = $(LDADD)
 DEFAULT_INCLUDES = -I.@am__isrc@
@@ -168,7 +169,8 @@ rts_SOURCES = main.cpp window.cpp game.cpp utilities.cpp model.cpp audio.cpp ter
 	      aibase.cpp dimension.cpp font.cpp unit.cpp aipathfinding.cpp vector3d.cpp luawrapper.cpp \
 	      unitinterface.cpp gui.cpp environment.cpp console.cpp linkedlist.cpp textures.cpp \
 	      effect.cpp camera.cpp gamegui.cpp randomgenerator.cpp networking.cpp filesystem.cpp \
-	      paths.cpp circularbuffer.cpp minixml.cpp saveandload.cpp
+	      paths.cpp circularbuffer.cpp minixml.cpp saveandload.cpp unittype.cpp unitsquares.cpp \
+	      unitrender.cpp
 
 all: config.h
 	$(MAKE) $(AM_MAKEFLAGS) all-am
@@ -281,6 +283,9 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/textures.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/unit.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/unitinterface.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/unitrender.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/unitsquares.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/unittype.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/utilities.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/vector3d.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/window.Po@am__quote@

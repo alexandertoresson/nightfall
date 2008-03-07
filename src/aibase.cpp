@@ -13,6 +13,7 @@
 #include "dimension.h"
 #include "ainode.h"
 #include "unit.h"
+#include "unitsquares.h"
 #include "aipathfinding.h"
 #include "luawrapper.h"
 #include "networking.h"

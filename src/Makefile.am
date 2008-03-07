@@ -6,5 +6,6 @@ rts_SOURCES = main.cpp window.cpp game.cpp utilities.cpp model.cpp audio.cpp ter
 	      aibase.cpp dimension.cpp font.cpp unit.cpp aipathfinding.cpp vector3d.cpp luawrapper.cpp \
 	      unitinterface.cpp gui.cpp environment.cpp console.cpp linkedlist.cpp textures.cpp \
 	      effect.cpp camera.cpp gamegui.cpp randomgenerator.cpp networking.cpp filesystem.cpp \
-	      paths.cpp circularbuffer.cpp minixml.cpp saveandload.cpp
+	      paths.cpp circularbuffer.cpp minixml.cpp saveandload.cpp unittype.cpp unitsquares.cpp \
+	      unitrender.cpp
 
