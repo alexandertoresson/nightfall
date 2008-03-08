@@ -242,8 +242,6 @@ void ParseArguments(int argc, char** argv)
 void KillAll(void)
 {
 	SDL_QuitSubSystem(SDL_INIT_VIDEO);
-	Game::AI::QuitPathfindingThreading();
-//	Game::AI::ClearPathNodeStack();
 
 #if USE_AUDIO == 1
 	Audio::Kill();
@@ -263,6 +261,8 @@ void KillAll(void)
 			delete Game::Dimension::pWorld;
 		}
 	}
+
+	Game::AI::QuitPathfindingThreading();
 
 	SDLNet_Quit();
 	SDL_Quit();

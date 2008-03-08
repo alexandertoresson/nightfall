@@ -1560,7 +1560,7 @@ namespace Game
 			UpdateLightedSquares(unit, unit->curAssociatedSquare.x, unit->curAssociatedSquare.y, 1); // add new
 		}
 
-		inline int GetTraversalTime(Unit *unit, int x, int y, int dx, int dy)
+		int GetTraversalTime(Unit *unit, int x, int y, int dx, int dy)
 		{
 			int time = traversalTimeBySize[unit->type->widthOnMap-1][y+dy][x+dx];
 			if (dy & dx)
