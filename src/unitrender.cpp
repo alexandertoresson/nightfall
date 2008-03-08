@@ -578,7 +578,7 @@ namespace Game
 
 		void RenderProjectile(Projectile* proj)
 		{
-			if (SquareIsVisible(currentPlayerView, proj->pos.x, proj->pos.y))
+			if (SquareIsVisible(currentPlayerView, (int) proj->pos.x, (int) proj->pos.y))
 			{
 				Model* model = proj->type->model;
 				glPushMatrix();

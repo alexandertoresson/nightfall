@@ -118,7 +118,7 @@ namespace Game
 			}
 
 			int dist_x = attacker_x - x, dist_y = attacker_y - y;
-			int dist_both = fabs((float)dist_x) + fabs((float)dist_y);
+			int dist_both = abs(dist_x) + abs(dist_y);
 			if (dist_both <= maxrange)
 			{
 				if (dist_both < minrange)
@@ -460,7 +460,7 @@ namespace Game
 			{
 				int nx;
 				dist_x = start_x - x;
-				dist_both = fabs((float)dist_y) + fabs((float)dist_y);
+				dist_both = abs(dist_y) + abs(dist_y);
 				for (nx = start_x; nx <= x; nx++, dist_x++, dist_both--)
 				{
 					if (dist_both < range || Distance2D(dist_x, dist_y) <= range)

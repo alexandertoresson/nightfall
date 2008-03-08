@@ -98,6 +98,7 @@ namespace Game
 		bool SquaresAreWalkable(Unit *unit, int x, int y);
 		bool SquaresAreWalkable(UnitType *type, int x, int y, int flags);
 
+		void RemoveUnitFromBigSquare(Unit* unit);
 	}
 }
 

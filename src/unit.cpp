@@ -1849,6 +1849,8 @@ namespace Game
 			}
 
 			DeleteAssociatedSquares(unit, unit->curAssociatedSquare.x, unit->curAssociatedSquare.y);
+
+			RemoveUnitFromBigSquare(unit);
 			
 			if (unit->usedInAreaMaps)
 			{
