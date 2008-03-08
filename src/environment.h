@@ -5,6 +5,8 @@
 #warning "environment.h"
 #endif
 
+#include "environment-pre.h"
+
 #define DEFAULT_ENVIRONMENT_FPS 20
 #define ENVIRONMENT_ENUM_DEACTIVATE -1.0f
 

@@ -1,10 +1,6 @@
 #ifndef __EFFECT_H__
 #define __EFFECT_H__
 
-#include "utilities-pre.h"
-#include "vector3d.h"
-#include "unit-pre.h"
-
 #ifdef DEBUG_DEP
 #warning "effect.h"
 #endif
@@ -13,6 +9,10 @@
 
 #include "sdlheader.h"
 #include "randomgenerator.h"
+#include "utilities-pre.h"
+#include "vector3d.h"
+#include "unit-pre.h"
+
 
 namespace Game
 {

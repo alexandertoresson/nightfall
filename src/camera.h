@@ -7,6 +7,8 @@
 #warning "camera.h"
 #endif
 
+#include "camera-pre.h"
+
 #include "vector3d.h"
 #include "sdlheader.h"
 

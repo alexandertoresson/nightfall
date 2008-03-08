@@ -5,6 +5,8 @@
 #warning "aipathfinding.h"
 #endif
 
+#include "aipathfinding-pre.h"
+
 #define USE_MULTIFRAMED_CALCULATIONS
 //#define DEBUG_AI_PATHFINDING
 #define USE_MULTITHREADED_CALCULATIONS

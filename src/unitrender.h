@@ -5,6 +5,8 @@
 #warning "unitrender.h"
 #endif
 
+#include "unitrender-pre.h"
+
 #include "unit-pre.h"
 #include "unittype-pre.h"
 #include "sdlheader.h"

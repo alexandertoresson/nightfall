@@ -7,10 +7,10 @@
 
 #include "font-pre.h"
 
+#include "sdlheader.h"
 #include <queue>
 #include <map>
 #include <string>
-#include "sdlheader.h"
 
 namespace Window
 {

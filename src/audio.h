@@ -12,6 +12,8 @@
 #warning "audio.h"
 #endif
 
+#include "audio-pre.h"
+
 #include "sdlheader.h"
 
 #include "terrain.h"

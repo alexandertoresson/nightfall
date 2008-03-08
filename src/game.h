@@ -5,6 +5,8 @@
 #warning "game.h"
 #endif
 
+#include "game-pre.h"
+
 #include "dimension-pre.h"
 #include "unit-pre.h"
 #include "gui.h"

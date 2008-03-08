@@ -1,16 +1,18 @@
 #ifndef __DIMENSION_H__
 #define __DIMENSION_H__
 
-#include "model-pre.h"
-#include "aibase.h"
-#include "luawrapper.h"
-
 #ifdef DEBUG_DEP
 #warning "dimension.h"
 #endif
 
-#include <vector>
+#include "dimension-pre.h"
+
 #include "sdlheader.h"
+#include "model-pre.h"
+#include "aibase.h"
+#include "luawrapper.h"
+
+#include <vector>
 
 namespace Game
 {

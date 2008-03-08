@@ -5,6 +5,8 @@
 #warning "model.h"
 #endif
 
+#include "model-pre.h"
+
 #include "sdlheader.h"
 #include "unit.h"
 #include <string>

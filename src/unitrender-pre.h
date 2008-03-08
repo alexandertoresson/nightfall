@@ -5,6 +5,8 @@
 #warning "unitrender.h-pre"
 #endif
 
+#include "sdlheader.h"
+
 namespace Game
 {
 	namespace Dimension

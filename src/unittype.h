@@ -5,6 +5,8 @@
 #warning "unittype.h"
 #endif
 
+#include "unittype-pre.h"
+
 #include "vector3d.h"
 #include "unit-pre.h"
 #include "aibase-pre.h"

@@ -5,8 +5,9 @@
 #warning "unit.h"
 #endif
 
+#include "unit-pre.h"
+
 #include "aipathfinding-pre.h"
-#include "aibase-pre.h"
 #include "terrain.h"
 #include "audio.h"
 #include "dimension.h"
@@ -14,9 +15,8 @@
 #include "unittype.h"
 #include "unitrender-pre.h"
 
-#include <string>
-#include <deque>
 #include <vector>
+#include <deque>
 
 namespace Game
 {

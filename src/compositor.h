@@ -12,6 +12,8 @@
 	#warning "compositor.h"
 #endif
 
+#include "compositor-pre.h"
+
 #include <string>
 #include <sdlheader.h>
 
