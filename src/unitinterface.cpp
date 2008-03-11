@@ -637,15 +637,15 @@ namespace UnitLuaInterface
 	
 	int LIsResearched(lua_State* pVM)
 	{
-/*		Player* player = (Player*) lua_touserdata(pVM, 1);
+		Player* player = (Player*) lua_touserdata(pVM, 1);
 		UnitType* pUnitType = (UnitType*) lua_touserdata(pVM, 2);
 		if (pUnitType == NULL)
 		{
 			lua_pushboolean(pVM, false);
 			return 1;
 		}
-		lua_pushboolean(pVM, pUnitType->isResearched[player->index]);*/
-		lua_pushboolean(pVM, false);
+		lua_pushboolean(pVM, pUnitType->requirements.creation.isSatisfied && pUnitType->requirements.existance.isSatisfied);
+		lua_pushlightuserdata(pVM, player);
 		return 1;
 	}
 	
@@ -2919,7 +2919,9 @@ else \
 
 			pUnitType->requirements.creation.dreqs.push_back(creq);
 			research->index = player->vResearchs.size();
+			player->vResearchs.push_back(research);
 			player->researchMap[research->id] = research;
+
 		}
 		else
 		{
