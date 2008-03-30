@@ -519,7 +519,7 @@ namespace Game
 				Dimension::GetApproximateMapPosOfClick((*event).button.x, (*event).button.y, map_x, map_y);
 				if (Dimension::GetTerrainPosClicked((*event).button.x, (*event).button.y, map_x, map_y, ter_x, ter_y))
 				{
-					if (Dimension::SquaresAreWalkable(pGame->build_type, Dimension::GetCurrentPlayer(), ter_x, ter_y, Dimension::SIW_IGNORE_OWN_MOBILE_UNITS))
+					if (Dimension::SquaresAreWalkable(pGame->build_type, ter_x, ter_y, Dimension::SIW_IGNORE_OWN_MOBILE_UNITS))
 					{
 						if (Dimension::unitsSelected.size() == 1)
 						{

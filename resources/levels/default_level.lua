@@ -1,7 +1,8 @@
 function SetPlayers()
 	AddPlayer("GAIA", PlayerType.AI, "textures/player_gaia.png", "insects", "gaia");
 	AddPlayer("USER", PlayerType.Human, "USER", "USER", "human");
-	for i = 2,4 do
+	AddPlayer("USER", PlayerType.Human, "USER", "USER", "human");
+	for i = 3,4 do
 		AddPlayer("USER", PlayerType.AI, "USER", "robots", "ai");
 	end
 	SetCurrentPlayer(1);
@@ -99,29 +100,29 @@ end
 function InitLevelUnits()
 
 	cur_player = GetPlayerByIndex(1)
-	CreateUnit(GetUnitTypeFromString("MainBuilding", cur_player), cur_player, 39.5,  40.5, 0)
-	CreateUnit(GetUnitTypeFromString("Builder", cur_player),      cur_player, 43.5,  50.5, 0)
-	CreateUnit(GetUnitTypeFromString("SolarPanel", cur_player),   cur_player, 46.5,  40.5, 0)
-	CreateUnit(GetUnitTypeFromString("SolarPanel", cur_player),   cur_player, 31.5,  39.5, 0)
+	CreateUnit(GetUnitTypeFromString("MainBuilding", cur_player), 39.5,  40.5, 0, cur_player)
+	CreateUnit(GetUnitTypeFromString("Builder", cur_player),      43.5,  50.5, 0, cur_player)
+	CreateUnit(GetUnitTypeFromString("SolarPanel", cur_player),   46.5,  40.5, 0, cur_player)
+	CreateUnit(GetUnitTypeFromString("SolarPanel", cur_player),   31.5,  39.5, 0, cur_player)
 	-- CreateUnit(GetUnitTypeFromString("LargeTank", cur_player),    cur_player, 37.5,  51.5, 0)
 
 	cur_player = GetPlayerByIndex(2)
-	CreateUnit(GetUnitTypeFromString("MainBuilding", cur_player), cur_player, 221.5,  225.5, 0)
-	CreateUnit(GetUnitTypeFromString("Builder", cur_player),      cur_player, 226.5,  226.5, 0)
-	CreateUnit(GetUnitTypeFromString("SolarPanel", cur_player),   cur_player, 216.5,  235.5, 0)
-	CreateUnit(GetUnitTypeFromString("SolarPanel", cur_player),   cur_player, 230.5,  228.5, 0)
+	CreateUnit(GetUnitTypeFromString("MainBuilding", cur_player), 221.5,  225.5, 0, cur_player)
+	CreateUnit(GetUnitTypeFromString("Builder", cur_player),      226.5,  226.5, 0, cur_player)
+	CreateUnit(GetUnitTypeFromString("SolarPanel", cur_player),   216.5,  235.5, 0, cur_player)
+	CreateUnit(GetUnitTypeFromString("SolarPanel", cur_player),   230.5,  228.5, 0, cur_player)
 
 	cur_player = GetPlayerByIndex(3)
-	CreateUnit(GetUnitTypeFromString("MainBuilding", cur_player), cur_player, 223.5,  47.5, 0)
-	CreateUnit(GetUnitTypeFromString("Builder", cur_player),      cur_player, 222.5,  54.5, 0)
-	CreateUnit(GetUnitTypeFromString("SolarPanel", cur_player),   cur_player, 215.5,  55.5, 0)
-	CreateUnit(GetUnitTypeFromString("SolarPanel", cur_player),   cur_player, 214.5,  44.5, 0)
+	CreateUnit(GetUnitTypeFromString("MainBuilding", cur_player), 223.5,  47.5, 0, cur_player)
+	CreateUnit(GetUnitTypeFromString("Builder", cur_player),      222.5,  54.5, 0, cur_player)
+	CreateUnit(GetUnitTypeFromString("SolarPanel", cur_player),   215.5,  55.5, 0, cur_player)
+	CreateUnit(GetUnitTypeFromString("SolarPanel", cur_player),   214.5,  44.5, 0, cur_player)
 
 	cur_player = GetPlayerByIndex(4)
-	CreateUnit(GetUnitTypeFromString("MainBuilding", cur_player), cur_player, 34.5,  224.5, 0)
-	CreateUnit(GetUnitTypeFromString("Builder", cur_player),      cur_player, 40.5,  223.5, 0)
-	CreateUnit(GetUnitTypeFromString("SolarPanel", cur_player),   cur_player, 42.5,  229.5, 0)
-	CreateUnit(GetUnitTypeFromString("SolarPanel", cur_player),   cur_player, 28.5,  222.5, 0)
+	CreateUnit(GetUnitTypeFromString("MainBuilding", cur_player), 34.5,  224.5, 0, cur_player)
+	CreateUnit(GetUnitTypeFromString("Builder", cur_player),      40.5,  223.5, 0, cur_player)
+	CreateUnit(GetUnitTypeFromString("SolarPanel", cur_player),   42.5,  229.5, 0, cur_player)
+	CreateUnit(GetUnitTypeFromString("SolarPanel", cur_player),   28.5,  222.5, 0, cur_player)
 
 	FocusCameraOnCoord(39, 40, 20, 140)
 

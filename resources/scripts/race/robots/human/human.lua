@@ -1,8 +1,8 @@
 loadfile(GetLUAScript("ai_generic.lua"))()
 
-function InitAI(Player)
+function InitAI()
 
-	InitAI_Generic(Player)
+	InitAI_Generic()
 
 end
 
@@ -10,14 +10,14 @@ function PerformAI_Unit_Human(Unit, action)
 	PerformAI_Unit_Generic(Unit, action)
 end
 
-function PerformAI_Player_Human(Player)
---	Output(GetPowerAtDusk(Player))
+function PerformAI_Player_Human()
+--	Output(GetPowerAtDusk())
 --	Output(" ")
---	Output(GetPowerAtDawn(Player))
+--	Output(GetPowerAtDawn())
 --	Output(" ")
---	Output(GetIncomeAtNoon(Player))
+--	Output(GetIncomeAtNoon())
 --	Output(" ")
---	Output(GetIncomeAtNight(Player))
+--	Output(GetIncomeAtNight())
 --	Output(Console.Newline)
 end
 

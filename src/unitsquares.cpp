@@ -291,7 +291,7 @@ namespace Game
 			}
 		}
 
-		bool IsSuitableForBuilding(UnitType* type, UnitType *test_type, Player* player, int build_x, int build_y)
+		bool IsSuitableForBuilding(UnitType* type, UnitType *test_type, int build_x, int build_y)
 		{
 			int m_add_x, m_sub_x;
 			int m_add_y, m_sub_y;
@@ -300,7 +300,7 @@ namespace Game
 			int changes = 0;
 			bool last_val, cur_val;
 
-			if (!SquaresAreWalkable(type, player, build_x, build_y, SIW_IGNORE_OWN_MOBILE_UNITS))
+			if (!SquaresAreWalkable(type, build_x, build_y, SIW_IGNORE_OWN_MOBILE_UNITS))
 			{
 				return false;
 			}
@@ -322,11 +322,11 @@ namespace Game
 			width_on_map = test_type->widthOnMap;
 			height_on_map = test_type->heightOnMap;
 
-			last_val = SquaresAreWalkable(test_type, player, start_x, start_y, SIW_IGNORE_OWN_MOBILE_UNITS);
+			last_val = SquaresAreWalkable(test_type, start_x, start_y, SIW_IGNORE_OWN_MOBILE_UNITS);
 			
 			for (int x = start_x + width_on_map; x <= end_x; x += width_on_map)
 			{
-				cur_val = SquaresAreWalkable(test_type, player, x, start_y, SIW_IGNORE_OWN_MOBILE_UNITS);
+				cur_val = SquaresAreWalkable(test_type, x, start_y, SIW_IGNORE_OWN_MOBILE_UNITS);
 				if (cur_val != last_val)
 				{
 					changes++;
@@ -334,11 +334,11 @@ namespace Game
 				last_val = cur_val;
 			}
 			
-			last_val = SquaresAreWalkable(test_type, player, start_x, end_y, SIW_IGNORE_OWN_MOBILE_UNITS);
+			last_val = SquaresAreWalkable(test_type, start_x, end_y, SIW_IGNORE_OWN_MOBILE_UNITS);
 			
 			for (int x = start_x + width_on_map; x <= end_x; x += width_on_map)
 			{
-				cur_val = SquaresAreWalkable(test_type, player, x, end_y, SIW_IGNORE_OWN_MOBILE_UNITS);
+				cur_val = SquaresAreWalkable(test_type, x, end_y, SIW_IGNORE_OWN_MOBILE_UNITS);
 				if (cur_val != last_val)
 				{
 					changes++;
@@ -346,11 +346,11 @@ namespace Game
 				last_val = cur_val;
 			}
 			
-			last_val = SquaresAreWalkable(test_type, player, start_x, start_y, SIW_IGNORE_OWN_MOBILE_UNITS);
+			last_val = SquaresAreWalkable(test_type, start_x, start_y, SIW_IGNORE_OWN_MOBILE_UNITS);
 
 			for (int y = start_y + height_on_map; y <= end_y; y += height_on_map)
 			{
-				cur_val = SquaresAreWalkable(test_type, player, start_x, y, SIW_IGNORE_OWN_MOBILE_UNITS);
+				cur_val = SquaresAreWalkable(test_type, start_x, y, SIW_IGNORE_OWN_MOBILE_UNITS);
 				if (cur_val != last_val)
 				{
 					changes++;
@@ -358,11 +358,11 @@ namespace Game
 				last_val = cur_val;
 			}
 			
-			last_val = SquaresAreWalkable(test_type, player, end_x, start_y, SIW_IGNORE_OWN_MOBILE_UNITS);
+			last_val = SquaresAreWalkable(test_type, end_x, start_y, SIW_IGNORE_OWN_MOBILE_UNITS);
 
 			for (int y = start_y + height_on_map; y <= end_y; y += height_on_map)
 			{
-				cur_val = SquaresAreWalkable(test_type, player, end_x, y, SIW_IGNORE_OWN_MOBILE_UNITS);
+				cur_val = SquaresAreWalkable(test_type, end_x, y, SIW_IGNORE_OWN_MOBILE_UNITS);
 				if (cur_val != last_val)
 				{
 					changes++;
@@ -373,20 +373,20 @@ namespace Game
 			return changes <= 2;
 		}
 		
-		bool IsSuitableForBuilding(UnitType* type, Player* player, int build_x, int build_y)
+		bool IsSuitableForBuilding(UnitType* type, int build_x, int build_y)
 		{
-			return (IsSuitableForBuilding(type, player->unitTypeMap["LargeTank"], player, build_x, build_y) && 
-			        IsSuitableForBuilding(type, player->unitTypeMap["SmallTank"], player, build_x, build_y) &&
-			        IsSuitableForBuilding(type, player->unitTypeMap["LargeAttackRobot"], player, build_x, build_y) &&
-			        IsSuitableForBuilding(type, player->unitTypeMap["SmallAttackRobot"], player, build_x, build_y));
+			return (IsSuitableForBuilding(type, type->player->unitTypeMap["LargeTank"], build_x, build_y) && 
+			        IsSuitableForBuilding(type, type->player->unitTypeMap["SmallTank"], build_x, build_y) &&
+			        IsSuitableForBuilding(type, type->player->unitTypeMap["LargeAttackRobot"], build_x, build_y) &&
+			        IsSuitableForBuilding(type, type->player->unitTypeMap["SmallAttackRobot"], build_x, build_y));
 		}
 
 		int PositionSearch_NumStepsTaken = 0;
 
-		bool GetNearestSuitableAndLightedPosition(UnitType* type, Player* player, int& x, int& y)
+		bool GetNearestSuitableAndLightedPosition(UnitType* type, int& x, int& y)
 		{
 			int num_steps = 1;
-			if (SquaresAreLightedAround(type, player, x, y) && IsSuitableForBuilding(type, player, x, y) && SquaresAreWalkable(type, player, x, y))
+			if (SquaresAreLightedAround(type, x, y) && IsSuitableForBuilding(type, x, y) && SquaresAreWalkable(type, x, y))
 			{
 				return true;
 			}
@@ -396,7 +396,7 @@ namespace Game
 				for (int i = 0; i < num_steps; i++)
 				{
 					x++;
-					if (SquaresAreLightedAround(type, player, x, y) && IsSuitableForBuilding(type, player, x, y) && SquaresAreWalkable(type, player, x, y))
+					if (SquaresAreLightedAround(type, x, y) && IsSuitableForBuilding(type, x, y) && SquaresAreWalkable(type, x, y))
 					{
 						return true;
 					}
@@ -405,7 +405,7 @@ namespace Game
 				for (int i = 0; i < num_steps; i++)
 				{
 					y++;
-					if (SquaresAreLightedAround(type, player, x, y) && IsSuitableForBuilding(type, player, x, y) && SquaresAreWalkable(type, player, x, y))
+					if (SquaresAreLightedAround(type, x, y) && IsSuitableForBuilding(type, x, y) && SquaresAreWalkable(type, x, y))
 					{
 						return true;
 					}
@@ -416,7 +416,7 @@ namespace Game
 				for (int i = 0; i < num_steps; i++)
 				{
 					x--;
-					if (SquaresAreLightedAround(type, player, x, y) && IsSuitableForBuilding(type, player, x, y) && SquaresAreWalkable(type, player, x, y))
+					if (SquaresAreLightedAround(type, x, y) && IsSuitableForBuilding(type, x, y) && SquaresAreWalkable(type, x, y))
 					{
 						return true;
 					}
@@ -425,7 +425,7 @@ namespace Game
 				for (int i = 0; i < num_steps; i++)
 				{
 					y--;
-					if (SquaresAreLightedAround(type, player, x, y) && IsSuitableForBuilding(type, player, x, y) && SquaresAreWalkable(type, player, x, y))
+					if (SquaresAreLightedAround(type, x, y) && IsSuitableForBuilding(type, x, y) && SquaresAreWalkable(type, x, y))
 					{
 						return true;
 					}
@@ -487,14 +487,12 @@ namespace Game
 			return (float) covered / (float) total;
 		}
 
-		bool GetSuitablePositionForLightTower(UnitType* type, Player* player, int& x, int& y)
+		bool GetSuitablePositionForLightTower(UnitType* type, int& x, int& y, bool needLighted)
 		{
 			int num_steps = 1;
-			Dimension::Environment::FourthDimension* pDimension = Dimension::Environment::FourthDimension::Instance();
-			double curTime = pDimension->GetCurrentHour();
-			if (curTime > 6.0 && curTime < 9.0 && type->id == "SmallLightTower")
+			if (!needLighted)
 			{
-				if (IsSuitableForBuilding(type, player, x, y) && SquaresAreWalkable(type, player, x, y) && PercentLightedAtPosition(type, x, y) < 0.66)
+				if (IsSuitableForBuilding(type, x, y) && SquaresAreWalkable(type, x, y) && PercentLightedAtPosition(type, x, y) < 0.66)
 				{
 					return true;
 				}
@@ -504,7 +502,7 @@ namespace Game
 					for (int i = 0; i < num_steps; i++)
 					{
 						x++;
-						if (IsSuitableForBuilding(type, player, x, y) && SquaresAreWalkable(type, player, x, y) && PercentLightedAtPosition(type, x, y) < 0.66)
+						if (IsSuitableForBuilding(type, x, y) && SquaresAreWalkable(type, x, y) && PercentLightedAtPosition(type, x, y) < 0.66)
 						{
 							return true;
 						}
@@ -513,7 +511,7 @@ namespace Game
 					for (int i = 0; i < num_steps; i++)
 					{
 						y++;
-						if (IsSuitableForBuilding(type, player, x, y) && SquaresAreWalkable(type, player, x, y) && PercentLightedAtPosition(type, x, y) < 0.66)
+						if (IsSuitableForBuilding(type, x, y) && SquaresAreWalkable(type, x, y) && PercentLightedAtPosition(type, x, y) < 0.66)
 						{
 							return true;
 						}
@@ -524,7 +522,7 @@ namespace Game
 					for (int i = 0; i < num_steps; i++)
 					{
 						x--;
-						if (IsSuitableForBuilding(type, player, x, y) && SquaresAreWalkable(type, player, x, y) && PercentLightedAtPosition(type, x, y) < 0.66)
+						if (IsSuitableForBuilding(type, x, y) && SquaresAreWalkable(type, x, y) && PercentLightedAtPosition(type, x, y) < 0.66)
 						{
 							return true;
 						}
@@ -533,7 +531,7 @@ namespace Game
 					for (int i = 0; i < num_steps; i++)
 					{
 						y--;
-						if (IsSuitableForBuilding(type, player, x, y) && SquaresAreWalkable(type, player, x, y) && PercentLightedAtPosition(type, x, y) < 0.66)
+						if (IsSuitableForBuilding(type, x, y) && SquaresAreWalkable(type, x, y) && PercentLightedAtPosition(type, x, y) < 0.66)
 						{
 							return true;
 						}
@@ -549,7 +547,7 @@ namespace Game
 			}
 			else
 			{
-				if (SquaresAreLightedAround(type, player, x, y) && IsSuitableForBuilding(type, player, x, y) && SquaresAreWalkable(type, player, x, y) && PercentLightedAtPosition(type, x, y) < 0.66)
+				if (SquaresAreLightedAround(type, x, y) && IsSuitableForBuilding(type, x, y) && SquaresAreWalkable(type, x, y) && PercentLightedAtPosition(type, x, y) < 0.66)
 				{
 					return true;
 				}
@@ -559,7 +557,7 @@ namespace Game
 					for (int i = 0; i < num_steps; i++)
 					{
 						x++;
-						if (SquaresAreLightedAround(type, player, x, y) && IsSuitableForBuilding(type, player, x, y) && SquaresAreWalkable(type, player, x, y) && PercentLightedAtPosition(type, x, y) < 0.66)
+						if (SquaresAreLightedAround(type, x, y) && IsSuitableForBuilding(type, x, y) && SquaresAreWalkable(type, x, y) && PercentLightedAtPosition(type, x, y) < 0.66)
 						{
 							return true;
 						}
@@ -568,7 +566,7 @@ namespace Game
 					for (int i = 0; i < num_steps; i++)
 					{
 						y++;
-						if (SquaresAreLightedAround(type, player, x, y) && IsSuitableForBuilding(type, player, x, y) && SquaresAreWalkable(type, player, x, y) && PercentLightedAtPosition(type, x, y) < 0.66)
+						if (SquaresAreLightedAround(type, x, y) && IsSuitableForBuilding(type, x, y) && SquaresAreWalkable(type, x, y) && PercentLightedAtPosition(type, x, y) < 0.66)
 						{
 							return true;
 						}
@@ -579,7 +577,7 @@ namespace Game
 					for (int i = 0; i < num_steps; i++)
 					{
 						x--;
-						if (SquaresAreLightedAround(type, player, x, y) && IsSuitableForBuilding(type, player, x, y) && SquaresAreWalkable(type, player, x, y) && PercentLightedAtPosition(type, x, y) < 0.66)
+						if (SquaresAreLightedAround(type, x, y) && IsSuitableForBuilding(type, x, y) && SquaresAreWalkable(type, x, y) && PercentLightedAtPosition(type, x, y) < 0.66)
 						{
 							return true;
 						}
@@ -588,7 +586,7 @@ namespace Game
 					for (int i = 0; i < num_steps; i++)
 					{
 						y--;
-						if (SquaresAreLightedAround(type, player, x, y) && IsSuitableForBuilding(type, player, x, y) && SquaresAreWalkable(type, player, x, y) && PercentLightedAtPosition(type, x, y) < 0.66)
+						if (SquaresAreLightedAround(type, x, y) && IsSuitableForBuilding(type, x, y) && SquaresAreWalkable(type, x, y) && PercentLightedAtPosition(type, x, y) < 0.66)
 						{
 							return true;
 						}
@@ -1060,14 +1058,14 @@ namespace Game
 			return SquareIsWalkable_Internal(unit, unit->type->movementType, unit->owner, x, y, SIW_DEFAULT);
 		}
 
-		bool SquareIsWalkable(UnitType *type, Player *player, int x, int y, int flags)
+		bool SquareIsWalkable(UnitType *type, int x, int y, int flags)
 		{
-			return SquareIsWalkable_Internal(NULL, type->movementType, player, x, y, flags);
+			return SquareIsWalkable_Internal(NULL, type->movementType, type->player, x, y, flags);
 		}
 
-		inline bool SquareIsWalkable(UnitType *type, Player *player, int x, int y)
+		inline bool SquareIsWalkable(UnitType *type, int x, int y)
 		{
-			return SquareIsWalkable_Internal(NULL, type->movementType, player, x, y, SIW_DEFAULT);
+			return SquareIsWalkable_Internal(NULL, type->movementType, type->player, x, y, SIW_DEFAULT);
 		}
 
 		bool SquaresAreWalkable_Internal(Unit *unit, MovementType movementType, int width, int height, Player* player, int x, int y, int flags)
@@ -1128,9 +1126,9 @@ namespace Game
 			return SquaresAreWalkable(unit, x, y, SIW_DEFAULT);
 		}
 
-		bool SquaresAreWalkable(UnitType *type, Player *player, int x, int y, int flags)
+		bool SquaresAreWalkable(UnitType *type, int x, int y, int flags)
 		{
-			return SquaresAreWalkable_Internal(NULL, type->movementType, type->widthOnMap, type->heightOnMap, player, x, y, flags);
+			return SquaresAreWalkable_Internal(NULL, type->movementType, type->widthOnMap, type->heightOnMap, type->player, x, y, flags);
 		}
 		
 		bool SquaresAreWalkable(MovementType movementType, int width, int height, Player *player, int x, int y, int flags)
@@ -1138,14 +1136,9 @@ namespace Game
 			return SquaresAreWalkable_Internal(NULL, movementType, width, height, player, x, y, flags);
 		}
 
-		inline bool SquaresAreWalkable(UnitType *type, Player *player, int x, int y)
+		inline bool SquaresAreWalkable(UnitType *type, int x, int y)
 		{
-			return SquaresAreWalkable(type, player, x, y, SIW_DEFAULT);
-		}
-
-		bool SquaresAreWalkable(UnitType *type, int x, int y, int flags)
-		{
-			return SquaresAreWalkable(type, NULL, x, y, flags);
+			return SquaresAreWalkable(type, x, y, SIW_DEFAULT);
 		}
 
 		bool SquareIsLighted(Player *player, int x, int y)
@@ -1179,7 +1172,7 @@ namespace Game
 			}
 		}
 
-		bool SquaresAreLighted(UnitType *type, Player *player, int x, int y)
+		bool SquaresAreLighted(UnitType *type, int x, int y)
 		{
 			int start_x, start_y;
 			int end_x, end_y;
@@ -1194,7 +1187,7 @@ namespace Game
 			{
 				for (int nx = start_x; nx <= end_x; nx++)
 				{
-					if (!SquareIsLighted_UnGuarded(player, nx, ny))
+					if (!SquareIsLighted_UnGuarded(type->player, nx, ny))
 					{
 						return false;
 					}
@@ -1203,7 +1196,7 @@ namespace Game
 			return true;
 		}
 
-		bool SquaresAreLightedAround(UnitType *type, Player *player, int x, int y)
+		bool SquaresAreLightedAround(UnitType *type, int x, int y)
 		{
 			int start_x, start_y;
 			GetTypeUpperLeftCorner(type, x, y, start_x, start_y);
@@ -1213,7 +1206,7 @@ namespace Game
 			{
 				for (int nx = start_x; nx < start_x + type->widthOnMap + 2; nx++)
 				{
-					if (!SquareIsLighted(player, nx, ny))
+					if (!SquareIsLighted(type->player, nx, ny))
 					{
 						return false;
 					}

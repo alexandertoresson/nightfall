@@ -143,11 +143,11 @@ namespace Game
 		
 		Unit* GetUnitClicked(int clickx, int clicky, int map_x, int map_y);
 
-		void PrepareUnitEssentials(Unit* const unit, UnitType* const type, Player* const owner);
-		Unit* CreateUnitNoDisplay(UnitType* type, Player* owner, int id = -1, bool complete = true);
+		void PrepareUnitEssentials(Unit* const unit, UnitType* const type);
+		Unit* CreateUnitNoDisplay(UnitType* type, int id = -1, bool complete = true);
 		Unit* CreateUnitNoDisplay(unsigned type, Player* owner, int id = -1, bool complete = true);
-		Unit* CreateUnit(UnitType* type, Player* owner, int x, int y, int id = -1, bool complete = true);
-		Unit* CreateUnit(unsigned type, Player* owner, int x, int y, int id = -1, bool complete = true);
+		Unit* CreateUnit(UnitType* type, int x, int y, int id = -1, bool complete = true);
+		Unit* CreateUnit(unsigned type, Player *owner, int x, int y, int id = -1, bool complete = true);
 		bool ScheduleDisplayUnit(Unit* unit, int x, int y);
 		void DisplayScheduledUnits();
 		void DeleteUnit(Unit* unit);

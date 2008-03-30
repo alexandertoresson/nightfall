@@ -481,7 +481,7 @@ namespace Game
 			bool outofbounds = false;
 			int start_x, start_y;
 			GetTypeUpperLeftCorner(type, pos_x, pos_y, start_x, start_y);
-			bool suitable = IsSuitableForBuilding(type, currentPlayerView, start_x, start_y);
+			bool suitable = IsSuitableForBuilding(type, start_x, start_y);
 			end_x = start_x + type->widthOnMap-1;
 			end_y = start_y + type->heightOnMap-1;
 
@@ -514,7 +514,7 @@ namespace Game
 							ter[1][0] = Dimension::GetTerrainCoord((float)x, (float)y+1);
 							ter[1][1] = Dimension::GetTerrainCoord((float)x+1, (float)y+1);
 
-							if (outofbounds || !SquareIsWalkable(type, currentPlayerView, x, y, SIW_IGNORE_OWN_MOBILE_UNITS))
+							if (outofbounds || !SquareIsWalkable(type, x, y, SIW_IGNORE_OWN_MOBILE_UNITS))
 							{
 								glColor4f(1.0f, 0.0f, 0.0f, 1.0);
 							}

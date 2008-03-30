@@ -66,6 +66,7 @@ namespace Utilities
 		
 		Game::Dimension::Player *GetPlayerByVMstate(lua_State *vmState);
 		LuaVMState *GetObjectByVMstate(lua_State *vmState);
+		bool IsGlobalLuaState(lua_State *vmState);
 
 	}
 }

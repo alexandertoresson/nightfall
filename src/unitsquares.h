@@ -45,7 +45,7 @@ namespace Game
 
 		void NearestSquareFromBuildingPlace(Unit* unit, UnitType* build_type, int build_x, int build_y, int &x, int &y);
 		void GetNearestUnoccupiedPosition(UnitType* type, int& x, int& y);
-		bool IsSuitableForBuilding(UnitType* type, Player* player, int build_x, int build_y);
+		bool IsSuitableForBuilding(UnitType* type, int build_x, int build_y);
 
 		void Complete(Unit* unit);
 		void Incomplete(Unit* unit);
@@ -54,19 +54,19 @@ namespace Game
 		inline bool MovementTypeCanWalkOnSquare_UnGuarded(MovementType mType, int x, int y);
 		bool MovementTypeCanWalkOnSquare_Pathfinding(MovementType mType, int size, int pos_x, int pos_y);
 
-		bool SquareIsWalkable(UnitType *type, Player *player, int x, int y, int flags);
-		bool SquaresAreWalkable(UnitType *type, Player *player, int x, int y, int flags);
-		inline bool SquareIsWalkable(UnitType *type, Player *player, int x, int y);
-		bool SquaresAreWalkable(UnitType *type, Player *player, int x, int y);
+		bool SquareIsWalkable(UnitType *type, int x, int y, int flags);
+		bool SquaresAreWalkable(UnitType *type, int x, int y, int flags);
+		inline bool SquareIsWalkable(UnitType *type, int x, int y);
+		bool SquaresAreWalkable(UnitType *type, int x, int y);
 
 		bool SquareIsLighted(Player *player, int x, int y);
 		bool SquareIsVisible(Player *player, int x, int y);
 		inline bool SquareIsVisible_UnGuarded(Player *player, int x, int y);
-		bool SquaresAreLighted(UnitType *type, Player *player, int x, int y);
-		bool SquaresAreLightedAround(UnitType *type, Player *player, int x, int y);
+		bool SquaresAreLighted(UnitType *type, int x, int y);
+		bool SquaresAreLightedAround(UnitType *type, int x, int y);
 		
-		bool GetNearestSuitableAndLightedPosition(UnitType* type, Player* player, int& x, int& y);
-		bool GetSuitablePositionForLightTower(UnitType* type, Player* player, int& x, int& y);
+		bool GetNearestSuitableAndLightedPosition(UnitType* type, int& x, int& y);
+		bool GetSuitablePositionForLightTower(UnitType* type, int& x, int& y, bool needLighted);
 		
 		Unit* GetNearestUnitInRange(Unit* unit, RangeType rangeType, PlayerState state);
 		bool UnitIsVisible(Unit *unit, Player *player);

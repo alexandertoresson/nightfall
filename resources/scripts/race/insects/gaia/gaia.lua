@@ -4,7 +4,7 @@ NumMonsters = 0
 CreationTimes = {}
 LastCommands = {}
 
-function InitAI(Player)
+function InitAI()
 
 	width, height = GetMapDimensions()
 	MaxNumMonsters = 40 * (width / 128) * (height / 128)
@@ -50,7 +50,7 @@ function PerformAI_Unit_AI(Unit, action)
 	PerformAI_Unit_Generic(Unit, action)
 end
 
-function PerformAI_Player_AI(Player)
+function PerformAI_Player_AI()
 	if (GetTime() < 6.0 or GetTime() > 18.0) then
 		if NumMonsters < MaxNumMonsters  then
 			local NumToCreate = math.ceil((NumMonsters+1) / MaxNumMonsters / 2) + 1
@@ -60,9 +60,9 @@ function PerformAI_Player_AI(Player)
 				repeat
 					x = (width-1) * math.random()
 					y = (height-1) * math.random()
-				until CanCreateUnitAt(UnitType, Player, x, y)
+				until CanCreateUnitAt(UnitType, x, y)
 
-				CreateUnit(UnitType, Player, x,  y)
+				CreateUnit(UnitType, x,  y)
 			end
 		end
 	else

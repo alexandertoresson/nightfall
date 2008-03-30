@@ -477,11 +477,11 @@ namespace Game
 
 		SDL_mutex* prepareCreationMutex = SDL_CreateMutex();
 
-		void PrepareCreation(Dimension::UnitType* unittype, Dimension::Player* owner, int x, int y, int rot)
+		void PrepareCreation(Dimension::UnitType* unittype, int x, int y, int rot)
 		{
 			NetCreate* create = new NetCreate;
 			create->unittype_id = unittype->index;
-			create->owner_id = owner->index;
+			create->owner_id = unittype->player->index;
 			create->x = x;
 			create->y = y;
 			create->rot = rot;

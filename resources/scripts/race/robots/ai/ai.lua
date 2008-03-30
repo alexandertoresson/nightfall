@@ -11,58 +11,58 @@ NeedForPower = {}
 NeedForSurvival = {}
 LastCommands = {}
 
-function GetPowerAtDawnCached(Player)
+function GetPowerAtDawnCached()
 	if Cached_PowerAtDawn == nil then
-		Cached_PowerAtDawn = GetPowerAtDawn(Player)
+		Cached_PowerAtDawn = GetPowerAtDawn()
 	end
 	return Cached_PowerAtDawn
 end
 
-function GetPowerAtDuskCached(Player)
+function GetPowerAtDuskCached()
 	if Cached_PowerAtDusk == nil then
-		Cached_PowerAtDusk = GetPowerAtDusk(Player)
+		Cached_PowerAtDusk = GetPowerAtDusk()
 	end
 	return Cached_PowerAtDusk
 end
 
-function GetIncomeAtNoonCached(Player)
+function GetIncomeAtNoonCached()
 	if Cached_IncomeAtNoon == nil then
-		Cached_IncomeAtNoon = GetIncomeAtNoon(Player)
+		Cached_IncomeAtNoon = GetIncomeAtNoon()
 	end
 	return Cached_IncomeAtNoon
 end
 
-function GetIncomeAtNightCached(Player)
+function GetIncomeAtNightCached()
 	if Cached_IncomeAtNight == nil then
-		Cached_IncomeAtNight = GetIncomeAtNight(Player)
+		Cached_IncomeAtNight = GetIncomeAtNight()
 	end
 	return Cached_IncomeAtNight
 end
 
-function PowerQuote(Player)
-	if GetIncomeAtNightCached(Player) >= 0 then
+function PowerQuote()
+	if GetIncomeAtNightCached() >= 0 then
 		return 10.0
 	else
-		return (GetIncomeAtNoonCached(Player)) / -(GetIncomeAtNightCached(Player))
+		return (GetIncomeAtNoonCached()) / -(GetIncomeAtNightCached())
 	end
 end
 
-function ShouldBuild(Player, UnitType)
-	if IsResearched(Player, UnitType) then
+function ShouldBuild(UnitType)
+	if IsResearched(UnitType) then
 		if NeedForPower[UnitType] then
 			return true
 		end
-		if (GetPowerAtDawnCached(Player) - GetUnitTypeBuildCost(UnitType) - TempMoneyReserved > 500) then
-			if GetIncomeAtNightCached(Player) + GetUnitTypeIncomeAtNight(UnitType) + TempNightIncomeChanges >= 0 then
+		if (GetPowerAtDawnCached() - GetUnitTypeBuildCost(UnitType) - TempMoneyReserved > 500) then
+			if GetIncomeAtNightCached() + GetUnitTypeIncomeAtNight(UnitType) + TempNightIncomeChanges >= 0 then
 				return true
 			else
-				return (GetIncomeAtNoonCached(Player) + TempNoonIncomeChanges + GetUnitTypeIncomeAtNoon(UnitType)) / -(GetIncomeAtNightCached(Player) + TempNightIncomeChanges + GetUnitTypeIncomeAtNight(UnitType)) > 1.3
+				return (GetIncomeAtNoonCached() + TempNoonIncomeChanges + GetUnitTypeIncomeAtNoon(UnitType)) / -(GetIncomeAtNightCached() + TempNightIncomeChanges + GetUnitTypeIncomeAtNight(UnitType)) > 1.3
 			end
 		else
 			return false
 		end
 	else
-		return GetPowerAtDawnCached(Player) - GetUnitTypeResearchCost(UnitType) - TempMoneyReserved > 500
+		return GetPowerAtDawnCached() - GetUnitTypeResearchCost(UnitType) - TempMoneyReserved > 500
 	end
 end
 
@@ -191,9 +191,9 @@ function Empty(table)
 	end
 end
 
-function InitAI(Player)
+function InitAI()
 
-	InitAI_Generic(Player)
+	InitAI_Generic()
 
 	AppendToBuildList(GetUnitTypeFromString("Builder"))
 	AppendToBuildList(GetUnitTypeFromString("SolarPanel"))
@@ -216,7 +216,7 @@ end
 iterations = 0
 startframe = 0
 
-function PerformAI_Player_AI(Player)
+function PerformAI_Player_AI()
 
 	CanBuild = {}
 
@@ -231,7 +231,7 @@ function PerformAI_Player_AI(Player)
 			if Empty(AvailableBuilders[ToBuild[i]]) and not Empty(CheckedBuilders[ToBuild[i]]) then
 				MoveBackChecked(ToBuild[i])
 			end
-			if IsResearched(Player, ToBuild[i]) then
+			if IsResearched(ToBuild[i]) then
 				builder = GetBuilderCached(ToBuild[i])
 				if not Empty(AvailableBuilders[builder]) then
 					can_produce = true
@@ -250,7 +250,7 @@ function PerformAI_Player_AI(Player)
 				end
 			end
 			if can_produce then
-				should_build = ShouldBuild(Player, ToBuild[i])
+				should_build = ShouldBuild(ToBuild[i])
 				if ToBuild[i] == GetUnitTypeFromString("MainBuilding") and GetNumBuilt(GetUnitTypeFromString("MainBuilding")) == 0 then
 					should_build = true
 					NeedForSurvival[GetUnitTypeFromString("MainBuilding")] = true
@@ -319,15 +319,15 @@ function PerformAI_Player_AI(Player)
 				if valid then
 					x, y = GetUnitPosition(builder)
 					if UnitType == GetUnitTypeFromString("SmallLightTower") or UnitType == GetUnitTypeFromString("MediumLightTower") or UnitType == GetUnitTypeFromString("LargeLightTower") then
-						x, y, valid = GetSuitablePositionForLightTower(UnitType, Player, math.floor(x + math.random(-30, 30)), math.floor(y + math.random(-30, 30)))
+						x, y, valid = GetSuitablePositionForLightTower(UnitType, math.floor(x + math.random(-30, 30)), math.floor(y + math.random(-30, 30)))
 					else
-						x, y, valid = GetNearestSuitableAndLightedPosition(UnitType, Player, math.floor(x + math.random(-30, 30)), math.floor(y + math.random(-30, 30)))
+						x, y, valid = GetNearestSuitableAndLightedPosition(UnitType, math.floor(x + math.random(-30, 30)), math.floor(y + math.random(-30, 30)))
 					end
 				end
 			end
 		end
 		if valid then
-			if IsResearched(Player, UnitType) then
+			if IsResearched(UnitType) then
 				
 				CommandBuild(builder, x, y, UnitType)
 
@@ -395,7 +395,7 @@ function PerformAI_Player_AI(Player)
 					new_y = y + math.floor(math.random(-100, 100))
 					CommandGoto(Unit, new_x, new_y)
 					LastCommands[Unit] = currentFrame
-				elseif SquaresAreLightedAround(Type, Player, new_x, new_y) then
+				elseif SquaresAreLightedAround(Type, new_x, new_y) then
 					CommandGoto(Unit, new_x, new_y)
 					LastCommands[Unit] = currentFrame
 				end
@@ -417,16 +417,16 @@ function PerformAI_Player_AI(Player)
 		iterations = 0
 	end
 
-	if GetPowerAtDawnCached(Player) - TempMoneyReserved < 1000 or PowerQuote(Player) < 2.00 then
+	if GetPowerAtDawnCached() - TempMoneyReserved < 1000 or PowerQuote() < 2.00 then
 --			Output("Lowpower\n")
 		NeedForPower[GetUnitTypeFromString("SolarPanel")] = true
 		NeedForPower[GetUnitTypeFromString("DeepGeothermal")] = true
 		NeedForPower[GetUnitTypeFromString("SurfaceGeothermal")] = true
 	end
 		
-	if GetMoney(Player) < 50 then
-		if GetPowerAtDawnCached(Player) - TempMoneyReserved > 600 then
-			SellPower(Player, 100)
+	if GetMoney() < 50 then
+		if GetPowerAtDawnCached() - TempMoneyReserved > 600 then
+			SellPower(100)
 		end
 	end
 	Cached_PowerAtDawn = nil

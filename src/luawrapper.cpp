@@ -277,5 +277,10 @@ namespace Utilities
 			return luaStateToObject[vmState];
 		}
 
+		bool IsGlobalLuaState(lua_State *vmState)
+		{
+			return vmState == globalVMState.GetState();
+		}
+
 	}
 }

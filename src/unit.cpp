@@ -248,11 +248,11 @@ namespace Game
 
 				if (!unit->type->isMobile)
 				{
-					unit->pMovementData->action.goal.unit = CreateUnitNoDisplay(build_type, unit->owner, -1, false);
+					unit->pMovementData->action.goal.unit = CreateUnitNoDisplay(build_type, -1, false);
 				}
 				else
 				{
-					unit->pMovementData->action.goal.unit = CreateUnit(build_type, unit->owner, unit->pMovementData->action.goal.pos.x, unit->pMovementData->action.goal.pos.y, -1, false);
+					unit->pMovementData->action.goal.unit = CreateUnit(build_type, unit->pMovementData->action.goal.pos.x, unit->pMovementData->action.goal.pos.y, -1, false);
 				}
 				if (!unit->pMovementData->action.goal.unit)
 				{
@@ -265,7 +265,7 @@ namespace Game
 					}
 					else
 					{
-						if (SquaresAreWalkable(build_type, unit->owner, unit->pMovementData->action.goal.pos.x, unit->pMovementData->action.goal.pos.y, SIW_IGNORE_OWN_MOBILE_UNITS | SIW_ALLKNOWING))
+						if (SquaresAreWalkable(build_type, unit->pMovementData->action.goal.pos.x, unit->pMovementData->action.goal.pos.y, SIW_IGNORE_OWN_MOBILE_UNITS | SIW_ALLKNOWING))
 						{
 							if (!unit->owner->isRemote)
 							{
@@ -1456,14 +1456,14 @@ namespace Game
 			return ((float)r_seed / 65535.0f);
 		}
 
-		void PrepareUnitEssentials(Unit* const unit, UnitType* const type, Player* const owner)
+		void PrepareUnitEssentials(Unit* const unit, UnitType* const type)
 		{
 			if (!unit || !type)
 				return ;
 
 			unit->type = type;
 			unit->power = (float) type->maxPower;
-			unit->owner = owner;
+			unit->owner = type->player;
 			unit->rotation = rotation_rand() * 360;
 			unit->pMovementData = NULL;
 			unit->lastAttack = 0;
@@ -1496,7 +1496,7 @@ namespace Game
 		SDL_mutex* unitCreationMutex = SDL_CreateMutex();
 
 		// create a unit, but don't display it
-		Unit* CreateUnitNoDisplay(UnitType* type, Player* owner, int id, bool complete)
+		Unit* CreateUnitNoDisplay(UnitType* type, int id, bool complete)
 		{
 			SDL_LockMutex(unitCreationMutex);
 			if (pWorld->vUnits.size() >= 0xFFFF)
@@ -1506,7 +1506,7 @@ namespace Game
 
 			Unit* unit = new Unit;
 
-			PrepareUnitEssentials(unit, type, owner);
+			PrepareUnitEssentials(unit, type);
 			PrepareAnimationData(unit);
 
 			unit->lastSeenPositions = new IntPosition[pWorld->vPlayers.size()];
@@ -1577,7 +1577,7 @@ namespace Game
 		{
 			if (type < owner->vUnitTypes.size())
 			{
-				return CreateUnitNoDisplay(owner->vUnitTypes[type], owner, id, complete);
+				return CreateUnitNoDisplay(owner->vUnitTypes[type], id, complete);
 			}
 			return NULL;
 		}
@@ -1653,14 +1653,14 @@ namespace Game
 		}
 
 		// create a unit
-		Unit* CreateUnit(UnitType* type, Player* owner, int x, int y, int id, bool complete)
+		Unit* CreateUnit(UnitType* type, int x, int y, int id, bool complete)
 		{
 			if (!SquaresAreWalkable(type, x, y, SIW_ALLKNOWING))
 			{
 //				cout << "buildfail" << endl;
 				return NULL;
 			}
-			Unit* unit = CreateUnitNoDisplay(type, owner, id, complete);
+			Unit* unit = CreateUnitNoDisplay(type, id, complete);
 			ScheduleDisplayUnit(unit, x, y);
 			return unit;
 		}
@@ -1669,7 +1669,7 @@ namespace Game
 		{
 			if (type < owner->vUnitTypes.size())
 			{
-				return CreateUnit(owner->vUnitTypes[type], owner, x, y, id, complete);
+				return CreateUnit(owner->vUnitTypes[type], x, y, id, complete);
 			}
 			return NULL;
 		}
@@ -1956,7 +1956,7 @@ namespace Game
 			unit->isCompleted = true;
 			unit->health = (float) type->maxHealth;
 
-			PrepareUnitEssentials(unit, type, owner);
+			PrepareUnitEssentials(unit, type);
 			PrepareAnimationData(unit);
 
 			return unit;
