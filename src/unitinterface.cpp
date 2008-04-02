@@ -17,6 +17,7 @@
 #include "gui.h"
 #include "game.h"
 #include <sstream>
+#include <iostream>
 
 namespace UnitLuaInterface
 {

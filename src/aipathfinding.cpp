@@ -48,6 +48,7 @@
 #include <set>
 #include <cassert>
 #include <cmath>
+#include <iostream>
 
 #define MAXIMUM_PATH_CALCULATIONS 10000
 #define RECALC_TRACE_LIMIT 1000

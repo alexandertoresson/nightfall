@@ -5,6 +5,7 @@
 #include "environment.h"
 #include "unittype-pre.h"
 #include <set>
+#include <iostream>
 
 using namespace std;
 

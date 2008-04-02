@@ -8,6 +8,7 @@
 #endif
 
 #include "sdlheader.h"
+#include <string>
 
 namespace Game
 {

@@ -7,6 +7,7 @@
 #include "window.h"
 #include <sstream>
 #include <cmath>
+#include <iostream>
 
 using namespace std;
 

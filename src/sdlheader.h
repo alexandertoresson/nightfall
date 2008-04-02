@@ -58,11 +58,3 @@
 #error GL_ARB_texture_env_crossbar is needed for this program
 #endif
 
-
-#ifndef RTS_ZeroMemory
-#define RTS_ZeroMemory(x) \
-	memset(x, 0, sizeof(x))
-#endif
-
-#include <iostream>
-

@@ -10,6 +10,7 @@
 #include "console.h"
 #include "game.h"
 #include <cassert>
+#include <iostream>
 
 using namespace std;
 

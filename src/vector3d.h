@@ -8,6 +8,7 @@
 #include "vector3d-pre.h"
 
 #include "terrain-pre.h"
+#include "matrix4x4-pre.h"
 #include <ostream>
 
 namespace Utilities
@@ -63,10 +64,13 @@ namespace Utilities
 			Vector3D operator -(const Vector3D& a) const;
 			Vector3D operator -(float a) const;
 			
-			// Multiplikation och heltalsdivision
+			// Multiplikation och division
 			Vector3D operator *(const Vector3D& a) const;
 			Vector3D operator *(float a) const;
 			Vector3D operator /(float a) const;
+			
+			// Multiplikation med en matris
+			Vector3D operator *(const Matrix4x4& a) const;
 			
 			// Hantering av C "förkortningar"
 			Vector3D& operator += (const Vector3D& a);

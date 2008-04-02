@@ -8,6 +8,7 @@
 #include "game.h"
 #include "utilities.h"
 #include <cmath>
+#include <iostream>
 
 using namespace std;
 using namespace Window;

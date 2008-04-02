@@ -7,6 +7,7 @@
 #include "camera.h"
 #include <fstream>
 #include <cmath>
+#include <iostream>
 
 //#define NET_DEBUG
 //#define NET_DEBUG_CONNECTION

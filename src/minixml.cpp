@@ -1,12 +1,14 @@
 #include "minixml.h"
 #include <string>
 #include <iostream>
+#include <locale>
 
 namespace Utilities
 {
 	XMLWriter::XMLWriter()
 	{
-		
+		last_was_push = false;
+		deferred_tag_ending = false;
 	}
 
 	bool XMLWriter::Open(std::string filename)
@@ -23,7 +25,7 @@ namespace Utilities
 		ofile.close();
 	}
 
-	void XMLWriter::BeginTag(std::string tag)
+	void XMLWriter::PrepareBeginTag(std::string tag)
 	{
 		if (tags.size() > 0)
 		{
@@ -36,77 +38,233 @@ namespace Utilities
 				ofile << "\t";
 			}
 		}
-		ofile << "<" << tag << ">";
 		tags.push(tag);
 		last_was_push = true;
 	}
 
+	void XMLWriter::BeginTag(std::string tag)
+	{
+		FinishTag();
+		PrepareBeginTag(tag);
+		ofile << "<" << tag;
+		deferred_tag_ending = true;
+	}
+
+	void XMLWriter::BeginTag(std::string tag, AttrList attributes)
+	{
+		FinishTag();
+		PrepareBeginTag(tag);
+		ofile << "<" << tag << " ";
+		for (AttrList::iterator it = attributes.begin(); it != attributes.end(); )
+		{
+			ofile << it->first << "=\"" << it->second << "\"";
+			it++;
+			if (it != attributes.end())
+			{
+				ofile << " ";
+			}
+		}
+		deferred_tag_ending = true;
+	}
+
+	void XMLWriter::FinishTag()
+	{
+		if (deferred_tag_ending)
+		{
+			ofile << ">";
+			deferred_tag_ending = false;
+		}
+	}
+
 	void XMLWriter::Write(std::string text)
 	{
+		FinishTag();
 		ofile << text;
 	}
 
 	void XMLWriter::Write(char* text)
 	{
+		FinishTag();
 		ofile << text;
 	}
 
 	void XMLWriter::Write(int i)
 	{
+		FinishTag();
 		ofile << i;
 	}
 
 	void XMLWriter::Write(Uint32 i)
 	{
+		FinishTag();
 		ofile << i;
 	}
 
 	void XMLWriter::Write(float f)
 	{
+		FinishTag();
 		ofile << f;
 	}
 
 	void XMLWriter::Write(double d)
 	{
+		FinishTag();
 		ofile << d;
 	}
 
 	void XMLWriter::EndTag()
 	{
-		std::string tag = tags.top();
-		tags.pop();
-		if (!last_was_push)
+		if (deferred_tag_ending)
 		{
-			for (unsigned i = 0; i < tags.size(); i++)
-			{
-				ofile << "\t";
-			}
+			ofile << "/>" << std::endl;
+			deferred_tag_ending = false;
+			tags.pop();
 		}
-		ofile << "</" << tag << ">" << std::endl;
+		else
+		{
+			std::string tag = tags.top();
+			tags.pop();
+			if (!last_was_push)
+			{
+				for (unsigned i = 0; i < tags.size(); i++)
+				{
+					ofile << "\t";
+				}
+			}
+			ofile << "</" << tag << ">" << std::endl;
+		}
 		last_was_push = false;
 	}
-		
+	
+	struct spacectype : std::ctype<char>
+	{
+	        spacectype() : std::ctype<char>(get_table())
+	        {
+	        }
+
+	        static std::ctype_base::mask const* get_table()
+	        {
+	        	static std::ctype_base::mask* rc = 0;
+
+	        	if (rc == 0)
+	        	{
+	        	        rc = new std::ctype_base::mask[std::ctype<char>::table_size];
+	        	        std::fill_n(rc, std::ctype<char>::table_size,
+	        	                  	std::ctype_base::mask());
+	        	        rc['\r'] = std::ctype_base::space;
+	        	        rc['\t'] = std::ctype_base::space;
+	        	        rc['\n'] = std::ctype_base::space;
+	        	}
+	        	return rc;
+	        }
+	};
+
 	XMLReader::XMLReader()
 	{
-		xmlDataAlloc = new ChunkAllocator<XMLData>(65536);
-		stringAlloc = new ChunkAllocator<std::string>(65536);
-		data = NULL;
+		xmlElementAlloc = new ChunkAllocator<XMLElement>(65536);
+		xmlTextNodeAlloc = new ChunkAllocator<XMLTextNode>(65536);
+		root = NULL;
 	}
 
 	XMLReader::~XMLReader()
 	{
-		delete xmlDataAlloc;
-		delete stringAlloc;
+		delete xmlElementAlloc;
+		delete xmlTextNodeAlloc;
 	}
 
 	void XMLReader::Deallocate()
 	{
-		stringAlloc->DeallocChunks();
-		xmlDataAlloc->DeallocChunks();
-		data = NULL;
+		xmlTextNodeAlloc->DeallocChunks();
+		xmlElementAlloc->DeallocChunks();
+		root = NULL;
 	}
 
-	std::string XMLReader::ReadTag()
+	std::string XMLReader::ReadTag(bool &open, AttrList &attributes)
+	{
+		std::string tag = "";
+		bool tag_read = false;
+		int attr_state;
+		std::string attr, val;
+		std::locale stdlocale = ifile.getloc();
+		ifile.imbue(std::locale(std::locale(), new spacectype));
+		while (!ifile.eof())
+		{
+			char c;
+			ifile >> c;
+			if (c == '>')
+			{
+				open = true;
+				break;
+			}
+			if (c == '/')
+			{
+				char c2;
+				ifile >> c2;
+				if (c2 == '>')
+				{
+					open = false;
+					break;
+				}
+				else
+				{
+					ifile.putback(c2);
+				}
+			}
+			if (tag_read)
+			{
+				switch (attr_state)
+				{
+					case 0:
+						if (c == '=')
+						{
+							attr_state = 1;
+						}
+						else if (c != ' ')
+						{
+							attr.push_back(c);
+						}
+						break;
+					case 1:
+						if (c == '"')
+						{
+							attr_state = 2;
+						}
+						break;
+					case 2:
+						if (c == '"')
+						{
+							attr_state = 0;
+							attributes[attr] = val;
+							attr = "";
+							val = "";
+						}
+						else
+						{
+							val.push_back(c);
+						}
+						break;
+				}
+			}
+			else
+			{
+				if (c == ' ')
+				{
+					tag_read = true;
+					attr_state = 0;
+					attr = "";
+					val = "";
+				}
+				else
+				{
+					tag.push_back(c);
+				}
+			}
+		}
+		ifile.imbue(stdlocale);
+		return tag;
+	}
+	
+	std::string XMLReader::ReadTagEnd()
 	{
 		std::string tag = "";
 		while (!ifile.eof())
@@ -136,116 +294,105 @@ namespace Utilities
 		return false;
 	 }
 	
-	XMLData *XMLReader::ReadTagBlock()
+	XMLElement *XMLReader::ReadTagBlock()
 	{
 		std::string tag1, tag2;
 		char c;
 		ifile >> c;
+		bool open;
+		AttrList attributes;
 
 		if (c == '?')
 		{
 			ReadDeclaration();
-			return (XMLData*) -1;
+			return (XMLElement*) -1;
 		}
 		else
 		{
 			ifile.putback(c);
 		}
-		XMLData *data;
+		XMLElement *node;
 
-		tag1 = ReadTag();
-		level++;
-
-		data = ReadText();
-
-		tag2 = ReadTag();
-
-		if (tag1 != tag2)
+		tag1 = ReadTag(open, attributes);
+		if (open)
 		{
-			return NULL;
+			level++;
+
+			node = ReadText();
+
+			tag2 = ReadTagEnd();
+
+			if (tag1 != tag2)
+			{
+				return NULL;
+			}
+
+			level--;
+		}
+		else
+		{
+			node = new XMLElement();
 		}
 
-		data->tag = tag1;
+		node->tag = tag1;
+		node->attributes = attributes;
 
-		level--;
-
-		return data;
+		return node;
 	}
 
-	XMLData *XMLReader::ReadText()
+	XMLElement *XMLReader::ReadText()
 	{
-		XMLData *data = xmlDataAlloc->New();
-		std::string *text = stringAlloc->New();
+		XMLElement *node = xmlElementAlloc->New();
+		std::string text;
 		while (!ifile.eof())
 		{
 			char c;
 			ifile >> c;
 			if (c == '<')
 			{
-				if (text->length())
+				if (text.length())
 				{
-					XMLItem item;
-					item.str = text;
-					data->items.push_back(item);
-					data->types.push_back(XMLTYPE_STRING);
-					text = stringAlloc->New();
+					XMLTextNode *textNode = xmlTextNodeAlloc->New();
+					textNode->str = text;
+					node->children.push_back(textNode);
+
+					text = "";
 				}
 				
 				ifile >> c;
 				
-				stringAlloc->PutBack();
 				if (c == '/')
 				{
-					return level != 0 ? data : NULL;
+					return level != 0 ? node : NULL;
 				}
 				else
 				{
 					ifile.putback(c);
 					
-					XMLItem item;
-					item.xmlData = ReadTagBlock();
-					if (item.xmlData != (XMLData*) -1)
+					XMLElement *elem = ReadTagBlock();
+					if (elem != (XMLElement*) -1)
 					{
-						if (!item.xmlData)
+						if (!elem)
 						{
-							stringAlloc->PutBack();
 							return NULL;
 						}
-						data->items.push_back(item);
-						data->types.push_back(XMLTYPE_DATA);
-						std::map<std::string, std::vector<XMLData*> >::iterator it = data->itemsByTag.find(item.xmlData->tag);
-						if (it != data->itemsByTag.end())
-						{
-							item.xmlData->index = data->itemsByTag[item.xmlData->tag].size();
-							data->itemsByTag[item.xmlData->tag].push_back(item.xmlData);
-						}
-						else
-						{
-							std::vector<XMLData*> vec;
-							vec.push_back(item.xmlData);
-							data->itemsByTag.insert(make_pair(item.xmlData->tag, vec));
-						}
+						elem->index = node->children.size();
+						node->children.push_back(elem);
 					}
 				}
-				text = stringAlloc->New();
 			}
 			else
 			{
-				text->push_back(c);
+				text.push_back(c);
 			}
 		}
-		if (text->length())
+		if (text.length())
 		{
-			XMLItem item;
-			item.str = text;
-			data->items.push_back(item);
-			data->types.push_back(XMLTYPE_STRING);
+			XMLTextNode *textNode = xmlTextNodeAlloc->New();
+			textNode->str = text;
+			node->children.push_back(textNode);
 		}
-		else
-		{
-			stringAlloc->PutBack();
-		}
-		return data;
+		return node;
 	}
 
 	bool XMLReader::Read(std::string filename)
@@ -253,73 +400,81 @@ namespace Utilities
 		Deallocate();
 		level = 0;
 		ifile.open(filename.c_str());
-		data = ReadText();
+		root = ReadText();
 		ifile.close();
-		return data != NULL;
+		return root != NULL;
 	}
 
-	void XMLReader::Iterate(XMLData *data, std::map<std::string, void (*)(XMLData *data)> tag_funcs, void (*text_func)(std::string text))
+	void XMLNode::Apply(std::map<std::string, void (*)(XMLElement *elem)> tag_funcs, void (*text_func)(std::string text))
 	{
-		for (unsigned i = 0; i < data->items.size(); i++)
+		
+	}
+
+	void XMLNode::Apply(std::string tag, void (*tag_func)(XMLElement *elem))
+	{
+		
+	}
+
+	void XMLNode::Apply(void (*text_func)(std::string text))
+	{
+		
+	}
+
+	void XMLTextNode::Apply(std::map<std::string, void (*)(XMLElement *elem)> tag_funcs, void (*text_func)(std::string text))
+	{
+		if (text_func)
 		{
-			if (data->types[i] == XMLTYPE_STRING && text_func)
-			{
-				text_func(*data->items[i].str);
-			}
-			else
-			{
-				void (*tag_func)(XMLData *data) = tag_funcs[data->items[i].xmlData->tag];
-				if (tag_func)
-				{
-					tag_func(data->items[i].xmlData);
-				}
-			}
+			text_func(str);
+		}
+	}
+
+	void XMLTextNode::Apply(void (*text_func)(std::string text))
+	{
+		if (text_func)
+		{
+			text_func(str);
+		}
+	}
+
+	void XMLElement::Apply(std::map<std::string, void (*)(XMLElement *elem)> tag_funcs, void (*text_func)(std::string text))
+	{
+		void (*tag_func)(XMLElement *elem) = tag_funcs[tag];
+		if (tag_func)
+		{
+			tag_func(this);
+		}
+	}
+
+	void XMLElement::Apply(std::string tag, void (*tag_func)(XMLElement *elem))
+	{
+		if (this->tag == tag)
+		{
+			tag_func(this);
+		}
+	}
+
+	void XMLElement::Iterate(std::map<std::string, void (*)(XMLElement *elem)> tag_funcs, void (*text_func)(std::string text))
+	{
+		for (std::vector<XMLNode*>::iterator it = children.begin(); it != children.end(); it++)
+		{
+			(*it)->Apply(tag_funcs, text_func);
 		}
 	}
 		
-	void XMLReader::Iterate(XMLData *data, std::string tag, void (*tag_func)(XMLData *data), void (*text_func)(std::string text))
+	void XMLElement::Iterate(std::string tag, void (*tag_func)(XMLElement *elem))
 	{
-		std::map<std::string, void (*)(XMLData *data)> tag_funcs;
-		tag_funcs[tag] = tag_func;
-		Iterate(data, tag_funcs, text_func);
-	}
-
-	void XMLReader::Iterate(XMLData *data, std::string tag, void (*tag_func)(XMLData *data))
-	{
-		std::map<std::string, std::vector<XMLData*> >::iterator it = data->itemsByTag.find(tag);
-		if (it != data->itemsByTag.end())
+		for (std::vector<XMLNode*>::iterator it = children.begin(); it != children.end(); it++)
 		{
-			for (std::vector<XMLData*>::iterator it_vec = it->second.begin(); it_vec != it->second.end(); it_vec++)
-			{
-				tag_func(*it_vec);
-			}
+			(*it)->Apply(tag, tag_func);
 		}
 	}
 
-	void XMLReader::Iterate(XMLData *data, void (*text_func)(std::string text))
+	void XMLElement::Iterate(void (*text_func)(std::string text))
 	{
-		for (unsigned i = 0; i < data->items.size(); i++)
+		for (std::vector<XMLNode*>::iterator it = children.begin(); it != children.end(); it++)
 		{
-			if (data->types[i] == XMLTYPE_STRING && text_func)
-			{
-				text_func(*data->items[i].str);
-			}
+			(*it)->Apply(text_func);
 		}
 	}
 		
-	void XMLReader::Iterate(std::map<std::string, void (*)(XMLData *data)> tag_funcs, void (*text_func)(std::string text))
-	{
-		Iterate(data, tag_funcs, text_func);
-	}
-
-	void XMLReader::Iterate(std::string tag, void (*tag_func)(XMLData *data), void (*text_func)(std::string text))
-	{
-		Iterate(data, tag, tag_func, text_func);
-	}
-	
-	void XMLReader::Iterate(std::string tag, void (*tag_func)(XMLData *data))
-	{
-		Iterate(data, tag, tag_func);
-	}
-	
 }

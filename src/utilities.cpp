@@ -12,6 +12,7 @@
 #include "window.h"
 #include <cmath>
 #include <cassert>
+#include <iostream>
 
 using namespace Window;
 using namespace std;

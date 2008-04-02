@@ -16,19 +16,25 @@
 namespace Utilities
 {
 	
+	typedef std::map<std::string, std::string> AttrList;
+
 	class XMLWriter
 	{
 		private:
 		std::ofstream ofile;
 		std::stack<std::string> tags;
 		bool last_was_push;
+		bool deferred_tag_ending;
+
+		void PrepareBeginTag(std::string tag);
+		void FinishTag();
 
 		public:
 		XMLWriter();
 		bool Open(std::string filename);
 		void Close();
-//		bool OpenForRead(std::string filename);
 		void BeginTag(std::string tag);
+		void BeginTag(std::string tag, AttrList attributes);
 		void Write(std::string text);
 		void Write(char* text);
 		void Write(int i);
@@ -38,34 +44,45 @@ namespace Utilities
 		void EndTag();
 	};
 
-	enum XMLType
+	struct XMLElement;
+
+	struct XMLNode
 	{
-		XMLTYPE_STRING,
-		XMLTYPE_DATA
+		XMLNode* parent;
+		XMLNode()
+		{
+			parent = NULL;
+		}
+		virtual void Apply(std::map<std::string, void (*)(XMLElement *elem)> tag_funcs, void (*text_func)(std::string text));
+		virtual void Apply(std::string tag, void (*tag_func)(XMLElement *elem));
+		virtual void Apply(void (*text_func)(std::string text));
 	};
 
-	struct XMLData;
-
-	union XMLItem
+	struct XMLTextNode : XMLNode
 	{
-		std::string *str;
-		XMLData *xmlData;
+		std::string str;
+		virtual void Apply(std::map<std::string, void (*)(XMLElement *elem)> tag_funcs, void (*text_func)(std::string text));
+		virtual void Apply(void (*text_func)(std::string text));
 	};
 
-	struct XMLData
+	struct XMLElement : XMLNode
 	{
-		// public, feel free to read
 		unsigned index;
 		std::string tag;
+		AttrList attributes;
 
-		// private; implementation-specific
-		std::vector<XMLType> types;
-		std::vector<XMLItem> items;
-		std::map<std::string, std::vector<XMLData*> > itemsByTag;
-		XMLData()
+		std::vector<XMLNode*> children;
+		XMLElement()
 		{
 			index = 0;
 		}
+		
+		void Iterate(std::map<std::string, void (*)(XMLElement *elem)> tag_funcs, void (*text_func)(std::string text));
+		void Iterate(std::string tag, void (*tag_func)(XMLElement *elem));
+		void Iterate(void (*text_func)(std::string text));
+		
+		virtual void Apply(std::map<std::string, void (*)(XMLElement *elem)> tag_funcs, void (*text_func)(std::string text));
+		virtual void Apply(std::string tag, void (*tag_func)(XMLElement *elem));
 	};
 
 	class XMLReader
@@ -74,27 +91,21 @@ namespace Utilities
 		std::ifstream ifile;
 		std::stack<std::string> tags;
 		int level;
-		XMLData *data;
-		ChunkAllocator<XMLData> *xmlDataAlloc;
-		ChunkAllocator<std::string> *stringAlloc;
+		ChunkAllocator<XMLElement> *xmlElementAlloc;
+		ChunkAllocator<XMLTextNode> *xmlTextNodeAlloc;
 
-		std::string ReadTag();
+		std::string ReadTag(bool &open, std::map<std::string, std::string> &attributes);
+		std::string ReadTagEnd();
 		bool ReadDeclaration();
-		XMLData *ReadTagBlock();
-		XMLData *ReadText();
+		XMLElement *ReadTagBlock();
+		XMLElement *ReadText();
 
 		public:
 		XMLReader();
 		~XMLReader();
 		bool Read(std::string filename);
-		void Iterate(XMLData *data, std::map<std::string, void (*)(XMLData *data)> tag_funcs, void (*text_func)(std::string text));
-		void Iterate(XMLData *data, std::string tag, void (*tag_func)(XMLData *data), void (*text_func)(std::string text));
-		void Iterate(XMLData *data, std::string tag, void (*tag_func)(XMLData *data));
-		void Iterate(XMLData *data, void (*text_func)(std::string text));
-		void Iterate(std::map<std::string, void (*)(XMLData *data)> tag_funcs, void (*text_func)(std::string text));
-		void Iterate(std::string tag, void (*tag_func)(XMLData *data), void (*text_func)(std::string text));
-		void Iterate(std::string tag, void (*tag_func)(XMLData *data));
 		void Deallocate();
+		XMLElement *root;
 	};
 }
 
