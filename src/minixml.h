@@ -96,6 +96,8 @@ namespace Utilities
 
 		std::string ReadTag(bool &open, std::map<std::string, std::string> &attributes);
 		std::string ReadTagEnd();
+		bool IsWhitespace(char c);
+		std::string CleanWhitespace(std::string s);
 		bool ReadDeclaration();
 		XMLElement *ReadTagBlock();
 		XMLElement *ReadText();

@@ -136,29 +136,6 @@ namespace Utilities
 		last_was_push = false;
 	}
 	
-	struct spacectype : std::ctype<char>
-	{
-	        spacectype() : std::ctype<char>(get_table())
-	        {
-	        }
-
-	        static std::ctype_base::mask const* get_table()
-	        {
-	        	static std::ctype_base::mask* rc = 0;
-
-	        	if (rc == 0)
-	        	{
-	        	        rc = new std::ctype_base::mask[std::ctype<char>::table_size];
-	        	        std::fill_n(rc, std::ctype<char>::table_size,
-	        	                  	std::ctype_base::mask());
-	        	        rc['\r'] = std::ctype_base::space;
-	        	        rc['\t'] = std::ctype_base::space;
-	        	        rc['\n'] = std::ctype_base::space;
-	        	}
-	        	return rc;
-	        }
-	};
-
 	XMLReader::XMLReader()
 	{
 		xmlElementAlloc = new ChunkAllocator<XMLElement>(65536);
@@ -185,12 +162,10 @@ namespace Utilities
 		bool tag_read = false;
 		int attr_state;
 		std::string attr, val;
-		std::locale stdlocale = ifile.getloc();
-		ifile.imbue(std::locale(std::locale(), new spacectype));
 		while (!ifile.eof())
 		{
 			char c;
-			ifile >> c;
+			ifile.get(c);
 			if (c == '>')
 			{
 				open = true;
@@ -199,7 +174,7 @@ namespace Utilities
 			if (c == '/')
 			{
 				char c2;
-				ifile >> c2;
+				ifile.get(c2);
 				if (c2 == '>')
 				{
 					open = false;
@@ -219,7 +194,7 @@ namespace Utilities
 						{
 							attr_state = 1;
 						}
-						else if (c != ' ')
+						else if (IsWhitespace(c))
 						{
 							attr.push_back(c);
 						}
@@ -247,7 +222,7 @@ namespace Utilities
 			}
 			else
 			{
-				if (c == ' ')
+				if (IsWhitespace(c))
 				{
 					tag_read = true;
 					attr_state = 0;
@@ -260,7 +235,6 @@ namespace Utilities
 				}
 			}
 		}
-		ifile.imbue(stdlocale);
 		return tag;
 	}
 	
@@ -270,7 +244,7 @@ namespace Utilities
 		while (!ifile.eof())
 		{
 			char c;
-			ifile >> c;
+			ifile.get(c);
 			if (c == '>')
 			{
 				break;
@@ -285,7 +259,7 @@ namespace Utilities
 		while (!ifile.eof())
 		{
 			char c;
-			ifile >> c;
+			ifile.get(c);
 			if (c == '>')
 			{
 				return true;
@@ -298,7 +272,7 @@ namespace Utilities
 	{
 		std::string tag1, tag2;
 		char c;
-		ifile >> c;
+		ifile.get(c);
 		bool open;
 		AttrList attributes;
 
@@ -340,6 +314,34 @@ namespace Utilities
 		return node;
 	}
 
+	bool XMLReader::IsWhitespace(char c)
+	{
+		return c == ' ' || c == '\n' || c == '\r' || c == '\t';
+	}
+
+	std::string XMLReader::CleanWhitespace(std::string s)
+	{
+		std::string out;
+		bool hasWS = false;
+		for (std::string::iterator it = s.begin(); it != s.end(); it++)
+		{
+			char c = *it;
+			if (IsWhitespace(c))
+			{
+				hasWS = true;
+			}
+			else
+			{
+				if (hasWS && out.length())
+				{
+					out.push_back(' ');
+				}
+				out.push_back(c);
+			}
+		}
+		return out;
+	}
+
 	XMLElement *XMLReader::ReadText()
 	{
 		XMLElement *node = xmlElementAlloc->New();
@@ -347,19 +349,19 @@ namespace Utilities
 		while (!ifile.eof())
 		{
 			char c;
-			ifile >> c;
+			ifile.get(c);
 			if (c == '<')
 			{
 				if (text.length())
 				{
 					XMLTextNode *textNode = xmlTextNodeAlloc->New();
-					textNode->str = text;
+					textNode->str = CleanWhitespace(text);
 					node->children.push_back(textNode);
 
 					text = "";
 				}
 				
-				ifile >> c;
+				ifile.get(c);
 				
 				if (c == '/')
 				{
@@ -389,7 +391,7 @@ namespace Utilities
 		if (text.length())
 		{
 			XMLTextNode *textNode = xmlTextNodeAlloc->New();
-			textNode->str = text;
+			textNode->str = CleanWhitespace(text);
 			node->children.push_back(textNode);
 		}
 		return node;
