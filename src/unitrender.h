@@ -35,6 +35,16 @@ namespace Game
 		MorphAnim* CreateMorphAnim(float length, int numKeyFrames, ...);
 
 		void PrepareAnimationData(Unit* const);
+		
+		class UnitTransfNode
+		{
+			private:
+				virtual void PreRender();
+				virtual void PostRender();
+			public:
+				UnitTransfNode(Unit* unit);
+		};
+
 	}
 }
 

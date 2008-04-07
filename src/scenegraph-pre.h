@@ -21,17 +21,10 @@ namespace Scene
 		class SwitchNode;
 		class IndependentSwitchNode;
 
+		class GeometryNode;
+
 /*		class UnitTransfNode;
 
-		class UnitsNode;
-
-		class ModelNode;
-		class TerrainNode;
-		class ParticleSystemNode;
-
-		class UniformNode;
-		class AttribPointerNode;
-		
 		class GUINode;*/
 	}
 }

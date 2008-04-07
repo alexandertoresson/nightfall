@@ -61,10 +61,10 @@ namespace Utilities
 		{
 			for (int j = 0; j < 4; j++)
 			{
-				newmat[i][j] = 0.0f;
+				newmat[j][i] = 0.0f;
 				for (int q = 0; q < 4; q++)
 				{
-					newmat[i][j] += matrix[i][q] * a.matrix[q][j];
+					newmat[j][i] += matrix[q][i] * a.matrix[j][q];
 				}
 			}
 		}

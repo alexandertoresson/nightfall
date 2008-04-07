@@ -31,6 +31,7 @@ namespace Game
 		
 		void InitRenderUnits();
 
+		class UnitTransfNode;
 	}
 }
 

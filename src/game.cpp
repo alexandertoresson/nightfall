@@ -19,6 +19,7 @@
 #include "camera.h"
 #include "effect.h"
 #include "unitrender.h"
+#include "scenegraph.h"
 #include <iostream>
 #include <fstream>
 #include <cmath>
@@ -683,7 +684,6 @@ namespace Game
 			//  Really Nice Perspective Calculations 
 			glHint( GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST );
 
-			glEnable(GL_ALPHA);
 			glEnable(GL_BLEND);
 			glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
@@ -856,6 +856,8 @@ namespace Game
 				pMainPanel->PaintTooltip();
 				Utilities::RevertViewport();
 			}
+
+			Scene::Graph::rootNode.Traverse();
 			
 			SDL_GL_SwapBuffers();
 			return true;

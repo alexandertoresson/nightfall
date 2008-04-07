@@ -263,11 +263,7 @@ namespace Game
 		// get the screen coord of the middle (0.0, 0.0, 0.0) of unit
 		Utilities::Vector3D GetUnitWindowPos(Unit* unit)
 		{
-//			UnitType* type = unit->type; << unused!
-//			Model* model = type->model; << unused!
 			Utilities::Vector3D win_vector;
-//			int index, index_v; << unused!
-//			float unit_y; << unused
 			glPushMatrix();
 
 				SetUnitCoordSpace(unit);

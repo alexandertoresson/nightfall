@@ -215,7 +215,6 @@ namespace Utilities
 		glDisable(GL_CULL_FACE);
 		glDisable(GL_LIGHTING);
 
-		glEnable(GL_ALPHA);
 		glEnable(GL_BLEND);
 
 		glMatrixMode (GL_PROJECTION); 

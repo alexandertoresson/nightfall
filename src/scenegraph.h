@@ -10,6 +10,7 @@
 #include "sdlheader.h"
 #include <vector>
 #include <stack>
+#include <map>
 
 namespace Scene
 {
@@ -82,12 +83,90 @@ namespace Scene
 				void SetMatrix(Utilities::Matrix4x4 mat, MatrixType matType);
 		};
 
-		class UnitTransfNode : Node
+		class GeometryNode : Node
 		{
-			
+			private:
+				virtual void PreRender();
+				virtual void Render();
+				virtual void PostRender();
+			public:
+				struct GFXState
+				{
+					// Edit curStateBools below when adding or removing states
+					enum GFXStateBool
+					{
+						GFXSTATE_BLEND,
+						GFXSTATE_CULL_FACE,
+						GFXSTATE_DEPTH_TEST,
+						GFXSTATE_FOG,
+						GFXSTATE_LIGHTING,
+						GFXSTATE_RESCALE_NORMAL,
+						GFXSTATE_TEXTURE_2D,
+						GFXSTATE_NUM
+					};
+
+					struct AttribArray
+					{
+						std::string name;
+						GLuint array;
+						GLint size;
+						GLenum type;
+					};
+
+					struct Uniform4f
+					{
+						std::string name;
+						float val[4];
+					};
+
+					struct UniformInt
+					{
+						std::string name;
+						int val;
+					};
+
+					struct Texture
+					{
+						std::string name;
+						GLuint texture;
+						GLuint texCoords;
+					};
+
+					std::map<GFXStateBool, bool> stateBools;
+					GLuint program;
+					GLuint vertexArray;
+					GLuint normalArray;
+					GLuint indicesArray;
+					std::vector<Texture> textures;
+					std::vector<AttribArray> attribArrays;
+					std::vector<Uniform4f> uniform4fs;
+					std::vector<UniformInt> uniformInts;
+					GLenum primitive;
+					unsigned numVertices;
+
+					GFXState();
+				};
+
+				typedef std::map<GFXState::GFXStateBool, bool> GFXStateBoolList;
+
+			private:
+				enum StateBoolState
+				{
+					STATEBOOLSTATE_ENABLED,
+					STATEBOOLSTATE_DISABLED,
+					STATEBOOLSTATE_UNKNOWN
+				};
+
+				static StateBoolState curStateBools[GFXState::GFXSTATE_NUM];
+				static GFXState *curSetState;
+				static unsigned curNumAttribArrays;
+				GFXState *myState;
+				void SetState(GFXState::GFXStateBool state, bool b);
+			public:
+				GeometryNode(GFXState *state);
 		};
 
-		Node rootNode;
+		extern Node rootNode;
 	}
 }
 
