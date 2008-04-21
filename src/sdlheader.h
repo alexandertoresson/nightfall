@@ -58,3 +58,7 @@
 #error GL_ARB_texture_env_crossbar is needed for this program
 #endif
 
+#ifndef NO_LOCKCHECKER
+#include "lockchecker.h" // Enable for mutex look debugging and statistics
+#endif
+

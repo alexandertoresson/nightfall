@@ -70,15 +70,10 @@ namespace Game
 		{
 			std::vector<ResearchRequirement> researchs;
 			std::vector<UnitRequirement> units;
-		};
-
-		struct DisjunctiveRequirements
-		{
-			std::vector<ConjunctiveRequirements> dreqs;
-			std::string dReqString;
+			std::string cReqString;
 			bool isSatisfied;
 			
-			DisjunctiveRequirements()
+			ConjunctiveRequirements()
 			{
 				isSatisfied = false;
 			}
@@ -86,8 +81,8 @@ namespace Game
 
 		struct ObjectRequirements
 		{
-			DisjunctiveRequirements creation;
-			DisjunctiveRequirements existance;
+			ConjunctiveRequirements creation;
+			ConjunctiveRequirements existance;
 			int time;
 			int money;
 			int power;

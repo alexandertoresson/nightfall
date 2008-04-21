@@ -31,7 +31,7 @@ function InitRace()
 	r.name = "Blah"
 	r.description = "Bleh"
 	r.luaEffectObj = "Testing"
-	r.crequirements = "MainBuilding, Builder(b >= 1, e >= 4), ResearchMediumLightTower | MainBuilding, TankFactory, !ResearchLargeLightTower"
+	r.crequirements = "MainBuilding, Builder(b >= 1, e >= 4), ResearchMediumLightTower"
 	r.erequirements = "MainBuilding"
 	CreateResearch(r)
 

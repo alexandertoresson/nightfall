@@ -137,6 +137,7 @@ namespace Scene
 					GLuint vertexArray;
 					GLuint normalArray;
 					GLuint indicesArray;
+					bool indicesAre32Bit;
 					std::vector<Texture> textures;
 					std::vector<AttribArray> attribArrays;
 					std::vector<Uniform4f> uniform4fs;

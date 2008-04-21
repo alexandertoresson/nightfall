@@ -1,0 +1,72 @@
+namespace a = "http://relaxng.org/ns/compatibility/annotations/1.0"
+
+start = material
+material =
+	element material {
+		inherit_material?,
+		ambient?,
+		diffuse?,
+		specular?,
+		emission?,
+		shininess?,
+		textures?,
+		shader?
+	}
+shader =
+	element shader {
+		uniforms?,
+		vertex_shader,
+		fragment_shader
+	}
+uniforms =
+	element uniforms {
+		(uniform4f, uniformInt)+ &
+	}
+inherit_material = element inherit_material { attribute filename { text } }
+vertex_shader = element vertex_shader { attribute filename { text } }
+fragment_shader = element fragment_shader { attribute filename { text } }
+uniform4f =
+	element uniform4f {
+		attribute name { xsd:NCName },
+		attribute v1 { xsd:decimal },
+		attribute v2 { xsd:decimal },
+		attribute v3 { xsd:decimal },
+		[ a:defaultValue = "1.0" ] attribute v4 { xsd:decimal } ? 
+	}
+uniformInt =
+	element uniformInt {
+		attribute name { xsd:NCName },
+		attribute value { xsd:integer }
+	}
+
+ambient =
+	element ambient {
+		attribute r { xsd:decimal },
+		attribute g { xsd:decimal },
+		attribute b { xsd:deximal },
+		[ a:defaultValue = "1.0" ] attribute a { xsd:decimal } ?
+	}
+diffuse =
+	element diffuse {
+		attribute r { xsd:decimal },
+		attribute g { xsd:decimal },
+		attribute b { xsd:deximal },
+		[ a:defaultValue = "1.0" ] attribute a { xsd:decimal } ?
+	}
+specular =
+	element specular {
+		attribute r { xsd:decimal },
+		attribute g { xsd:decimal },
+		attribute b { xsd:deximal },
+		[ a:defaultValue = "1.0" ] attribute a { xsd:decimal } ?
+	}
+emission =
+	element emission {
+		attribute r { xsd:decimal },
+		attribute g { xsd:decimal },
+		attribute b { xsd:deximal },
+		[ a:defaultValue = "1.0" ] attribute a { xsd:decimal } ?
+	}
+shininess = element shininess { attribute value { xsd:decimal } }
+textures = element textures { texture+ }
+texture = element texture { attribute filename { text } }

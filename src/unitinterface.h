@@ -16,6 +16,7 @@ namespace UnitLuaInterface
 {
 	void Init(Utilities::Scripting::LuaVMState* pVM);
 	bool IsValidUnitTypePointer(Game::Dimension::UnitType* unittype);
+	bool IsValidResearchPointer(Game::Dimension::Research* research);
 	Game::Dimension::UnitType *GetUnitTypeByID(Game::Dimension::Player* owner, std::string str);
 	Game::Dimension::Research *GetResearchByID(Game::Dimension::Player* owner, std::string str);
 }

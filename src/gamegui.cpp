@@ -894,10 +894,17 @@ namespace Game
 							Dimension::SaveGame("save.xml");
 							break;
 						}
-#ifdef FRAGREPORT
+#ifdef __MEMDEBUG_H__
 						case SDLK_f:
 						{
-							WriteFragmentationReport();
+							WriteFragmentationReport("memreport.txt");
+							break;
+						}
+#endif
+#ifdef __LOCKCHECKER_H__
+						case SDLK_l:
+						{
+							WriteLockReport("lockreport.txt");
 							break;
 						}
 #endif

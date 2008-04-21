@@ -15,8 +15,16 @@
 
 namespace Utilities
 {
-	
+	struct XMLElement;
+
+	typedef void (*TextFunc)(std::string);
+
+	typedef void (*TagFunc)(XMLElement*);
+	typedef std::map<std::string, TagFunc> TagFuncMap;
+
 	typedef std::map<std::string, std::string> AttrList;
+	typedef void (*AttrFunc)(XMLElement*, std::string);
+	typedef std::map<std::string, AttrFunc> AttrFuncMap;
 
 	class XMLWriter
 	{
@@ -53,16 +61,16 @@ namespace Utilities
 		{
 			parent = NULL;
 		}
-		virtual void Apply(std::map<std::string, void (*)(XMLElement *elem)> tag_funcs, void (*text_func)(std::string text));
-		virtual void Apply(std::string tag, void (*tag_func)(XMLElement *elem));
-		virtual void Apply(void (*text_func)(std::string text));
+		virtual void Apply(TagFuncMap tag_funcs, TextFunc text_func);
+		virtual void Apply(std::string tag, TagFunc tag_func);
+		virtual void Apply(TextFunc text_func);
 	};
 
 	struct XMLTextNode : XMLNode
 	{
 		std::string str;
-		virtual void Apply(std::map<std::string, void (*)(XMLElement *elem)> tag_funcs, void (*text_func)(std::string text));
-		virtual void Apply(void (*text_func)(std::string text));
+		virtual void Apply(TagFuncMap tag_funcs, TextFunc text_func);
+		virtual void Apply(TextFunc text_func);
 	};
 
 	struct XMLElement : XMLNode
@@ -77,12 +85,19 @@ namespace Utilities
 			index = 0;
 		}
 		
-		void Iterate(std::map<std::string, void (*)(XMLElement *elem)> tag_funcs, void (*text_func)(std::string text));
-		void Iterate(std::string tag, void (*tag_func)(XMLElement *elem));
-		void Iterate(void (*text_func)(std::string text));
+		void Iterate(TagFuncMap tag_funcs, TextFunc text_func);
+		void Iterate(std::string tag, TagFunc tag_func);
+		void Iterate(TextFunc text_func);
+		void Iterate(AttrFuncMap attr_funcs);
+
+		std::string GetAttribute(std::string attr, std::string def);
+		std::string GetAttribute(std::string attr);
+		bool HasAttribute(std::string attr);
 		
-		virtual void Apply(std::map<std::string, void (*)(XMLElement *elem)> tag_funcs, void (*text_func)(std::string text));
-		virtual void Apply(std::string tag, void (*tag_func)(XMLElement *elem));
+		virtual void Apply(TagFuncMap tag_funcs, TextFunc text_func);
+		virtual void Apply(std::string tag, TagFunc tag_func);
+	
+		unsigned Count(std::string tag);
 	};
 
 	class XMLReader

@@ -378,42 +378,32 @@ namespace Game
 			std::set<Research*> sResearchs;
 		} notMeetingExistanceReqs;
 
-		void CheckRequirements(Player *player, DisjunctiveRequirements &requirements)
+		void CheckRequirements(Player *player, ConjunctiveRequirements &reqs)
 		{
 			bool isSatisfied = true;
-			for (std::vector<ConjunctiveRequirements>::iterator it_req = requirements.dreqs.begin(); it_req != requirements.dreqs.end(); it_req++)
+			for (std::vector<ResearchRequirement>::iterator it = reqs.researchs.begin(); it != reqs.researchs.end(); it++)
 			{
-				ConjunctiveRequirements &creq = *it_req;
-				isSatisfied = true;
-				for (std::vector<ResearchRequirement>::iterator it = creq.researchs.begin(); it != creq.researchs.end(); it++)
+				if (it->research->isResearched != it->desiredState)
 				{
-					if (it->research->isResearched != it->desiredState)
+					isSatisfied = false;
+					break;
+				}
+			}
+
+			if (isSatisfied)
+			{
+				for (std::vector<UnitRequirement>::iterator it = reqs.units.begin(); it != reqs.units.end(); it++)
+				{
+					UnitType* unitType = it->type;
+					if (unitType->numBuilt > it->maxBuilt || unitType->numBuilt < it->minBuilt ||
+					    unitType->numExisting > it->maxExisting || unitType->numExisting < it->minExisting)
 					{
 						isSatisfied = false;
 						break;
 					}
 				}
-
-				if (isSatisfied)
-				{
-					for (std::vector<UnitRequirement>::iterator it = creq.units.begin(); it != creq.units.end(); it++)
-					{
-						UnitType* unitType = it->type;
-						if (unitType->numBuilt > it->maxBuilt || unitType->numBuilt < it->minBuilt ||
-					    	    unitType->numExisting > it->maxExisting || unitType->numExisting < it->minExisting)
-						{
-							isSatisfied = false;
-							break;
-						}
-					}
-				}
-
-				if (isSatisfied)
-				{
-					break;
-				}
 			}
-			requirements.isSatisfied = isSatisfied;
+			reqs.isSatisfied = isSatisfied;
 		}
 
 		void CheckObjectRequirements(Player *player, ObjectRequirements &requirements)

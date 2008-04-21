@@ -309,7 +309,7 @@ namespace Scene
 				{
 					glEnableClientState(GL_INDEX_ARRAY);
 					glBindBufferARB(GL_ELEMENT_ARRAY_BUFFER_ARB, myState->indicesArray);
-					glIndexPointer(GL_INT, 0, NULL);
+					glIndexPointer(myState->indicesAre32Bit ? GL_INT : GL_SHORT, 0, NULL);
 				}
 				else
 				{
@@ -324,7 +324,7 @@ namespace Scene
 		{
 			if (myState->indicesArray)
 			{
-				glDrawElements(myState->primitive, myState->numVertices, GL_UNSIGNED_INT, NULL);
+				glDrawElements(myState->primitive, myState->numVertices, myState->indicesAre32Bit ?  GL_UNSIGNED_INT : GL_UNSIGNED_SHORT, NULL);
 			}
 			else
 			{

@@ -1,0 +1,229 @@
+namespace a = "http://relaxng.org/ns/compatibility/annotations/1.0"
+
+mesh =
+  element mesh {
+    attlist.mesh,
+    sharedgeometry?,
+    submeshes,
+    skeletonlink?,
+    boneassignments?,
+    levelofdetail?,
+    submeshnames?,
+    poses?,
+    animations?,
+    extremes?
+  }
+attlist.mesh &= empty
+sharedgeometry =
+  element sharedgeometry { attlist.sharedgeometry, vertexbuffer+ }
+attlist.sharedgeometry &= attribute vertexcount { text }
+submeshes = element submeshes { attlist.submeshes, submesh+ }
+attlist.submeshes &= empty
+submesh =
+  element submesh {
+    attlist.submesh, textures?, faces, geometry?, boneassignments?
+  }
+attlist.submesh &=
+  attribute material { text },
+  [ a:defaultValue = "true" ]
+  attribute usesharedvertices { "true" | "false" }?,
+  [ a:defaultValue = "false" ]
+  attribute use32bitindexes { "true" | "false" }?,
+  [ a:defaultValue = "triangle_list" ]
+  attribute operationtype {
+    "triangle_list" | "triangle_strip" | "triangle_fan"
+  }?
+textures = element textures { attlist.textures, texture+ }
+attlist.textures &= empty
+texture = element texture { attlist.texture, empty }
+attlist.texture &=
+  attribute alias { text },
+  attribute name { text }
+faces = element faces { attlist.faces, face+ }
+attlist.faces &= attribute count { text }?
+face = element face { attlist.face, empty }
+# Do not need all 3 vertex indexes if triangle_strip or triangle_fan
+# since every face after the first one is defined by a single vertex
+attlist.face &=
+  attribute v1 { text },
+  attribute v2 { text }?,
+  attribute v3 { text }?
+geometry = element geometry { attlist.geometry, vertexbuffer+ }
+attlist.geometry &= attribute vertexcount { text }?
+skeletonlink = element skeletonlink { attlist.skeletonlink, empty }
+attlist.skeletonlink &= attribute name { text }
+boneassignments =
+  element boneassignments {
+    attlist.boneassignments, vertexboneassignment+
+  }
+attlist.boneassignments &= empty
+vertexboneassignment =
+  element vertexboneassignment { attlist.vertexboneassignment, empty }
+attlist.vertexboneassignment &=
+  attribute vertexindex { text },
+  attribute boneindex { text },
+  [ a:defaultValue = "1.0" ] attribute weight { text }?
+levelofdetail =
+  element levelofdetail {
+    attlist.levelofdetail, (lodmanual | lodgenerated)+
+  }
+attlist.levelofdetail &=
+  attribute numlevels { text },
+  [ a:defaultValue = "false" ] attribute manual { "true" | "false" }?
+lodmanual = element lodmanual { attlist.lodmanual, empty }
+attlist.lodmanual &=
+  attribute fromdepthsquared { text },
+  attribute meshname { text }
+lodgenerated =
+  element lodgenerated { attlist.lodgenerated, lodfacelist }
+attlist.lodgenerated &=
+  attribute fromdepthsquared { text },
+  attribute meshname { text }
+lodfacelist = element lodfacelist { attlist.lodfacelist, face+ }
+attlist.lodfacelist &=
+  attribute submeshindex { text },
+  attribute numfaces { text }
+vertexbuffer = element vertexbuffer { attlist.vertexbuffer, vertex+ }
+attlist.vertexbuffer &=
+  [ a:defaultValue = "false" ]
+  attribute positions { "true" | "false" }?,
+  [ a:defaultValue = "false" ] attribute normals { "true" | "false" }?,
+  [ a:defaultValue = "false" ]
+  attribute colours_diffuse { "true" | "false" }?,
+  [ a:defaultValue = "false" ]
+  attribute colours_specular { "true" | "false" }?,
+  [ a:defaultValue = "0" ]
+  attribute texture_coords {
+    "0" | "1" | "2" | "3" | "4" | "5" | "6" | "7" | "8"
+  }?,
+  [ a:defaultValue = "2" ]
+  attribute texture_coord_dimensions_0 { "0" | "1" | "2" | "3" }?,
+  [ a:defaultValue = "2" ]
+  attribute texture_coord_dimensions_1 { "0" | "1" | "2" | "3" }?,
+  [ a:defaultValue = "2" ]
+  attribute texture_coord_dimensions_2 { "0" | "1" | "2" | "3" }?,
+  [ a:defaultValue = "2" ]
+  attribute texture_coord_dimensions_3 { "0" | "1" | "2" | "3" }?,
+  [ a:defaultValue = "2" ]
+  attribute texture_coord_dimensions_4 { "0" | "1" | "2" | "3" }?,
+  [ a:defaultValue = "2" ]
+  attribute texture_coord_dimensions_5 { "0" | "1" | "2" | "3" }?,
+  [ a:defaultValue = "2" ]
+  attribute texture_coord_dimensions_6 { "0" | "1" | "2" | "3" }?,
+  [ a:defaultValue = "2" ]
+  attribute texture_coord_dimensions_7 { "0" | "1" | "2" | "3" }?,
+  [ a:defaultValue = "false" ] attribute tangents { "true" | "false" }?,
+  [ a:defaultValue = "3" ] attribute tangent_dimensions { "3" | "4" }?,
+  [ a:defaultValue = "false" ] attribute binormals { "true" | "false" }?
+vertex =
+  element vertex {
+    attlist.vertex,
+    position,
+    normal?,
+    tangent?,
+    binormal?,
+    colour_diffuse?,
+    colour_specular?,
+    texcoord*
+  }
+attlist.vertex &= empty
+position = element position { attlist.position, empty }
+attlist.position &=
+  attribute x { text },
+  attribute y { text },
+  attribute z { text }
+normal = element normal { attlist.normal, empty }
+attlist.normal &=
+  attribute x { text },
+  attribute y { text },
+  attribute z { text }
+tangent = element tangent { attlist.tangent, empty }
+attlist.tangent &=
+  attribute x { text },
+  attribute y { text },
+  attribute z { text },
+  [ a:defaultValue = "1" ] attribute w { text }?
+binormal = element binormal { attlist.binormal, empty }
+attlist.binormal &=
+  attribute x { text },
+  attribute y { text },
+  attribute z { text }
+colour_diffuse =
+  element colour_diffuse { attlist.colour_diffuse, empty }
+# 'value' is a space-separated string containing r,g,b and optionally alpha
+# for example value="1.0 0.0 0.0 0.5" or value="0.7 0.5 0.2"
+attlist.colour_diffuse &= attribute value { text }
+colour_specular =
+  element colour_specular { attlist.colour_specular, empty }
+# 'value' is a space-separated string containing r,g,b and optionally alpha
+# for example value="1.0 0.0 0.0 0.5" or value="0.7 0.5 0.2"
+attlist.colour_specular &= attribute value { text }
+texcoord = element texcoord { attlist.texcoord, empty }
+attlist.texcoord &=
+  attribute u { text },
+  [ a:defaultValue = "0" ] attribute v { text }?,
+  [ a:defaultValue = "0" ] attribute w { text }?
+submeshnames =
+  element submeshnames { attlist.submeshnames, submeshname+ }
+attlist.submeshnames &= empty
+submeshname = element submeshname { attlist.submeshname, empty }
+attlist.submeshname &=
+  attribute name { text },
+  attribute index { text }
+poses = element poses { attlist.poses, pose+ }
+attlist.poses &= empty
+# A single pose references a single set of geometry data with a set of offsets.
+# If target is 'mesh', targets the shared geometry, if target is submesh, targets
+# the submesh identified by 'index'.
+pose = element pose { attlist.pose, poseoffset+ }
+attlist.pose &=
+  attribute target { "mesh" | "submesh" },
+  [ a:defaultValue = "0" ] attribute index { text }?,
+  [ a:defaultValue = "" ] attribute name { text }?
+# poseoffset lists the vertices that change position, and by how much
+poseoffset = element poseoffset { attlist.poseoffset, empty }
+attlist.poseoffset &=
+  attribute index { text },
+  attribute x { text },
+  attribute y { text },
+  attribute z { text }
+animations = element animations { attlist.animations, animation+ }
+attlist.animations &= empty
+animation = element animation { attlist.animation, tracks }
+attlist.animation &=
+  attribute name { text },
+  attribute length { text }
+tracks = element tracks { attlist.tracks, track+ }
+attlist.tracks &= empty
+track = element track { attlist.track, keyframes }
+# Morph animation is a keyframed set of absolute vertex positions. Cannot
+# be blended with other morph animations or pose animation.
+# Pose animation is a set of keyframes referencing poses and a weight,
+#     with one track per set of vertex data.
+#     Can be blended with other poses but not with morph animation. 
+#    If target is 'mesh', targets the shared geometry, if target is submesh, targets
+#    the submesh identified by 'index'. 
+attlist.track &=
+  attribute target { "mesh" | "submesh" },
+  [ a:defaultValue = "0" ] attribute index { text }?,
+  attribute type { "morph" | "pose" }
+# keyframes are applicable for all tracks, but for morph tracks
+# they contain positions, and for pose tracks they contain pose references
+keyframes = element keyframes { attlist.keyframes, keyframe* }
+attlist.keyframes &= empty
+keyframe = element keyframe { attlist.keyframe, position*, poseref* }
+attlist.keyframe &= attribute time { text }
+# Pose reference, links to pose via numeric index. target of parent track
+# must agree with target of referenced pose. For a single track, each
+# keyframe can reference multiple poses at different weights.
+poseref = element poseref { attlist.poseref, empty }
+attlist.poseref &=
+  attribute poseindex { text },
+  [ a:defaultValue = "1.0" ] attribute influence { text }?
+# Optional extremity points on submeshes for sub-object transparency sorting
+extremes = element extremes { attlist.extremes, submesh+ }
+attlist.extremes &= empty
+submesh_extremes =
+  element submesh_extremes { attlist.submesh_extremes, position+ }
+attlist.submesh_extremes &= attribute index { text }
+start = submesh_extremes | mesh

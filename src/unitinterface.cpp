@@ -625,7 +625,6 @@ namespace UnitLuaInterface
 	
 	int LIsResearched(lua_State* pVM)
 	{
-		Player *player = GetPlayerByVMstate(pVM);
 		UnitType* pUnitType = (UnitType*) lua_touserdata(pVM, 1);
 		if (pUnitType == NULL)
 		{
@@ -633,27 +632,124 @@ namespace UnitLuaInterface
 			return 1;
 		}
 		lua_pushboolean(pVM, pUnitType->requirements.creation.isSatisfied && pUnitType->requirements.existance.isSatisfied);
-		lua_pushlightuserdata(pVM, player);
 		return 1;
 	}
 	
-	int LGetResearcher(lua_State* pVM)
+	int GetObjReqs(lua_State* pVM, ObjectRequirements& oreqs)
 	{
-/*		UnitType* pUnitType = (UnitType*) lua_touserdata(pVM, 1);
-		Player *player = GetPlayerByVMstate(pVM);
-		for (vector<UnitType*>::iterator it = player->vUnitTypes.begin(); it != player->vUnitTypes.end(); it++)
+		int i = 1;
+		lua_newtable(pVM);
+
+		lua_newtable(pVM);
+		
+		for (std::vector<ResearchRequirement>::iterator it = oreqs.creation.researchs.begin(); it != oreqs.creation.researchs.end(); it++)
 		{
-			for (vector<UnitType*>::iterator it2 = (*it)->canResearch.begin(); it2 != (*it)->canResearch.end(); it2++)
-			{
-				if (*it2 == pUnitType)
-				{
-					lua_pushlightuserdata(pVM, static_cast<void*>(*it));
-					return 1;
-				}
-			}
-		}*/
-		lua_pushlightuserdata(pVM, NULL);
+			std::stringstream ss;
+			lua_newtable(pVM);
+
+			lua_pushlightuserdata(pVM, it->research);
+			lua_setfield(pVM, -2, "research");
+			
+			lua_pushboolean(pVM, it->desiredState);
+			lua_setfield(pVM, -2, "desiredState");
+		
+			ss << i;
+			lua_setfield(pVM, -2, ss.str().c_str());
+		}
+		
+		for (std::vector<ResearchRequirement>::iterator it = oreqs.existance.researchs.begin(); it != oreqs.existance.researchs.end(); it++)
+		{
+			std::stringstream ss;
+			lua_newtable(pVM);
+
+			lua_pushlightuserdata(pVM, it->research);
+			lua_setfield(pVM, -2, "research");
+			
+			lua_pushboolean(pVM, it->desiredState);
+			lua_setfield(pVM, -2, "desiredState");
+			
+			ss << i;
+			lua_setfield(pVM, -2, ss.str().c_str());
+		}
+		
+		lua_setfield(pVM, -2, "researchs");
+
+		i = 1;
+
+		lua_newtable(pVM);
+		
+		for (std::vector<UnitRequirement>::iterator it = oreqs.creation.units.begin(); it != oreqs.creation.units.end(); it++)
+		{
+			std::stringstream ss;
+			lua_newtable(pVM);
+
+			lua_pushlightuserdata(pVM, it->type);
+			lua_setfield(pVM, -2, "type");
+			
+			lua_pushinteger(pVM, it->minExisting);
+			lua_setfield(pVM, -2, "minExisting");
+		
+			lua_pushinteger(pVM, it->maxExisting);
+			lua_setfield(pVM, -2, "maxExisting");
+		
+			lua_pushinteger(pVM, it->minBuilt);
+			lua_setfield(pVM, -2, "minBuilt");
+		
+			lua_pushinteger(pVM, it->maxBuilt);
+			lua_setfield(pVM, -2, "maxBuilt");
+		
+			ss << i;
+			lua_setfield(pVM, -2, ss.str().c_str());
+		}
+		
+		for (std::vector<UnitRequirement>::iterator it = oreqs.existance.units.begin(); it != oreqs.existance.units.end(); it++)
+		{
+			std::stringstream ss;
+			lua_newtable(pVM);
+
+			lua_pushlightuserdata(pVM, it->type);
+			lua_setfield(pVM, -2, "type");
+			
+			lua_pushinteger(pVM, it->minExisting);
+			lua_setfield(pVM, -2, "minExisting");
+		
+			lua_pushinteger(pVM, it->maxExisting);
+			lua_setfield(pVM, -2, "maxExisting");
+		
+			lua_pushinteger(pVM, it->minBuilt);
+			lua_setfield(pVM, -2, "minBuilt");
+		
+			lua_pushinteger(pVM, it->maxBuilt);
+			lua_setfield(pVM, -2, "maxBuilt");
+		
+			ss << i;
+			lua_setfield(pVM, -2, ss.str().c_str());
+		}
+		
+		lua_setfield(pVM, -2, "units");
 		return 1;
+	}
+
+	int LGetUnitTypeRequirements(lua_State* pVM)
+	{
+		UnitType* pUnitType = (UnitType*) lua_touserdata(pVM, 1);
+		if (!IsValidUnitTypePointer(pUnitType))
+		{
+			lua_pushboolean(pVM, false);
+			return 1;
+		}
+		return GetObjReqs(pVM, pUnitType->requirements);
+	}
+	
+	int LGetResearchRequirements(lua_State* pVM)
+	{
+		Research* pResearch = (Research*) lua_touserdata(pVM, 1);
+		if (!IsValidResearchPointer(pResearch))
+		{
+			lua_pushboolean(pVM, false);
+			return 1;
+		}
+		return GetObjReqs(pVM, pResearch->requirements);
 	}
 	
 	int LGetBuilder(lua_State* pVM)
@@ -2766,9 +2862,16 @@ else \
 
 	map<UnitType*, bool> validUnitTypePointers;
 
+	map<Research*, bool> validResearchPointers;
+
 	bool IsValidUnitTypePointer(UnitType* unittype)
 	{
 		return validUnitTypePointers[unittype];
+	}
+
+	bool IsValidResearchPointer(Research* research)
+	{
+		return validResearchPointers[research];
 	}
 
 	UnitType *GetUnitTypeByID(Player* owner, std::string str)
@@ -2890,7 +2993,6 @@ else \
 		{
 			Research *research = new Research;
 			ResearchRequirement res_req;
-			ConjunctiveRequirements creq;
 
 			research->id = "Research" + std::string(pUnitType->id);
 			research->name = "Research " + std::string(pUnitType->name);
@@ -2907,20 +3009,20 @@ else \
 			res_req.research = research;
 			res_req.desiredState = true;
 
-			creq.researchs.push_back(res_req);
+			research->requirements.creation.researchs.push_back(res_req);
 
-			pUnitType->requirements.creation.dreqs.push_back(creq);
 			research->index = player->vResearchs.size();
 			player->vResearchs.push_back(research);
 			player->researchMap[research->id] = research;
+			validResearchPointers[research] = true;
 
 		}
 		else
 		{
-			GET_STDSTRING_FIELD_OPTIONAL(pUnitType->requirements.creation.dReqString, "crequirements", "")
+			GET_STDSTRING_FIELD_OPTIONAL(pUnitType->requirements.creation.cReqString, "crequirements", "")
 		}
 
-		GET_STDSTRING_FIELD_OPTIONAL(pUnitType->requirements.existance.dReqString, "erequirements", "")
+		GET_STDSTRING_FIELD_OPTIONAL(pUnitType->requirements.existance.cReqString, "erequirements", "")
 
 		pUnitType->index = player->vUnitTypes.size();
 		player->vUnitTypes.push_back(pUnitType);
@@ -3039,12 +3141,13 @@ else \
 		pResearch->icon = 0;
 		pResearch->isResearched = false;
 
-		GET_STDSTRING_FIELD_OPTIONAL(pResearch->requirements.creation.dReqString, "crequirements", "")
-		GET_STDSTRING_FIELD_OPTIONAL(pResearch->requirements.existance.dReqString, "erequirements", "")
+		GET_STDSTRING_FIELD_OPTIONAL(pResearch->requirements.creation.cReqString, "crequirements", "")
+		GET_STDSTRING_FIELD_OPTIONAL(pResearch->requirements.existance.cReqString, "erequirements", "")
 			
 		pResearch->index = player->vResearchs.size();
 		player->vResearchs.push_back(pResearch);
 		player->researchMap[pResearch->id] = pResearch;
+		validResearchPointers[pResearch] = true;
 
 		LUA_SUCCESS
 	}
@@ -3083,7 +3186,7 @@ else \
 		}
 	}
 
-	void InterpretRequirementsString(Player *player, const char *reqstring, DisjunctiveRequirements &requirements)
+	void InterpretRequirementsString(Player *player, const char *reqstring, ConjunctiveRequirements &reqs)
 	{
 		if (!reqstring || *reqstring == 0)
 		{
@@ -3092,245 +3195,224 @@ else \
 
 		while (1)
 		{
-			ConjunctiveRequirements creqs;
-			while (1)
+			bool negated = false;
+			while (*reqstring == ' ') reqstring++;
+			if (*reqstring == '!')
 			{
-				bool negated = false;
-				while (*reqstring == ' ') reqstring++;
-				if (*reqstring == '!')
+				negated = true;
+				reqstring++;
+			}
+			std::string symbol = GetReqStringSymbol(reqstring);
+			UnitType* unitType = GetUnitTypeByID(player, symbol);
+			Research* research = GetResearchByID(player, symbol);
+			UnitRequirement unit_req;
+			ResearchRequirement res_req;
+
+			if (unitType && research)
+			{
+				std::cout << "Ambiguous symbol '" << symbol << "', can both be unittype and research" << std::endl;
+				return;
+			}
+			else if (unitType)
+			{
+				unit_req.type = unitType;
+				unit_req.minBuilt = 0;
+				unit_req.maxBuilt = INT_MAX;
+				unit_req.minExisting = 1;
+				unit_req.maxExisting = INT_MAX;
+				if (negated)
 				{
-					negated = true;
-					reqstring++;
-				}
-				std::string symbol = GetReqStringSymbol(reqstring);
-				UnitType* unitType = GetUnitTypeByID(player, symbol);
-				Research* research = GetResearchByID(player, symbol);
-				UnitRequirement unit_req;
-				ResearchRequirement res_req;
-	
-				if (unitType && research)
-				{
-					std::cout << "Ambiguous symbol '" << symbol << "', can both be unittype and research" << std::endl;
-					return;
-				}
-				else if (unitType)
-				{
-					unit_req.type = unitType;
-					unit_req.minBuilt = 0;
-					unit_req.maxBuilt = INT_MAX;
-					unit_req.minExisting = 1;
-					unit_req.maxExisting = INT_MAX;
-					if (negated)
-					{
-						std::cout << "Unit requirements cannot be negated" << std::endl;
-						return;
-					}
-				}
-				else if (research)
-				{
-					res_req.research = research;
-					res_req.desiredState = !negated;
-				}
-				else
-				{
-					std::cout << "Symbol '" << symbol << "' could not be resolved" << std::endl;
-					return;
-				}
-
-				if (unitType && *reqstring == '(')
-				{
-					unit_req.minExisting = 0;
-					unit_req.maxExisting = INT_MAX;
-					reqstring++;
-					while (1)
-					{
-
-						while (*reqstring == ' ') reqstring++;
-
-						int type;
-
-						if (*reqstring == 'b')
-						{
-							type = 1;
-						}
-						else if (*reqstring == 'e')
-						{
-							type = 2;
-						}
-						else
-						{
-							std::cout << "Error detected while parsing requirements string, 'b' or 'e' expected; '" << *reqstring << "' found" << std::endl;
-							return;
-						}
-						
-						reqstring++;
-
-						while (*reqstring == ' ') reqstring++;
-
-						int ctype = 0;
-
-						switch (*reqstring)
-						{
-							case '>':
-								reqstring++;
-								if (*reqstring == '=')
-								{
-									reqstring++;
-									ctype = 2;
-								}
-								else
-								{
-									ctype = 1;
-								}
-								break;
-							case '<':
-								reqstring++;
-								if (*reqstring == '=')
-								{
-									reqstring++;
-									ctype = 4;
-								}
-								else
-								{
-									ctype = 5;
-								}
-								break;
-							case '=':
-								ctype = 3;
-								reqstring++;
-								break;
-							default:
-								std::cout << "Error detected while parsing requirements string, '>', '=' or '<' expected; '" << *reqstring << "' found" << std::endl;
-								return;
-						}
-
-						while (*reqstring == ' ') reqstring++;
-
-						int value = 0;
-
-						while (*reqstring >= '0' && *reqstring <= '9')
-						{
-							value = value * 10 + *reqstring - '0';
-							reqstring++;
-						}
-
-						switch (ctype)
-						{
-							case 1:
-								if (type == 1)
-								{
-									unit_req.minBuilt = value+1;
-								}
-								else if (type == 2)
-								{
-									unit_req.minExisting = value+1;
-								}
-								break;
-							case 2:
-								if (type == 1)
-								{
-									unit_req.minBuilt = value;
-								}
-								else if (type == 2)
-								{
-									unit_req.minExisting = value;
-								}
-								break;
-							case 3:
-								if (type == 1)
-								{
-									unit_req.minBuilt = value;
-									unit_req.maxBuilt = value;
-								}
-								else if (type == 2)
-								{
-									unit_req.minExisting = value;
-									unit_req.maxExisting = value;
-								}
-								break;
-							case 4:
-								if (type == 1)
-								{
-									unit_req.maxBuilt = value;
-								}
-								else if (type == 2)
-								{
-									unit_req.maxExisting = value;
-								}
-								break;
-							case 5:
-								if (type == 1)
-								{
-									unit_req.maxBuilt = value-1;
-								}
-								else if (type == 2)
-								{
-									unit_req.maxExisting = value-1;
-								}
-								break;
-						}
-						
-						while (*reqstring == ' ') reqstring++;
-
-						char c = *reqstring;
-						if (c == ')')
-						{
-							reqstring++;
-							break;
-						}
-
-						if (c == ',')
-						{
-							reqstring++;
-						}
-						else
-						{
-							std::cout << "Error detected while parsing requirements string, ',' or ')' expected; '" << c << "' found" << std::endl;
-						}
-					}
-
-				}
-
-				if (unitType)
-				{
-					creqs.units.push_back(unit_req);
-				}
-				else if (research)
-				{
-					creqs.researchs.push_back(res_req);
-				}
-
-				char c = *reqstring;
-				if (c == '|' || c == 0)
-				{
-					break;
-				}
-
-				if (c == ',')
-				{
-					reqstring++;
-				}
-				else
-				{
-					std::cout << "Error detected while parsing requirements string, ',', '|' or end-of-line expected; '" << c << "' found" << std::endl;
+					std::cout << "Unit requirements cannot be negated" << std::endl;
 					return;
 				}
 			}
+			else if (research)
+			{
+				res_req.research = research;
+				res_req.desiredState = !negated;
+			}
+			else
+			{
+				std::cout << "Symbol '" << symbol << "' could not be resolved" << std::endl;
+				return;
+			}
 
-			requirements.dreqs.push_back(creqs);
+			if (unitType && *reqstring == '(')
+			{
+				unit_req.minExisting = 0;
+				unit_req.maxExisting = INT_MAX;
+				reqstring++;
+				while (1)
+				{
+
+					while (*reqstring == ' ') reqstring++;
+
+					int type;
+
+					if (*reqstring == 'b')
+					{
+						type = 1;
+					}
+					else if (*reqstring == 'e')
+					{
+						type = 2;
+					}
+					else
+					{
+						std::cout << "Error detected while parsing requirements string, 'b' or 'e' expected; '" << *reqstring << "' found" << std::endl;
+						return;
+					}
+					
+					reqstring++;
+
+					while (*reqstring == ' ') reqstring++;
+
+					int ctype = 0;
+
+					switch (*reqstring)
+					{
+						case '>':
+							reqstring++;
+							if (*reqstring == '=')
+							{
+								reqstring++;
+								ctype = 2;
+							}
+							else
+							{
+								ctype = 1;
+							}
+							break;
+						case '<':
+							reqstring++;
+							if (*reqstring == '=')
+							{
+								reqstring++;
+								ctype = 4;
+							}
+							else
+							{
+								ctype = 5;
+							}
+							break;
+						case '=':
+							ctype = 3;
+							reqstring++;
+							break;
+						default:
+							std::cout << "Error detected while parsing requirements string, '>', '=' or '<' expected; '" << *reqstring << "' found" << std::endl;
+							return;
+					}
+
+					while (*reqstring == ' ') reqstring++;
+
+					int value = 0;
+
+					while (*reqstring >= '0' && *reqstring <= '9')
+					{
+						value = value * 10 + *reqstring - '0';
+						reqstring++;
+					}
+
+					switch (ctype)
+					{
+						case 1:
+							if (type == 1)
+							{
+								unit_req.minBuilt = value+1;
+							}
+							else if (type == 2)
+							{
+								unit_req.minExisting = value+1;
+							}
+							break;
+						case 2:
+							if (type == 1)
+							{
+								unit_req.minBuilt = value;
+							}
+							else if (type == 2)
+							{
+								unit_req.minExisting = value;
+							}
+							break;
+						case 3:
+							if (type == 1)
+							{
+								unit_req.minBuilt = value;
+								unit_req.maxBuilt = value;
+							}
+							else if (type == 2)
+							{
+								unit_req.minExisting = value;
+								unit_req.maxExisting = value;
+							}
+							break;
+						case 4:
+							if (type == 1)
+							{
+								unit_req.maxBuilt = value;
+							}
+							else if (type == 2)
+							{
+								unit_req.maxExisting = value;
+							}
+							break;
+						case 5:
+							if (type == 1)
+							{
+								unit_req.maxBuilt = value-1;
+							}
+							else if (type == 2)
+							{
+								unit_req.maxExisting = value-1;
+							}
+							break;
+					}
+					
+					while (*reqstring == ' ') reqstring++;
+
+					char c = *reqstring;
+					if (c == ')')
+					{
+						reqstring++;
+						break;
+					}
+
+					if (c == ',')
+					{
+						reqstring++;
+					}
+					else
+					{
+						std::cout << "Error detected while parsing requirements string, ',' or ')' expected; '" << c << "' found" << std::endl;
+					}
+				}
+
+			}
+
+			if (unitType)
+			{
+				reqs.units.push_back(unit_req);
+			}
+			else if (research)
+			{
+				reqs.researchs.push_back(res_req);
+			}
 
 			char c = *reqstring;
-			if (c == 0)
+			if (c == '|' || c == 0)
 			{
 				break;
 			}
-			if (c == '|')
+
+			if (c == ',')
 			{
 				reqstring++;
 			}
 			else
 			{
-				std::cout << "Error detected while parsing requirements string, '|' or end-of-line expected; '" << c << "' found" << std::endl;
+				std::cout << "Error detected while parsing requirements string, ',', '|' or end-of-line expected; '" << c << "' found" << std::endl;
 				return;
 			}
 		}
@@ -3338,8 +3420,8 @@ else \
 
 	void PostProcessReqStrings(Player *player, ObjectRequirements &requirements)
 	{
-		InterpretRequirementsString(player, requirements.creation.dReqString.c_str(), requirements.creation);
-		InterpretRequirementsString(player, requirements.existance.dReqString.c_str(), requirements.existance);
+		InterpretRequirementsString(player, requirements.creation.cReqString.c_str(), requirements.creation);
+		InterpretRequirementsString(player, requirements.existance.cReqString.c_str(), requirements.existance);
 	}
 
 	void PostProcessBuildResearch(UnitType* unitType)
@@ -3430,7 +3512,8 @@ else \
 		pVM->RegisterFunction("SetUnitPower", LSetUnitPower);
 		
 		pVM->RegisterFunction("IsResearched", LIsResearched);
-		pVM->RegisterFunction("GetResearcher", LGetResearcher);
+		pVM->RegisterFunction("GetUnitTypeRequirements", LGetUnitTypeRequirements);
+		pVM->RegisterFunction("GetResearchRequirements", LGetResearchRequirements);
 		pVM->RegisterFunction("GetBuilder", LGetBuilder);
 
 		pVM->RegisterFunction("IsWithinRangeForBuilding", LIsWithinRangeForBuilding);

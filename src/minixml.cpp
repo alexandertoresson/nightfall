@@ -160,7 +160,7 @@ namespace Utilities
 	{
 		std::string tag = "";
 		bool tag_read = false;
-		int attr_state;
+		int attr_state = 0;
 		std::string attr, val;
 		while (!ifile.eof())
 		{
@@ -194,7 +194,7 @@ namespace Utilities
 						{
 							attr_state = 1;
 						}
-						else if (IsWhitespace(c))
+						else if (!IsWhitespace(c))
 						{
 							attr.push_back(c);
 						}
@@ -276,7 +276,7 @@ namespace Utilities
 		bool open;
 		AttrList attributes;
 
-		if (c == '?')
+		if (c == '?' || c == '!')
 		{
 			ReadDeclaration();
 			return (XMLElement*) -1;
@@ -407,22 +407,22 @@ namespace Utilities
 		return root != NULL;
 	}
 
-	void XMLNode::Apply(std::map<std::string, void (*)(XMLElement *elem)> tag_funcs, void (*text_func)(std::string text))
+	void XMLNode::Apply(TagFuncMap tag_funcs, TextFunc text_func)
 	{
 		
 	}
 
-	void XMLNode::Apply(std::string tag, void (*tag_func)(XMLElement *elem))
+	void XMLNode::Apply(std::string tag, TagFunc tag_func)
 	{
 		
 	}
 
-	void XMLNode::Apply(void (*text_func)(std::string text))
+	void XMLNode::Apply(TextFunc text_func)
 	{
 		
 	}
 
-	void XMLTextNode::Apply(std::map<std::string, void (*)(XMLElement *elem)> tag_funcs, void (*text_func)(std::string text))
+	void XMLTextNode::Apply(TagFuncMap tag_funcs, TextFunc text_func)
 	{
 		if (text_func)
 		{
@@ -430,7 +430,7 @@ namespace Utilities
 		}
 	}
 
-	void XMLTextNode::Apply(void (*text_func)(std::string text))
+	void XMLTextNode::Apply(TextFunc text_func)
 	{
 		if (text_func)
 		{
@@ -438,7 +438,7 @@ namespace Utilities
 		}
 	}
 
-	void XMLElement::Apply(std::map<std::string, void (*)(XMLElement *elem)> tag_funcs, void (*text_func)(std::string text))
+	void XMLElement::Apply(TagFuncMap tag_funcs, TextFunc text_func)
 	{
 		void (*tag_func)(XMLElement *elem) = tag_funcs[tag];
 		if (tag_func)
@@ -447,7 +447,7 @@ namespace Utilities
 		}
 	}
 
-	void XMLElement::Apply(std::string tag, void (*tag_func)(XMLElement *elem))
+	void XMLElement::Apply(std::string tag, TagFunc tag_func)
 	{
 		if (this->tag == tag)
 		{
@@ -455,7 +455,7 @@ namespace Utilities
 		}
 	}
 
-	void XMLElement::Iterate(std::map<std::string, void (*)(XMLElement *elem)> tag_funcs, void (*text_func)(std::string text))
+	void XMLElement::Iterate(TagFuncMap tag_funcs, TextFunc text_func)
 	{
 		for (std::vector<XMLNode*>::iterator it = children.begin(); it != children.end(); it++)
 		{
@@ -463,7 +463,7 @@ namespace Utilities
 		}
 	}
 		
-	void XMLElement::Iterate(std::string tag, void (*tag_func)(XMLElement *elem))
+	void XMLElement::Iterate(std::string tag, TagFunc tag_func)
 	{
 		for (std::vector<XMLNode*>::iterator it = children.begin(); it != children.end(); it++)
 		{
@@ -471,7 +471,7 @@ namespace Utilities
 		}
 	}
 
-	void XMLElement::Iterate(void (*text_func)(std::string text))
+	void XMLElement::Iterate(TextFunc text_func)
 	{
 		for (std::vector<XMLNode*>::iterator it = children.begin(); it != children.end(); it++)
 		{
@@ -479,4 +479,51 @@ namespace Utilities
 		}
 	}
 		
+	void XMLElement::Iterate(AttrFuncMap attr_funcs)
+	{
+		for (AttrList::iterator it = attributes.begin(); it != attributes.end(); it++)
+		{
+			std::string attr = it->first;
+			AttrFunc f = attr_funcs[attr];
+			if (f)
+			{
+				f(this, it->second);
+			}
+		}
+	}
+	
+	std::string XMLElement::GetAttribute(std::string attr, std::string def)
+	{
+		AttrList::iterator it = attributes.find(attr);
+		if (it != attributes.end())
+		{
+			return it->second;
+		}
+		return def;
+	}
+	
+	std::string XMLElement::GetAttribute(std::string attr)
+	{
+		return GetAttribute(attr, "");
+	}
+	
+	bool XMLElement::HasAttribute(std::string attr)
+	{
+		return attributes.find(attr) != attributes.end();
+	}
+	
+	unsigned XMLElement::Count(std::string tag)
+	{
+		unsigned n = 0;
+		for (std::vector<XMLNode*>::iterator it = children.begin(); it != children.end(); it++)
+		{
+			XMLElement *elem = dynamic_cast<XMLElement*>(*it);
+			if (elem && elem->tag == tag)
+			{
+				n++;
+			}
+		}
+		return n;
+	}
+
 }

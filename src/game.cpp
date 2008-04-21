@@ -20,6 +20,7 @@
 #include "effect.h"
 #include "unitrender.h"
 #include "scenegraph.h"
+#include "ogrexmlmodel.h"
 #include <iostream>
 #include <fstream>
 #include <cmath>
@@ -45,7 +46,7 @@ namespace Game
 		std::string host = "localhost";
 		std::string checksumLog = "";
 
-		std::string CurrentLevel = "default";
+		std::string CurrentLevel = "aivsai";
 		std::string CurrentLevelScript;
 
 		GameWindow* GameWindow::pInstance = NULL;
@@ -569,6 +570,9 @@ namespace Game
 			{
 				graphicsLoaded = true;
 			}
+
+			Utilities::OgreMesh* mesh = Utilities::LoadOgreXMLModel("/home/alex/nightfall/trunk/resources/models/unfinished/Cylinder.mesh.xml");
+			delete mesh;
 
 			Dimension::Environment::FourthDimension* pDimension = Dimension::Environment::FourthDimension::Instance();
 			

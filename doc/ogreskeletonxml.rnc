@@ -1,0 +1,70 @@
+namespace a = "http://relaxng.org/ns/compatibility/annotations/1.0"
+
+skeleton =
+  element skeleton {
+    attlist.skeleton, bones, bonehierarchy, animations?, animationlinks?
+  }
+attlist.skeleton &= empty
+bones = element bones { attlist.bones, bone+ }
+attlist.bones &= empty
+bone = element bone { attlist.bone, position, rotation, scale? }
+attlist.bone &=
+  attribute id { text },
+  attribute name { text }
+position = element position { attlist.position, empty }
+attlist.position &=
+  attribute x { text },
+  attribute y { text },
+  attribute z { text }
+rotation = element rotation { attlist.rotation, axis }
+attlist.rotation &= attribute angle { text }
+axis = element axis { attlist.axis, empty }
+attlist.axis &=
+  attribute x { text },
+  attribute y { text },
+  attribute z { text }
+bonehierarchy =
+  element bonehierarchy { attlist.bonehierarchy, boneparent* }
+attlist.bonehierarchy &= empty
+boneparent = element boneparent { attlist.boneparent, empty }
+# NB both the below are bone names, not ids
+attlist.boneparent &=
+  attribute bone { text },
+  attribute parent { text }
+animations = element animations { attlist.animations, animation+ }
+attlist.animations &= empty
+animation = element animation { attlist.animation, tracks }
+attlist.animation &=
+  attribute name { text },
+  attribute length { text }
+tracks = element tracks { attlist.tracks, track+ }
+attlist.tracks &= empty
+track = element track { attlist.track, keyframes }
+attlist.track &= attribute bone { text }
+keyframes = element keyframes { attlist.keyframes, keyframe+ }
+attlist.keyframes &= empty
+keyframe =
+  element keyframe { attlist.keyframe, translate?, rotate?, scale? }
+attlist.keyframe &= attribute time { text }
+translate = element translate { attlist.translate, empty }
+attlist.translate &=
+  attribute x { text },
+  attribute y { text },
+  attribute z { text }
+rotate = element rotate { attlist.rotate, axis }
+attlist.rotate &= attribute angle { text }
+scale = element scale { attlist.scale, empty }
+# UNIFORM SCALE is 'factor', or you can use per-axis (not both)
+attlist.scale &=
+  attribute factor { text }?,
+  attribute x { text }?,
+  attribute y { text }?,
+  attribute z { text }?
+animationlinks =
+  element animationlinks { attlist.animationlinks, animationlink+ }
+attlist.animationlinks &= empty
+animationlink = element animationlink { attlist.animationlink, empty }
+attlist.animationlink &=
+  attribute skeletonName { text },
+  [ a:defaultValue = "1.0" ] attribute scale { text }?
+start = skeleton
