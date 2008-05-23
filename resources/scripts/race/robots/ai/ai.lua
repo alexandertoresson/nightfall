@@ -62,7 +62,7 @@ function ShouldBuild(UnitType)
 			return false
 		end
 	else
-		return GetPowerAtDawnCached() - GetUnitTypeResearchCost(UnitType) - TempMoneyReserved > 500
+		return GetPowerAtDawnCached() - GetResearchCost(GetUnitTypeResearch(UnitType)) - TempMoneyReserved > 500
 	end
 end
 
@@ -112,16 +112,19 @@ BuildList = {}
 Builders = {}
 Researchers = {}
 
+BuildRequirements = {}
+ResearchRequirements = {}
+
 IdleList = {}
 CheckedIdleList = {}
 AvailableBuilders = {}
 CheckedBuilders = {}
 
-function GetResearcherCached(UnitType)
-	if Researchers[UnitType] == nil then
-		Researchers[UnitType] = GetResearcher(UnitType)
+function GetResearcherCached(Research)
+	if Researchers[Research] == nil then
+		Researchers[Research] = GetResearcher(Research)
 	end
-	return Researchers[UnitType]
+	return Researchers[Research]
 end
 
 function GetBuilderCached(UnitType)
@@ -129,6 +132,24 @@ function GetBuilderCached(UnitType)
 		Builders[UnitType] = GetBuilder(UnitType)
 	end
 	return Builders[UnitType]
+end
+
+function GetResearchReqsCached(Research)
+	if ResearchRequirements[Research] == nil then
+		ResearchRequirements[Research] = GetResearchRequirements(Research)
+	end
+	return ResearchRequirements[Research]
+end
+
+function GetBuildReqsCached(UnitType)
+	if BuildRequirements[UnitType] == nil then
+		BuildRequirements[UnitType] = GetUnitTypeRequirements(UnitType)
+	end
+	return BuildRequirements[UnitType]
+end
+
+function GetUnitTypeResearch(UnitType)
+	return GetBuildReqsCached(UnitType)["researchs"]["1"]["research"]
 end
 
 function SetUnitAvailableForBuilding(Unit, UnitType)
@@ -238,10 +259,11 @@ function PerformAI_Player_AI()
 					cost = GetUnitTypeBuildCost(ToBuild[i])
 				end
 			else
-				builder = GetResearcherCached(ToBuild[i])
+				research = GetUnitTypeResearch(ToBuild[i])
+				builder = GetResearcherCached(research)
 				if not Empty(AvailableBuilders[builder]) then
 					can_produce = true
-					cost = GetUnitTypeResearchCost(ToBuild[i])
+					cost = GetResearchCost(research)
 				end
 			end
 			if ToBuild[i] == GetUnitTypeFromString("Explorer") then
@@ -339,7 +361,7 @@ function PerformAI_Player_AI()
 --					Output("General: " .. GetPowerAtDawnCached(Player) .. " " .. PowerQuote(Player) .. "\n")
 				break
 			else
-				CommandResearch(builder, UnitType)
+				CommandResearch(builder, GetUnitTypeResearch(UnitType))
 
 				Need[UnitType] = false
 --					Output("Research ")
@@ -429,6 +451,7 @@ function PerformAI_Player_AI()
 			SellPower(100)
 		end
 	end
+
 	Cached_PowerAtDawn = nil
 	Cached_PowerAtDusk = nil
 	Cached_IncomeAtNoon = nil
@@ -486,7 +509,7 @@ function UnitEvent_CommandCompleted_AI(Unit, action, x, y, goal, arg)
 		TempMoneyReserved = TempMoneyReserved - GetUnitTypeBuildCost(UnitType)
 		SetUnitAvailableForBuilding(Unit, GetUnitType(Unit))
 	elseif action == UnitAction.Research then
-		TempMoneyReserved = TempMoneyReserved - GetUnitTypeResearchCost(UnitType)
+		TempMoneyReserved = TempMoneyReserved - GetResearchCost(arg)
 		SetUnitAvailableForBuilding(Unit, GetUnitType(Unit))
 	end
 end
@@ -503,7 +526,7 @@ function UnitEvent_CommandCancelled_AI(Unit, action, x, y, goal, arg)
 		TempMoneyReserved = TempMoneyReserved - GetUnitTypeBuildCost(UnitType)
 		SetUnitAvailableForBuilding(Unit, GetUnitType(Unit))
 	elseif action == UnitAction.Research then
-		TempMoneyReserved = TempMoneyReserved - GetUnitTypeResearchCost(UnitType)
+		TempMoneyReserved = TempMoneyReserved - GetResearchCost(arg)
 		SetUnitAvailableForBuilding(Unit, GetUnitType(Unit))
 	end
 end
@@ -523,7 +546,7 @@ function UnitEvent_NewCommand_AI(Unit, action, x, y, goal, arg)
 			end
 			TempMoneyReserved = TempMoneyReserved + GetUnitTypeBuildCost(UnitType)
 		else
-			TempMoneyReserved = TempMoneyReserved + GetUnitTypeResearchCost(UnitType)
+			TempMoneyReserved = TempMoneyReserved + GetResearchCost(arg)
 		end
 		SetUnitBuilding(Unit, GetUnitType(Unit))
 	end

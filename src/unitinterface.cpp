@@ -501,7 +501,7 @@ namespace UnitLuaInterface
 	int LSellPower(lua_State* pVM)
 	{
 		Player *player = GetPlayerByVMstate(pVM);
-		int power = lua_tointeger(pVM, 2);
+		int power = lua_tointeger(pVM, 1);
 
 		if (player)
 		{
@@ -618,6 +618,18 @@ namespace UnitLuaInterface
 
 		if (pUnitType)
 			cost = pUnitType->requirements.money;
+
+		lua_pushinteger(pVM, cost);
+		return 1;
+	}
+	
+	int LGetResearchCost(lua_State* pVM)
+	{
+		Research* pResearch = (Research*) lua_touserdata(pVM, 1);
+		int cost = 0;
+
+		if (pResearch)
+			cost = pResearch->requirements.money;
 
 		lua_pushinteger(pVM, cost);
 		return 1;
@@ -761,6 +773,25 @@ namespace UnitLuaInterface
 			for (vector<UnitType*>::iterator it2 = (*it)->canBuild.begin(); it2 != (*it)->canBuild.end(); it2++)
 			{
 				if (*it2 == pUnitType)
+				{
+					lua_pushlightuserdata(pVM, static_cast<void*>(*it));
+					return 1;
+				}
+			}
+		}
+		lua_pushlightuserdata(pVM, NULL);
+		return 1;
+	}
+	
+	int LGetResearcher(lua_State* pVM)
+	{
+		Research* pResearch = (Research*) lua_touserdata(pVM, 1);
+		Player *player = GetPlayerByVMstate(pVM);
+		for (vector<UnitType*>::iterator it = player->vUnitTypes.begin(); it != player->vUnitTypes.end(); it++)
+		{
+			for (vector<Research*>::iterator it2 = (*it)->canResearch.begin(); it2 != (*it)->canResearch.end(); it2++)
+			{
+				if (*it2 == pResearch)
 				{
 					lua_pushlightuserdata(pVM, static_cast<void*>(*it));
 					return 1;
@@ -1022,9 +1053,9 @@ namespace UnitLuaInterface
 
 		CHECK_UNIT_PTR(pUnit)
 
-		UnitType* pUnitType = (UnitType*) lua_touserdata(pVM, 2);
+		Research* pResearch = (Research*) lua_touserdata(pVM, 2);
 
-		CommandUnit_TargetPos(pUnit, 0, 0, ACTION_RESEARCH, pUnitType);
+		CommandUnit_TargetPos(pUnit, 0, 0, ACTION_RESEARCH, pResearch);
 		LUA_SUCCESS
 	}
 
@@ -3009,7 +3040,7 @@ else \
 			res_req.research = research;
 			res_req.desiredState = true;
 
-			research->requirements.creation.researchs.push_back(res_req);
+			pUnitType->requirements.creation.researchs.push_back(res_req);
 
 			research->index = player->vResearchs.size();
 			player->vResearchs.push_back(research);
@@ -3515,6 +3546,7 @@ else \
 		pVM->RegisterFunction("GetUnitTypeRequirements", LGetUnitTypeRequirements);
 		pVM->RegisterFunction("GetResearchRequirements", LGetResearchRequirements);
 		pVM->RegisterFunction("GetBuilder", LGetBuilder);
+		pVM->RegisterFunction("GetResearcher", LGetResearcher);
 
 		pVM->RegisterFunction("IsWithinRangeForBuilding", LIsWithinRangeForBuilding);
 
@@ -3544,6 +3576,8 @@ else \
 		pVM->RegisterFunction("GetUnitTypeBuildCost", LGetUnitTypeBuildCost);
 		pVM->RegisterFunction("GetUnitTypeFromString", LGetUnitTypeFromString);
 		pVM->RegisterFunction("GetUnitTypeIsMobile", LGetUnitTypeIsMobile);
+
+		pVM->RegisterFunction("GetResearchCost", LGetResearchCost);
 
 		pVM->RegisterFunction("GetPlayerByIndex", LGetPlayerByIndex);
 		pVM->RegisterFunction("GetPlayerByName", LGetPlayerByName);

@@ -1082,6 +1082,7 @@ namespace Game
 
 		void CancelAction(Dimension::Unit* pUnit, unsigned int num)
 		{
+			// TODO: Fix.
 			if (num < pUnit->actionQueue.size())
 			{
 				if (num == 0)
