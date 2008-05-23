@@ -185,7 +185,7 @@ namespace Game
 			int x, y;
 			int targetID;
 			void *arg;
-			std::string *func;
+			std::string func;
 		};
 
 		vector<UnitEvent*> scheduledUnitEvents;
@@ -196,7 +196,7 @@ namespace Game
 			{
 				UnitEvent* event = *it;
 				Utilities::Scripting::LuaVMState& pVM = Game::Dimension::pWorld->vPlayers[event->playerIndex]->aiState;
-				pVM.SetFunction(*event->func);
+				pVM.SetFunction(event->func);
 				switch (event->eventType)
 				{
 					case UNITEVENTTYPE_ACTION:
@@ -248,7 +248,7 @@ namespace Game
 				event->targetID = 0;
 			}
 			event->arg = pUnit->pMovementData->action.arg;
-			event->func = &aiEvent->func;
+			event->func = aiEvent->func;
 			event->eventType = UNITEVENTTYPE_ACTION;
 
 			SDL_LockMutex(scheduleUnitEventMutex);
@@ -267,7 +267,7 @@ namespace Game
 
 			event->unitID = pUnit->id;
 			event->playerIndex = pUnit->owner->index;
-			event->func = &aiEvent->func;
+			event->func = aiEvent->func;
 			event->eventType = UNITEVENTTYPE_SIMPLE;
 
 			SDL_LockMutex(scheduleUnitEventMutex);
@@ -317,7 +317,7 @@ namespace Game
 			event->unitID = pUnit->id;
 			event->playerIndex = pUnit->owner->index;
 			event->targetID = attacker->id;
-			event->func = &pUnit->type->unitAIFuncs.isAttacked.func;
+			event->func = pUnit->type->unitAIFuncs.isAttacked.func;
 
 			SDL_LockMutex(scheduleUnitEventMutex);
 			scheduledUnitEvents.push_back(event);
