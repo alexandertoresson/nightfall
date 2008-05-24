@@ -571,8 +571,8 @@ namespace Game
 				graphicsLoaded = true;
 			}
 
-			Utilities::OgreMesh* mesh = Utilities::LoadOgreXMLModel("/home/alex/nightfall/trunk/resources/models/unfinished/Cylinder.mesh.xml");
-			delete mesh;
+//			Utilities::OgreMesh* mesh = Utilities::LoadOgreXMLModel("/home/alex/nightfall/trunk/resources/models/unfinished/Cylinder.mesh.xml");
+//			delete mesh;
 
 			Dimension::Environment::FourthDimension* pDimension = Dimension::Environment::FourthDimension::Instance();
 			
