@@ -975,12 +975,6 @@ namespace Game
 					{
 						actiondata = pUnit->actionQueue.front();
 
-						if (actiondata->visual_repr)
-						{
-							if (actiondata->visual_repr->ghost)
-								DeleteGhostUnit(actiondata->visual_repr->ghost);
-						}
-
 						delete actiondata;
 						pUnit->actionQueue.pop_front();
 					}
@@ -992,8 +986,8 @@ namespace Game
 				actiondata->goal_pos.y = y;
 				actiondata->goal_unit = NULL;
 				actiondata->arg = argument;
-				actiondata->visual_repr = Dimension::PrepareActionDataForVisualRepr(pUnit, action, argument, x, y);
-
+				actiondata->CreateVisualRepresentation();
+				
 				if (insert)
 				{
 					pUnit->actionQueue.push_front(actiondata);
@@ -1028,12 +1022,6 @@ namespace Game
 					{
 						actiondata = pUnit->actionQueue.front();
 
-						if (actiondata->visual_repr)
-						{
-							if (actiondata->visual_repr->ghost)
-								DeleteGhostUnit(actiondata->visual_repr->ghost);
-						}
-
 						delete actiondata;
 						pUnit->actionQueue.pop_front();
 					}
@@ -1045,7 +1033,7 @@ namespace Game
 				actiondata->goal_pos.y = 0;
 				actiondata->goal_unit = destination;
 				actiondata->arg = argument;
-				actiondata->visual_repr = Dimension::PrepareActionDataForVisualRepr(pUnit, action, argument, 0, 0);
+				actiondata->CreateVisualRepresentation();
 
 				if (insert)
 				{
@@ -1111,8 +1099,6 @@ namespace Game
 
 			while (pUnit->actionQueue.size())
 			{
-				Game::Dimension::CheckGhostUnits(pUnit->actionQueue.front());
-
 				delete pUnit->actionQueue.front();
 				pUnit->actionQueue.pop_front();
 				if (pUnit->actionQueue.size())
@@ -1273,7 +1259,7 @@ namespace Game
 				actiondata->goal_pos.y = goal_y;
 				actiondata->goal_unit = target;
 				actiondata->arg = arg;
-				actiondata->visual_repr = Dimension::PrepareActionDataForVisualRepr(pUnit, action, arg, goal_x, goal_y);
+//				actiondata->CreateVisualRepresentation();
 
 				pUnit->actionQueue.push_back(actiondata);
 			}

@@ -45,19 +45,20 @@ namespace Game
 			VBOArrays dynamicArrays;
 		};
 
-		struct ActionQueueVisualRepresentation
+		class ActionData
 		{
-			Unit* ghost;
-			Position pos;
-		};
-
-		struct ActionData
-		{
+		public: 
+			ActionData(AI::UnitAction action = AI::ACTION_NONE);
+			~ActionData();
+			
+			void CreateVisualRepresentation();
+			
 			IntPosition goal_pos;
 			Unit* goal_unit;
 			AI::UnitAction action;
 			void* arg;
-			ActionQueueVisualRepresentation* visual_repr;
+			double rotation;
+			Unit* ghost;
 		};
 
 		struct Projectile
@@ -157,11 +158,8 @@ namespace Game
 
 		Unit* CreateGhostUnit(UnitType*);
 		void DeleteGhostUnit(Unit*&);
-		void PrepareUnitGhosts(Unit*);
-		void ClearUnitGhosts(Unit*&);
-		void CheckGhostUnits(ActionData*&);
-		ActionQueueVisualRepresentation* PrepareActionDataForVisualRepr(const Unit* unit, AI::UnitAction action, void* argument, int x, int y);
-
+		void AppendToActionDisplayQueueIfOK(Unit*);
+		
 		void NotEnoughPowerForLight(Unit* unit);
 		void EnoughPowerForLight(Unit* unit);
 		

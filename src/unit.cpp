@@ -31,6 +31,35 @@ namespace Game
 		hashmap<Unit, bool> displayedUnitPointers;
 		int**         numUnitsPerAreaMap;
 		int           nextPushID = 1;
+		
+		ActionData::ActionData(AI::UnitAction action)
+		{
+			this->action = action;
+			this->rotation = rand() * 360;
+			this->ghost = NULL;
+		}
+		
+		ActionData::~ActionData()
+		{
+			if (this->ghost)
+			{
+				DeleteGhostUnit(this->ghost);
+				this->ghost = NULL;
+			}
+		}
+		
+		void ActionData::CreateVisualRepresentation()
+		{
+			if (this->action == AI::ACTION_BUILD)
+				this->ghost = CreateGhostUnit(static_cast<UnitType*>(this->arg));
+			
+			if (this->ghost)
+			{
+				this->ghost->pos.x = this->goal_pos.x;
+				this->ghost->pos.y = this->goal_pos.y;
+				this->ghost->rotation = this->rotation;
+			}
+		}
 
 		void PlayActionSound(Unit* unit, Audio::SoundNodeAction action)
 		{
@@ -252,7 +281,10 @@ namespace Game
 				}
 				else
 				{
-					unit->pMovementData->action.goal.unit = CreateUnit(build_type, unit->pMovementData->action.goal.pos.x, unit->pMovementData->action.goal.pos.y, -1, false);
+					Unit* ptr = CreateUnit(build_type, unit->pMovementData->action.goal.pos.x, unit->pMovementData->action.goal.pos.y, -1, false);
+					ptr->rotation = unit->actionQueue.front()->rotation;
+					
+					unit->pMovementData->action.goal.unit = ptr;
 				}
 				if (!unit->pMovementData->action.goal.unit)
 				{
@@ -1797,7 +1829,6 @@ namespace Game
 				{
 					if (*it == unit)
 					{
-						ClearUnitGhosts(unit);
 						unitsDisplayQueue.erase(it);
 						break;
 					}
@@ -1934,6 +1965,12 @@ namespace Game
 
 			if (unit->pMovementData->_start != NULL)
 				AI::DeallocPathfindingNodes(unit, AI::DPN_BACK);
+			
+			while (unit->actionQueue.size())
+			{
+				delete unit->actionQueue.front();
+				unit->actionQueue.pop_front();
+			}
 		
 			delete unit->pMovementData;
 
@@ -1978,102 +2015,13 @@ namespace Game
 			delete unit;
 			unit = NULL;
 		}
-
-		void PrepareUnitGhosts(Unit* masterUnit)
+		
+		void AppendToActionDisplayQueueIfOK(Unit* unit)
 		{
-			if (!masterUnit)
+			if (!unit->actionQueue.size())
 				return;
-
-			int len = masterUnit->actionQueue.size();
-			int i = 0;
-			ActionData* act = NULL;
-
-			for ( ; i < len; i++)
-			{
-				act = masterUnit->actionQueue.at(i);
-				if (act->action == AI::ACTION_BUILD)
-				{
-					Unit* ghost = CreateGhostUnit(static_cast<UnitType*>(act->arg));
-					
-					ghost->pos.x = act->goal_pos.x;
-					ghost->pos.y = act->goal_pos.y;
-
-					act->visual_repr = new ActionQueueVisualRepresentation;
-					act->visual_repr->ghost = ghost;
-				}
-				else
-				{
-					act->visual_repr = NULL; // just to make sure
-				}
-			}
-
-			unitsDisplayQueue.push_back(masterUnit);
-		}
-
-		void ClearUnitGhosts(Unit*& masterUnit)
-		{
-			if (!masterUnit)
-				return;
-
-			int len = masterUnit->actionQueue.size();
-			int i = 0;
-			ActionData* act = NULL;
-
-			for ( ; i < len; i++)
-			{
-				act = masterUnit->actionQueue.at(i);
-				if (act->visual_repr != NULL)
-				{
-					if (act->visual_repr->ghost)
-						DeleteGhostUnit(act->visual_repr->ghost);
-
-					delete act->visual_repr;
-					act->visual_repr = NULL;
-				}
-			}
-		}
-
-		void CheckGhostUnits(ActionData*& data)
-		{
-			if (data->visual_repr)
-			{
-				if (data->visual_repr->ghost)
-					DeleteGhostUnit(data->visual_repr->ghost);
-			}
-		}
-
-		ActionQueueVisualRepresentation* PrepareActionDataForVisualRepr(const Unit* unit, AI::UnitAction action, void* argument, int x, int y)
-		{
-			if (!Dimension::unitsDisplayQueue.size())
-				return NULL;
-
-			vector<Unit*>::iterator it = Dimension::unitsDisplayQueue.begin();
-			bool found = false;
-			while (it != Dimension::unitsDisplayQueue.end())
-			{
-				if (*it == unit)
-				{
-					found = true;
-					break;
-				}
-				it++;
-			}
-
-			if (!found)
-				return NULL;
-
-			ActionQueueVisualRepresentation* repr = NULL;
-
-			if (action == AI::ACTION_BUILD)
-			{
-				repr = new ActionQueueVisualRepresentation;
-				repr->ghost = Dimension::CreateGhostUnit(static_cast<Dimension::UnitType*>(argument));
-
-				repr->ghost->pos.x = x;
-				repr->ghost->pos.y = y;
-			}
-
-			return repr;
+		
+			unitsDisplayQueue.push_back(unit);
 		}
 
 		void ScheduleUnitDeletion(Unit* unit)

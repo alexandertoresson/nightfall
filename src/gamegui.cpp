@@ -729,14 +729,17 @@ namespace Game
 						{
 							if (!pGame->input->GetKeyState(SDLK_q))
 							{
-								if (Game::Dimension::unitsSelected.size())
+								Game::Dimension::Player* current_player = 
+									Game::Dimension::GetCurrentPlayer();
+									
+								if (current_player->vUnits.size())
 								{
 									vector<Game::Dimension::Unit*>::iterator it = 
-										Game::Dimension::unitsSelected.begin();
+										current_player->vUnits.begin();
 
-									while (it != Game::Dimension::unitsSelected.end())
+									while (it != current_player->vUnits.end())
 									{
-										Game::Dimension::PrepareUnitGhosts(*it);
+										Game::Dimension::AppendToActionDisplayQueueIfOK(*it);
 										it++;
 									}
 								}
@@ -937,15 +940,6 @@ namespace Game
 						{
 							if (Game::Dimension::unitsDisplayQueue.size())
 							{
-								vector<Game::Dimension::Unit*>::iterator it =
-									Game::Dimension::unitsDisplayQueue.begin();
-
-								while (it != Game::Dimension::unitsDisplayQueue.end())
-								{
-									Game::Dimension::ClearUnitGhosts(*it);
-									it++;
-								}
-
 								Game::Dimension::unitsDisplayQueue.clear();
 							}
 							break;

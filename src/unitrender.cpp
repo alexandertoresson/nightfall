@@ -1021,28 +1021,24 @@ namespace Game
 				for (aindex = 0; aindex < master->actionQueue.size(); aindex ++)
 				{
 					ActionData* q = master->actionQueue.at(aindex);
-					if (q->visual_repr)
+					if (q->ghost)
 					{
-						if (q->visual_repr->ghost)
+						unit = q->ghost;
+						type = unit->type;
+						int animNum = 0;
+
+						glPushMatrix();
+
+						SetUnitCoordSpace(unit);
+
+						if (type->animations[unit->pMovementData->action.action])
 						{
-							unit = q->visual_repr->ghost;
-							type = unit->type;
-							int animNum = 0;
-
-							glPushMatrix();
-
-							SetUnitCoordSpace(unit);
-
-							if (type->animations[unit->pMovementData->action.action])
+							for (int i = 0; i < type->animations[unit->pMovementData->action.action]->num_parts; i++)
 							{
-								for (int i = 0; i < type->animations[unit->pMovementData->action.action]->num_parts; i++)
-								{
-									RenderTransAnim(unit, type->animations[unit->pMovementData->action.action]->transAnim[i], animNum);
-								}
+								RenderTransAnim(unit, type->animations[unit->pMovementData->action.action]->transAnim[i], animNum);
 							}
-
-							glPopMatrix();
 						}
+						glPopMatrix();
 					}
 				}
 			}
