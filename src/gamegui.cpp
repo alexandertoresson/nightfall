@@ -359,6 +359,7 @@ namespace Game
 
 				if (unit)
 				{
+					clicked_on_unit = true;
 					if (Dimension::GetCurrentPlayer()->states[unit->owner->index] != Dimension::PLAYER_STATE_ALLY)
 					{
 						if (!pGame->input->GetKeyState(SDLK_LALT))

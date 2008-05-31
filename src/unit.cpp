@@ -43,7 +43,7 @@ namespace Game
 		
 		void ActionQueueItem::CreateVisualRepresentation()
 		{
-			if (this->action == AI::ACTION_BUILD)
+			if (this->action == AI::ACTION_BUILD && this->arg)
 				this->ghost = CreateGhostUnit((UnitType*)this->arg);
 			
 			if (this->ghost)

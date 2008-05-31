@@ -987,11 +987,12 @@ namespace Game
 			while(go)
 			{
 				PerformPreFrame();
-				ProcessEvents();
 
 				if (!Game::Rules::noGraphics)
 					PaintAll();
 			
+				ProcessEvents();
+
 				frames++;
 
 				if (SDL_GetTicks() - last_status_time >= 1000)

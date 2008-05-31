@@ -315,10 +315,9 @@ namespace Window
 				// nollställ vyn
 				glLoadIdentity();
 				Utilities::SwitchTo2DViewport(w, h);
-				ProcessEvents();
 				PerformPreFrame();
-
 				PaintAll();
+				ProcessEvents();
 				Utilities::RevertViewport();
 				if (!Window::noWindow)
 				{
