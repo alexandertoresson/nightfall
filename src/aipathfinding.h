@@ -19,7 +19,7 @@
 #include "ainode.h"
 
 #include "dimension.h"
-#include "unit-pre.h"
+#include "unit.h"
 #include "utilities.h"
 
 #include <vector>
@@ -88,20 +88,18 @@ namespace Game
 		typedef std::vector< Node* > AINodeList;
 		typedef std::vector< Node* >::iterator AINodeListIter;
 		
-		struct UnitGoal
-		{
-			Dimension::Unit* unit;
-			Dimension::IntPosition pos;
-			Uint16 goal_id;
-		};
-		
-		struct ActionData
+		struct ActionData : public Dimension::BaseActionData
 		{
 			Dimension::IntPosition startPos;
-			UnitGoal goal;
 			Dimension::IntPosition changedGoalPos;
-			void*    arg;
-			UnitAction action;
+
+			ActionData()
+			{
+				Reset();
+			}
+
+			void Reset();
+			void Set(int start_x, int start_y, int end_x, int end_y, Dimension::Unit* goal, AI::UnitAction action, void* arg, float rotation);
 		};
 
 		struct MovementData
@@ -173,7 +171,7 @@ namespace Game
 		//            target - target unit. default NULL
 		//            args   - unit action arguments. default NULL
 		//
-		IPResult CommandPathfinding(Dimension::Unit* pUnit, int start_x, int start_y, int goal_x, int goal_y, AI::UnitAction action = AI::ACTION_GOTO, Dimension::Unit* target = NULL, void* args = NULL);
+		IPResult CommandPathfinding(Dimension::Unit* pUnit, int start_x, int start_y, int goal_x, int goal_y, AI::UnitAction action = AI::ACTION_GOTO, Dimension::Unit* target = NULL, void* args = NULL, float rotation = 0.0f);
 		
 		//
 		// Get the internal path state, PATHSTATE_*

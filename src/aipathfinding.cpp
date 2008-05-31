@@ -250,6 +250,34 @@ namespace Game
 			}
 		};
 
+		void ActionData::Reset()
+		{
+			startPos.x = 0;
+			startPos.y = 0;
+			goal.pos.x = 0;
+			goal.pos.y = 0;
+			goal.unit = NULL;
+			changedGoalPos.x = 0;
+			changedGoalPos.y = 0;
+			arg = NULL;
+			action = ACTION_NONE;
+			rotation = 0.0;
+		}
+
+		void ActionData::Set(int start_x, int start_y, int end_x, int end_y, Dimension::Unit* goal, AI::UnitAction action, void* arg, float rotation)
+		{
+			this->startPos.x = start_x;
+			this->startPos.y = start_y;
+			this->goal.pos.x = end_x;
+			this->goal.pos.y = end_y;
+			this->goal.unit = goal;
+			this->changedGoalPos.x = end_x;
+			this->changedGoalPos.y = end_y;
+			this->arg = arg;
+			this->action = action;
+			this->rotation = rotation;
+		}
+
 #define FLOODFILL_FLAG_CALCULATE_NEAREST 1
 #define FLOODFILL_FLAG_SET_AREA_CODE 2
 
@@ -610,17 +638,6 @@ namespace Game
 			md->pCurGoalNode = NULL;
 			md->calcState = CALCSTATE_REACHED_GOAL;
 
-			md->action.startPos.x = 0;
-			md->action.startPos.y = 0;
-			md->action.goal.pos.x = 0;
-			md->action.goal.pos.y = 0;
-			md->action.goal.unit = NULL;
-			md->action.goal.goal_id = 0xFFFF;
-			md->action.changedGoalPos.x = 0;
-			md->action.changedGoalPos.y = 0;
-			md->action.arg = NULL;
-			md->action.action = ACTION_NONE;
-			
 			md->_currentState = INTTHRSTATE_NONE;
 			md->_popFromQueue = false;
 			md->_associatedThread = -1;
@@ -628,28 +645,6 @@ namespace Game
 
 			md->_start = NULL;
 			md->_goal = NULL;
-			md->_action.startPos.x = 0;
-			md->_action.startPos.y = 0;
-			md->_action.goal.pos.x = 0;
-			md->_action.goal.pos.y = 0;
-			md->_action.goal.unit = NULL;
-			md->_action.changedGoalPos.x = 0;
-			md->_action.changedGoalPos.y = 0;
-			md->_action.goal.goal_id = 0xFFFF;
-			md->_action.arg = NULL;
-			md->_action.action = ACTION_NONE;
-			
-			md->_newAction.startPos.x = 0;
-			md->_newAction.startPos.y = 0;
-			md->_newAction.goal.pos.x = 0;
-			md->_newAction.goal.pos.y = 0;
-			md->_newAction.goal.unit = NULL;
-			md->_newAction.goal.goal_id = 0xFFFF;
-			md->_newAction.changedGoalPos.x = 0;
-			md->_newAction.changedGoalPos.y = 0;
-			md->_newAction.goal.unit = NULL;
-			md->_newAction.arg = NULL;
-			md->_newAction.action = ACTION_NONE;
 			
 #ifdef DEBUG_AI_PATHFINDING
 			std::cout << "Movement data init: " << pUnit << std::endl;
@@ -657,7 +652,7 @@ namespace Game
 #endif
 		}
 
-		IPResult CommandPathfinding(Dimension::Unit* pUnit, int start_x, int start_y, int goal_x, int goal_y, AI::UnitAction action, Dimension::Unit* target, void* args)
+		IPResult CommandPathfinding(Dimension::Unit* pUnit, int start_x, int start_y, int goal_x, int goal_y, AI::UnitAction action, Dimension::Unit* target, void* arg, float rotation)
 		{
 			assert(pUnit != NULL);
 
@@ -689,7 +684,7 @@ namespace Game
 
 			if (action == ACTION_BUILD)
 			{
-				if (!target && !args)
+				if (!target && !arg)
 				{
 					cout << "Invalid unit target and arg, fixing up action" << std::endl;
 					action = ACTION_GOTO;
@@ -698,7 +693,7 @@ namespace Game
 			
 			if (action == ACTION_RESEARCH)
 			{
-				if (!args)
+				if (!arg)
 				{
 					cout << "Invalid action arg, fixing up action" << std::endl;
 					action = ACTION_GOTO;
@@ -721,16 +716,8 @@ namespace Game
 			MovementData* md = pUnit->pMovementData;
 
 //			cout << "Command " << pUnit << " " << start_x << ", " << start_y << " " << goal_x << ", " << goal_y << " " << action <<  " " << target << " " << args << " " << currentFrame << endl;
-			
-			md->_newAction.startPos.x = start_x;
-			md->_newAction.startPos.y = start_y;
-			md->_newAction.goal.pos.x = goal_x;
-			md->_newAction.goal.pos.y = goal_y;
-			md->_newAction.goal.unit = target;
-			md->_newAction.changedGoalPos.x = goal_x;
-			md->_newAction.changedGoalPos.y = goal_y;
-			md->_newAction.arg = args;
-			md->_newAction.action = action;
+		
+			md->_newAction.Set(start_x, start_y, goal_x, goal_y, target, action, arg, rotation);
 
 			IntThrState curState = pUnit->pMovementData->_currentState;
 
@@ -916,15 +903,7 @@ namespace Game
 			md->_start = NULL;
 			md->_goal = NULL;
 			
-			md->_action.startPos.x = 0;
-			md->_action.startPos.y = 0;
-			md->_action.action = ACTION_NONE;
-			md->_action.goal.pos.x = 0;
-			md->_action.goal.pos.y = 0;
-			md->_action.goal.unit  = NULL;
-			md->_action.changedGoalPos.x = 0;
-			md->_action.changedGoalPos.y = 0;
-			md->_action.arg        = NULL;
+			md->_action.Reset();
 
 			SDL_UnlockMutex(gpmxCommand);
 

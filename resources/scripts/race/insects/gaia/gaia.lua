@@ -94,16 +94,16 @@ end
 function UnitEvent_NewCommand_AI(Unit, action, x, y, goal, arg)
 	-- Do not call the generic function to disable AI for grues;
 	-- that would cause them to _not_ get hurt while moving in
-	-- light.
+	-- light. We don't want that.
 end
 
 function UnitEvent_IsAttacked_AI(Unit, attacker)
 end
 
-function CommandUnit_TargetPos_AI(Unit, x, y, action, argument)
+function CommandUnit_TargetPos_AI(Unit, x, y, action, argument, rotation)
 	-- ignore received commands
 end
 
-function CommandUnit_TargetUnit_AI(Unit, target, action, argument)
+function CommandUnit_TargetUnit_AI(Unit, target, action, argument, rotation)
 	-- ignore received commands
 end

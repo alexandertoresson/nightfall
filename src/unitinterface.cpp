@@ -893,14 +893,18 @@ namespace UnitLuaInterface
 		return 1;
 	}
 
-	struct ScheduledAction
+	struct ScheduledAction : public BaseActionData
 	{
 		Unit *unit;
-		int x;
-		int y;
-		Unit *target;
-		Game::AI::UnitAction action;
-		void* arg;
+		ScheduledAction(Unit* unit, int end_x, int end_y, Unit* goal, UnitAction action, void* arg, float rotation) : unit(unit)
+		{
+			this->goal.pos.x = end_x;
+			this->goal.pos.y = end_y;
+			this->goal.unit = goal;
+			this->action = action;
+			this->arg = arg;
+			this->rotation = rotation;
+		}
 	};
 
 	vector<ScheduledAction*> scheduledActions;
@@ -913,21 +917,21 @@ namespace UnitLuaInterface
 			ScheduledAction *action = *it;
 			if (IsValidUnitPointer(action->unit))
 			{
-				if (action->target && !IsValidUnitPointer(action->target))
+				if (action->goal.unit && !IsValidUnitPointer(action->goal.unit))
 				{
 					action->action = ACTION_GOTO;
-					action->target = NULL;
+					action->goal.unit = NULL;
 				}
 
-				ApplyAction(action->unit, action->action, action->x, action->y, action->target, action->arg);
-				Game::Dimension::ChangePath(action->unit, action->x, action->y, action->action, action->target, action->arg);
+				ApplyAction(action->unit, action->action, action->goal.pos.x, action->goal.pos.y, action->goal.unit, action->arg, action->rotation);
+				Game::Dimension::ChangePath(action->unit, action->goal.pos.x, action->goal.pos.y, action->action, action->goal.unit, action->arg, action->rotation);
 			}
 			delete action;
 		}
 		scheduledActions.clear();
 	}
 
-	void CommandUnit_TargetUnit(Unit* unit, Unit* target, UnitAction action, void* arg)
+	void CommandUnit_TargetUnit(Unit* unit, Unit* target, UnitAction action, void* arg = NULL, float rotation = 0.0f)
 	{
 		if (action == ACTION_NONE)
 			return;
@@ -935,17 +939,11 @@ namespace UnitLuaInterface
 		Game::AI::action_changes++;
 		if (Game::Networking::isNetworked)
 		{
-			Game::Networking::PrepareAction(unit, target, target->curAssociatedSquare.x, target->curAssociatedSquare.y, action, arg);
+			Game::Networking::PrepareAction(unit, target, target->curAssociatedSquare.x, target->curAssociatedSquare.y, action, arg, rotation);
 		}
 		else
 		{
-			ScheduledAction *sAction = new ScheduledAction;
-			sAction->unit = unit;
-			sAction->action = action;
-			sAction->x = target->curAssociatedSquare.x;
-			sAction->y = target->curAssociatedSquare.y;
-			sAction->target = target;
-			sAction->arg = arg;
+			ScheduledAction *sAction = new ScheduledAction(unit, target->curAssociatedSquare.x, target->curAssociatedSquare.y, target, action, arg, rotation);
 
 			SDL_LockMutex(scheduledActionsMutex);
 			scheduledActions.push_back(sAction);
@@ -953,7 +951,7 @@ namespace UnitLuaInterface
 		}
 	}
 
-	void CommandUnit_TargetPos(Unit* unit, int x, int y, UnitAction action, void* arg)
+	void CommandUnit_TargetPos(Unit* unit, int x, int y, UnitAction action, void* arg = NULL, float rotation = 0.0f)
 	{
 		if (!unit->type->isMobile && action == ACTION_GOTO)
 			return;
@@ -964,17 +962,11 @@ namespace UnitLuaInterface
 		Game::AI::action_changes++;
 		if (Game::Networking::isNetworked)
 		{
-			Game::Networking::PrepareAction(unit, NULL, x, y, action, arg);
+			Game::Networking::PrepareAction(unit, NULL, x, y, action, arg, rotation);
 		}
 		else
 		{
-			ScheduledAction *sAction = new ScheduledAction;
-			sAction->unit = unit;
-			sAction->action = action;
-			sAction->x = x;
-			sAction->y = y;
-			sAction->target = NULL;
-			sAction->arg = arg;
+			ScheduledAction *sAction = new ScheduledAction(unit, x, y, NULL, action, arg, rotation);
 
 			SDL_LockMutex(scheduledActionsMutex);
 			scheduledActions.push_back(sAction);
@@ -990,7 +982,7 @@ namespace UnitLuaInterface
 		CHECK_UNIT_PTR(pUnit01)
 		CHECK_UNIT_PTR(pUnit02)
 
-		CommandUnit_TargetUnit(pUnit01, pUnit02, (UnitAction) lua_tointeger(pVM, 3), lua_touserdata(pVM, 4));
+		CommandUnit_TargetUnit(pUnit01, pUnit02, (UnitAction) lua_tointeger(pVM, 3), lua_touserdata(pVM, 4), lua_tonumber(pVM, 5));
 
 		LUA_SUCCESS
 	}
@@ -1001,7 +993,7 @@ namespace UnitLuaInterface
 
 		CHECK_UNIT_PTR(pUnit)
 
-		CommandUnit_TargetPos(pUnit, lua_tointeger(pVM, 2), lua_tointeger(pVM, 3), (UnitAction) lua_tointeger(pVM, 4), lua_touserdata(pVM, 5));
+		CommandUnit_TargetPos(pUnit, lua_tointeger(pVM, 2), lua_tointeger(pVM, 3), (UnitAction) lua_tointeger(pVM, 4), lua_touserdata(pVM, 5), lua_tonumber(pVM, 6));
 
 		LUA_SUCCESS
 	}
@@ -1015,7 +1007,7 @@ namespace UnitLuaInterface
 		int position[2] = { lua_tointeger(pVM, 2), 
 		                    lua_tointeger(pVM, 3) };
 
-		CommandUnit_TargetPos(pUnit, position[0], position[1], ACTION_GOTO, NULL);
+		CommandUnit_TargetPos(pUnit, position[0], position[1], ACTION_GOTO);
 		LUA_SUCCESS
 	}
 
@@ -1028,7 +1020,7 @@ namespace UnitLuaInterface
 		int position[2] = { lua_tointeger(pVM, 2), 
 		                    lua_tointeger(pVM, 3) };
 
-		CommandUnit_TargetPos(pUnit, position[0], position[1], ACTION_MOVE_ATTACK, NULL);
+		CommandUnit_TargetPos(pUnit, position[0], position[1], ACTION_MOVE_ATTACK);
 		LUA_SUCCESS
 	}
 
@@ -1043,7 +1035,7 @@ namespace UnitLuaInterface
 
 		UnitType* pUnitType = (UnitType*) lua_touserdata(pVM, 4);
 
-		CommandUnit_TargetPos(pUnit, position[0], position[1], ACTION_BUILD, pUnitType);
+		CommandUnit_TargetPos(pUnit, position[0], position[1], ACTION_BUILD, pUnitType, lua_isnumber(pVM, 5) ? lua_tonumber(pVM, 5) : Utilities::RandomDegree());
 		LUA_SUCCESS
 	}
 
@@ -1067,7 +1059,7 @@ namespace UnitLuaInterface
 		CHECK_UNIT_PTR(pUnit01)
 		CHECK_UNIT_PTR(pUnit02)
 
-		CommandUnit_TargetUnit(pUnit01, pUnit02, ACTION_FOLLOW, NULL);
+		CommandUnit_TargetUnit(pUnit01, pUnit02, ACTION_FOLLOW);
 		LUA_SUCCESS
 	}
 
@@ -1079,7 +1071,7 @@ namespace UnitLuaInterface
 		CHECK_UNIT_PTR(pUnit01)
 		CHECK_UNIT_PTR(pUnit02)
 
-		CommandUnit_TargetUnit(pUnit01, pUnit02, ACTION_ATTACK, NULL);
+		CommandUnit_TargetUnit(pUnit01, pUnit02, ACTION_ATTACK);
 		LUA_SUCCESS
 	}
 
@@ -1091,7 +1083,7 @@ namespace UnitLuaInterface
 		CHECK_UNIT_PTR(pUnit01)
 		CHECK_UNIT_PTR(pUnit02)
 
-		CommandUnit_TargetUnit(pUnit01, pUnit02, ACTION_COLLECT, NULL);
+		CommandUnit_TargetUnit(pUnit01, pUnit02, ACTION_COLLECT);
 		LUA_SUCCESS
 	}
 
@@ -1103,7 +1095,7 @@ namespace UnitLuaInterface
 		CHECK_UNIT_PTR(pUnit01)
 		CHECK_UNIT_PTR(pUnit02)
 
-		CommandUnit_TargetUnit(pUnit01, pUnit02, ACTION_BUILD, NULL);
+		CommandUnit_TargetUnit(pUnit01, pUnit02, ACTION_BUILD);
 		LUA_SUCCESS
 	}
 
@@ -1115,17 +1107,7 @@ namespace UnitLuaInterface
 		CHECK_UNIT_PTR(pUnit01)
 		CHECK_UNIT_PTR(pUnit02)
 
-		CommandUnit_TargetUnit(pUnit01, pUnit02, ACTION_MOVE_ATTACK_UNIT, NULL);
-		LUA_SUCCESS
-	}
-
-	int LMove(lua_State* pVM)
-	{
-		Unit* pUnit = _GetUnit(lua_touserdata(pVM, 1));
-
-		CHECK_UNIT_PTR(pUnit)
-
-		MoveUnit(pUnit);
+		CommandUnit_TargetUnit(pUnit01, pUnit02, ACTION_MOVE_ATTACK_UNIT);
 		LUA_SUCCESS
 	}
 
@@ -1410,6 +1392,10 @@ namespace UnitLuaInterface
 			if (IsGlobalLuaState(pVM))
 			{
 				pOwner = (Player*) lua_touserdata(pVM, 5);
+				if (!pOwner)
+				{
+					LUA_FAILURE("Null player supplied")
+				}
 			}
 			else
 			{
@@ -1424,11 +1410,11 @@ namespace UnitLuaInterface
 			LUA_FAILURE("Designated goal isn't walkable (or is preoccupied by another unit).")
 		}
 
-		int rotation = (int) (rand()/((double)RAND_MAX + 1) * 360);
+		float rotation = Utilities::RandomDegree();
 
 		if (lua_isnumber(pVM, 4))
 		{
-			rotation = lua_tointeger(pVM, 4);
+			rotation = lua_tonumber(pVM, 4);
 
 			while (rotation >= 360)
 				rotation -= 360;
@@ -1481,7 +1467,14 @@ namespace UnitLuaInterface
 		{
 			player = (Player*) lua_touserdata(pVM, 2);
 		}
-		lua_pushlightuserdata(pVM, player->unitTypeMap[name]);
+		if (!player)
+		{
+			lua_pushlightuserdata(pVM, NULL);
+		}
+		else
+		{
+			lua_pushlightuserdata(pVM, player->unitTypeMap[name]);
+		}
 		return 1;
 	}
 

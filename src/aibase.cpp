@@ -20,6 +20,7 @@
 #include "environment.h"
 #include "unitinterface.h"
 #include "effect.h"
+#include "utilities.h"
 #include <cmath>
 
 using namespace std;
@@ -80,7 +81,7 @@ namespace Game
 			}
 		}
 
-		void SendCommandUnitToLua(int unitID, int playerIndex, int x, int y, UnitAction action, void* argument)
+		void SendCommandUnitToLua(int unitID, int playerIndex, int x, int y, UnitAction action, void* argument, float rotation)
 		{
 			Utilities::Scripting::LuaVMState& pVM = Game::Dimension::pWorld->vPlayers[playerIndex]->aiState;
 			if (Dimension::pWorld->vPlayers[playerIndex]->isRemote)
@@ -93,10 +94,11 @@ namespace Game
 			lua_pushnumber(pVM.GetState(), y);
 			lua_pushnumber(pVM.GetState(), action);
 			lua_pushlightuserdata(pVM.GetState(), argument);
-			pVM.CallFunction(5);
+			lua_pushnumber(pVM.GetState(), rotation);
+			pVM.CallFunction(6);
 		}
 
-		void SendCommandUnitToLua(int unitID, int playerIndex, int destinationID, UnitAction action, void* argument)
+		void SendCommandUnitToLua(int unitID, int playerIndex, int destinationID, UnitAction action, void* argument, float rotation)
 		{
 			Utilities::Scripting::LuaVMState& pVM = Game::Dimension::pWorld->vPlayers[playerIndex]->aiState;
 			if (Dimension::pWorld->vPlayers[playerIndex]->isRemote)
@@ -108,7 +110,8 @@ namespace Game
 			lua_pushlightuserdata(pVM.GetState(), (void*) destinationID);
 			lua_pushnumber(pVM.GetState(), action);
 			lua_pushlightuserdata(pVM.GetState(), argument);
-			pVM.CallFunction(4);
+			lua_pushnumber(pVM.GetState(), rotation);
+			pVM.CallFunction(5);
 		}
 
 		struct ScheduledCommand
@@ -120,11 +123,12 @@ namespace Game
 			int x, y;
 			UnitAction action;
 			void* argument;
+			float rotation;
 		};
 
 		std::vector<ScheduledCommand*> scheduledCommands;
 
-		void ScheduleCommandUnit(Dimension::Unit* pUnit, int x, int y, UnitAction action, void* argument)
+		void ScheduleCommandUnit(Dimension::Unit* pUnit, int x, int y, UnitAction action, void* argument = NULL, float rotation = 0.0)
 		{
 			pUnit->lastCommand = SDL_GetTicks();
 			ScheduledCommand *command = new ScheduledCommand();
@@ -135,10 +139,11 @@ namespace Game
 			command->y = y;
 			command->action = action;
 			command->argument = argument;
+			command->rotation = rotation;
 			scheduledCommands.push_back(command);
 		}
 
-		void ScheduleCommandUnit(Dimension::Unit* pUnit, Dimension::Unit* destination, UnitAction action, void* argument)
+		void ScheduleCommandUnit(Dimension::Unit* pUnit, Dimension::Unit* destination, UnitAction action, void* argument = NULL, float rotation = 0.0)
 		{
 			pUnit->lastCommand = SDL_GetTicks();
 			ScheduledCommand *command = new ScheduledCommand();
@@ -148,6 +153,7 @@ namespace Game
 			command->destinationID = destination->id;
 			command->action = action;
 			command->argument = argument;
+			command->rotation = rotation;
 			scheduledCommands.push_back(command);
 		}
 
@@ -158,11 +164,11 @@ namespace Game
 				ScheduledCommand *command = *it;
 				if (command->hasUnitTarget)
 				{
-					SendCommandUnitToLua(command->unitID, command->playerIndex, command->destinationID, command->action, command->argument);
+					SendCommandUnitToLua(command->unitID, command->playerIndex, command->destinationID, command->action, command->argument, command->rotation);
 				}
 				else
 				{
-					SendCommandUnitToLua(command->unitID, command->playerIndex, command->x, command->y, command->action, command->argument);
+					SendCommandUnitToLua(command->unitID, command->playerIndex, command->x, command->y, command->action, command->argument, command->rotation);
 				}
 				delete command;
 			}
@@ -967,7 +973,8 @@ namespace Game
 
 			if (pUnit->isCompleted && pUnit->pMovementData->action.action != ACTION_DIE)
 			{
-				Dimension::ActionData* actiondata = NULL;
+				Dimension::ActionQueueItem* actiondata = NULL;
+				float rotation = Utilities::RandomDegree();
 
 				if (!queue)
 				{
@@ -980,13 +987,7 @@ namespace Game
 					}
 				}
 
-				actiondata = new Dimension::ActionData;
-				actiondata->action = action;
-				actiondata->goal_pos.x = x;
-				actiondata->goal_pos.y = y;
-				actiondata->goal_unit = NULL;
-				actiondata->arg = argument;
-				actiondata->CreateVisualRepresentation();
+				actiondata = new Dimension::ActionQueueItem(x, y, NULL, action, argument, rotation, true);
 				
 				if (insert)
 				{
@@ -999,7 +1000,7 @@ namespace Game
 
 				if (pUnit->actionQueue.size() == 1 || insert)
 				{
-					ScheduleCommandUnit(pUnit, x, y, action, argument);
+					ScheduleCommandUnit(pUnit, x, y, action, argument, rotation);
 				}
 
 			}
@@ -1015,7 +1016,8 @@ namespace Game
 
 			if (pUnit->isCompleted && pUnit->pMovementData->action.action != ACTION_DIE)
 			{
-				Dimension::ActionData* actiondata = NULL;
+				Dimension::ActionQueueItem* actiondata = NULL;
+				float rotation = Utilities::RandomDegree();
 				if (!queue)
 				{
 					while (pUnit->actionQueue.size())
@@ -1027,13 +1029,7 @@ namespace Game
 					}
 				}
 
-				actiondata = new Dimension::ActionData;
-				actiondata->action = action;
-				actiondata->goal_pos.x = 0;
-				actiondata->goal_pos.y = 0;
-				actiondata->goal_unit = destination;
-				actiondata->arg = argument;
-				actiondata->CreateVisualRepresentation();
+				actiondata = new Dimension::ActionQueueItem(0, 0, destination, action, argument, rotation, true);
 
 				if (insert)
 				{
@@ -1046,7 +1042,7 @@ namespace Game
 				
 				if (pUnit->actionQueue.size() == 1 || insert)
 				{
-					ScheduleCommandUnit(pUnit, destination, action, argument);
+					ScheduleCommandUnit(pUnit, destination, action, argument, rotation);
 				}
 
 			}
@@ -1093,7 +1089,6 @@ namespace Game
 
 			pUnit->pMovementData->action.action = ACTION_NONE;
 			pUnit->pMovementData->action.goal.unit = NULL;
-			pUnit->pMovementData->action.goal.goal_id = 0xFFFF;
 			DeallocPathfindingNodes(pUnit);
 			pUnit->pMovementData->pCurGoalNode = NULL;
 
@@ -1103,19 +1098,19 @@ namespace Game
 				pUnit->actionQueue.pop_front();
 				if (pUnit->actionQueue.size())
 				{
-					if (pUnit->actionQueue.front()->goal_unit)
+					if (pUnit->actionQueue.front()->goal.unit)
 					{
-						Dimension::ActionData *actiondata = pUnit->actionQueue.front();
-						if (Dimension::IsDisplayedUnitPointer(actiondata->goal_unit))
+						Dimension::ActionQueueItem *actiondata = pUnit->actionQueue.front();
+						if (Dimension::IsDisplayedUnitPointer(actiondata->goal.unit))
 						{
-							ScheduleCommandUnit(pUnit, actiondata->goal_unit, actiondata->action, actiondata->arg);
+							ScheduleCommandUnit(pUnit, actiondata->goal.unit, actiondata->action, actiondata->arg, actiondata->rotation);
 							return;
 						}
 					}
 					else
 					{
-						Dimension::ActionData *actiondata = pUnit->actionQueue.front();
-						ScheduleCommandUnit(pUnit, actiondata->goal_pos.x, actiondata->goal_pos.y, actiondata->action, actiondata->arg);
+						Dimension::ActionQueueItem *actiondata = pUnit->actionQueue.front();
+						ScheduleCommandUnit(pUnit, actiondata->goal.pos.x, actiondata->goal.pos.y, actiondata->action, actiondata->arg, actiondata->rotation);
 						return;
 					}
 				}
@@ -1177,7 +1172,7 @@ namespace Game
 			IssueNextAction(pUnit);
 		}
 		
-		void ApplyAction(Dimension::Unit* pUnit, UnitAction action, int goal_x, int goal_y, Dimension::Unit* target, void* arg)
+		void ApplyAction(Dimension::Unit* pUnit, UnitAction action, int goal_x, int goal_y, Dimension::Unit* target, void* arg, float rotation)
 		{
 			if (pUnit->pMovementData->action.action == AI::ACTION_DIE)
 			{
@@ -1226,17 +1221,10 @@ namespace Game
 			
 			pUnit->pMovementData->action.action = action;
 			pUnit->pMovementData->action.goal.unit = target;
-			if (target)
-			{
-				pUnit->pMovementData->action.goal.goal_id = target->id;
-			}
-			else
-			{
-				pUnit->pMovementData->action.goal.goal_id = 0xFFFF;
-			}
 			pUnit->pMovementData->action.goal.pos.x = goal_x;
 			pUnit->pMovementData->action.goal.pos.y = goal_y;
 			pUnit->pMovementData->action.arg = arg;
+			pUnit->pMovementData->action.rotation = rotation;
 			pUnit->action_completeness = 0.0;
 			if (pUnit->type->isMobile)
 			{
@@ -1253,13 +1241,7 @@ namespace Game
 				// you will notice that if you give a command to a unit, it will cancel the
 				// last command even if you gave it a 'queueing' command. This fixes it,
 				// by ensuring that the AI's commands will be in the command queue too.
-				Dimension::ActionData* actiondata = new Dimension::ActionData;
-				actiondata->action = action;
-				actiondata->goal_pos.x = goal_x;
-				actiondata->goal_pos.y = goal_y;
-				actiondata->goal_unit = target;
-				actiondata->arg = arg;
-//				actiondata->CreateVisualRepresentation();
+				Dimension::ActionQueueItem* actiondata = new Dimension::ActionQueueItem(goal_x, goal_y, target, action, arg, rotation, false);
 
 				pUnit->actionQueue.push_back(actiondata);
 			}

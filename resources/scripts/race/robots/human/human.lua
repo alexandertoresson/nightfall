@@ -21,12 +21,12 @@ function PerformAI_Player_Human()
 --	Output(Console.Newline)
 end
 
-function CommandUnit_TargetPos_Human(Unit, x, y, action, argument)
-	CommandUnit_TargetPos(Unit, x, y, action, argument)
+function CommandUnit_TargetPos_Human(Unit, x, y, action, argument, rotation)
+	CommandUnit_TargetPos(Unit, x, y, action, argument, rotation)
 end
 
-function CommandUnit_TargetUnit_Human(Unit, target, action, argument)
-	CommandUnit_TargetUnit(Unit, target, action, argument)
+function CommandUnit_TargetUnit_Human(Unit, target, action, argument, rotation)
+	CommandUnit_TargetUnit(Unit, target, action, argument, rotation)
 end
 
 function UnitEvent_UnitKilled_Human(Unit)

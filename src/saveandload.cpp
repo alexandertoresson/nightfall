@@ -13,7 +13,7 @@
 #include <string>
 #include <iostream>
 
-#define CURRENT_SAVEGAME_VERSION 1
+#define CURRENT_SAVEGAME_VERSION 2
 
 using namespace std;
 
@@ -152,6 +152,8 @@ namespace Game
 						}
 					xmlfile.EndTag();
 				}
+				
+				OutputFloat(xmlfile, "rotation", actionData->rotation);
 
 			xmlfile.EndTag();
 		}
@@ -630,7 +632,7 @@ namespace Game
 		}
 
 		bool is_back;
-		AI::UnitGoal goal;
+		Dimension::UnitGoal goal;
 		void *arg;
 
 		void ParseUnitGoal(Utilities::XMLElement *elem)
@@ -729,6 +731,7 @@ namespace Game
 		{
 			AI::UnitAction action;
 			IntPosition startPos;
+			float rotation;
 
 			elem->Iterate("action", ParseIntBlock);
 			action = (AI::UnitAction) i;
@@ -746,6 +749,9 @@ namespace Game
 
 			elem->Iterate("startPos", ParseIntPosition);
 			startPos = pos_int;
+
+			elem->Iterate("rotation", ParseFloatBlock);
+			rotation = f;
 
 			if (action == AI::ACTION_ATTACK || action == AI::ACTION_FOLLOW || action == AI::ACTION_MOVE_ATTACK_UNIT)
 			{
@@ -787,7 +793,7 @@ namespace Game
 					}
 					else
 					{
-						AI::ApplyAction(unit, action, goal.pos.x, goal.pos.y, goal.unit, arg);
+						AI::ApplyAction(unit, action, goal.pos.x, goal.pos.y, goal.unit, arg, rotation);
 					}
 				}
 				else

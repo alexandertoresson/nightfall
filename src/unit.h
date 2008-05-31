@@ -23,6 +23,20 @@ namespace Game
 	namespace Dimension
 	{
 		
+		struct UnitGoal
+		{
+			Dimension::Unit* unit;
+			Dimension::IntPosition pos;
+		};
+		
+		struct BaseActionData
+		{
+			UnitGoal goal;
+			void*    arg;
+			AI::UnitAction action;
+			float rotation;
+		};
+
 		extern Unit** unitByID;
 		
 		struct Model
@@ -45,20 +59,27 @@ namespace Game
 			VBOArrays dynamicArrays;
 		};
 
-		class ActionData
+		struct ActionQueueItem : public BaseActionData
 		{
-		public: 
-			ActionData(AI::UnitAction action = AI::ACTION_NONE);
-			~ActionData();
-			
-			void CreateVisualRepresentation();
-			
-			IntPosition goal_pos;
-			Unit* goal_unit;
-			AI::UnitAction action;
-			void* arg;
-			double rotation;
 			Unit* ghost;
+
+			ActionQueueItem(int end_x, int end_y, Unit* goal, AI::UnitAction action, void* arg, float rotation, bool visrep) : ghost(NULL)
+			{
+				this->action = action;
+				this->rotation = rotation;
+				this->arg = arg;
+				this->goal.pos.x = end_x;
+				this->goal.pos.y = end_y;
+				this->goal.unit = goal;
+				if (visrep)
+					CreateVisualRepresentation();
+			}
+
+			~ActionQueueItem();
+			
+			private:
+				void CreateVisualRepresentation();
+			
 		};
 
 		struct Projectile
@@ -89,7 +110,7 @@ namespace Game
 			IntPosition         curAssociatedBigSquare;
 			float               rotation;  // how rotated the model is
 			UnitAnimData        animData;
-			std::deque<ActionData*>  actionQueue;
+			std::deque<ActionQueueItem*>  actionQueue;
 			AI::MovementData*   pMovementData;
 			std::vector<Projectile*> projectiles;
 			Uint32              lastAttack;    // frame of the last attack done by the unit
@@ -140,7 +161,7 @@ namespace Game
 		void InitiateAttack(Unit* attacker, Unit* target);
 		void HandleProjectiles(Unit* pUnit);
 		bool CanReach(Unit* attacker, Unit* target);
-		void ChangePath(Unit* pUnit, int goal_x, int goal_y, AI::UnitAction action, Unit* target, void* arg);
+		void ChangePath(Unit* pUnit, int goal_x, int goal_y, AI::UnitAction action, Unit* target, void* arg, float rotation);
 		
 		Unit* GetUnitClicked(int clickx, int clicky, int map_x, int map_y);
 

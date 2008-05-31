@@ -1020,7 +1020,7 @@ namespace Game
 
 				for (aindex = 0; aindex < master->actionQueue.size(); aindex ++)
 				{
-					ActionData* q = master->actionQueue.at(aindex);
+					ActionQueueItem* q = master->actionQueue.at(aindex);
 					if (q->ghost)
 					{
 						unit = q->ghost;

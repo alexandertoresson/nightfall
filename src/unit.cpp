@@ -12,6 +12,7 @@
 #include "unittype.h"
 #include "unitsquares.h"
 #include "unitrender.h"
+#include "utilities.h"
 #include <cstdarg>
 #include <set>
 #include <list>
@@ -32,31 +33,23 @@ namespace Game
 		int**         numUnitsPerAreaMap;
 		int           nextPushID = 1;
 		
-		ActionData::ActionData(AI::UnitAction action)
-		{
-			this->action = action;
-			this->rotation = rand() * 360;
-			this->ghost = NULL;
-		}
-		
-		ActionData::~ActionData()
+		ActionQueueItem::~ActionQueueItem()
 		{
 			if (this->ghost)
 			{
 				DeleteGhostUnit(this->ghost);
-				this->ghost = NULL;
 			}
 		}
 		
-		void ActionData::CreateVisualRepresentation()
+		void ActionQueueItem::CreateVisualRepresentation()
 		{
 			if (this->action == AI::ACTION_BUILD)
-				this->ghost = CreateGhostUnit(static_cast<UnitType*>(this->arg));
+				this->ghost = CreateGhostUnit((UnitType*)this->arg);
 			
 			if (this->ghost)
 			{
-				this->ghost->pos.x = this->goal_pos.x;
-				this->ghost->pos.y = this->goal_pos.y;
+				this->ghost->pos.x = this->goal.pos.x;
+				this->ghost->pos.y = this->goal.pos.y;
 				this->ghost->rotation = this->rotation;
 			}
 		}
@@ -281,10 +274,11 @@ namespace Game
 				}
 				else
 				{
-					Unit* ptr = CreateUnit(build_type, unit->pMovementData->action.goal.pos.x, unit->pMovementData->action.goal.pos.y, -1, false);
-					ptr->rotation = unit->actionQueue.front()->rotation;
+					Unit* pUnit = CreateUnit(build_type, unit->pMovementData->action.goal.pos.x, unit->pMovementData->action.goal.pos.y, -1, false);
+					if (pUnit)
+						pUnit->rotation = unit->pMovementData->action.rotation;
 					
-					unit->pMovementData->action.goal.unit = ptr;
+					unit->pMovementData->action.goal.unit = pUnit;
 				}
 				if (!unit->pMovementData->action.goal.unit)
 				{
@@ -531,8 +525,6 @@ namespace Game
 					GetNearestUnoccupiedPosition(target->type, new_x, new_y);
 					ScheduleDisplayUnit(target, new_x, new_y);
 
-					pUnit->pMovementData->action.goal.goal_id = 0xFFFF;
-					
 					int thread = AI::PausePathfinding(pUnit);
 
 					pUnit->pMovementData->action.goal.unit = NULL; // Zero out target unit before calling DeleteUnit,
@@ -792,11 +784,11 @@ namespace Game
 			}
 		}
 
-		void ChangePath(Unit* pUnit, int goal_x, int goal_y, AI::UnitAction action, Unit* target, void* arg)
+		void ChangePath(Unit* pUnit, int goal_x, int goal_y, AI::UnitAction action, Unit* target, void* arg, float rotation)
 		{
 			if (pUnit->type->isMobile)
 			{
-				AI::CommandPathfinding(pUnit, pUnit->curAssociatedSquare.x, pUnit->curAssociatedSquare.y, goal_x, goal_y, action, target, arg);
+				AI::CommandPathfinding(pUnit, pUnit->curAssociatedSquare.x, pUnit->curAssociatedSquare.y, goal_x, goal_y, action, target, arg, rotation);
 			}
 		}
 
@@ -1156,7 +1148,7 @@ namespace Game
 					if (pUnit->pMovementData->action.goal.unit->lastSeenPositions[pUnit->owner->index].x != pUnit->pMovementData->action.goal.pos.x ||
 					    pUnit->pMovementData->action.goal.unit->lastSeenPositions[pUnit->owner->index].y != pUnit->pMovementData->action.goal.pos.y)
 					{
-						ChangePath(pUnit, pUnit->pMovementData->action.goal.unit->lastSeenPositions[pUnit->owner->index].x, pUnit->pMovementData->action.goal.unit->lastSeenPositions[pUnit->owner->index].y, pUnit->pMovementData->action.action, pUnit->pMovementData->action.goal.unit, pUnit->pMovementData->action.arg);
+						ChangePath(pUnit, pUnit->pMovementData->action.goal.unit->lastSeenPositions[pUnit->owner->index].x, pUnit->pMovementData->action.goal.unit->lastSeenPositions[pUnit->owner->index].y, pUnit->pMovementData->action.action, pUnit->pMovementData->action.goal.unit, pUnit->pMovementData->action.arg, pUnit->pMovementData->action.rotation);
 					}
 				}
 			
@@ -1209,12 +1201,14 @@ namespace Game
 							{
 								ChangePath(pUnit, pUnit->pMovementData->action.goal.unit->lastSeenPositions[pUnit->owner->index].x, 
 										  pUnit->pMovementData->action.goal.unit->lastSeenPositions[pUnit->owner->index].y,
-										  pUnit->pMovementData->action.action, pUnit->pMovementData->action.goal.unit, pUnit->pMovementData->action.arg);
+										  pUnit->pMovementData->action.action, pUnit->pMovementData->action.goal.unit, pUnit->pMovementData->action.arg,
+										  pUnit->pMovementData->action.rotation);
 							}
 							else
 							{
 								ChangePath(pUnit, pUnit->pMovementData->action.goal.pos.x, pUnit->pMovementData->action.goal.pos.y,
-										  pUnit->pMovementData->action.action, pUnit->pMovementData->action.goal.unit, pUnit->pMovementData->action.arg);
+										  pUnit->pMovementData->action.action, pUnit->pMovementData->action.goal.unit, pUnit->pMovementData->action.arg,
+										  pUnit->pMovementData->action.rotation);
 							}
 						}
 						pUnit->pMovementData->pCurGoalNode = NULL;
@@ -1286,7 +1280,7 @@ namespace Game
 				pUnit->isMoving = false;
 				if (!pUnit->owner->isRemote && !AI::IsUndergoingPathCalc(pUnit))
 				{
-					ChangePath(pUnit, pUnit->pMovementData->action.goal.pos.x, pUnit->pMovementData->action.goal.pos.y, pUnit->pMovementData->action.action, pUnit->pMovementData->action.goal.unit, pUnit->pMovementData->action.arg);
+					ChangePath(pUnit, pUnit->pMovementData->action.goal.pos.x, pUnit->pMovementData->action.goal.pos.y, pUnit->pMovementData->action.action, pUnit->pMovementData->action.goal.unit, pUnit->pMovementData->action.arg, pUnit->pMovementData->action.rotation);
 				}
 			}
 
@@ -1352,12 +1346,14 @@ namespace Game
 									{
 										ChangePath(pUnit, pUnit->pMovementData->action.goal.unit->lastSeenPositions[pUnit->owner->index].x, 
 											  	  pUnit->pMovementData->action.goal.unit->lastSeenPositions[pUnit->owner->index].y,
-										  	  pUnit->pMovementData->action.action, pUnit->pMovementData->action.goal.unit, pUnit->pMovementData->action.arg);
+										  	  pUnit->pMovementData->action.action, pUnit->pMovementData->action.goal.unit, pUnit->pMovementData->action.arg,
+										  pUnit->pMovementData->action.rotation);
 									}
 									else
 									{
 										ChangePath(pUnit, pUnit->pMovementData->action.goal.pos.x, pUnit->pMovementData->action.goal.pos.y,
-										  	  pUnit->pMovementData->action.action, pUnit->pMovementData->action.goal.unit, pUnit->pMovementData->action.arg);
+										  	  pUnit->pMovementData->action.action, pUnit->pMovementData->action.goal.unit, pUnit->pMovementData->action.arg,
+										  pUnit->pMovementData->action.rotation);
 									}
 								}
 							}
@@ -1496,7 +1492,7 @@ namespace Game
 			unit->type = type;
 			unit->power = (float) type->maxPower;
 			unit->owner = type->player;
-			unit->rotation = rotation_rand() * 360;
+			unit->rotation = Utilities::RandomDegree();
 			unit->pMovementData = NULL;
 			unit->lastAttack = 0;
 			unit->lastAttacked = 0;
@@ -1890,8 +1886,6 @@ namespace Game
 			
 			for (i = 0; i < unit->projectiles.size(); i++)
 				delete unit->projectiles.at(i);
-			for (i = 0; i < unit->actionQueue.size(); i++)
-				delete unit->actionQueue.at(i);
 			unit->projectiles.clear();
 
 			if (unit->rallypoint != NULL)

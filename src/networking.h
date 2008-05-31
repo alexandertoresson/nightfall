@@ -24,6 +24,7 @@ namespace Game
 			Uint16 y;
 			Uint16 goalunit_id;
 			AI::UnitAction action;
+			Uint8 rot;
 			void* arg;
 			Uint32 valid_at_frame;
 		};
@@ -42,7 +43,7 @@ namespace Game
 			Uint16 owner_id;
 			Uint16 x;
 			Uint16 y;
-			Uint16 rot;
+			Uint8 rot;
 			Uint32 valid_at_frame;
 		};
 		
@@ -60,9 +61,9 @@ namespace Game
 			Uint32 valid_at_frame;
 		};
 		
-		void PrepareAction(Dimension::Unit* unit, Dimension::Unit* target, int x, int y, AI::UnitAction action, void* arg);
+		void PrepareAction(Dimension::Unit* unit, Dimension::Unit* target, int x, int y, AI::UnitAction action, void* arg, float rotation);
 		void PreparePath(Dimension::Unit* unit, AI::Node* pStart, AI::Node* pGoal);
-		void PrepareCreation(Dimension::UnitType* unittype, int x, int y, int rot);
+		void PrepareCreation(Dimension::UnitType* unittype, int x, int y, float rot);
 		void PrepareDamaging(Dimension::Unit* unit, float damage);
 		void PrepareSell(Dimension::Player* owner, int amount);
 

@@ -35,7 +35,7 @@ namespace Game
 		};
 
 		struct Unit;
-		struct ActionData;
+		struct ActionQueueItem;
 		struct UnitType;
 		struct Model;
 		struct ProjectileType;

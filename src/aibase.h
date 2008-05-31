@@ -34,7 +34,7 @@ namespace Game
 		void CompleteAction(Dimension::Unit* pUnit);
 		void CancelAllActions(Dimension::Unit* pUnit);
 		void IssueNextAction(Dimension::Unit* pUnit);
-		void ApplyAction(Dimension::Unit* pUnit, UnitAction action, int goal_x, int goal_y, Dimension::Unit* target, void* arg);
+		void ApplyAction(Dimension::Unit* pUnit, UnitAction action, int goal_x, int goal_y, Dimension::Unit* target, void* arg, float rotation);
 		
 		void SendUnitEventToLua_IsAttacked(Dimension::Unit* pUnit, Dimension::Unit* attacker);
 		void SendUnitEventToLua_UnitCreation(Dimension::Unit* pUnit);

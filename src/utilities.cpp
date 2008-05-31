@@ -833,5 +833,10 @@ namespace Utilities
 			return texture;
 		}
 	}
+
+	float RandomDegree()
+	{
+		return ((float) rand() / (RAND_MAX + 1)) * 360;
+	}
 }
 

@@ -430,15 +430,26 @@ namespace Game
 			return SUCCESS;
 		}
 
+		Uint8 RotationToByte(float rotation)
+		{
+			return (Uint8) floor(rotation / 360 * 256);
+		}
+
+		float ByteToRotation(Uint8 rotation)
+		{
+			return (float) rotation / 256 * 360;
+		}
+
 		SDL_mutex* prepareActionMutex = SDL_CreateMutex();
 
-		void PrepareAction(Dimension::Unit* unit, Dimension::Unit* target, int x, int y, AI::UnitAction action, void* arg)
+		void PrepareAction(Dimension::Unit* unit, Dimension::Unit* target, int x, int y, AI::UnitAction action, void* arg, float rotation)
 		{
 			NetActionData* actiondata = new NetActionData;
 			actiondata->unit_id = unit->id;
 			actiondata->action = action;
 			actiondata->x = x;
 			actiondata->y = y;
+			actiondata->rot = RotationToByte(rotation);
 			if (target)
 				actiondata->goalunit_id = target->id;
 			else
@@ -478,14 +489,14 @@ namespace Game
 
 		SDL_mutex* prepareCreationMutex = SDL_CreateMutex();
 
-		void PrepareCreation(Dimension::UnitType* unittype, int x, int y, int rot)
+		void PrepareCreation(Dimension::UnitType* unittype, int x, int y, float rot)
 		{
 			NetCreate* create = new NetCreate;
 			create->unittype_id = unittype->index;
 			create->owner_id = unittype->player->index;
 			create->x = x;
 			create->y = y;
-			create->rot = rot;
+			create->rot = RotationToByte(rot);
 			create->valid_at_frame = AI::currentFrame + netDelay;
 			SDL_LockMutex(prepareCreationMutex);
 			if (networkType == SERVER)
@@ -1130,7 +1141,7 @@ namespace Game
 							      actiondata->action == AI::ACTION_MOVE_ATTACK_UNIT)
 							      || target)
 							{
-								AI::ApplyAction(unit, actiondata->action, actiondata->x, actiondata->y, target, actiondata->arg);
+								AI::ApplyAction(unit, actiondata->action, actiondata->x, actiondata->y, target, actiondata->arg, ByteToRotation(actiondata->rot));
 #ifdef CHECKSUM_DEBUG_HIGH
 								checksum_output << "ActionData chunk on frame " << AI::currentFrame << "\n";
 								checksum_output << actiondata->unit_id << " " << actiondata->goalunit_id << " " << actiondata->action << " " << actiondata->x << " " << actiondata->y << " " << actiondata->arg << "\n";
@@ -1176,7 +1187,7 @@ namespace Game
 							Dimension::Unit* unit = Dimension::CreateUnit(create->unittype_id, owner, create->x, create->y);
 							if (unit)
 							{
-								unit->rotation = create->rot;
+								unit->rotation = ByteToRotation(create->rot);
 							}
 #ifdef CHECKSUM_DEBUG_HIGH
 							checksum_output << "Creation chunk on frame " << AI::currentFrame << "\n";
@@ -2585,6 +2596,7 @@ namespace Game
 			APPEND16BIT(data, actiondata->goalunit_id)
 			APPEND16BIT(data, arg_id)
 			APPEND8BIT(data, actiondata->action)
+			APPEND8BIT(data, actiondata->rot)
 
 			return chunk;
 		}
@@ -2608,6 +2620,7 @@ namespace Game
 			actiondata->goalunit_id = READ16BIT(data);
 			arg_id = READ16BIT(data);
 			actiondata->action = (AI::UnitAction) READ8BIT(data);
+			actiondata->rot = READ8BIT(data);
 
 			Dimension::Unit* unit = Dimension::GetUnitByID(actiondata->unit_id);
 
@@ -2722,7 +2735,7 @@ namespace Game
 			APPEND16BIT(data, create->owner_id)
 			APPEND16BIT(data, create->x)
 			APPEND16BIT(data, create->y)
-			APPEND16BIT(data, create->rot)
+			APPEND8BIT(data, create->rot)
 
 			return chunk;
 		}
@@ -2743,7 +2756,7 @@ namespace Game
 			create->owner_id = READ16BIT(data);
 			create->x = READ16BIT(data);
 			create->y = READ16BIT(data);
-			create->rot = READ16BIT(data);
+			create->rot = READ8BIT(data);
 			
 			waitingCreations.push_back(create);
 			if (networkType == SERVER)

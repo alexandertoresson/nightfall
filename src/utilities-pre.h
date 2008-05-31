@@ -16,6 +16,7 @@ namespace Utilities
 	class ConfigurationFile;
 	int power_of_two(int);
 	bool IsOGLExtensionSupported(const char *extension);
+	float RandomDegree();
 }
 
 #endif
