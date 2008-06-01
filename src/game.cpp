@@ -46,7 +46,7 @@ namespace Game
 		std::string host = "localhost";
 		std::string checksumLog = "";
 
-		std::string CurrentLevel = "aivsai";
+		std::string CurrentLevel = "default";
 		std::string CurrentLevelScript;
 
 		GameWindow* GameWindow::pInstance = NULL;

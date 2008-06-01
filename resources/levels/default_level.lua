@@ -2,7 +2,8 @@ function SetPlayers()
 	AddPlayer("GAIA", PlayerType.AI, "textures/player_gaia.png", "insects", "gaia");
 	AddPlayer("USER", PlayerType.Human, "USER", "USER", "human");
 	AddPlayer("USER", PlayerType.Human, "USER", "USER", "human");
-	for i = 3,4 do
+	AddPlayer("USER", PlayerType.Human, "USER", "USER", "human");
+	for i = 4,4 do
 		AddPlayer("USER", PlayerType.AI, "USER", "robots", "ai");
 	end
 	SetCurrentPlayer(1);
