@@ -192,7 +192,11 @@ namespace Game
 
 			ProjectileType*     projectileType; // set to NULL to make the unit have normal, non-ranged attacks.
 			MovementType movementType;   // Type of movement the unit has
+			
 			int         index;           // index of the unit in vUnitTypes
+			int         globalIndex;     // index of the unit in vAllUnitTypes, which contains all unit types; regardless of player ownership. 
+			                             // Def. in unitinterface.cpp
+			
 			GLuint	    Symbol;	     // Build symbol or Unit Symbol
 			AI::UnitAIFuncs unitAIFuncs; // UnitAIFuncs
 			AI::PlayerAIFuncs playerAIFuncs; // PlayerAIFuncs

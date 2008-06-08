@@ -88,6 +88,12 @@ namespace Utilities
 			SetEnum(L, "PerformPlayerAI", UnitLuaInterface::EVENTTYPE_PERFORMPLAYERAI);
 			lua_setglobal(L, "EventType");
 			
+			lua_newtable(L);
+			SetEnum(L, "Unit"    , UnitLuaInterface::AI_CONTEXT_UNIT);
+			SetEnum(L, "UnitType", UnitLuaInterface::AI_CONTEXT_UNITTYPE);
+			SetEnum(L, "Player"  , UnitLuaInterface::AI_CONTEXT_PLAYER);
+			lua_setglobal(L, "AIContext");
+			
 			char newline[] = {Console::nl, 0};
 			lua_newtable(L);
 			lua_pushstring(L, "Newline");

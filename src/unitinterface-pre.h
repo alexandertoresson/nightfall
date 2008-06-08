@@ -19,6 +19,14 @@ namespace UnitLuaInterface
 		EVENTTYPE_UNITKILLED,
 		EVENTTYPE_PERFORMPLAYERAI
 	};
+	
+	enum AIContexts
+	{
+		AI_CONTEXT_UNIT,
+		AI_CONTEXT_UNITTYPE,
+		AI_CONTEXT_PLAYER
+	};
+	
 	void ApplyScheduledActions();
 	void ApplyScheduledDamagings();
 	void PostProcessStrings();
