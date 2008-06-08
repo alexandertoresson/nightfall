@@ -27,8 +27,7 @@ namespace UnitLuaInterface
 	using namespace Utilities::Scripting;
 	using namespace std;
 	
-	std::map<int, UnitType*> allUnitTypes;
-	unsigned int unitTypeCount = 0;
+	std::vector<UnitType*> allUnitTypes;
 
 #define CHECK_UNIT_PTR(x) \
 	if ((x) == NULL) \
@@ -216,7 +215,7 @@ namespace UnitLuaInterface
 		int index = (int)lua_tonumber(pVM, 1);
 		bool isMobile = false;
 
-		if (index >= 0 && index <= unitTypeCount)
+		if (index >= 0 && index <= allUnitTypes.size())
 		{
 			UnitType* ptr = allUnitTypes[index];
 			if (ptr != NULL)
@@ -348,7 +347,7 @@ namespace UnitLuaInterface
 		int  y       = lua_tointeger(pVM, 3);
 		bool ret     = false;
 		
-		if (ut_index >= 0 && ut_index < unitTypeCount)
+		if (ut_index >= 0 && ut_index < allUnitTypes.size())
 		{
 			UnitType* pUnitType = allUnitTypes[ut_index];
 			
@@ -369,7 +368,7 @@ namespace UnitLuaInterface
 		bool needLighted = lua_toboolean(pVM, 4);
 		bool ret         = false;
 		
-		if (ut_index >= 0 && ut_index < unitTypeCount)
+		if (ut_index >= 0 && ut_index < allUnitTypes.size())
 		{
 			UnitType* pUnitType = allUnitTypes[ut_index];
 			
@@ -455,7 +454,7 @@ namespace UnitLuaInterface
 		int ut_index = (int)lua_tonumber(pVM, 1);
 		float income = 0;
 		
-		if (ut_index >= 0 && ut_index < unitTypeCount)
+		if (ut_index >= 0 && ut_index < allUnitTypes.size())
 		{
 			UnitType* pUnitType = allUnitTypes[ut_index];
 
@@ -475,7 +474,7 @@ namespace UnitLuaInterface
 		int ut_index = (int)lua_tonumber(pVM, 1);
 		float income = 0;
 		
-		if (ut_index >= 0 && ut_index < unitTypeCount)
+		if (ut_index >= 0 && ut_index < allUnitTypes.size())
 		{
 			UnitType* pUnitType = allUnitTypes[ut_index];
 			
@@ -635,7 +634,7 @@ namespace UnitLuaInterface
 		int ut_index = (int)lua_tonumber(pVM, 1);
 		int cost = 0;
 		
-		if (ut_index >= 0 && ut_index < unitTypeCount)
+		if (ut_index >= 0 && ut_index < allUnitTypes.size())
 		{
 			UnitType* pUnitType = allUnitTypes[ut_index];
 			
@@ -664,7 +663,7 @@ namespace UnitLuaInterface
 		int ut_index = (int)lua_tonumber(pVM, 1);
 		bool ret = false;
 
-		if (ut_index >= 0 && ut_index < unitTypeCount)
+		if (ut_index >= 0 && ut_index < allUnitTypes.size())
 		{
 			UnitType* pUnitType = allUnitTypes[ut_index];
 
@@ -775,7 +774,7 @@ namespace UnitLuaInterface
 	{
 		int ut_index = (int)lua_tonumber(pVM, 1);
 		
-		if (ut_index >= 0 && ut_index < unitTypeCount)
+		if (ut_index >= 0 && ut_index < allUnitTypes.size())
 		{
 			UnitType* pUnitType = allUnitTypes[ut_index];
 		
@@ -802,7 +801,7 @@ namespace UnitLuaInterface
 	{
 		int ut_index = (int)lua_tonumber(pVM, 1);
 		
-		if (ut_index >= 0 && ut_index < unitTypeCount)
+		if (ut_index >= 0 && ut_index < allUnitTypes.size())
 		{
 			UnitType* pUnitType = allUnitTypes[ut_index];
 		
@@ -853,7 +852,7 @@ namespace UnitLuaInterface
 		int ut_index = (int)lua_tonumber(pVM, 1);
 		int lighted = false;
 		
-		if (ut_index >= 0 && ut_index < unitTypeCount)
+		if (ut_index >= 0 && ut_index < allUnitTypes.size())
 		{
 			UnitType* pUnitType = allUnitTypes[ut_index];
 			
@@ -870,7 +869,7 @@ namespace UnitLuaInterface
 		int ut_index = (int)lua_tonumber(pVM, 1);
 		int lighted = false;
 		
-		if (ut_index >= 0 && ut_index < unitTypeCount)
+		if (ut_index >= 0 && ut_index < allUnitTypes.size())
 		{
 			UnitType* pUnitType = allUnitTypes[ut_index];
 			
@@ -1089,7 +1088,7 @@ namespace UnitLuaInterface
 		                    lua_tointeger(pVM, 3) };
 
 		int ut_index = (int)lua_tonumber(pVM, 4);
-		if (ut_index >= 0 && ut_index < unitTypeCount)
+		if (ut_index >= 0 && ut_index < allUnitTypes.size())
 		{
 			UnitType* pUnitType = allUnitTypes[ut_index];
 			
@@ -1190,7 +1189,7 @@ namespace UnitLuaInterface
 
 		std::string handlerString = (std::string) handler;
 
-		if ((int)context >= 0 && (int)context < unitTypeCount)
+		if ((int)context >= 0 && (int)context < allUnitTypes.size())
 			context = (void*)allUnitTypes[(int)context];
 		
 		if (!context)
@@ -1323,7 +1322,7 @@ namespace UnitLuaInterface
 		int delay = lua_tointeger(pVM, 3);
 		Player *player = GetPlayerByVMstate(pVM);
 
-		if ((int)context >= 0 && (int)context < unitTypeCount)
+		if ((int)context >= 0 && (int)context < allUnitTypes.size())
 			context = (void*)allUnitTypes[(int)context];
 		
 		if (!context)
@@ -1398,7 +1397,7 @@ namespace UnitLuaInterface
 			int ut_index = (int)context;
 			UnitType* unittype = NULL;
 			
-			if (ut_index >= 0 && ut_index < unitTypeCount)
+			if (ut_index >= 0 && ut_index < allUnitTypes.size())
 				unittype = allUnitTypes[ut_index];
 			
 			if (unittype == NULL)
@@ -1477,7 +1476,7 @@ namespace UnitLuaInterface
 		int ut_index = (int)lua_tonumber(pVM, 1);
 		UnitType* pUnitType = NULL;
 		
-		if (ut_index >= 0 && ut_index < unitTypeCount)
+		if (ut_index >= 0 && ut_index < allUnitTypes.size())
 		{
 			 pUnitType = allUnitTypes[ut_index];
 		}
@@ -1543,7 +1542,7 @@ namespace UnitLuaInterface
 		
 		UnitType* pUnitType = NULL;
 		
-		if (ut_index >= 0 && ut_index < unitTypeCount)
+		if (ut_index >= 0 && ut_index < allUnitTypes.size())
 			pUnitType = allUnitTypes[ut_index];
 		
 		if (!pUnitType)
@@ -1690,7 +1689,7 @@ namespace UnitLuaInterface
 	{
 		int index = (int)lua_tonumber(pVM, 1);
 		const char* name = "";
-		if (index >= 0 || index < unitTypeCount)
+		if (index >= 0 || index < allUnitTypes.size())
 		{
 			UnitType* pUnitType = allUnitTypes[index];
 			
@@ -3253,8 +3252,7 @@ else \
 
 		validUnitTypePointers[pUnitType] = true;
 		
-		allUnitTypes[unitTypeCount] = pUnitType;
-		pUnitType->globalIndex = unitTypeCount++;
+		allUnitTypes.push_back(pUnitType);
 
 		LUA_SUCCESS
 	}
