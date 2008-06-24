@@ -8,15 +8,19 @@
 #include <string>
 #include <map>
 
-typedef std::map<std::string, std::string>           Hashtable;
-typedef std::map<std::string, std::string>::iterator HashtableIterator;
-
 namespace Utilities
 {
-	class ConfigurationFile;
 	int power_of_two(int);
 	bool IsOGLExtensionSupported(const char *extension);
 	float RandomDegree();
+	
+	// Ensures that target consists of numbers. If letters were found, no is returned.
+	int StringToInt(std::string target, int no = 0);
+		
+	//Trims ' ' and '\t' from string.
+	void StringTrim(std::string target, std::string& result);
+	
+	void ReadLineFromFile(std::ifstream& file, std::string& buffer);
 }
 
 #endif

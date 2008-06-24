@@ -3,81 +3,91 @@
 #include "unit.h"
 #include "minixml.h"
 #include "render-pre.h"
+#include "paths.h"
+#include "materialxml.h"
+#include "utilities.h"
+#include <cassert>
 #include <sstream>
+#include <map>
 
 namespace Utilities
 {
-	OgreMesh* mesh = NULL;
-	OgreSubMesh* submesh = NULL;
-	OgreVertexBuffer* vb = NULL;
-	std::vector<OgreVertexBuffer*> vbs;
-	Scene::Render::VBO* texCoordVBO = NULL;
-	unsigned numVertices;
-	unsigned face_index, vertex_index, texcoord_index;
-	
+	static OgreMesh* mesh = NULL;
+	static OgreSubMesh* submesh = NULL;
+	static OgreVertexBuffer* vb = NULL;
+	static std::vector<OgreVertexBuffer*> vbs;
+	static unsigned numVertices;
+	static unsigned face_index, vertex_index, texcoord_index;
+
+	static Utilities::FEString x_str = "x", y_str = "y", z_str = "z";
+
 	void ParsePosition(Utilities::XMLElement *elem)
 	{
-		std::stringstream xss(elem->GetAttribute("x", "0")),
-		                  yss(elem->GetAttribute("y", "0")),
-		                  zss(elem->GetAttribute("z", "0"));
+		std::stringstream xss(elem->GetAttribute(x_str, "0")),
+		                  yss(elem->GetAttribute(y_str, "0")),
+		                  zss(elem->GetAttribute(z_str, "0"));
 		GLfloat x, y, z;
 		xss >> x; yss >> y; zss >> z;
 		vb->positions->data.floats[vertex_index*3] = x;
-		vb->positions->data.floats[vertex_index*3+1] = y;
-		vb->positions->data.floats[vertex_index*3+2] = z;
+		vb->positions->data.floats[vertex_index*3+1] = z;
+		vb->positions->data.floats[vertex_index*3+2] = -y;
 	}
 
 	void ParseNormal(Utilities::XMLElement *elem)
 	{
-		std::stringstream xss(elem->GetAttribute("x", "0")),
-		                  yss(elem->GetAttribute("y", "0")),
-		                  zss(elem->GetAttribute("z", "0"));
+		std::stringstream xss(elem->GetAttribute(x_str, "0")),
+		                  yss(elem->GetAttribute(y_str, "0")),
+		                  zss(elem->GetAttribute(z_str, "0"));
 		GLfloat x, y, z;
 		xss >> x; yss >> y; zss >> z;
 		vb->normals->data.floats[vertex_index*3] = x;
-		vb->normals->data.floats[vertex_index*3+1] = y;
-		vb->normals->data.floats[vertex_index*3+2] = z;
+		vb->normals->data.floats[vertex_index*3+1] = z;
+		vb->normals->data.floats[vertex_index*3+2] = -y;
 	}
+
+	static Utilities::FEString w_str = "w";
 
 	void ParseTangent(Utilities::XMLElement *elem)
 	{
 		if (vb->tangentDims == 3)
 		{
-			std::stringstream xss(elem->GetAttribute("x", "0")),
-			                  yss(elem->GetAttribute("y", "0")),
-			                  zss(elem->GetAttribute("z", "0"));
+			std::stringstream xss(elem->GetAttribute(x_str, "0")),
+			                  yss(elem->GetAttribute(y_str, "0")),
+			                  zss(elem->GetAttribute(z_str, "0"));
 			GLfloat x, y, z;
 			xss >> x; yss >> y; zss >> z;
 			vb->tangents->data.floats[vertex_index*3] = x;
-			vb->tangents->data.floats[vertex_index*3+1] = y;
-			vb->tangents->data.floats[vertex_index*3+2] = z;
+			vb->tangents->data.floats[vertex_index*3+1] = z;
+			vb->tangents->data.floats[vertex_index*3+2] = -y;
 		}
 		else if (vb->tangentDims == 4)
 		{
-			std::stringstream xss(elem->GetAttribute("x", "0")),
-			                  yss(elem->GetAttribute("y", "0")),
-			                  zss(elem->GetAttribute("z", "0")),
-			                  wss(elem->GetAttribute("w", "0"));
+			std::stringstream xss(elem->GetAttribute(x_str, "0")),
+			                  yss(elem->GetAttribute(y_str, "0")),
+			                  zss(elem->GetAttribute(z_str, "0")),
+			                  wss(elem->GetAttribute(w_str, "0"));
 			GLfloat x, y, z, w;
 			xss >> x; yss >> y; zss >> z; wss >> w;
 			vb->tangents->data.floats[vertex_index*4] = x;
-			vb->tangents->data.floats[vertex_index*4+1] = y;
-			vb->tangents->data.floats[vertex_index*4+2] = z;
+			vb->tangents->data.floats[vertex_index*4+1] = z;
+			vb->tangents->data.floats[vertex_index*4+2] = -y;
 			vb->tangents->data.floats[vertex_index*4+3] = w;
 		}
 	}
 
 	void ParseBinormal(Utilities::XMLElement *elem)
 	{
-		std::stringstream xss(elem->GetAttribute("x", "0")),
-		                  yss(elem->GetAttribute("y", "0")),
-		                  zss(elem->GetAttribute("z", "0"));
+		std::stringstream xss(elem->GetAttribute(x_str, "0")),
+		                  yss(elem->GetAttribute(y_str, "0")),
+		                  zss(elem->GetAttribute(z_str, "0"));
 		GLfloat x, y, z;
 		xss >> x; yss >> y; zss >> z;
 		vb->binormals->data.floats[vertex_index*3] = x;
-		vb->binormals->data.floats[vertex_index*3+1] = y;
-		vb->binormals->data.floats[vertex_index*3+2] = z;
+		vb->binormals->data.floats[vertex_index*3+1] = z;
+		vb->binormals->data.floats[vertex_index*3+2] = -y;
 	}
+
+	static Utilities::FEString u_str = "u", v_str = "v";
 
 	void ParseTexcoord(Utilities::XMLElement *elem)
 	{
@@ -90,18 +100,18 @@ namespace Utilities
 		switch (vb->texCoordDims[texcoord_index])
 		{
 			case 1:
-				uss << elem->GetAttribute("u", "0");
+				uss << elem->GetAttribute(u_str, "0");
 				uss >> u;
 				vb->texCoords[texcoord_index]->data.floats[vertex_index] = u;
 				break;
 			case 2:
-				uss << elem->GetAttribute("u", "0"); vss << elem->GetAttribute("v", "0");
+				uss << elem->GetAttribute(u_str, "0"); vss << elem->GetAttribute(v_str, "0");
 				uss >> u; vss >> v;
 				vb->texCoords[texcoord_index]->data.floats[vertex_index*2] = u;
 				vb->texCoords[texcoord_index]->data.floats[vertex_index*2+1] = v;
 				break;
 			case 3:
-				uss << elem->GetAttribute("u", "0"); vss << elem->GetAttribute("v", "0"); wss << elem->GetAttribute("w", "0");
+				uss << elem->GetAttribute(u_str, "0"); vss << elem->GetAttribute(v_str, "0"); wss << elem->GetAttribute(w_str, "0");
 				uss >> u; vss >> v; wss >> w;
 				vb->texCoords[texcoord_index]->data.floats[vertex_index*3] = u;
 				vb->texCoords[texcoord_index]->data.floats[vertex_index*3+1] = v;
@@ -113,27 +123,30 @@ namespace Utilities
 		texcoord_index++;
 	}
 
+	static Utilities::FEString position_str = "position", normal_str = "normal", tangent_str = "tangent", binormal_str = "binormal", texcoord_str = "texcoord";
+
 	void ParseVertex(Utilities::XMLElement *elem)
 	{
 		if (vertex_index >= vb->numVertices)
 		{
 			return;
 		}
-		elem->Iterate("position", ParsePosition);
+		elem->Iterate(position_str, ParsePosition);
 		if (vb->normals)
-			elem->Iterate("normal", ParseNormal);
+			elem->Iterate(normal_str, ParseNormal);
 		if (vb->tangents)
-			elem->Iterate("tangent", ParseTangent);
+			elem->Iterate(tangent_str, ParseTangent);
 		if (vb->binormals)
-			elem->Iterate("binormal", ParseBinormal);
+			elem->Iterate(binormal_str, ParseBinormal);
 		texcoord_index = 0;
-		elem->Iterate("texcoord", ParseTexcoord);
+		elem->Iterate(texcoord_str, ParseTexcoord);
 		vertex_index++;
 	}
 
 	void ParseVertexBuffer(Utilities::XMLElement *elem)
 	{
 		vb = new OgreVertexBuffer;
+		vb->numVertices = numVertices;
 		if (elem->GetAttribute("positions") == "true")
 		{
 			vb->positions = new Scene::Render::VBO;
@@ -181,6 +194,7 @@ namespace Utilities
 		}
 		vertex_index = 0;
 		elem->Iterate("vertex", ParseVertex);
+		assert(vertex_index == numVertices);
 		vbs.push_back(vb);
 	}
 
@@ -191,15 +205,17 @@ namespace Utilities
 		elem->Iterate("vertexbuffer", ParseVertexBuffer);
 	}
 
+	static Utilities::FEString v1_str = "v1", v2_str = "v2", v3_str = "v3";
+
 	void ParseFace(Utilities::XMLElement *elem)
 	{
-		std::stringstream v1_ss(elem->GetAttribute("v1")),
-		                  v2_ss(elem->GetAttribute("v2")),
-		                  v3_ss(elem->GetAttribute("v3"));
+		std::stringstream v1_ss(elem->GetAttribute(v1_str)),
+		                  v2_ss(elem->GetAttribute(v2_str)),
+		                  v3_ss(elem->GetAttribute(v3_str));
 		v1_ss >> submesh->faces.data.uints[face_index++];
-		if (elem->HasAttribute("v2"))
+		if (elem->HasAttribute(v2_str))
 			v2_ss >> submesh->faces.data.uints[face_index++];
-		if (elem->HasAttribute("v3"))
+		if (elem->HasAttribute(v3_str))
 			v3_ss >> submesh->faces.data.uints[face_index++];
 	}
 
@@ -210,7 +226,8 @@ namespace Utilities
 		submesh->faces.data.uints = new GLuint[submesh->faces.numVals*3];
 		face_index = 0;
 		elem->Iterate("face", ParseFace);
-		submesh->faces.size = face_index * sizeof(GLfloat);
+		submesh->numElems = face_index;
+		submesh->faces.size = face_index * sizeof(GLuint);
 		submesh->faces.isElemBuffer = true;
 	}
 
@@ -228,7 +245,7 @@ namespace Utilities
 		}
 		else
 		{
-			submesh->primitiveType = OgreSubMesh::PRIMITIVETYPE_TRIANGLESTRIP;
+			submesh->primitiveType = OgreSubMesh::PRIMITIVETYPE_TRIANGLELIST;
 		}
 		elem->Iterate("faces", ParseFaces);
 		if (elem->GetAttribute("usesharedvertices", "true") == "true")
@@ -241,6 +258,7 @@ namespace Utilities
 			elem->Iterate("geometry", ParseGeometry);
 			submesh->vbs = vbs;
 		}
+		mesh->submeshes.push_back(submesh);
 	}
 
 	void ParseSubmeshes(Utilities::XMLElement *elem)
@@ -264,14 +282,119 @@ namespace Utilities
 		elem->Iterate("sharedgeometry", ParseSharedGeometry);
 	}
 
-	OgreMesh* LoadOgreXMLModel(std::string filename)
+	void ParseModTranslate(Utilities::XMLElement *elem)
+	{
+		float x = elem->GetAttributeT<float>("x", 0.0);
+		float y = elem->GetAttributeT<float>("y", 0.0);
+		float z = elem->GetAttributeT<float>("z", 0.0);
+		mesh->transforms.push_back(new Scene::Render::MeshTranslation(x, y, z));
+	}
+
+	void ParseModRotate(Utilities::XMLElement *elem)
+	{
+		float radians = elem->GetAttributeT<float>("degrees", 0.0) * (PI / 180);
+		float x = elem->GetAttributeT<float>("x", 0.0);
+		float y = elem->GetAttributeT<float>("y", 0.0);
+		float z = elem->GetAttributeT<float>("z", 0.0);
+		mesh->transforms.push_back(new Scene::Render::MeshRotation(radians, x, y, z));
+	}
+
+	void ParseModScale(Utilities::XMLElement *elem)
+	{
+		float amount = elem->GetAttributeT<float>("amount", 0.0);
+		float x = elem->GetAttributeT<float>("x", 0.0);
+		float y = elem->GetAttributeT<float>("y", 0.0);
+		float z = elem->GetAttributeT<float>("z", 0.0);
+		if (elem->HasAttribute("amount"))
+			mesh->transforms.push_back(new Scene::Render::MeshScaling(amount, amount, amount));
+		else
+			mesh->transforms.push_back(new Scene::Render::MeshScaling(x, y, z));
+	}
+
+	void ParseModTransforms(Utilities::XMLElement *elem)
+	{
+		TagFuncMap tfmap;
+		tfmap["translate"] = ParseModTranslate;
+		tfmap["rotate"] = ParseModRotate;
+		tfmap["scale"] = ParseModScale;
+		elem->Iterate(tfmap, NULL);
+	}
+
+	void ParseModifiers(Utilities::XMLElement *elem)
+	{
+		elem->Iterate("transforms", ParseModTransforms);
+	}
+
+	static std::map<std::string, OgreMesh*> filenameToMesh;
+
+	OgreMesh* LoadSpecificOgreXMLModel(std::string name)
 	{
 		Utilities::XMLReader xmlReader;
-		xmlReader.Read(filename);
+		
+		std::string filename = Utilities::GetDataFile(name + ".mesh.xml");
 
-		xmlReader.root->Iterate("mesh", ParseMesh);
+		mesh = filenameToMesh[filename];
+
+		if (!mesh)
+		{
+			if (filename.length() && xmlReader.Read(filename))
+			{
+				xmlReader.root->Iterate("mesh", ParseMesh);
+
+				std::string modFilename = Utilities::GetDataFile(name + ".mod.xml");
+
+				Utilities::XMLReader modXmlReader;
+
+				if (modFilename.length() && modXmlReader.Read(modFilename))
+				{
+					modXmlReader.root->Iterate("modifiers", ParseModifiers);
+				}
+			}
+			else
+			{
+				std::cout << "Warning: Mesh " << name << " not found!" << std::endl;
+			}
+		}
+
+		filenameToMesh[filename] = mesh;
 
 		xmlReader.Deallocate();
+
 		return mesh;
+
 	}
+
+	bool OgreSubMesh::CheckRayIntersect(const Vector3D& near_plane, const Vector3D& far_plane, float& distance)
+	{
+		OgreVertexBuffer* vb = vbs[0];
+		Utilities::Vector3D tp1, tp2, tp3, hit_pos;
+		int index_v;
+
+		for (unsigned i = 0; i < faces.numVals*3; )
+		{
+			index_v = faces.data.uints[i++] * 3;
+			tp1.set(vb->positions->data.floats[index_v], vb->positions->data.floats[index_v+1], vb->positions->data.floats[index_v+2]);
+			index_v = faces.data.uints[i++] * 3;
+			tp2.set(vb->positions->data.floats[index_v], vb->positions->data.floats[index_v+1], vb->positions->data.floats[index_v+2]);
+			index_v = faces.data.uints[i++] * 3;
+			tp3.set(vb->positions->data.floats[index_v], vb->positions->data.floats[index_v+1], vb->positions->data.floats[index_v+2]);
+			if (CheckLineIntersectTri(tp1, tp3, tp2, near_plane, far_plane, hit_pos))
+			{
+				distance = near_plane.distance(hit_pos);
+				return true;
+			}
+		}
+		return false;
+	}
+
+	bool OgreMesh::CheckRayIntersect(const Vector3D& near, const Vector3D& far, float& distance)
+	{
+		for (std::vector<OgreSubMesh*>::iterator it = submeshes.begin(); it != submeshes.end(); it++)
+		{
+			if ((*it)->CheckRayIntersect(near, far, distance))
+				return true;
+		}
+		return false;
+	}
+
 }

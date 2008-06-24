@@ -24,7 +24,7 @@ namespace Game
 {
 	namespace Dimension
 	{
-		vector<Unit*> unitsSelected;
+		static vector<Unit*> unitsSelected;
 		vector<Unit*> unitGroups[10];
 		Unit**        unitByID;
 		unsigned short         nextID;
@@ -68,7 +68,7 @@ namespace Game
 
 			Utilities::Vector3D groundPos = Dimension::GetTerrainCoord(unit->pos.x, unit->pos.y);
 			Audio::PlayOnceFromLocation(fx->pSound, &fx->channel, &groundPos,
-				Game::Rules::GameWindow::Instance()->GetCamera()->GetPosVector(),
+				Game::Dimension::Camera::instance.GetPosVector(),
 				fx->strength);
 		}
 		
@@ -642,6 +642,7 @@ namespace Game
 				Projectile *proj = CreateProjectile(attacker->type->projectileType, Utilities::Vector3D(attacker->pos.x, attacker->pos.y, GetTerrainHeightHighestLevel(attacker->pos.x, attacker->pos.y)), goal_pos);
 				proj->goalUnit = target;
 				attacker->projectiles.push_back(proj);
+				UnitMainNode::instance.ScheduleProjectileAddition(proj);
 				PlayActionSound(attacker, Audio::SFX_ACT_FIRE_FNF);
 			}
 		}
@@ -746,6 +747,8 @@ namespace Game
 					}
 					
 					pUnit->projectiles.erase(pUnit->projectiles.begin()+index);
+
+					UnitMainNode::instance.ScheduleProjectileDeletion(proj);
 				}
 				else
 				{
@@ -1477,6 +1480,64 @@ namespace Game
 			return true;
 		}
 
+		void DeselectUnit(Unit* unit)
+		{
+			for (vector<Dimension::Unit*>::iterator it = unitsSelected.begin(); it != unitsSelected.end(); it++)
+			{
+				if (unit == *it)
+				{
+					unitsSelected.erase(it);
+					UnitMainNode::instance.ScheduleDeselection(unit);
+					return;
+				}
+			}
+		}
+
+		void DeselectAllUnits()
+		{
+			while (unitsSelected.size())
+			{
+				DeselectUnit(unitsSelected[0]);
+			}
+		}
+
+		void SelectUnit(Unit* unit)
+		{
+			if (unit->owner == currentPlayerView)
+			{
+				for (unsigned i = 0; i < unitsSelected.size(); i++)
+				{
+					if (unitsSelected[i]->owner != currentPlayerView)
+					{
+						DeselectUnit(unitsSelected[i]);
+						i--;
+						continue;
+					}
+					if (unit == unitsSelected[i])
+					{
+						return;
+					}
+				}
+			}
+			else
+			{
+				for (vector<Dimension::Unit*>::iterator it = unitsSelected.begin(); it != unitsSelected.end(); it++)
+				{
+					if (unit == *it || (*it)->owner == currentPlayerView)
+					{
+						return;
+					}
+				}
+			}
+			unitsSelected.push_back(unit);
+			UnitMainNode::instance.ScheduleSelection(unit);
+		}
+
+		const std::vector<Unit*> GetSelectedUnits()
+		{
+			return unitsSelected;
+		}
+
 		Uint16 r_seed = 23467;
 		float rotation_rand()
 		{
@@ -1493,7 +1554,6 @@ namespace Game
 			unit->power = (float) type->maxPower;
 			unit->owner = type->player;
 			unit->rotation = Utilities::RandomDegree();
-			unit->pMovementData = NULL;
 			unit->lastAttack = 0;
 			unit->lastAttacked = 0;
 			unit->lastCommand = 0;
@@ -1516,6 +1576,9 @@ namespace Game
 			unit->curAssociatedBigSquare.y = -1;
 			unit->rallypoint = NULL;
 			unit->aiFrame = 0;
+
+			unit->pMovementData = new AI::MovementData;
+			AI::InitMovementData(unit);
 		}
 
 		set<Unit*> unitsScheduledForDeletion;
@@ -1644,6 +1707,8 @@ namespace Game
 				return false;
 			}
 		
+//			std::cout << "display " << unit->id << " (" << unit << ")" << std::endl;
+
 			pWorld->vUnits.push_back(unit);
 			if (unit->type->hasAI)
 			{
@@ -1675,7 +1740,7 @@ namespace Game
 
  			displayedUnitPointers.set(unit, true);
 
-//			std::cout << "Display " << unit->id << std::endl;
+			UnitMainNode::instance.ScheduleUnitNodeAddition(unit);
 
 			return true;
 		}
@@ -1774,7 +1839,7 @@ namespace Game
 
 		}
 
-		void DeleteUnit(Unit* unit)
+		void RemoveUnitFromLists(Unit* unit)
 		{
 			Unit* curUnit;
 			unsigned int i, j;
@@ -1783,6 +1848,8 @@ namespace Game
 			{
 				return;
 			}
+
+//			std::cout << "remove " << unit->id << " (" << unit << ")" << std::endl;
 
 			if (unit->isCompleted)
 			{
@@ -1866,14 +1933,8 @@ namespace Game
 					}
 				}
 			}
-			for (i = 0; i < unitsSelected.size(); i++)
-			{
-				if (unitsSelected.at(i) == unit)
-				{
-					unitsSelected.erase(unitsSelected.begin() + i);
-					break;
-				}
-			}
+
+			DeselectUnit(unit);
 
 			DeleteAssociatedSquares(unit, unit->curAssociatedSquare.x, unit->curAssociatedSquare.y);
 
@@ -1883,15 +1944,6 @@ namespace Game
 			{
 				AI::DeleteUnitFromAreaMap(unit);
 			}
-			
-			for (i = 0; i < unit->projectiles.size(); i++)
-				delete unit->projectiles.at(i);
-			unit->projectiles.clear();
-
-			if (unit->rallypoint != NULL)
-				delete unit->rallypoint;
-			
-			delete[] unit->lastSeenPositions;
 			
 			for (int i = 0; i < Audio::SFX_ACT_COUNT; i++)
 			{
@@ -1937,6 +1989,8 @@ namespace Game
 				}
 			}
 
+			UnitMainNode::instance.ScheduleUnitNodeDeletion(unit);
+
 			if (AI::IsUndergoingPathCalc(unit))
 			{
 				AI::QuitUndergoingProc(unit);
@@ -1946,6 +2000,16 @@ namespace Game
 			
 			AI::ResumePathfinding();
 
+		}
+
+		void DeleteUnit(Unit* unit)
+		{
+
+			if (unit->rallypoint != NULL)
+				delete unit->rallypoint;
+			
+			delete[] unit->lastSeenPositions;
+			
 			if (unit->pMovementData->pStart != NULL)
 				AI::DeallocPathfindingNodes(unit);
 
@@ -1961,8 +2025,6 @@ namespace Game
 			delete unit->pMovementData;
 
 			delete unit;
-			
-			unit = NULL;
 		}
 
 		vector<Unit*> unitsDisplayQueue;
@@ -2016,7 +2078,7 @@ namespace Game
 		{
 			while (unitsScheduledForDeletion.size())
 			{
-				DeleteUnit(*unitsScheduledForDeletion.begin());
+				RemoveUnitFromLists(*unitsScheduledForDeletion.begin());
 			}
 		}
 

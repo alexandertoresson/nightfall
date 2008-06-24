@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<modifiers version="1.0">
+	<submeshes material="materials/test.mat" />
+</modifiers>

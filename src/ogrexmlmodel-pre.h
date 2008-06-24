@@ -14,11 +14,7 @@ namespace Utilities
 
 	struct OgreVertexBuffer;
 
-	struct OgreMesh
-	{
-		std::vector<OgreSubMesh*> submeshes;
-		std::vector<OgreVertexBuffer*> shared;
-	};
+	struct OgreMesh;
 }
 
 #endif

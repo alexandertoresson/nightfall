@@ -7,7 +7,7 @@ namespace Scene
 		Utilities::Matrix4x4 Node::matrices[MATRIXTYPE_NUM];
 		std::stack<Utilities::Matrix4x4> Node::mtxStack[MATRIXTYPE_NUM];
 
-		Node::Node() : parent(NULL)
+		Node::Node() : parent(NULL), enabled(true), lastPlacement(0)
 		{
 			
 		}
@@ -17,9 +17,19 @@ namespace Scene
 			
 		}
 
-		void Node::PreRender()
+		void Node::SetEnabled(bool enabled)
+		{
+			this->enabled = enabled;
+		}
+
+		void Node::ApplyMatrix()
 		{
 			
+		}
+
+		void Node::PreRender()
+		{
+			ApplyMatrix();
 		}
 
 		void Node::Render()
@@ -34,40 +44,58 @@ namespace Scene
 
 		void Node::Traverse()
 		{
-			PreRender();
-			Render();
-			PostRender();
+			if (enabled)
+			{
+				PreRender();
+				Render();
+				PostRender();
+			}
 		}
 
-		void Node::DeleteTree()
+		void Node::DeleteTree(bool removeFromParent)
 		{
-			for (std::vector<Node*>::iterator it = children.begin(); it != children.end(); it++)
+			for (std::map<int, Node*>::iterator it = children.begin(); it != children.end(); it++)
 			{
-				(*it)->DeleteTree();
+				// removeFromParent = false, or the child will attempt to remove itself from this
+				it->second->DeleteTree(false);
+			}
+			children.clear();
+			if (parent && removeFromParent)
+			{
+				parent->RemoveChild(this);
 			}
 			delete this;
 		}
 
-		void Node::HandleEvent(Utilities::Vector3D v)
+		bool Node::HandleEvent(SDL_Event* event)
 		{
-			SendEventToAllChildren(v);
+			return SendEventToAllChildren(event);
 		}
 
-		void Node::AddChild(Node* node)
+		void Node::AddChild(Node* node, int placement)
 		{
-			children.push_back(node);
+			children[placement] = node;
 			if (node->parent)
 			{
 				node->parent->RemoveChild(node);
 			}
 			node->parent = this;
+			if (placement > lastPlacement)
+			{
+				lastPlacement = placement;
+			}
+		}
+
+		void Node::AddChild(Node* node)
+		{
+			AddChild(node, lastPlacement + 1);
 		}
 
 		void Node::RemoveChild(Node* node)
 		{
-			for (std::vector<Node*>::iterator it = children.begin(); it != children.end(); it++)
+			for (std::map<int, Node*>::iterator it = children.begin(); it != children.end(); it++)
 			{
-				if (*it == node)
+				if (it->second == node)
 				{
 					children.erase(it);
 					break;
@@ -78,18 +106,22 @@ namespace Scene
 
 		void Node::TraverseAllChildren()
 		{
-			for (std::vector<Node*>::iterator it = children.begin(); it != children.end(); it++)
+			for (std::map<int, Node*>::iterator it = children.begin(); it != children.end(); it++)
 			{
-				(*it)->Traverse();
+				it->second->Traverse();
 			}
 		}
 
-		void Node::SendEventToAllChildren(Utilities::Vector3D v)
+		bool Node::SendEventToAllChildren(SDL_Event* event)
 		{
-			for (std::vector<Node*>::iterator it = children.begin(); it != children.end(); it++)
+			for (std::map<int, Node*>::reverse_iterator it = children.rbegin(); it != children.rend(); it++)
 			{
-				(*it)->HandleEvent(v);
+				if (it->second->HandleEvent(event))
+				{
+					return true;
+				}
 			}
+			return false;
 		}
 
 		void Node::ResetMatrices()
@@ -104,30 +136,45 @@ namespace Scene
 			}
 		}
 
-		void Node::BuildMatrices()
+		void Node::BuildMatrices(Node* baseNode)
 		{
-			if (parent)
+			if (parent && parent != baseNode)
 			{
-				parent->BuildMatrices();
+				parent->BuildMatrices(baseNode);
 			}
 			else
 			{
 				ResetMatrices();
 			}
-			PreRender();
+			ApplyMatrix();
 		}
 
-		Utilities::Matrix4x4 Node::GetMatrix(MatrixType type)
+		Utilities::Matrix4x4 Node::GetMatrix(MatrixType type, Node* baseNode)
 		{
-			BuildMatrices();
+			Utilities::Matrix4x4 mat;
+			BuildMatrices(baseNode);
 			if (type >= 0 && type <= MATRIXTYPE_NUM)
 			{
-				return matrices[type];
+				mat = matrices[type];
 			}
 			else
 			{
-				return Utilities::Matrix4x4();
+				mat = Utilities::Matrix4x4();
 			}
+			ResetMatrices();
+			return mat;
+		}
+
+		void Node::PushMatrix(MatrixType matType)
+		{
+			Utilities::Matrix4x4& matrix = matrices[matType];
+			mtxStack[matType].push(matrix);
+		}
+
+		void Node::PopMatrix(MatrixType matType)
+		{
+			matrices[matType] = mtxStack[matType].top();
+			mtxStack[matType].pop();
 		}
 
 		SwitchNode::SwitchNode() : Node(), active(0)
@@ -135,21 +182,24 @@ namespace Scene
 			
 		}
 
-		SwitchNode::SwitchNode(unsigned a) : Node(), active(a)
+		SwitchNode::SwitchNode(int a) : Node(), active(a)
 		{
 			
 		}
 
-		void SwitchNode::SetActive(unsigned a)
+		void SwitchNode::SetActive(int a)
 		{
 			active = a;
 		}
 
 		void SwitchNode::Render()
 		{
-			if (active < children.size())
+			for (std::map<int, Node*>::iterator it = children.begin(); it != children.end(); it++)
 			{
-				children[active]->Traverse();
+				if (it->first == active)
+				{
+					it->second->Traverse();
+				}
 			}
 		}
 
@@ -159,7 +209,7 @@ namespace Scene
 			this->matType = matType;
 		}
 
-		void MatrixNode::PreRender()
+		void MatrixNode::ApplyMatrix()
 		{
 			mtxStack[matType].push(matrices[matType]);
 			matrices[matType] = matrices[matType] * matrix;

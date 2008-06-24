@@ -1,8 +1,10 @@
 #include "window.h"
 
 #include "errors.h"
-#include "utilities.h"
+#include "configuration.h"
 #include "paths.h"
+#include "utilities.h"
+#include "extensions.h"
 #include <iostream>
 #include <fstream>
 #include <sstream>
@@ -15,8 +17,6 @@ namespace Window
 	bool initialized = false;
 
 	bool noWindow = false;
-
-	bool hasVBOs = false;
 
 	int windowWidth, windowHeight;
 
@@ -63,24 +63,18 @@ namespace Window
 		SDL_Quit();
 	}
 	
-	int OpenDynamic(Utilities::ConfigurationFile* pConfigInterpreter)
+	int OpenDynamic()
 	{
 		if (initialized == false)
 			return WINDOW_ERROR_NOT_INITIALIZED;
-		if (pConfigInterpreter == NULL)
-			return WINDOW_ERROR_NO_CONFIGURATION_INTERPRETER;
 
-		int   width = 0, height = 0, bpp = 0, result = 0;
+		int   width = 0, height = 0, bpp = 0;
 		bool  fullscreen = false;
 		
-		result = pConfigInterpreter->Parse();
-		if (result != SUCCESS)
-			return result;
-		
-		width      = atoi(pConfigInterpreter->GetValue("screen width"));
-		height     = atoi(pConfigInterpreter->GetValue("screen height"));
-		bpp        = atoi(pConfigInterpreter->GetValue("screen bpp"));
-		fullscreen = atoi(pConfigInterpreter->GetValue("fullscreen")) == 1;
+		width      = atoi(Utilities::mainConfig.GetValue("screen width").c_str());
+		height     = atoi(Utilities::mainConfig.GetValue("screen height").c_str());
+		bpp        = atoi(Utilities::mainConfig.GetValue("screen bpp").c_str());
+		fullscreen = atoi(Utilities::mainConfig.GetValue("fullscreen").c_str()) == 1;
 		
 		return OpenStatic(width, height, bpp, fullscreen);
 	}
@@ -230,53 +224,40 @@ namespace Window
 			}
 		}
 
-		if (!glewIsExtensionSupported("GL_ARB_multitexture"))
+		if (!Utilities::CheckExtensions())
 		{
-#ifdef WIN32
-			MessageBoxA(NULL, "The OpenGL extension GL_ARB_multitexture doesn't seem to be supported by your hardware.\nPlease make sure you have the latest drivers installed.", "OpenGL Extension error!", MB_OK | MB_ICONERROR);
-#else
-			std::cout << "GL_ARB_multitexture extension could not be found!" << std::endl;
-#endif
 			return ERROR_GENERAL;
-
 		}
 
-		if (!glewIsExtensionSupported("GL_ARB_texture_env_combine"))
 		{
-#ifdef WIN32
-			MessageBoxA(NULL, "The OpenGL extension GL_ARB_texture_env_combine doesn't seem to be supported by your hardware.\nPlease make sure you have the latest drivers installed.", "OpenGL Extension error!", MB_OK | MB_ICONERROR);
-#else
-			std::cout << "GL_ARB_texture_env_combine extension could not be found!" << std::endl;
-#endif
-			return ERROR_GENERAL;
-		}
-		
-		if (glewIsExtensionSupported("GL_ARB_vertex_buffer_object"))
-		{
-			std::cout << "Support for vertex buffer objects detected" << std::endl;
-			hasVBOs = true;
-		}
-		else
-		{
-			std::cout << "Support for vertex buffer objects not detected" << std::endl;
-		}
-		
-	/*
-		if (!glewIsExtensionSupported("GL_ARB_texture_env_crossbar"))
-		{
-			MessageBoxA(NULL, "The OpenGL extension GL_ARB_texture_env_crossbar doesn't seem to be supported by your hardware.\nPlease make sure you have the latest drivers installed.", "OpenGL Extension error!", MB_OK | MB_ICONERROR);
-			return ERROR_GENERAL;
-		}
-	*/	
-		GLint maxTextureUnits;
+			int major, minor;
+			Utilities::PrintGLError();
+   			const GLubyte* sVersion = glGetString(GL_SHADING_LANGUAGE_VERSION_ARB);
+      			if (glGetError() == GL_INVALID_ENUM)
+	 		{
+	        		std::cout << "GL_SHADING_LANGUAGE_VERSION_ARB not found, assuming GLSL 1.0.51" << std::endl;
+	         		major = 1; minor = 0;
+	        	}
+	        	else
+	        	{
+	        		std::cout << "GLSL version string: " << (const char*) sVersion << std::endl;
+	        		sscanf((const char*) sVersion, "%d.%d", &major, &minor);
+	        	}
+	        	std::cout << "Major: " << major << ", Minor: " << minor << std::endl;
+	        }
+
+	        GLint maxTextureUnits;
 		glGetIntegerv(GL_MAX_TEXTURE_UNITS, &maxTextureUnits);
 		GLint maxModelviewStackDepth;
 		glGetIntegerv(GL_MAX_MODELVIEW_STACK_DEPTH, &maxModelviewStackDepth);
 		GLint maxProjectionViewStackDepth;
 		glGetIntegerv(GL_MAX_PROJECTION_STACK_DEPTH, &maxProjectionViewStackDepth);
+		GLint maxColorAttachments;
+		glGetIntegerv(GL_MAX_COLOR_ATTACHMENTS_EXT, &maxColorAttachments);
 		cout << "Maximum number of texture units: " << maxTextureUnits << endl;
 		cout << "Maximum projection matrix stack depth: " << maxProjectionViewStackDepth << endl;
 		cout << "Maximum modelview matrix stack depth: " << maxModelviewStackDepth << endl;
+		cout << "Maximum framebuffer color attachments: " << maxColorAttachments << endl;
 		
 		return SUCCESS;
 	}

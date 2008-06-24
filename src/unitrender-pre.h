@@ -13,16 +13,13 @@ namespace Game
 	{
 		void SetParticleCoordSpace(float x, float y, float z, float scale = 1.0f);
 		
-		void RenderUnits();
-		void RenderHealthBars();
-		
 		void InitRenderUnits();
 
-		class UnitTransfNode;
-		class UnitRenderNode;
+		class UnitNode;
+		class UnitSelectionNode;
 
 		class ProjectileNode;
-		class OutlineNode;
+		class BuildOutlineNode;
 	}
 }
 

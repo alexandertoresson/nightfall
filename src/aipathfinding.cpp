@@ -552,7 +552,7 @@ namespace Game
 						{
 							delete[] areaMaps[j][i][y];
 						}
-						delete areaMaps[j][i];
+						delete[] areaMaps[j][i];
 					}
 				}
 

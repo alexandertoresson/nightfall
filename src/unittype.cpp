@@ -2,6 +2,7 @@
 
 #include "unit.h"
 #include "ogrexmlmodel.h"
+#include "modelselectorxml.h"
 
 namespace Game
 {

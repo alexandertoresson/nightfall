@@ -11,8 +11,6 @@ namespace Utilities
 {
 	class Matrix4x4
 	{
-		private:
-			void MulBy(const Matrix4x4& a);
 		public:
 			float matrix[4][4];
 
@@ -31,13 +29,15 @@ namespace Utilities
 			void Zero();
 
 			//! Sets the matrix to an arbitrary matrix
-			void Set(float matrix[4][4]);
+			void Set(const float matrix[4][4]);
 
-			static Matrix4x4 TranslationMatrix(float x, float y, float x);
+			static Matrix4x4 TranslationMatrix(float x, float y, float z);
 
 			static Matrix4x4 RotateXMatrix(float radians);
 			static Matrix4x4 RotateYMatrix(float radians);
 			static Matrix4x4 RotateZMatrix(float radians);
+	
+			static Matrix4x4 RotateMatrix(float radians, float x, float y, float z);
 			
 			static Matrix4x4 ScaleMatrix(float x, float y, float z);
 
@@ -57,10 +57,10 @@ namespace Utilities
 			void RotateZ(float radians);
 			
 			//! Rotates the matrix the specified amount around the specified axis
-			void Rotate(float x, float y, float z);
+			void Rotate(float radians, float x, float y, float z);
 			
 			//! Rotates the matrix the specified amount around the specified axis
-			void Rotate(Vector3D v);
+			void Rotate(float radians, Vector3D v);
 			
 			//! Scales the matrix the specified amount
 			void Scale(float x, float y, float z);
@@ -71,8 +71,15 @@ namespace Utilities
 			//! Scales the matrix by the specified vector
 			void Scale(Vector3D v);
 
+			void MulBy(const Matrix4x4& a);
+
 			//! Multiplies the matrix by another matrix
 			Matrix4x4 operator *(const Matrix4x4& a) const;
+
+			// Multiply the matrix by a vector to get a vector
+			Vector3D operator *(const Vector3D& a) const;
+			
+			void Apply();
 
 	};
 }

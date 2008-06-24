@@ -10,6 +10,7 @@
 #include "vector3d.h"
 #include "unit-pre.h"
 #include "dimension.h"
+#include "scenegraph.h"
 
 namespace Game
 {
@@ -79,6 +80,16 @@ namespace Game
 		Utilities::Vector3D GetTerrainCoord(float x, float y);
 		Utilities::Vector3D GetTerrainCoordHighestLevel(float x, float y);
 		Dimension::Position GetPosition(Utilities::Vector3D* v);
+
+		class TerrainNode : public Scene::Graph::Node
+		{
+			private:
+				TerrainNode();
+			protected:
+				virtual void Render();
+			public:
+				static TerrainNode instance;
+		};
 
 	}
 }

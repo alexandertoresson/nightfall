@@ -17,6 +17,9 @@
 #include "gui.h"
 #include "game.h"
 #include "ogrexmlmodel.h"
+#include "materialxml-pre.h"
+#include "defaultcolours.h"
+#include "modelselectorxml.h"
 #include <sstream>
 #include <iostream>
 
@@ -178,7 +181,7 @@ namespace UnitLuaInterface
 				ut = pUnit->type->globalIndex;
 		}
 
-		lua_pushnumber(pVM, ut);
+		lua_pushlightuserdata(pVM, (void*) ut);
 		return 1;
 	}
 
@@ -213,7 +216,7 @@ namespace UnitLuaInterface
 
 	int LGetUnitTypeIsMobile(lua_State* pVM)
 	{
-		unsigned index = lua_tointeger(pVM, 1);
+		unsigned index = (unsigned) lua_touserdata(pVM, 1);
 		bool isMobile = false;
 
 		if (index <= allUnitTypes.size())
@@ -343,7 +346,7 @@ namespace UnitLuaInterface
 
 	int LGetNearestSuitableAndLightedPosition(lua_State* pVM)
 	{
-		unsigned ut_index = lua_tointeger(pVM, 1);
+		unsigned ut_index = (unsigned) lua_touserdata(pVM, 1);
 		int  x       = lua_tointeger(pVM, 2);
 		int  y       = lua_tointeger(pVM, 3);
 		bool ret     = false;
@@ -364,7 +367,7 @@ namespace UnitLuaInterface
 
 	int LGetSuitablePositionForLightTower(lua_State* pVM)
 	{
-		unsigned ut_index = lua_tointeger(pVM, 1);
+		unsigned ut_index = (unsigned) lua_touserdata(pVM, 1);
 		int  x           = lua_tointeger(pVM, 2), y = lua_tointeger(pVM, 3);
 		bool needLighted = lua_toboolean(pVM, 4);
 		bool ret         = false;
@@ -452,7 +455,7 @@ namespace UnitLuaInterface
 
 	int LGetUnitTypeIncomeAtNoon(lua_State* pVM)
 	{
-		unsigned ut_index = lua_tointeger(pVM, 1);
+		unsigned ut_index = (unsigned) lua_touserdata(pVM, 1);
 		float income = 0;
 		
 		if (ut_index < allUnitTypes.size())
@@ -472,7 +475,7 @@ namespace UnitLuaInterface
 
 	int LGetUnitTypeIncomeAtNight(lua_State* pVM)
 	{
-		unsigned ut_index = lua_tointeger(pVM, 1);
+		unsigned ut_index = (unsigned) lua_touserdata(pVM, 1);
 		float income = 0;
 		
 		if (ut_index < allUnitTypes.size())
@@ -632,7 +635,7 @@ namespace UnitLuaInterface
 
 	int LGetUnitTypeBuildCost(lua_State* pVM)
 	{
-		unsigned ut_index = lua_tointeger(pVM, 1);
+		unsigned ut_index = (unsigned) lua_touserdata(pVM, 1);
 		int cost = 0;
 		
 		if (ut_index < allUnitTypes.size())
@@ -661,7 +664,7 @@ namespace UnitLuaInterface
 	
 	int LIsResearched(lua_State* pVM)
 	{
-		unsigned ut_index = lua_tointeger(pVM, 1);
+		unsigned ut_index = (unsigned) lua_touserdata(pVM, 1);
 		bool ret = false;
 
 		if (ut_index < allUnitTypes.size())
@@ -773,7 +776,7 @@ namespace UnitLuaInterface
 
 	int LGetUnitTypeRequirements(lua_State* pVM)
 	{
-		unsigned ut_index = lua_tointeger(pVM, 1);
+		unsigned ut_index = (unsigned) lua_touserdata(pVM, 1);
 		
 		if (ut_index < allUnitTypes.size())
 		{
@@ -800,7 +803,7 @@ namespace UnitLuaInterface
 	
 	int LGetBuilder(lua_State* pVM)
 	{
-		unsigned ut_index = lua_tointeger(pVM, 1);
+		unsigned ut_index = (unsigned) lua_touserdata(pVM, 1);
 		
 		if (ut_index < allUnitTypes.size())
 		{
@@ -850,7 +853,7 @@ namespace UnitLuaInterface
 	
 	int LSquaresAreLightedAround(lua_State* pVM)
 	{
-		unsigned ut_index = lua_tointeger(pVM, 1);
+		unsigned ut_index = (unsigned) lua_touserdata(pVM, 1);
 		int lighted = false;
 		
 		if (ut_index < allUnitTypes.size())
@@ -867,7 +870,7 @@ namespace UnitLuaInterface
 	
 	int LSquaresAreLighted(lua_State* pVM)
 	{
-		unsigned ut_index = lua_tointeger(pVM, 1);
+		unsigned ut_index = (unsigned) lua_touserdata(pVM, 1);
 		int lighted = false;
 		
 		if (ut_index < allUnitTypes.size())
@@ -1088,7 +1091,7 @@ namespace UnitLuaInterface
 		int position[2] = { lua_tointeger(pVM, 2), 
 		                    lua_tointeger(pVM, 3) };
 
-		unsigned ut_index = lua_tointeger(pVM, 4);
+		unsigned ut_index = (unsigned) lua_touserdata(pVM, 4);
 		if (ut_index < allUnitTypes.size())
 		{
 			UnitType* pUnitType = allUnitTypes[ut_index];
@@ -1474,7 +1477,7 @@ namespace UnitLuaInterface
 
 	int LCreateUnit(lua_State* pVM)
 	{
-		unsigned ut_index = lua_tointeger(pVM, 1);
+		unsigned ut_index = (unsigned) lua_touserdata(pVM, 1);
 		UnitType* pUnitType = NULL;
 		
 		if (ut_index < allUnitTypes.size())
@@ -1539,7 +1542,7 @@ namespace UnitLuaInterface
 
 	int LCanCreateUnitAt(lua_State* pVM)
 	{
-		unsigned ut_index = lua_tointeger(pVM, 1);
+		unsigned ut_index = (unsigned) lua_touserdata(pVM, 1);
 		
 		UnitType* pUnitType = NULL;
 		
@@ -1583,7 +1586,7 @@ namespace UnitLuaInterface
 				ut = ptr->globalIndex;
 		}
 		
-		lua_pushnumber(pVM, ut);
+		lua_pushlightuserdata(pVM, (void*) ut);
 		return 1;
 	}
 
@@ -1624,27 +1627,24 @@ namespace UnitLuaInterface
 	{
 		const char *sz_name = lua_tostring(pVM, 1);
 		PlayerType type = (PlayerType) lua_tointeger(pVM, 2);
-		const char *sz_texture = lua_tostring(pVM, 3);
-		const char *raceScript = lua_tostring(pVM, 4);
-		const char *aiScript = lua_tostring(pVM, 5);
-		std::string texture = sz_texture, name = sz_name;
+		const char *raceScript = lua_tostring(pVM, 3);
+		const char *aiScript = lua_tostring(pVM, 4);
+		std::string name = sz_name;
+		int index = pWorld->vPlayers.size();
+		Utilities::Colour colour0 = defaultColours[index][0];
+		Utilities::Colour colour1 = defaultColours[index][1];
+		Utilities::Colour colour2 = defaultColours[index][2];
 		if (name == "USER")
 		{
 			std::stringstream ss("Player ");
-			ss << (pWorld->vPlayers.size() + 1);
+			ss << (index + 1);
 			name = ss.str();
-		}
-		if (texture == "USER")
-		{
-			std::stringstream ss;
-			ss << "textures/player_" << pWorld->vPlayers.size() << ".png";
-			texture = ss.str();
 		}
 		if (!strcmp(raceScript, "USER"))
 		{
 			raceScript = "robots";
 		}
-		new Player(name, type, texture, std::string(raceScript), std::string(aiScript));
+		new Player(name, type, std::string(raceScript), std::string(aiScript), colour0, colour1, colour2);
 		LUA_SUCCESS
 	}
 
@@ -1688,7 +1688,7 @@ namespace UnitLuaInterface
 
 	int LGetUnitTypeName(lua_State* pVM)
 	{
-		unsigned index = lua_tointeger(pVM, 1);
+		unsigned index = (unsigned) lua_touserdata(pVM, 1);
 		const char* name = "";
 		if (index < allUnitTypes.size())
 		{
@@ -2633,7 +2633,7 @@ namespace UnitLuaInterface
 			LUA_FAILURE("Null pointer")
 		}
 
-		Game::Dimension::Camera* camera = Game::Rules::GameWindow::Instance()->GetCamera();
+		Game::Dimension::Camera* camera = &Game::Dimension::Camera::instance;
 		GLfloat zoom = camera->GetZoom();
 		GLfloat rotation = camera->GetRotation();
 
@@ -2687,7 +2687,7 @@ namespace UnitLuaInterface
 			LUA_FAILURE("Invalid Y - value")
 		}
 
-		Game::Dimension::Camera* camera = Game::Rules::GameWindow::Instance()->GetCamera();
+		Game::Dimension::Camera* camera = &Game::Dimension::Camera::instance;
 		GLfloat zoom = camera->GetZoom();
 		GLfloat rotation = camera->GetRotation();
 
@@ -2735,7 +2735,7 @@ namespace UnitLuaInterface
 			LUA_FAILURE("Invalid rotation value. -360 < r < 360  r != 1")
 		}
 
-		Game::Rules::GameWindow::Instance()->GetCamera()->Rotate(rotation);
+		Game::Dimension::Camera::instance.Rotate(rotation);
 
 		LUA_SUCCESS
 	}
@@ -2754,7 +2754,7 @@ namespace UnitLuaInterface
 
 		GLfloat zoom = (GLfloat)lua_tonumber(pVM, 1);
 
-		Game::Rules::GameWindow::Instance()->GetCamera()->Zoom(zoom);
+		Game::Dimension::Camera::instance.Zoom(zoom);
 
 		LUA_SUCCESS
 	}
@@ -3025,7 +3025,6 @@ else \
 	int LCreateUnitType(lua_State* pVM)
 	{
 		UnitType *pUnitType;
-		const char* model;
 		Player *player = GetPlayerByVMstate(pVM);
 
 		if (!lua_istable(pVM, 1))
@@ -3092,22 +3091,26 @@ else \
 		}
 		lua_pop(pVM, 1);
 
-		lua_getfield(pVM, 1, "model");
-		if (!lua_isstring(pVM, 2))
 		{
+			const char* model;
+
+			lua_getfield(pVM, 1, "model");
+			if (!lua_isstring(pVM, 2))
+			{
+				lua_pop(pVM, 1);
+				LUA_FAILURE("Required field \"model\" not found in unit description or is not a string")
+			}
+			model = lua_tostring(pVM, 2);
 			lua_pop(pVM, 1);
-			LUA_FAILURE("Required field \"model\" not found in unit description or is not a string")
-		}
-		model = lua_tostring(pVM, 2);
-		lua_pop(pVM, 1);
 
-		pUnitType->mesh = LoadOgreXMLModel(std::string(model));
-					
-		if(pUnitType->mesh == NULL)
-		{
-			LUA_FAILURE("Model could not be found or loaded")
+			pUnitType->mesh = LoadOgreXMLModel(std::string(model));
+						
+			if(pUnitType->mesh == NULL)
+			{
+				LUA_FAILURE("Model " << model << " could not be found or loaded")
+			}
 		}
-
+		
 		InterpretStringTableField(pVM, "canBuild", pUnitType->canBuildIDs);
 		InterpretStringTableField(pVM, "canResearch", pUnitType->canResearchIDs);
 
@@ -3172,6 +3175,12 @@ else \
 				LUA_FAILURE("Required field \"model\" not found in projectiletype table or is not a string")
 			}
 			pUnitType->projectileType->mesh = LoadOgreXMLModel(std::string(lua_tostring(pVM, -1)));
+			
+			if(pUnitType->projectileType->mesh == NULL)
+			{
+				LUA_FAILURE("Model " << lua_tostring(pVM, -1) << " could not be found or loaded")
+			}
+
 			lua_pop(pVM, 1);
 
 			GET_FLOAT_FIELD_OPTIONAL(pUnitType->projectileType->size, "size", 0.0)
@@ -3220,7 +3229,9 @@ else \
 			pUnitType->actionSounds[i] = NULL;
 		}
 
-		lua_pushlightuserdata(pVM, pUnitType);
+		pUnitType->globalIndex = allUnitTypes.size();
+
+		lua_pushlightuserdata(pVM, (void*) pUnitType->globalIndex);
 		lua_setfield(pVM, 1, "pointer");
 
 		lua_pushvalue(pVM, 1); // Create a copy of the unittype table

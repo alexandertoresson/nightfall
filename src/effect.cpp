@@ -815,6 +815,20 @@ namespace Game
 			glPopMatrix();
 			return RUNNING;
 		}
+		
+		ParticleNode::ParticleNode()
+		{
+			
+		}
+
+		void ParticleNode::Render()
+		{
+			matrices[MATRIXTYPE_MODELVIEW].Apply();
+			pParticleSystems->Render();
+		}
+
+		ParticleNode ParticleNode::instance;
+
 	}
 }
 

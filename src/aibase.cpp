@@ -1048,17 +1048,17 @@ namespace Game
 			}
 		}
 
-		void CommandUnits(vector<Dimension::Unit*> pUnits, int x, int y, UnitAction action, void* argument, bool queue, bool insert)
+		void CommandUnits(const vector<Dimension::Unit*>& pUnits, int x, int y, UnitAction action, void* argument, bool queue, bool insert)
 		{
-			for (vector<Dimension::Unit*>::iterator it = pUnits.begin(); it != pUnits.end(); it++)
+			for (vector<Dimension::Unit*>::const_iterator it = pUnits.begin(); it != pUnits.end(); it++)
 			{
 				CommandUnit(*it, x, y, action, argument, queue, insert);
 			}
 		}
 
-		void CommandUnits(vector<Dimension::Unit*> pUnits, Dimension::Unit* destination, UnitAction action, void* argument, bool queue, bool insert)
+		void CommandUnits(const vector<Dimension::Unit*>& pUnits, Dimension::Unit* destination, UnitAction action, void* argument, bool queue, bool insert)
 		{
-			for (vector<Dimension::Unit*>::iterator it = pUnits.begin(); it != pUnits.end(); it++)
+			for (vector<Dimension::Unit*>::const_iterator it = pUnits.begin(); it != pUnits.end(); it++)
 			{
 				CommandUnit(*it, destination, action, argument, queue, insert);
 			}

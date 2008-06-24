@@ -338,10 +338,12 @@ namespace Game
 			if (pGame->build_type)
 			{
 				pGame->build_type = NULL;
+				Dimension::UnitMainNode::instance.ScheduleBuildOutlineDeletion();
 				return;
 			}
 
-			if (Dimension::unitsSelected.size())
+			const std::vector<Dimension::Unit*> unitsSelected = Dimension::GetSelectedUnits();
+			if (unitsSelected.size())
 			{
 				int map_x = 0, map_y = 0;
 				int ter_x = 0, ter_y = 0;
@@ -374,9 +376,9 @@ namespace Game
 					else
 					{
 						bool canRepair = false;
-						for (unsigned int i = 0; i < Dimension::unitsSelected.at(0)->type->canBuild.size(); i++)
+						for (unsigned int i = 0; i < unitsSelected[0]->type->canBuild.size(); i++)
 						{
-							if (Dimension::unitsSelected.at(0)->type->canBuild.at(i) == unit->type)
+							if (unitsSelected[0]->type->canBuild.at(i) == unit->type)
 							{
 								canRepair = true;
 								break;
@@ -421,26 +423,26 @@ namespace Game
 					}
 				}
 
-				if (Dimension::unitsSelected.size() == 1)
+				if (unitsSelected.size() == 1)
 				{
 					if (clicked_on_unit)
 					{
-						AI::CommandUnit(Dimension::unitsSelected.at(0), unit, action, arg, shift_pressed, false);
+						AI::CommandUnit(unitsSelected[0], unit, action, arg, shift_pressed, false);
 					}
 					else if (clicked_on_ground)
 					{
-						AI::CommandUnit(Dimension::unitsSelected.at(0), ter_x, ter_y, action, arg, shift_pressed, false);
+						AI::CommandUnit(unitsSelected[0], ter_x, ter_y, action, arg, shift_pressed, false);
 					}
 				}
 				else
 				{
 					if (clicked_on_unit)
 					{
-						AI::CommandUnits(Dimension::unitsSelected, unit, action, arg, shift_pressed, false);
+						AI::CommandUnits(unitsSelected, unit, action, arg, shift_pressed, false);
 					}
 					else if (clicked_on_ground)
 					{
-						AI::CommandUnits(Dimension::unitsSelected, ter_x, ter_y, action, arg, shift_pressed, false);
+						AI::CommandUnits(unitsSelected, ter_x, ter_y, action, arg, shift_pressed, false);
 					}
 				}
 			}
@@ -472,32 +474,7 @@ namespace Game
 
 		void GameInput::AddSelectedUnit(Dimension::Unit* unit)
 		{
-			if (unit->owner == Dimension::currentPlayerView)
-			{
-				for (unsigned i = 0; i < Dimension::unitsSelected.size(); i++)
-				{
-					if (Dimension::unitsSelected[i]->owner != Dimension::currentPlayerView)
-					{
-						Dimension::unitsSelected.erase(Dimension::unitsSelected.begin() + i--);
-						continue;
-					}
-					if (unit == Dimension::unitsSelected[i])
-					{
-						return;
-					}
-				}
-			}
-			else
-			{
-				for (vector<Dimension::Unit*>::iterator it = Dimension::unitsSelected.begin(); it != Dimension::unitsSelected.end(); it++)
-				{
-					if (unit == *it || (*it)->owner == Dimension::currentPlayerView)
-					{
-						return;
-					}
-				}
-			}
-			Dimension::unitsSelected.push_back(unit);
+			Dimension::SelectUnit(unit);
 		}
 
 		void GameInput::MouseUpLeft(SDL_Event* event,Window::GUI::TranslatedMouse* translatedMouse)
@@ -522,15 +499,17 @@ namespace Game
 				{
 					if (Dimension::SquaresAreWalkable(pGame->build_type, ter_x, ter_y, Dimension::SIW_IGNORE_OWN_MOBILE_UNITS))
 					{
-						if (Dimension::unitsSelected.size() == 1)
+						const std::vector<Dimension::Unit*> unitsSelected = Dimension::GetSelectedUnits();
+						if (unitsSelected.size() == 1)
 						{
-							AI::CommandUnit(Dimension::unitsSelected.at(0), ter_x, ter_y, AI::ACTION_BUILD, (void*) pGame->build_type, true, false);
+							AI::CommandUnit(unitsSelected.at(0), ter_x, ter_y, AI::ACTION_BUILD, (void*) pGame->build_type, true, false);
 						}
 						else
 						{
-							AI::CommandUnits(Dimension::unitsSelected, ter_x, ter_y, AI::ACTION_BUILD, (void*) pGame->build_type, true, false);
+							AI::CommandUnits(unitsSelected, ter_x, ter_y, AI::ACTION_BUILD, (void*) pGame->build_type, true, false);
 						}
 						pGame->build_type = NULL;
+						Dimension::UnitMainNode::instance.ScheduleBuildOutlineDeletion();
 					}
 				}
 			}
@@ -553,7 +532,7 @@ namespace Game
 
 					if (!pGame->input->GetKeyState(SDLK_LSHIFT))
 					{
-						Dimension::unitsSelected.clear();
+						Dimension::DeselectAllUnits();
 					}
 
 					Utilities::Vector3D win_coord;
@@ -571,7 +550,7 @@ namespace Game
 					Dimension::GetApproximateMapPosOfClick((*event).button.x, (*event).button.y, map_x, map_y);							
 					if (!pGame->input->GetKeyState(SDLK_LSHIFT))
 					{
-						Dimension::unitsSelected.clear();
+						Dimension::DeselectAllUnits();
 					}
 					unit = Dimension::GetUnitClicked((*event).button.x, (*event).button.y, map_x, map_y);
 					if (unit)
@@ -612,21 +591,22 @@ namespace Game
 
 		void GameInput::SetTypeToBuild(unsigned int num)
 		{
-			if (Dimension::unitsSelected.size())
+			const std::vector<Dimension::Unit*> unitsSelected = Dimension::GetSelectedUnits();
+			if (unitsSelected.size())
 			{
-				Dimension::Unit* unit = Dimension::unitsSelected.at(0);
+				Dimension::Unit* unit = unitsSelected[0];
 				if (unit->type->canBuild.size() >= num)
 				{
 					pGame->build_type = unit->type->canBuild.at(num-1);
 					if (!unit->type->isMobile)
 					{
-						if (Dimension::unitsSelected.size() == 1)
+						if (unitsSelected.size() == 1)
 						{
-							AI::CommandUnit(Dimension::unitsSelected.at(0), 0, 0, AI::ACTION_BUILD, (void*) pGame->build_type, true, false);
+							AI::CommandUnit(unitsSelected[0], 0, 0, AI::ACTION_BUILD, (void*) pGame->build_type, true, false);
 						}
 						else
 						{
-							AI::CommandUnits(Dimension::unitsSelected, 0, 0, AI::ACTION_BUILD, (void*) pGame->build_type, true, false);
+							AI::CommandUnits(unitsSelected, 0, 0, AI::ACTION_BUILD, (void*) pGame->build_type, true, false);
 						}
 						pGame->build_type = NULL;
 					}
@@ -636,12 +616,13 @@ namespace Game
 
 		void GameInput::SetGroup(unsigned int num)
 		{
-			Dimension::unitGroups[num] = Dimension::unitsSelected;
+			Dimension::unitGroups[num] = Dimension::GetSelectedUnits();
 		}
 
 		void GameInput::RecallGroup(unsigned int num)
 		{
-			Dimension::unitsSelected = Dimension::unitGroups[num];
+			Dimension::DeselectAllUnits();
+			AddGroup(num);
 		}
 
 		void GameInput::AddGroup(unsigned int num)
@@ -654,6 +635,7 @@ namespace Game
 
 		int GameInput::HandleEvent(Window::GUI::EventType evtType, SDL_Event* event, Window::GUI::TranslatedMouse* translatedMouse)
 		{
+			Dimension::Camera::instance.GetMatrix(Scene::Graph::Node::MATRIXTYPE_MODELVIEW).Apply();
 			/*
 			*  Keyboard-event: key down - updates key status through
 			*  (InputController) input
@@ -672,7 +654,10 @@ namespace Game
 								pGame->returnValue = INGAMEMENU;
 							}
 							else
+							{
 								pGame->build_type = NULL;
+								Dimension::UnitMainNode::instance.ScheduleBuildOutlineDeletion();
+							}
 
 							break;
 						}
@@ -710,9 +695,10 @@ namespace Game
 						{
 							if(Dimension::GetCurrentPlayer()->vUnits.size() > 0)
 							{
-								for (unsigned i = 0; i < Dimension::unitsSelected.size(); i++)
+								const std::vector<Dimension::Unit*> unitsSelected = Dimension::GetSelectedUnits();
+								for (unsigned i = 0; i < unitsSelected.size(); i++)
 								{
-									Dimension::Unit* p = Dimension::unitsSelected.at(i);
+									Dimension::Unit* p = unitsSelected[i];
 
 									if (p->owner == Dimension::currentPlayer)
 									{
@@ -969,6 +955,7 @@ namespace Game
 					{
 						Dimension::GetApproximateMapPosOfClick((*event).motion.x, (*event).motion.y, map_x, map_y);
 						Dimension::GetTerrainPosClicked((*event).button.x, (*event).button.y, map_x, map_y, pGame->build_x, pGame->build_y);
+						Dimension::UnitMainNode::instance.ScheduleBuildOutlineAddition(pGame->build_type, pGame->build_x, pGame->build_y);
 					}
 					break;
 				}
@@ -979,11 +966,11 @@ namespace Game
 					*/
 					if ((*event).button.button == SDL_BUTTON_WHEELUP)
 					{
-						pGame->worldCamera->Zoom(-60.0f * time_since_last_frame);
+						Dimension::Camera::instance.Zoom(-60.0f * time_since_last_frame);
 					}
 					else if ((*event).button.button == SDL_BUTTON_WHEELDOWN)
 					{
-						pGame->worldCamera->Zoom(60.0f * time_since_last_frame);
+						Dimension::Camera::instance.Zoom(60.0f * time_since_last_frame);
 					}
 					break;
 				}
@@ -1282,7 +1269,7 @@ namespace Game
 				SetElement(build_panel, obj, typeWidget);
 				pActions->SetSelected(selected);
 				buildSelected = false;
-				if(Dimension::unitsSelected.size() == 1)
+				if(Dimension::GetSelectedUnits().size() == 1)
 					SwitchBuild();
 			}
 			else
@@ -1535,16 +1522,17 @@ namespace Game
 			{
 				UnitBuild::InternalHandler* obj = (UnitBuild::InternalHandler*)pTag;
 				cout << "Build ID: " << obj->buildID << endl;
+				const std::vector<Dimension::Unit*> unitsSelected = Dimension::GetSelectedUnits();
 				if (obj->parent->pUnit->type->canBuild.size() <= (unsigned) obj->buildID)
 				{
 					Game::Dimension::Research* research = obj->parent->pUnit->type->canResearch.at(obj->buildID - obj->parent->pUnit->type->canBuild.size());
-					if (Dimension::unitsSelected.size() == 1)
+					if (unitsSelected.size() == 1)
 					{
 						AI::CommandUnit(obj->parent->pGame->buildingUnit, 0, 0, AI::ACTION_RESEARCH, (void*)research, true, false);
 					}
 					else
 					{
-						AI::CommandUnits(Dimension::unitsSelected, 0, 0, AI::ACTION_RESEARCH, (void*)research, true, false);
+						AI::CommandUnits(unitsSelected, 0, 0, AI::ACTION_RESEARCH, (void*)research, true, false);
 					}
 				}
 				else
@@ -1552,13 +1540,13 @@ namespace Game
 					obj->parent->pGame->build_type = obj->parent->pUnit->type->canBuild.at(obj->buildID);
 					if (!obj->parent->pGame->buildingUnit->type->isMobile)
 					{
-						if (Dimension::unitsSelected.size() == 1)
+						if (unitsSelected.size() == 1)
 						{
 							AI::CommandUnit(obj->parent->pGame->buildingUnit, 0, 0, AI::ACTION_BUILD, (void*)obj->parent->pGame->build_type, true, false);
 						}
 						else
 						{
-							AI::CommandUnits(Dimension::unitsSelected, 0, 0, AI::ACTION_BUILD, (void*)obj->parent->pGame->build_type, true, false);
+							AI::CommandUnits(unitsSelected, 0, 0, AI::ACTION_BUILD, (void*)obj->parent->pGame->build_type, true, false);
 						}
 						obj->parent->pGame->build_type = NULL;
 					}
@@ -1581,7 +1569,7 @@ namespace Game
 
 		void UnitSelected::Update()
 		{
-			int unitCount = Dimension::unitsSelected.size();
+			int unitCount = Dimension::GetSelectedUnits().size();
 			if(unitCount == 0)
 			{
 				wBox = 1.0f;
@@ -1627,7 +1615,7 @@ namespace Game
 					hBox = wBox;
 					txBox = tmpW;
 					tyBox = tmpW;
-					colCount = Dimension::unitsSelected.size();
+					colCount = Dimension::GetSelectedUnits().size();
 				}
 				else
 				{
@@ -1636,7 +1624,7 @@ namespace Game
 					hBox = 1.0f;
 					txBox = 1.0f;
 					tyBox = 1.0f;
-					colCount = Dimension::unitsSelected.size();
+					colCount = Dimension::GetSelectedUnits().size();
 				}
 			}
 		}
@@ -1678,8 +1666,9 @@ namespace Game
 			int i = 0;
 
 			glEnable(GL_TEXTURE_2D);
-			vector<Dimension::Unit*>::iterator iter =  Dimension::unitsSelected.begin();
-			while(iter != Dimension::unitsSelected.end())
+			const std::vector<Dimension::Unit*> unitsSelected = Dimension::GetSelectedUnits();
+			vector<Dimension::Unit*>::const_iterator iter =  unitsSelected.begin();
+			while(iter != unitsSelected.end())
 			{
 				if(colc == this->colCount)
 				{
@@ -1966,7 +1955,7 @@ namespace Game
 					{
 						float terrainX = MouseCoord->x * (Dimension::pWorld->width - 1);
 						float terrainY = MouseCoord->y * (Dimension::pWorld->height - 1);
-						GameWindow::Instance()->GetCamera()->SetFocus(terrainX, terrainY);
+						Dimension::Camera::instance.SetFocus(terrainX, terrainY);
 					}
 					break;
 				}
@@ -1975,7 +1964,7 @@ namespace Game
 					mouseDown = false;
 					float terrainX = MouseCoord->x * (Dimension::pWorld->width - 1);
 					float terrainY = MouseCoord->y * (Dimension::pWorld->height - 1);
-					GameWindow::Instance()->GetCamera()->SetFocus(terrainX, terrainY);
+					Dimension::Camera::instance.SetFocus(terrainX, terrainY);
 					break;
 				}
 				default:
@@ -2102,6 +2091,7 @@ namespace Game
 				glVertex2f(0.0f, 1.0f);
 			glEnd();
 
+			glDisable(GL_TEXTURE_2D);
 			for(vector<Dimension::Unit*>::iterator iter = Dimension::pWorld->vUnits.begin(); iter != Dimension::pWorld->vUnits.end(); iter++)
 			{
 				if(UnitIsVisible(*iter, Dimension::currentPlayerView))
@@ -2116,8 +2106,7 @@ namespace Game
 					float h = PixelAlign((float)pUnit->type->heightOnMap / Dimension::pWorld->height, xUnit) + xUnit;
 					glPushMatrix();
 					glTranslatef(PixelAlign(x, xUnit), PixelAlign(y, xUnit), 0);
-					glBindTexture(GL_TEXTURE_2D, pUnit->owner->texture);
-					glColor4f(1.0f,1.0f,1.0f, 0.5f);
+					glColor4f(pUnit->owner->colours[0].val[0],pUnit->owner->colours[0].val[1],pUnit->owner->colours[0].val[2], 0.5f);
 					glBegin(GL_QUADS);
 						glVertex2f(0.0f, 0.0f);
 						glVertex2f(w, 0.0f);
@@ -2128,7 +2117,6 @@ namespace Game
 				}
 			}
 			
-			glDisable(GL_TEXTURE_2D);
 			glPopMatrix();
 			return SUCCESS;
 		}

@@ -21,6 +21,6 @@ ut.lightPowerUsage = 3.0
 	
 ut.symbol = "textures/lighttower_bigger.png"
 
-ut.model = "models/lighttower_bigger.wrl#lighttower_bigger"
+ut.model = "models/mediumLightTower"
 
 CreateUnitType(ut)

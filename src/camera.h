@@ -11,12 +11,13 @@
 
 #include "vector3d.h"
 #include "sdlheader.h"
+#include "scenegraph.h"
 
 namespace Game
 {
 	namespace Dimension
 	{
-		class Camera
+		class Camera : public Scene::Graph::Node
 		{
 			private:
 				Utilities::Vector3D mPosition;
@@ -25,7 +26,6 @@ namespace Game
 				Utilities::Vector3D mFocus;
 				GLfloat mYMax, mYMin, mZoom, mRotation;
 				
-			public:
 				Camera(void)     : mPosition(Utilities::Vector3D(0.0f, 0.0f, 0.0f)),
 				                   mView(Utilities::Vector3D(0.0f, 0.0f, 0.0f)),
 				                   mUp(Utilities::Vector3D(0.0f, 1.0f, 0.0f)),
@@ -35,16 +35,11 @@ namespace Game
 								   mZoom(2.0f),
 								   mRotation(0.0f)
 				{}
-				Camera(Utilities::Vector3D position,
-				       Utilities::Vector3D view) : mPosition(position),
-												   mView(view),
-												   mYMax(10.0f),
-												   mYMin(0),
-												   mZoom(2.0f),
-												   mRotation(0.0f)
-				{}
-								
-				void PointCamera(void);
+				
+			protected:
+				virtual void ApplyMatrix();
+				virtual void PostRender();
+			public:
 				void SetCamera(Utilities::Vector3D, GLfloat, GLfloat);
 				void SetCamera(Unit* unit, GLfloat zoom, GLfloat rotation);
 				void SetFocus(float terrain_x, float terrain_y);
@@ -68,6 +63,8 @@ namespace Game
 				GLfloat GetRotation(void) const { return mRotation; }
 
 				const Utilities::Vector3D* GetPosVector(void) { return &mPosition; };
+
+				static Camera instance;
 		};
 		
 		extern float cameraRotationSpeed;

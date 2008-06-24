@@ -17,7 +17,7 @@ ut.researchCost = 350
 
 ut.powerUsage = 2.0
 	
-ut.model = "models/cube3.wrl#OB_Cube"
+ut.model = "models/cube"
 ut.canBuild = {"SmallAttackRobot",
                "LargeAttackRobot",
                "PortableLightSource"}

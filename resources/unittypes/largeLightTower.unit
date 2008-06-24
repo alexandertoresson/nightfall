@@ -21,6 +21,6 @@ ut.lightPowerUsage = 4.5
 
 ut.symbol = "textures/lighttower_biggest.png"
 
-ut.model = "models/lighttower_biggest.wrl#lighttower_biggest"
+ut.model = "models/largeLightTower"
 
 CreateUnitType(ut)

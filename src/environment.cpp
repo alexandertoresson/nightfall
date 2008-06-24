@@ -931,6 +931,34 @@ namespace Game
 				m_prepared = true;
 				return true;
 			}
+
+			
+			EnvironmentNode::EnvironmentNode()
+			{
+				
+			}
+
+			void EnvironmentNode::Render()
+			{
+				matrices[MATRIXTYPE_MODELVIEW].Apply();
+				FourthDimension::Instance()->ApplyLight();
+				TraverseAllChildren();
+			}
+
+			EnvironmentNode EnvironmentNode::instance;
+			
+			SkyboxNode::SkyboxNode()
+			{
+				
+			}
+
+			void SkyboxNode::Render()
+			{
+				matrices[MATRIXTYPE_MODELVIEW].Apply();
+				FourthDimension::Instance()->RenderSkyBox();
+			}
+
+			SkyboxNode SkyboxNode::instance;
 		}
 	}
 }

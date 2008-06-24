@@ -119,7 +119,6 @@ namespace Game
 
 		extern std::vector<Unit*> **unitBigSquares;
 
-		extern std::vector<Unit*> unitsSelected;
 		extern std::vector<Unit*> unitsDisplayQueue;
 		extern std::vector<Unit*> unitGroups[10];
 
@@ -141,6 +140,11 @@ namespace Game
 		void HandleProjectiles(Unit* pUnit);
 		bool CanReach(Unit* attacker, Unit* target);
 		void ChangePath(Unit* pUnit, int goal_x, int goal_y, AI::UnitAction action, Unit* target, void* arg, float rotation);
+
+		void SelectUnit(Unit* unit);
+		void DeselectUnit(Unit* unit);
+		void DeselectAllUnits();
+		const std::vector<Unit*> GetSelectedUnits();
 		
 		Unit* GetUnitClicked(int clickx, int clicky, int map_x, int map_y);
 
@@ -151,6 +155,7 @@ namespace Game
 		Unit* CreateUnit(unsigned type, Player *owner, int x, int y, int id = -1, bool complete = true);
 		bool ScheduleDisplayUnit(Unit* unit, int x, int y);
 		void DisplayScheduledUnits();
+		void RemoveUnitFromLists(Unit* unit);
 		void DeleteUnit(Unit* unit);
 		void KillUnit(Unit* unit);
 		void ScheduleUnitDeletion(Unit* unit);

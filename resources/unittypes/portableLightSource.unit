@@ -28,6 +28,6 @@ ut.powerUsage = 1.5
 ut.lightPowerUsage = 4.0
 ut.movePowerUsage = 0.5
 	
-ut.model = "models/tank_mega.wrl#LargeVehicle_Mega"
+ut.model = "models/explorer"
 
 CreateUnitType(ut)

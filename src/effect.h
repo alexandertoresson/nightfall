@@ -6,6 +6,7 @@
 #endif
 
 #include "effect-pre.h"
+#include "scenegraph.h"
 
 #include "sdlheader.h"
 #include "randomgenerator.h"
@@ -248,6 +249,17 @@ namespace Game
 				void Iterate(float time);
 				ParticleStats Render();
 		};
+		
+		class ParticleNode : public Scene::Graph::Node
+		{
+			private:
+				ParticleNode();
+			protected:
+				virtual void Render();
+			public:
+				static ParticleNode instance;
+		};
+
 	}
 }
 

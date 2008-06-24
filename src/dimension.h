@@ -10,6 +10,7 @@
 #include "sdlheader.h"
 #include "aibase.h"
 #include "luawrapper.h"
+#include "materialxml-pre.h"
 
 #include <vector>
 
@@ -119,7 +120,7 @@ namespace Game
 			PlayerState*      states;
 			Resources         resources;
 			Resources         oldResources;
-			GLuint            texture;
+			std::vector<Utilities::Colour> colours;
 			int               index;
 			AI::PlayerAIFuncs playerAIFuncs;
 			AI::UnitAIFuncs   unitAIFuncs;
@@ -134,7 +135,7 @@ namespace Game
 			Utilities::Scripting::LuaVMState raceState;
 			Utilities::Scripting::LuaVMState aiState;
 
-			Player(std::string name, PlayerType playertype, std::string playertexture, std::string raceScript, std::string aiScript);
+			Player(std::string name, PlayerType playertype, std::string raceScript, std::string aiScript, Utilities::Colour colour0, Utilities::Colour colour1, Utilities::Colour colour2);
 
 			~Player();
 		};

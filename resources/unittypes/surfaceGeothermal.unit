@@ -18,6 +18,6 @@ ut.powerIncrement = 5.0
 ut.powerType = PowerType.TwentyFourSeven 
 ut.powerUsage = 1.0
 	
-ut.model = "models/cube3.wrl#OB_Cube"
+ut.model = "models/cube"
 
 CreateUnitType(ut)

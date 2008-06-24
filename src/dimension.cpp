@@ -40,19 +40,6 @@ namespace Game
 				mKeys[i] = false;
 		}
 
-		// Checks whether a unit is selected or not
-		bool IsUnitSelected(Unit* unit)
-		{
-			for (vector<Unit*>::iterator it = unitsSelected.begin(); it != unitsSelected.end(); it++)
-			{
-				if (unit == *it)
-				{
-					return true;
-				}
-			}
-			return false;
-		}
-		
 		// Get the approximate position of a click on the map
 		void GetApproximateMapPosOfClick(int clickx, int clicky, int &map_x, int &map_y)
 		{
@@ -124,11 +111,10 @@ namespace Game
 			}
 		}
 
-		Player::Player(std::string name, PlayerType playertype, std::string playertexture, std::string raceScript, std::string aiScript) : raceState(this), aiState(this)
+		Player::Player(std::string name, PlayerType playertype, std::string raceScript, std::string aiScript, Utilities::Colour colour0, Utilities::Colour colour1, Utilities::Colour colour2) : raceState(this), aiState(this)
 		{
 			this->name = name;
 			this->type = playertype;
-			this->texture = Utilities::LoadGLTexture(playertexture.c_str());
 			this->index = pWorld->vPlayers.size();
 			this->states = NULL;
 			this->resources.money = 1000;
@@ -139,6 +125,10 @@ namespace Game
 			this->isRemote = false;
 			this->raceScript = raceScript;
 			this->aiScript = aiScript;
+
+			this->colours.push_back(colour0);
+			this->colours.push_back(colour1);
+			this->colours.push_back(colour2);
 
 			this->playerAIFuncs.performPlayerAI.func = "PerformAI_Player";
 			this->playerAIFuncs.performPlayerAI.delay = 6;
@@ -392,7 +382,7 @@ namespace Game
 						Unit* unit = pWorld->vUnits[i];
 						if (unit->type == *it && unit->isDisplayed)
 						{
-							DeleteUnit(unit);
+							KillUnit(unit);
 						}
 						else
 						{
@@ -415,7 +405,10 @@ namespace Game
 			
 			//Deallocate Units
 			while(pWorld->vUnits.size() > 0)
-				DeleteUnit(pWorld->vUnits.at(0));
+			{
+				RemoveUnitFromLists(pWorld->vUnits[0]);
+				DeleteUnit(pWorld->vUnits[0]);
+			}
 
 //			AI::ClearPathNodeStack();
 

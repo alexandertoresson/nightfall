@@ -1,0 +1,43 @@
+
+namespace a = "http://relaxng.org/ns/compatibility/annotations/1.0"
+
+start = selector
+selector =
+	element selector {
+		attribute version { xsd:decimal },
+		(mesh | switch | include)+
+	}
+
+mesh =
+	element mesh {
+		attribute material { xsd:text }?,
+		attribute mesh { xsd:text }?,
+		submesh+
+	}
+submesh =
+	element submesh {
+		attribute material { xsd:text }
+	}
+
+include =
+	element include {
+		attribute name { xsd:text }
+	}
+
+switch =
+	element switch {
+		attribute option { xsd:NCName },
+		case+,
+		default?
+	}
+case =
+	element case {
+		attribute value { text },
+		attribute fallthrough { xsd:boolean },
+		(mesh | switch | include)*
+	}
+default =
+	element default {
+		attribute fallthrough { xsd:boolean },
+		(mesh | switch | include)*
+	}

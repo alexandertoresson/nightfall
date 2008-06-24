@@ -2,6 +2,7 @@
 #define __CHUNKALLOCATOR_H__
 
 #include <stack>
+#include <iostream>
 
 namespace Utilities
 {
@@ -44,6 +45,10 @@ namespace Utilities
 			if (itemsHandedOut > 0)
 			{
 				itemsHandedOut--;
+			}
+			else
+			{
+				std::cout << "miss" << std::endl;
 			}
 		}
 

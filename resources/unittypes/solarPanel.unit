@@ -8,8 +8,8 @@ ut.isResearched = true
 
 ut.sightRange = 5.0
 ut.movementType = MovementType.Building
-ut.size = 3.0
-ut.height = 1.0
+ut.size = 0.3
+ut.height = 0.2
 ut.buildTime = 30.0
 ut.buildCost = 100
 ut.researchTime = 60.0
@@ -20,6 +20,6 @@ ut.powerType = PowerType.DayLight
 
 ut.symbol = "textures/sunpanel.png"
 
-ut.model = "models/sunpanel.wrl#sunpanel"
+ut.model = "models/solarPanel"
 
 CreateUnitType(ut)

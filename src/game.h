@@ -27,7 +27,6 @@ namespace Game
 	{
 		void WaitForNetwork();
 		int GameMain(void);
-		void PrintGLError();
 
 		class GameWindow : public Window::GUI::GUIWindow
 		{
@@ -71,8 +70,6 @@ namespace Game
 				Uint32 goto_time;
 				int pause;
 				
-				Dimension::Camera *worldCamera;
-
 				Window::GUI::InfoLabel *p_lblPower;
 				Window::GUI::InfoLabel *p_lblMoney;
 				Window::GUI::InfoLabel *p_lblTime;
@@ -85,6 +82,20 @@ namespace Game
 				void DestroyGUI();
 
 				int InitGame(bool is_new_game = true, bool isNetworked = false, Networking::NETWORKTYPE ntype = Networking::CLIENT);
+		
+				class GUINode : public Scene::Graph::Node
+				{
+					private:
+						Window::GUI::Panel* pMainPanel;
+						float w, h;
+						GUINode();
+					protected:
+						virtual void Render();
+					public:
+						static GUINode instance;
+						void SetParams(Window::GUI::Panel* pMainPanel, float w, float h);
+				};
+
 			public:
 				static GameWindow* Instance();
 				static void Destroy();
@@ -95,12 +106,10 @@ namespace Game
 				
 				int InitGUI(SDL_Surface* img);
 
-				Dimension::Camera* GetCamera(void) const;
 				Window::GUI::ConsoleBuffer* GetConsoleBuffer(void) const;
 
 				GameWindow();
 				bool PaintAll();
-				void PaintGame();
 				void PerformPreFrame();
 				void PerformPostFrame();
 				void ResetGame(); //Should perform last initalization, and game start.

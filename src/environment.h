@@ -216,6 +216,27 @@ namespace Game
 					void AddCondition(EnvironmentalCondition* const);
 					bool ValidateConditions(void);
 			};
+			
+			class EnvironmentNode : public Scene::Graph::Node
+			{
+				private:
+					EnvironmentNode();
+				protected:
+					virtual void Render();
+				public:
+					static EnvironmentNode instance;
+			};
+
+			class SkyboxNode : public Scene::Graph::Node
+			{
+				private:
+					SkyboxNode();
+				protected:
+					virtual void Render();
+				public:
+					static SkyboxNode instance;
+			};
+
 		}
 	}
 }

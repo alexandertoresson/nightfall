@@ -6,6 +6,7 @@
 #include "dimension.h"
 #include "unitsquares.h"
 #include "unit.h"
+#include "configuration.h"
 #include "utilities.h"
 #include <vector>
 #include <map>
@@ -129,8 +130,8 @@ namespace Audio
 			return error;
 
 		// GetValue gets the configuration value (quiote obvious, not?)
-		const char* musicDirectory = musicConfig.GetValue("music directory");
-		const char* soundDirectory = musicConfig.GetValue("sound directory");
+		const char* musicDirectory = musicConfig.GetValue("music directory").c_str();
+		const char* soundDirectory = musicConfig.GetValue("sound directory").c_str();
 
 		// Make sure there's given a valid value (and not a null-terminated string!)
 		if (musicDirectory[0] == 0)
@@ -245,7 +246,7 @@ namespace Audio
 			<< "Current mix volume: . " << GetChannelVolume(-1) << Console::nl;		
 
 		// Create audio list?
-		const char* createAudioList = musicConfig.GetValue("create audio list");
+		const char* createAudioList = musicConfig.GetValue("create audio list").c_str();
 
 		// Create a new audio handler. 
 		pAudioStates = new AudioStates;	
@@ -253,7 +254,7 @@ namespace Audio
 		if (createAudioList[0] != 0 && !strcmp(createAudioList, "yes"))
 		{
 			// Holds where the audio list is located
-			const char* audioListFile = musicConfig.GetValue("audio list");
+			const char* audioListFile = musicConfig.GetValue("audio list").c_str();
 
 			console << "Loading audio from audio list " << audioListFile << "..." << Console::nl;
 

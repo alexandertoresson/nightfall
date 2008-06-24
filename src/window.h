@@ -7,7 +7,6 @@
 
 #include "window-pre.h"
 
-#include "utilities-pre.h"
 #include "sdlheader.h"
 
 namespace Window
@@ -33,7 +32,7 @@ namespace Window
 	
 	// Öppna ett fönster genom att läsa innehållet ur en konfigurationsfil. 
 	// Kallar InitStatic efter värdena har lästs.
-	int   OpenDynamic(Utilities::ConfigurationFile* pConfigInterpreter);
+	int   OpenDynamic();
 	
 	// Öppnar ett fönster via statiska värden.
 	int   OpenStatic(int width, int height, int bpp, bool fullscreen);

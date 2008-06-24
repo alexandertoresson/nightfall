@@ -69,9 +69,6 @@ namespace Utilities
 			Vector3D operator *(float a) const;
 			Vector3D operator /(float a) const;
 			
-			// Multiplikation med en matris
-			Vector3D operator *(const Matrix4x4& a) const;
-			
 			// Hantering av C "förkortningar"
 			Vector3D& operator += (const Vector3D& a);
 			Vector3D& operator -= (const Vector3D& a);

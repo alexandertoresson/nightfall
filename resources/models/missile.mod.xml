@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<modifiers version="1.0">
+	<transforms>
+		<rotate degrees="90.0" x="0.0" y="0.0" z="1.0" />
+		<scale amount="0.01" />
+	</transforms>
+</modifiers>

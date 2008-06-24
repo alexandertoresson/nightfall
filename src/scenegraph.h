@@ -16,58 +16,70 @@ namespace Scene
 {
 	namespace Graph
 	{
-		enum MatrixType
-		{
-			MATRIXTYPE_VIEWPORT = 0,
-			MATRIXTYPE_MODELVIEW,
-			MATRIXTYPE_NUM
-		};
-
 		class Node
 		{
+			public:
+				enum MatrixType
+				{
+					MATRIXTYPE_VIEWPORT = 0,
+					MATRIXTYPE_MODELVIEW,
+					MATRIXTYPE_NUM
+				};
+
 			protected:
+		
+				virtual void ApplyMatrix();
 				virtual void PreRender();
 				virtual void Render();
 				virtual void PostRender();
 
-				std::vector<Node*> children;
+				std::map<int, Node*> children;
 				Node* parent;
 				static Utilities::Matrix4x4 matrices[MATRIXTYPE_NUM];
 				static std::stack<Utilities::Matrix4x4> mtxStack[MATRIXTYPE_NUM];
+				bool enabled;
+
+				void PushMatrix(MatrixType matType);
+				void PopMatrix(MatrixType matType);
 
 				virtual void TraverseAllChildren();
-				virtual void SendEventToAllChildren(Utilities::Vector3D v);
+				virtual bool SendEventToAllChildren(SDL_Event* event);
+
+				int lastPlacement;
 
 			public:
 				Node();
 				virtual ~Node();
 
+				virtual void AddChild(Node* node, int placement);
 				virtual void AddChild(Node* node);
 				virtual void RemoveChild(Node* node);
 
-				virtual void DeleteTree();		
+				virtual void DeleteTree(bool removeFromParent = true);
 				virtual void Traverse();
 
-				Utilities::Matrix4x4 GetMatrix(MatrixType type);
+				void SetEnabled(bool enabled);
+
+				Utilities::Matrix4x4 GetMatrix(MatrixType type, Node* baseNode = NULL);
 				
-				void BuildMatrices();
+				void BuildMatrices(Node* baseNode);
 				static void ResetMatrices();
 
-				virtual void HandleEvent(Utilities::Vector3D v);
+				virtual bool HandleEvent(SDL_Event* event);
 
 		};
 
 		class SwitchNode : public Node
 		{
 			private:
-				unsigned active;
+				int active;
 			protected:
 				virtual void Render();
 			public:
 				SwitchNode();
-				SwitchNode(unsigned a);
+				SwitchNode(int a);
 
-				void SetActive(unsigned a);
+				void SetActive(int a);
 		};
 
 		class MatrixNode : public Node
@@ -76,7 +88,7 @@ namespace Scene
 				Utilities::Matrix4x4 matrix;
 				MatrixType matType;
 			protected:
-				virtual void PreRender();
+				virtual void ApplyMatrix();
 				virtual void PostRender();
 			public:
 				MatrixNode(Utilities::Matrix4x4 mat, MatrixType matType);

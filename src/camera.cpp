@@ -1,6 +1,8 @@
 #include "camera.h"
 
 #include "unit.h"
+#include "vector3d.h"
+#include "matrix4x4.h"
 
 namespace Game
 {
@@ -10,15 +12,51 @@ namespace Game
 		float cameraFlySpeed      = 1.5f;
 		float cameraZoomSpeed     = 40.0f;
 
-		// Apply the camera settings to the opengl camera
-		void Camera::PointCamera(void)
+		void Camera::ApplyMatrix()
 		{
+			PushMatrix(MATRIXTYPE_MODELVIEW);
+
 			CheckPosition();
-			gluLookAt(mPosition.x, mPosition.y, mPosition.z, 
-			          mPosition.x + mView.x, mPosition.y + mView.y, mPosition.z + mView.z,
-			          mUp.x, mUp.y, mUp.z);
+
+			// Emulate gluLookAt
+
+			Utilities::Vector3D f, upn, s, u;
+			Utilities::Matrix4x4 m;
+
+			f = mView;
+			f.normalize();
+
+			upn = mUp;
+			upn.normalize();
+
+			s = f;
+			s.cross(upn);
+
+			u = s;
+			u.cross(f);
+
+			m.matrix[0][0] = s.x;
+			m.matrix[1][0] = s.y;
+			m.matrix[2][0] = s.z;
+
+			m.matrix[0][1] = u.x;
+			m.matrix[1][1] = u.y;
+			m.matrix[2][1] = u.z;
+
+			m.matrix[0][2] = -f.x;
+			m.matrix[1][2] = -f.y;
+			m.matrix[2][2] = -f.z;
+
+			matrices[MATRIXTYPE_MODELVIEW].MulBy(m);
+			matrices[MATRIXTYPE_MODELVIEW].Translate(-(mPosition + mView));
+
 		}
 		
+		void Camera::PostRender()
+		{
+			PopMatrix(MATRIXTYPE_MODELVIEW);
+		}
+
 		// Set camera settings manually to a specific setting
 		void Camera::SetCamera(Utilities::Vector3D focus, GLfloat zoom, GLfloat rotation)
 		{
@@ -171,6 +209,8 @@ namespace Game
 			mRotation += speed;
 			CheckPosition();
 		}
+		
+		Camera Camera::instance;
 	}
 }
 	

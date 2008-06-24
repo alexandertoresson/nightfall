@@ -23,9 +23,9 @@ namespace Game
 		// command/instruct a unit to do something at (x, y)
 		void CommandUnit(Dimension::Unit* unit, Dimension::Unit* destination, UnitAction action, void* argument, bool queue, bool insert); 
 		// command/instruct the unit to do something with another unit
-		void CommandUnits(std::vector<Dimension::Unit*> units, int x, int y, UnitAction action, void* argument, bool queue, bool insert);
+		void CommandUnits(const std::vector<Dimension::Unit*>& units, int x, int y, UnitAction action, void* argument, bool queue, bool insert);
 		// command/instruct several units to do something at (x, y)
-		void CommandUnits(std::vector<Dimension::Unit*> units, Dimension::Unit* destination, UnitAction action, void* argument, bool queue, bool insert); 
+		void CommandUnits(const std::vector<Dimension::Unit*>& units, Dimension::Unit* destination, UnitAction action, void* argument, bool queue, bool insert); 
 		// command/instruct several units to do something with another unit
 		// note: argument is an optional argument that is needed for for example the ACTION_BUILD action to say what should be built...
 		
@@ -42,7 +42,6 @@ namespace Game
 		void SendUnitEventToLua_BecomeIdle(Dimension::Unit* pUnit);
 
 		extern unsigned aiFps;
-		extern int aiFrame;
 	
 	}
 }

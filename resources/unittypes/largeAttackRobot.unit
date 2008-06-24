@@ -32,11 +32,11 @@ ut.powerUsage = 2.0
 ut.movePowerUsage = 1.0
 ut.attackPowerUsage = 2.0
 	
-ut.model = "models/largeattackrobot.wrl#LargeAttackRobot"
+ut.model = "models/largeAttackRobot"
 
 ut.projectileType =
 	{
-		model = "models/missile.wrl#Missile",
+		model = "models/missile",
 		areaOfEffect = 1.5,
 		startPos = {1.0, 0.0, 0.0},
 		speed = 12.0,

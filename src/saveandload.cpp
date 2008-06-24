@@ -295,7 +295,7 @@ namespace Game
 				
 		void OutputCamera(Utilities::XMLWriter &xmlfile)
 		{
-			Camera* camera = Rules::GameWindow::Instance()->GetCamera();
+			Camera* camera = &Game::Dimension::Camera::instance;
 			xmlfile.BeginTag("camera");
 				OutputVector3D(xmlfile, "focus", camera->GetFocus());
 				OutputFloat(xmlfile, "zoom", camera->GetZoom());
@@ -311,16 +311,6 @@ namespace Game
 			xmlfile.Open(filename);
 
 			xmlfile.BeginTag("nightfall_save_file");
-
-				xmlfile.BeginTag("test");
-				xmlfile.EndTag();
-
-				Utilities::AttrList attrs;
-				attrs["abc"] = "123";
-				attrs["def"] = "456";
-
-				xmlfile.BeginTag("test2", attrs);
-				xmlfile.EndTag();
 
 				OutputInt(xmlfile, "version", CURRENT_SAVEGAME_VERSION);
 
@@ -383,32 +373,32 @@ namespace Game
 		bool b;
 
 		// Basic atomic types
-		void ParseUint32(std::string text)
+		void ParseUint32(const std::string& text)
 		{
 			ui = (Uint32) atoi(text.c_str());
 		}
 
-		void ParseInt(std::string text)
+		void ParseInt(const std::string& text)
 		{
 			i = atoi(text.c_str());
 		}
 
-		void ParseFloat(std::string text)
+		void ParseFloat(const std::string& text)
 		{
 			f = (float) atof(text.c_str());
 		}
 
-		void ParseDouble(std::string text)
+		void ParseDouble(const std::string& text)
 		{
 			d = atof(text.c_str());
 		}
 
-		void ParseString(std::string text)
+		void ParseString(const std::string& text)
 		{
 			str = text;
 		}
 
-		void ParseBool(std::string text)
+		void ParseBool(const std::string& text)
 		{
 			b = text == "true" || text == "1";
 		}
@@ -883,7 +873,7 @@ namespace Game
 			elem->Iterate("rotation", ParseFloatBlock);
 			rotation = f;
 
-			Rules::GameWindow::Instance()->GetCamera()->SetCamera(focus, zoom, rotation);
+			Game::Dimension::Camera::instance.SetCamera(focus, zoom, rotation);
 		}
 
 		void ParseMain(Utilities::XMLElement *elem)

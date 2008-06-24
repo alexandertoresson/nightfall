@@ -1,0 +1,16 @@
+screen width		800
+screen height		600
+screen bpp			16
+fullscreen			0
+default font		fonts/vera.ttf
+application header	Nightfall (Codename Twilight)
+audio config		audio.txt
+
+camera rotation speed		40
+camera fly speed		3
+camera zoom speed		40
+
+lighting quality		low
+model quality			low
+terrain quality			low
+effect quality			low

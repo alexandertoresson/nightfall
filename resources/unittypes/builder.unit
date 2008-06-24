@@ -19,8 +19,8 @@ ut.attackRange = 1.5
 ut.movementSpeed = 6.0
 ut.movementType = MovementType.SmallVehicle
 ut.attackSpeed = 1.0
-ut.size = 1.0
-ut.height = 0.0
+ut.size = 0.5
+ut.height = 0.2
 ut.buildTime = 10.0
 ut.buildCost = 75
 ut.researchTime = 20.0
@@ -31,7 +31,7 @@ ut.movePowerUsage = 0.5
 ut.attackPowerUsage = 0.5
 ut.buildPowerUsage = 2.0
 
-ut.model = "models/builder.wrl#Builder"
+ut.model = "models/builder"
 ut.symbol = "textures/builder.png"
 
 --ut.sound = { "action=move,strength=10.0,sound=unitTest,index=0" }

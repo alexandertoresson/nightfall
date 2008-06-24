@@ -1,0 +1,33 @@
+namespace a = "http://relaxng.org/ns/compatibility/annotations/1.0"
+
+start = modifiers
+modifiers =
+	element modifiers {
+		attribute version { xsd:decimal },
+		transforms
+	}
+transforms =
+	element transforms {
+		(translate | rotate | scale)+
+	}
+translate = 
+	element translate {
+		attribute x { xsd:decimal },
+		attribute y { xsd:decimal },
+		attribute z { xsd:decimal }
+	}
+rotate = 
+	element rotate {
+		attribute degrees { xsd:decimal },
+		attribute x { xsd:decimal },
+		attribute y { xsd:decimal },
+		attribute z { xsd:decimal }
+	}
+scale = 
+	element scale {
+		attribute amount { xsd:decimal } |
+		(attribute x { xsd:decimal },
+		 attribute y { xsd:decimal },
+		 attribute z { xsd:decimal })
+	}
+	

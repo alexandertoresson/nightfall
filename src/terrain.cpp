@@ -3039,5 +3039,19 @@ namespace Game
 			delete [] pppElements;
 		}
 
+		TerrainNode::TerrainNode()
+		{
+			
+		}
+
+		void TerrainNode::Render()
+		{
+			matrices[MATRIXTYPE_MODELVIEW].Apply();
+			Dimension::DrawTerrain();
+			Dimension::DrawWater();
+		}
+
+		TerrainNode TerrainNode::instance;
+
 	}
 }	

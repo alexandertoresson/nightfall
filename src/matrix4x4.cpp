@@ -27,6 +27,12 @@ namespace Utilities
 		
 	}
 	
+	Matrix4x4& Matrix4x4::operator =(const Matrix4x4& a)
+	{
+		Set(a.matrix);
+		return *this;
+	}
+
 	void Matrix4x4::Identity()
 	{
 		for (int i = 0; i < 4; i++)
@@ -49,7 +55,7 @@ namespace Utilities
 		}
 	}
 	
-	void Matrix4x4::Set(float matrix[4][4])
+	void Matrix4x4::Set(const float matrix[4][4])
 	{
 		memcpy(this->matrix, matrix, sizeof(this->matrix));
 	}
@@ -78,12 +84,12 @@ namespace Utilities
 		return newmat;
 	}
 	
-	Vector3D Vector3D::operator *(const Matrix4x4& a) const
+	Vector3D Matrix4x4::operator *(const Vector3D& a) const
 	{
 		Vector3D newvec;
-		newvec.x = x * a.matrix[0][0] + y * a.matrix[1][0] + z * a.matrix[2][0] + a.matrix[3][0];
-		newvec.y = x * a.matrix[0][1] + y * a.matrix[1][1] + z * a.matrix[2][1] + a.matrix[3][1];
-		newvec.z = x * a.matrix[0][2] + y * a.matrix[1][2] + z * a.matrix[2][2] + a.matrix[3][2];
+		newvec.x = a.x * matrix[0][0] + a.y * matrix[1][0] + a.z * matrix[2][0] + matrix[3][0];
+		newvec.y = a.x * matrix[0][1] + a.y * matrix[1][1] + a.z * matrix[2][1] + matrix[3][1];
+		newvec.z = a.x * matrix[0][2] + a.y * matrix[1][2] + a.z * matrix[2][2] + matrix[3][2];
 		return newvec;
 	}
 
@@ -108,7 +114,7 @@ namespace Utilities
 	Matrix4x4 Matrix4x4::RotateXMatrix(float radians)
 	{
 		Matrix4x4 m;
-		float c = cos(radians), s = sin(radians);
+		float c = cos(-radians), s = sin(-radians);
 		m.matrix[1][1] = c;
 		m.matrix[1][2] = -s;
 		m.matrix[2][1] = s;
@@ -119,7 +125,7 @@ namespace Utilities
 	Matrix4x4 Matrix4x4::RotateYMatrix(float radians)
 	{
 		Matrix4x4 m;
-		float c = cos(radians), s = sin(radians);
+		float c = cos(-radians), s = sin(-radians);
 		m.matrix[0][0] = c;
 		m.matrix[0][2] = s;
 		m.matrix[2][0] = -s;
@@ -130,11 +136,30 @@ namespace Utilities
 	Matrix4x4 Matrix4x4::RotateZMatrix(float radians)
 	{
 		Matrix4x4 m;
-		float c = cos(radians), s = sin(radians);
+		float c = cos(-radians), s = sin(-radians);
 		m.matrix[0][0] = c;
 		m.matrix[0][1] = -s;
 		m.matrix[1][0] = s;
 		m.matrix[1][1] = c;
+		return m;
+	}
+
+	Matrix4x4 Matrix4x4::RotateMatrix(float radians, float x, float y, float z)
+	{
+		Matrix4x4 m;
+		float c = cos(-radians), s = sin(-radians), t = 1 - c;
+		float tx = t * x, ty = t * y, tz = t * z;
+		float txy = tx * y, txz = tx * z, tyz = ty * z;
+		float sx = s * x, sy = s * y, sz = s * z;
+		m.matrix[0][0] = tx * x + c;
+		m.matrix[0][1] = txy - sz;
+		m.matrix[0][2] = txz + sy;
+		m.matrix[1][0] = txy + sz;
+		m.matrix[1][1] = ty * y + c;
+		m.matrix[1][2] = tyz - sx;
+		m.matrix[2][0] = txz - sy;
+		m.matrix[2][1] = tyz + sx;
+		m.matrix[2][2] = tz * z + c;
 		return m;
 	}
 
@@ -163,14 +188,14 @@ namespace Utilities
 		MulBy(RotateZMatrix(radians));
 	}
 	
-	void Matrix4x4::Rotate(float x, float y, float z)
+	void Matrix4x4::Rotate(float radians, float x, float y, float z)
 	{
-		MulBy(RotateXMatrix(x) * RotateYMatrix(y) * RotateZMatrix(z));
+		MulBy(RotateMatrix(radians, x, y, z));
 	}
 	
-	void Matrix4x4::Rotate(Vector3D v)
+	void Matrix4x4::Rotate(float radians, Vector3D v)
 	{
-		MulBy(RotateXMatrix(v.x) * RotateYMatrix(v.y) * RotateZMatrix(v.z));
+		MulBy(RotateMatrix(radians, v.x, v.y, v.z));
 	}
 
 	void Matrix4x4::Scale(float x, float y, float z)
@@ -186,6 +211,11 @@ namespace Utilities
 	void Matrix4x4::Scale(Vector3D v)
 	{
 		MulBy(ScaleMatrix(v.x, v.y, v.z));
+	}
+	
+	void Matrix4x4::Apply()
+	{
+		glLoadMatrixf((GLfloat*)matrix);
 	}
 	
 }

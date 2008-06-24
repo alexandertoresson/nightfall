@@ -24,7 +24,7 @@ ut.movementSpeed = 4.0
 ut.movementType = MovementType.MediumVehicle
 ut.attackSpeed = 2.0
 ut.size = 1.0
-ut.height = 1.0
+ut.height = 0.2
 ut.buildTime = 20.0
 ut.buildCost = 100
 ut.researchTime = 40.0
@@ -34,10 +34,10 @@ ut.powerUsage = 1.0
 ut.movePowerUsage = 0.5
 ut.attackPowerUsage = 1.0
 	
-ut.model = "models/smallattackrobot.wrl#SmallAttackRobot"
+ut.model = "models/smallAttackRobot"
 	
 ut.projectileType = { 
-                      model = "models/missile.wrl#Missile",
+                      model = "models/missile",
                       areaOfEffect = 1.0,
                       startPos = {1.0, 0.0, 0.0},
                       speed = 16.0,

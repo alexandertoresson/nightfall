@@ -22,6 +22,6 @@ ut.researchCost = 100
 
 ut.powerUsage = 1.0
 	
-ut.model = "models/explorer.wrl#Explorer"
+ut.model = "models/explorer"
 
 CreateUnitType(ut)

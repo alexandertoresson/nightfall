@@ -1806,7 +1806,7 @@ namespace Game
 				
 				if (unit != NULL)
 				{
-					Dimension::Camera* camera = Rules::GameWindow::Instance()->GetCamera();
+					Dimension::Camera* camera = &Game::Dimension::Camera::instance;
 					camera->SetCamera(unit, camera->GetZoom(), camera->GetRotation());
 				}
 			}

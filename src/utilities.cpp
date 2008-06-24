@@ -316,380 +316,15 @@ namespace Utilities
 		return v1 * (2 * x3 - 3 * x2 + 1) + m1 * (x3 - 2 * x2 + x) + v2 * (-2 * x3 + 3 * x2) + m2 * (x3 - x2);
 	}
 
-	ConfigurationFile::ConfigurationFile(void)
+	int StringToInt(std::string target, int no)
 	{
-		mFile = NULL;
-	}
-	
-	ConfigurationFile::ConfigurationFile(const std::string file)
-	{
-		mFile = NULL;
-		SetFile(file);
-	}
-	
-	ConfigurationFile::~ConfigurationFile(void)
-	{
-		if (mFile)
-		{
-			delete mFile;
-		}
-	}
-	
-	void ConfigurationFile::SetFile(const std::string file)
-	{
-		if (mFile)
-		{
-			delete mFile;
-		}
-		mFile = new char[file.size()+1];
-		memcpy(mFile, file.c_str(), file.size()+1);
-	}
-	
-	int ConfigurationFile::Parse(void)
-	{
-		if (!mFile)
-			return WINDOW_ERROR_NO_CONFIG_FILE;
-	
-		std::ifstream file;
-		std::string filename = GetConfigFile(mFile);
-
-		if (!filename.length())
-		{
-			return WINDOW_ERROR_CANNOT_FIND_CONFIGFILE;
-		}
+		const char* letters = target.c_str();
 		
-		file.open(filename.c_str());
-
-		std::string buffer;
-		std::string command;
-		std::string value;
-		while (file.eof() == false)
-		{
-			buffer.clear();
-
-			Utilities::ReadLineFromFile(file, buffer);
-
-			if(buffer.length() > 0)
-			{
-				Utilities::StringRemoveIntendent(buffer);
-				
-				if (buffer.length() == 0)
-					continue;
-				
-				char trigger;
-				trigger = buffer.at(0);
-				
-				// Konfigurationsvärde?
-				if (trigger == '#')
-					continue;
-					
-				// Klipp ut kommandot (kommando \t värde)
-				// \t = tabulatur
-				Utilities::StringRemoveIntendent(buffer);
-				unsigned int endingPos = Utilities::StringCut(buffer, command, '\t');
-				
-				if (endingPos >= buffer.length())
-					continue;
-				
-				// Hämta värdet
-				value = buffer.substr(endingPos);
-				Utilities::StringRemoveIntendent(value);
-				
-				// Spara i hashtabellen
-				mData[command] = value;
-				
-				// Töm kommandot
-				command.clear();
-			}
-		}
-		
-		file.close();
-
-		return SUCCESS;
-	}
-	
-	int ConfigurationFile::Update(std::string output /* = "" */)
-	{
-		if (output != "")
-		{
-			if (mFile)
-			{
-				delete mFile;
-			}
-			mFile = new char[output.size()+1];
-			memcpy(mFile, output.c_str(), output.size()+1);
-		}
-		
-		std::ofstream file(mFile);
-		
-		Hashtable::iterator iter;
-		for (iter = mData.begin(); iter != mData.end(); iter++)
-			file << '-' << (*iter).first << '\t' << (*iter).second << '\n';
-		
-		file.close();
-		
-		return SUCCESS;
-	}
-
-	void ConfigurationFile::Clear()
-	{
-		mData.clear();
-	}
-	
-	const char* ConfigurationFile::GetValue(std::string key)
-	{
-		HashtableIterator it = mData.find(key);
-		
-		if (it == mData.end())
-			return "";
-
-		return (*it).second.c_str();
-	}
-	
-	void ConfigurationFile::SetValue(std::string key, std::string value)
-	{
-		mData[key] = value;
-	}
-
-	StructuredInstructionsFile::StructuredInstructionsFile(void)
-	{
-		mFile = NULL;
-		PrepareIterator();
-	}
-	
-	StructuredInstructionsFile::StructuredInstructionsFile(const std::string file)
-	{
-		mFile = NULL;
-		SetFile(file);
-		PrepareIterator();
-	}
-	
-	StructuredInstructionsFile::~StructuredInstructionsFile(void)
-	{
-		if (mItems.size() > 0)
-		{
-			for (unsigned int i = 0; i < mItems.size(); i++)
-			{
-				StructuredInstructionsItem* pItem = &*mItems.at(i);
-				assert(pItem != NULL);
-				delete pItem;
-				pItem = NULL;
-			}
-			mItems.clear();
-		}
-	}
-	
-	void StructuredInstructionsFile::SetFile(const std::string file)
-	{
-		if (mFile)
-		{
-			delete mFile;
-		}
-		mFile = new char[file.size()+1];
-		memcpy(mFile, file.c_str(), file.size()+1);
-	}
-	
-	int StructuredInstructionsFile::Parse(void)
-	{
-		if (!mFile)
-			return STRUCTURED_INSTRUCTIONS_ERROR_NO_LIST;
-		
-		std::ifstream file(mFile);
-		
-		if (file.good() == false)
-			return STRUCTURED_INSTRUCTIONS_ERROR_NO_LIST;
-		
-		std::string buffer;
-		std::string value;
-		while (file.eof() == false)
-		{
-			Utilities::ReadLineFromFile(file, buffer);
+		while (*letters++ != 0)
+			if (isalpha(*letters))
+				return no;
 			
-			if (buffer.size() == 0)
-				continue;
-			
-			StringRemoveIntendent(buffer);
-			
-			// Kommentar?
-			if (buffer[0] == '#' || buffer[0] == 0)
-				continue;
-
-			unsigned int endingPos = StringCut(buffer, value, '\t');
-						
-			StructuredInstructionsItem* pSII = new StructuredInstructionsItem;
-			pSII->instruction = (char*)value.c_str();
-			if (endingPos >= buffer.length())
-				pSII->value = "";
-			else
-			{
-				value = buffer.substr(endingPos);
-				StringRemoveIntendent(value);
-				pSII->value = (char*)value.c_str();
-			}
-			
-			mItems.push_back(pSII);
-			
-			buffer.clear();
-			value.clear();
-		}
-		
-		return SUCCESS;
-	}
-	
-	const StructuredInstructionsVector* StructuredInstructionsFile::GetInstructionVector(void) const
-	{
-		return &mItems;
-	}
-
-	void StructuredInstructionsFile::GetInstructionVector(StructuredInstructionsVector* pVector)
-	{
-		pVector = &mItems;
-	}
-	
-	void StructuredInstructionsFile::PrepareIterator(void)
-	{
-		mIndex  = 0;
-		mLength = mItems.size(); 
-	}
-	
-	bool StructuredInstructionsFile::End(void) const
-	{
-		return mIndex == mLength;
-	}
-	
-	void StructuredInstructionsFile::GotoItem(int index)
-	{
-		if (index >= mLength)
-			index = mLength - 1;
-		
-		mIndex = index;
-	}
-	
-	StructuredInstructionsItem* StructuredInstructionsFile::NextItem(void)
-	{
-		return mIndex >= mLength ? NULL : mItems[mIndex++];
-	}
-
-	void ReadLineFromFile(ifstream& file, std::string& buffer)
-	{
-		buffer.clear();
-
-		while (file.peek() != '\n' && file.peek() != '\r' && !file.eof())
-			buffer.push_back((char) file.get());
-
-		while ((file.peek() == '\n' || file.peek() == '\r') && !file.eof())
-			file.get();
-	}
-	
-	void StringRemoveIntendent(std::string& target)
-	{
-		while ((target.at(0) == ' ' || target.at(0) == '\t') && target.length() > 0)
-		       target = target.substr(1);
-	}
-	
-	int StringCut(std::string target, std::string& result, char ending)
-	{ 
-		char letter;
-		for (unsigned int i = 0; i < target.length(); i++)
-		{
-			letter = target.at(i);
-			
-			if (letter == ending)
-				return i;
-			
-			result += letter;
-		}
-		
-		return target.length();
-	}
-
-	int StringGetToken(std::string target, std::string& result, int start)
-	{
-		int begin = -1;
-		int end = -1;
-		int length = target.length();
-		bool stringToken = false;
-		
-		//Find begin
-		for(int i = start; i < length; i++)
-		{
-			char current = target.at(i);
-			if(current != '\t' && current != ' ')
-			{
-				if(current == '"')
-				{
-					stringToken = true;
-				}
-				begin = i;
-				break;
-			}				
-		}
-		
-		if(begin == -1)
-		{
-			result = target.substr(start);
-			return length;
-		}
-		
-		char target_at = target.at(begin);
-		switch(target_at)
-		{
-			case ',':
-			{
-				result = ",";
-				return begin + 1;
-			}
-			case '[':
-			{
-				result = "[";
-				return begin + 1;
-			}
-			case ']':
-			{
-				result = "]";
-				return begin + 1;
-			}
-		}
-		if(target_at == ',')
-		{
-			result = ",";
-			return begin + 1;
-		}
-		
-		//Find end
-		if(stringToken == true)
-		{
-			for(int i = begin + 1; i < length; i++)
-			{
-				char current = target.at(i);
-				if(current == '"')
-				{
-					end = i + 1;
-					break;
-				}				
-			}			
-		}
-		else {
-			for(int i = begin + 1; i < length; i++)
-			{
-				char current = target.at(i);
-				if(current == '\t' || current == ' ' || current == ',' || current == '\r')
-				{
-					end = i;
-					break;
-				}				
-			}
-		}
-		
-		if(end == -1)
-		{
-			result = target.substr(begin);
-			return length;
-		}
-		
-		result = target.substr(begin, end - begin);
-		return end;
-		
+		return atoi(target.c_str());
 	}
 	
 	// Trims both start and end in a string ' ' and '\t' is removed.
@@ -724,17 +359,17 @@ namespace Utilities
 		result = target.substr(begin, end - begin + 1);
 	}
 	
-	int StringToInt(std::string target, int no)
+	void ReadLineFromFile(ifstream& file, std::string& buffer)
 	{
-		const char* letters = target.c_str();
-		
-		while (*letters++ != 0)
-			if (isalpha(*letters))
-				return no;
-			
-		return atoi(target.c_str());
-	}
+		buffer.clear();
 
+		while (file.peek() != '\n' && file.peek() != '\r' && !file.eof())
+			buffer.push_back((char) file.get());
+
+		while ((file.peek() == '\n' || file.peek() == '\r') && !file.eof())
+			file.get();
+	}
+	
 	int power_of_two(int input)
 	{
 	    int value = 1;
@@ -836,7 +471,61 @@ namespace Utilities
 
 	float RandomDegree()
 	{
-		return ((float) rand() / (RAND_MAX + 1)) * 360;
+		return ((float) rand() / RAND_MAX) * 360;
 	}
+	
+	void PrintGLError()
+	{
+		bool is_first_error = true;
+		std::cout << "OpenGL errors:" << std::endl;
+		while (1)
+		{
+			int error = glGetError();
+			switch(error)
+			{
+				case GL_NO_ERROR:
+				{
+					if (is_first_error)
+					{
+						std::cout << "No errors" << std::endl;
+					}
+					return;
+				}
+				case GL_INVALID_OPERATION:
+				{
+					std::cout << "Invalid Operation" << std::endl;
+					break;
+				}
+				case GL_STACK_OVERFLOW:
+				{
+					std::cout << "Stack overflow" << std::endl;
+					break;
+				}
+				case GL_STACK_UNDERFLOW:
+				{
+					std::cout << "Stack underflow" << std::endl;
+					break;
+				}
+				case GL_INVALID_ENUM:
+				{
+					std::cout << "Invalid Enum" << std::endl;
+					break;
+				}
+				case GL_INVALID_VALUE:
+				{
+					std::cout << "Invalid Value" << std::endl;
+					break;
+				}
+				default:
+				{	
+					std::cout << "Unknown error..." <<  std::endl;
+					break;
+				}
+
+			}
+			is_first_error = false;
+		}
+	}
+		
 }
 

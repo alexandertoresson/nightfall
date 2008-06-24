@@ -1,7 +1,6 @@
 // Set to 1 if you wish to use audio!
 #define USE_AUDIO 1
 #define USE_FONT 1
-//#define GUI_TEST
 //#define DEBUG_DEP // uncomment if you want to enable .h dependency debug output -- note: might only work with g++-ish compilers
 
 #if WIN32
@@ -15,7 +14,7 @@
 #include "game.h"
 #include "font.h"
 #include "aibase.h"
-#include "utilities.h"
+#include "configuration.h"
 #include "unitinterface.h"
 #include "gui.h"
 #include "networking.h"
@@ -38,6 +37,9 @@ using namespace std;
 
 void ParseArguments(int argc, char** argv);
 void KillAll(void);
+int InitMainConfig();
+
+std::map<std::string, std::string> mainConfigOverrides;
 
 int main(int argc, char** argv)
 {
@@ -72,21 +74,31 @@ int main(int argc, char** argv)
 	Window::OnClose(KillAll);
 
 	{
-		Utilities::ConfigurationFile configInterprt("config.txt");
-		errCode = Window::OpenDynamic(&configInterprt);	
+		errCode = InitMainConfig();
 
 		if (errCode != SUCCESS)
 		{
 #ifdef WIN32
-			MessageBoxA( NULL, "config.txt could not be located and thus not parsed!", "Error", MB_OK | MB_ICONERROR);
+			MessageBoxA( NULL, "config.txt could not be not parsed!", "Error", MB_OK | MB_ICONERROR);
 #endif
-			std::cerr << "config.txt could not be located and thus not parsed!" << std::endl;
+			std::cerr << "config.txt could not be not parsed!" << std::endl;
+//			return errCode; // Non-critical now that we have default values
+		}
+
+		errCode = Window::OpenDynamic();
+
+		if (errCode != SUCCESS)
+		{
+#ifdef WIN32
+			MessageBoxA( NULL, "Window subsystem could not be initialized!", "Error", MB_OK | MB_ICONERROR);
+#endif
+			std::cerr << "Window subsystem could not be initialized!" << std::endl;
 			return errCode;
 		}
 
-		Window::SetTitle(configInterprt.GetValue("application header"));
+		Window::SetTitle(Utilities::mainConfig.GetValue("application header").c_str());
 
-		if(Window::GUI::InitFont(configInterprt.GetValue("default font")) != SUCCESS)
+		if(Window::GUI::InitFont(Utilities::mainConfig.GetValue("default font")) != SUCCESS)
 		{
 #ifdef WIN32
 			MessageBoxA( NULL, "Font Init Error.", "Error", MB_OK | MB_ICONERROR);
@@ -101,7 +113,7 @@ int main(int argc, char** argv)
 	#if USE_AUDIO == 1
 		if (!Game::Rules::noSound)
 		{
-			Audio::Init(configInterprt.GetValue("audio config"));
+			Audio::Init(Utilities::mainConfig.GetValue("audio config"));
 		}
 	#endif
 		
@@ -115,25 +127,25 @@ int main(int argc, char** argv)
 		loading->SetMessage("Loading World");
 		loading->Update();
 
-		if (strlen(configInterprt.GetValue("camera rotation speed")) > 0)
+		if (Utilities::mainConfig.GetValue("camera rotation speed").length())
 		{
-			float value = (float) atof(configInterprt.GetValue("camera rotation speed"));
+			float value = (float) atof(Utilities::mainConfig.GetValue("camera rotation speed").c_str());
 
 			if (value > 0 && value < 100.0f)
 				Game::Dimension::cameraRotationSpeed = value;
 		}
 
-		if (strlen(configInterprt.GetValue("camera fly speed")) > 0)
+		if (Utilities::mainConfig.GetValue("camera fly speed").length())
 		{
-			float value = (float) atof(configInterprt.GetValue("camera fly speed"));
+			float value = (float) atof(Utilities::mainConfig.GetValue("camera fly speed").c_str());
 
 			if (value > 0 && value < 100.0f)
 				Game::Dimension::cameraFlySpeed = value;
 		}
 
-		if (strlen(configInterprt.GetValue("camera zoom speed")) > 0)
+		if (Utilities::mainConfig.GetValue("camera zoom speed").length())
 		{
-			float value = (float) atof(configInterprt.GetValue("camera zoom speed"));
+			float value = (float) atof(Utilities::mainConfig.GetValue("camera zoom speed").c_str());
 
 			if (value > 0 && value < 100.0f)
 				Game::Dimension::cameraZoomSpeed = value;
@@ -142,13 +154,52 @@ int main(int argc, char** argv)
 		loading->Increment(1.0f);
 		loading->SetMessage("Loading GameMain...");
 		loading->Update();
-
-		configInterprt.Clear();
 	}
 
 	Game::Rules::GameMain();
 	
 	return SUCCESS;
+}
+
+std::string configFile("config.txt");
+
+int InitMainConfig()
+{
+	std::cout << "Opening config file " << configFile << std::endl;
+	Utilities::mainConfig.SetFile(configFile);
+	Utilities::mainConfig.SetRestriction("screen width", new Utilities::ConfigurationFile::TypeRestriction<int>(800));
+	Utilities::mainConfig.SetRestriction("screen height", new Utilities::ConfigurationFile::TypeRestriction<int>(600));
+	Utilities::mainConfig.SetRestriction("screen bpp", new Utilities::ConfigurationFile::TypeRestriction<int>(32));
+	Utilities::mainConfig.SetRestriction("fullscreen", new Utilities::ConfigurationFile::TypeRestriction<int>(0));
+	
+	// As the following are type restrictions to std::string they don't really restrict anything.
+	// Instead, their use is to provide a default value.
+	Utilities::mainConfig.SetRestriction("default font", new Utilities::ConfigurationFile::TypeRestriction<std::string>("fonts/vera.ttf"));
+	Utilities::mainConfig.SetRestriction("application header", new Utilities::ConfigurationFile::TypeRestriction<std::string>("Nightfall (Codename Twilight)"));
+	Utilities::mainConfig.SetRestriction("audio config", new Utilities::ConfigurationFile::TypeRestriction<std::string>("audio.txt"));
+	
+	Utilities::mainConfig.SetRestriction("camera rotation speed", new Utilities::ConfigurationFile::TypeRestriction<int>(40));
+	Utilities::mainConfig.SetRestriction("camera fly speed", new Utilities::ConfigurationFile::TypeRestriction<int>(3));
+	Utilities::mainConfig.SetRestriction("camera zoom speed", new Utilities::ConfigurationFile::TypeRestriction<int>(40));
+	
+	std::set<std::string> qualities;
+	qualities.insert("low");
+	qualities.insert("medium");
+	qualities.insert("high");
+
+	Utilities::mainConfig.SetRestriction("lighting quality", new Utilities::ConfigurationFile::EnumRestriction<std::string>(qualities, "medium"));
+	Utilities::mainConfig.SetRestriction("model quality", new Utilities::ConfigurationFile::EnumRestriction<std::string>(qualities, "medium"));
+	Utilities::mainConfig.SetRestriction("terrain quality", new Utilities::ConfigurationFile::EnumRestriction<std::string>(qualities, "medium"));
+	Utilities::mainConfig.SetRestriction("effect quality", new Utilities::ConfigurationFile::EnumRestriction<std::string>(qualities, "medium"));
+
+	int err = Utilities::mainConfig.Parse();
+
+	for (std::map<std::string, std::string>::iterator it = mainConfigOverrides.begin(); it != mainConfigOverrides.end(); it++)
+	{
+		Utilities::mainConfig.SetValue(it->first, it->second);
+	}
+
+	return err;
 }
 
 void ParseArguments(int argc, char** argv)
@@ -234,6 +285,33 @@ void ParseArguments(int argc, char** argv)
 			{
 				std::stringstream ss(argv[i]);
 				ss >> Game::AI::numLuaAIThreads;
+			}
+		}
+		else if (!strcmp(argv[i], "--config-file"))
+		{
+			if (++i < argc)
+			{
+				configFile = argv[i];
+			}
+		}
+		else if (!strcmp(argv[i], "--fail-safe"))
+		{
+			configFile = "failsafe-config.txt";
+		}
+		else if (!strcmp(argv[i], "--override"))
+		{
+			if (i < argc-2)
+			{
+				std::string key = argv[++i];
+				std::string value = argv[++i];
+				mainConfigOverrides[key] = value;
+			}
+		}
+		else if (!strcmp(argv[i], "--level"))
+		{
+			if (++i < argc)
+			{
+				Game::Rules::CurrentLevel = argv[i];
 			}
 		}
 	}

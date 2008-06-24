@@ -14,8 +14,6 @@ namespace Window
 	extern float guiWidth, guiHeight, guiResolution;
 
 	extern bool noWindow;
-
-	extern bool hasVBOs;
 }
 
 #endif

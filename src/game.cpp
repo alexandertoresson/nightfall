@@ -75,69 +75,11 @@ namespace Game
 			GameWindow::pInstance = NULL;
 		}
 
-		Dimension::Camera* GameWindow::GetCamera() const
-		{
-			return worldCamera;
-		}
-
 		Window::GUI::ConsoleBuffer* GameWindow::GetConsoleBuffer() const
 		{
 			return pConsole;
 		}
 
-		void PrintGLError()
-		{
-			bool is_first_error = true;
-			std::cout << "OpenGL errors:" << std::endl;
-			while (1)
-			{
-				int error = glGetError();
-				switch(error)
-				{
-					case GL_NO_ERROR:
-					{
-						if (is_first_error)
-						{
-							std::cout << "No errors" << std::endl;
-						}
-						return;
-					}
-					case GL_INVALID_OPERATION:
-					{
-						std::cout << "Invalid Operation" << std::endl;
-						break;
-					}
-					case GL_STACK_OVERFLOW:
-					{
-						std::cout << "Stack overflow" << std::endl;
-						break;
-					}
-					case GL_STACK_UNDERFLOW:
-					{
-						std::cout << "Stack underflow" << std::endl;
-						break;
-					}
-					case GL_INVALID_ENUM:
-					{
-						std::cout << "Invalid Enum" << std::endl;
-						break;
-					}
-					case GL_INVALID_VALUE:
-					{
-						std::cout << "Invalid Value" << std::endl;
-						break;
-					}
-					default:
-					{	
-						std::cout << "Unknown error..." <<  std::endl;
-						break;
-					}
-
-				}
-				is_first_error = false;
-			}
-		}
-		
 		float time_since_last_frame;
 		float time_passed_since_last_water_pass = 0.0;
 		
@@ -398,62 +340,6 @@ namespace Game
 			pConsole->PrepareBuffer();
 			console.WriteLine("Nightfall (Codename Twilight)");
 			
-			/*
-			PrintGLError();
-
-			glViewport(2,2,258,258);
-			glClearColor(0.4f,0.2f,0.8f,1.0f);
-			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-			
-			worldCamera->PointCamera();
-			PaintGame();
-			
-			Utilities::SwitchTo2DViewport(w, h);
-			glBegin(GL_QUADS);
-				glColor4f(0.5f,0.5f,0.5f, 0.5f);
-
-				glVertex2f(0.0f,0.0f);
-				glVertex2f(0.0f,0.5f);
-				glVertex2f(1.0f,0.5f);
-				glVertex2f(1.0f,0.0f);
-			glEnd();
-			
-			Utilities::RevertViewport();
-			//SDL_GL_SwapBuffers();
-			
-			PrintGLError();
-			
-			glEnable(GL_TEXTURE_2D);
-			
-			GLuint textur = 0;
-			PrintGLError();	
-   			glGenTextures(1, &textur);
-   			glBindTexture(GL_TEXTURE_2D, textur);
-   			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-   			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-			*/
-
-			/*
-			unsigned int *pixels = new unsigned int[256*256];
-			glReadPixels(2,2,256,256,GL_RGB,GL_UNSIGNED_INT, (GLvoid*)pixels);
-			gluBuild2DMipmaps(GL_TEXTURE_2D, GL_RGB, 256,256, GL_RGB, GL_UNSIGNED_INT, (void*)pixels);
-			*/
-
-			// Copies the contents of the frame buffer into the texture
-			/*
-			glCopyTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, 2, 2, 256, 256, 0);
-			
-			pic = new Window::GUI::Picture();
-			pMainGame->SetConstraint(pMainGame->Add(pic), 0.1f, 0.1f, 0.5f, 0.5f);
-			pic->SetPicture(textur);
-			PrintGLError();	
-
-			glViewport(0,0,Window::windowWidth, Window::windowHeight);
-
-			glClearColor(0.0f,0.0f,0.0f,1.0f);
-			*/
-
 			pLoading->Increment(increment);
 
 			return SUCCESS;
@@ -547,7 +433,6 @@ namespace Game
 			AI::QuitPathfindingThreading();
 #endif
 
-			delete this->worldCamera;
 			delete this->input;
 			delete FX::pParticleSystems;
 			gameRunning = false;
@@ -586,17 +471,28 @@ namespace Game
 			pLoading->Increment(increment);
 			
 			////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-			worldCamera = new Dimension::Camera();
+			
+			Scene::Graph::rootNode.AddChild(&Dimension::Camera::instance);
+			Dimension::Camera::instance.AddChild(&Dimension::Environment::EnvironmentNode::instance);
+			Dimension::Camera::instance.AddChild(&Dimension::Environment::SkyboxNode::instance);
+			Dimension::Camera::instance.AddChild(&Dimension::TerrainNode::instance);
+			Dimension::Camera::instance.AddChild(&Dimension::UnitMainNode::instance);
+			// cleanup node, for resetting stuff for fixed function stuff...
+			Dimension::Camera::instance.AddChild(new Scene::Render::GLStateNode(new Scene::Render::GLStateNode::GLState()));
+			Dimension::Camera::instance.AddChild(&Dimension::BuildOutlineNode::instance);
+			Dimension::Camera::instance.AddChild(&FX::ParticleNode::instance);
+			Scene::Graph::rootNode.AddChild(&GUINode::instance);
+
 			/*
 
 			if (Dimension::GetCurrentPlayer()->vUnits.size())
-			worldCamera->SetCamera(Dimension::GetCurrentPlayer()->vUnits.at(0), 30.0f, -40.0f);
+			Dimension::Camera::instance.SetCamera(Dimension::GetCurrentPlayer()->vUnits.at(0), 30.0f, -40.0f);
 			else
-			worldCamera->SetCamera(Utilities::Vector3D(7.0, 0.0, -13.0), 30.0f, -40.0f);
+			Dimension::Camera::instance.SetCamera(Utilities::Vector3D(7.0, 0.0, -13.0), 30.0f, -40.0f);
 
 			*/
-			worldCamera->SetYMinimum(0.5f);
-			worldCamera->SetYMaximum(15.0f);
+			Dimension::Camera::instance.SetYMinimum(0.5f);
+			Dimension::Camera::instance.SetYMaximum(15.0f);
 
 			pLoading->Increment(increment);
 			
@@ -758,87 +654,6 @@ namespace Game
 			return true;
 		}
 
-		void GameWindow::PaintGame()
-		{
-			worldCamera->PointCamera();
-			Dimension::Environment::FourthDimension::Instance()->ApplyLight();
-			Dimension::Environment::FourthDimension::Instance()->RenderSkyBox();
-			Dimension::DrawTerrain();
-//			Dimension::RenderUnits();
-			Dimension::DrawWater();
-			//Particle test
-			FX::pParticleSystems->Render();
-
-//			Dimension::RenderHealthBars();
-
-			Audio::PlaceSoundNodes(*worldCamera->GetPosVector());
-
-			if (goto_time != 0 && SDL_GetTicks() - goto_time < 1000)
-			{
-				Utilities::Vector3D ter[2][2]; 
-
-				ter[0][0] = Dimension::GetTerrainCoord(goto_x, goto_y);
-				ter[0][1] = Dimension::GetTerrainCoord(goto_x+1, goto_y);
-				ter[1][0] = Dimension::GetTerrainCoord(goto_x, goto_y+1);
-				ter[1][1] = Dimension::GetTerrainCoord(goto_x+1, goto_y+1);
-				
-				glDisable(GL_TEXTURE_2D);
-				glDisable(GL_DEPTH_TEST);
-				glDisable(GL_LIGHTING);
-				glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
-				glBegin(GL_QUADS);
-					glColor4f(1.0f, 0.0f, 0.0f, 1.0f - (float) (SDL_GetTicks() - goto_time) / 1000.0f);
-					glNormal3f(0.0f, 1.0f, 0.0f);
-					glVertex3f(ter[0][0].x, ter[0][0].y, ter[0][0].z);
-					glVertex3f(ter[1][0].x, ter[1][0].y, ter[1][0].z);
-					glVertex3f(ter[1][1].x, ter[1][1].y, ter[1][1].z);
-					glVertex3f(ter[0][1].x, ter[0][1].y, ter[0][1].z);
-					
-					/*
-					glColor4f(1.0f, 1.0f, 0.0f, 0.45f);
-					for (size_t i = 0; i < Dimension::unitsSelected.size(); i++)
-					{
-						Dimension::Unit* unit = Dimension::unitsSelected.at(i);
-						
-						if (unit->pMovementData->pStart != NULL &&
-							unit->pMovementData->calcState == AI::CALCSTATE_REACHED_GOAL)
-						{
-							AI::Node* node = unit->pMovementData->pStart;
-							
-							do
-							{
-								ter[0][0] = Dimension::GetTerrainCoord(node->x, node->y);
-								ter[0][1] = Dimension::GetTerrainCoord(node->x + 1, node->y);
-								ter[1][0] = Dimension::GetTerrainCoord(node->x, node->y + 1);
-								ter[1][1] = Dimension::GetTerrainCoord(node->x + 1, node->y + 1);
-								
-								glVertex3f(ter[0][0].x, ter[0][0].y, ter[0][0].z);
-								glVertex3f(ter[1][0].x, ter[1][0].y, ter[1][0].z);
-								glVertex3f(ter[1][1].x, ter[1][1].y, ter[1][1].z);
-								glVertex3f(ter[0][1].x, ter[0][1].y, ter[0][1].z);
-								
-								node = node->pChild;
-							} while (node != NULL);
-						}
-					}
-					*/
-				glEnd();
-					
-				glEnable(GL_LIGHTING);
-				glEnable(GL_DEPTH_TEST);
-				glEnable(GL_TEXTURE_2D);
-			}
-
-/*			if (build_x != -1 && build_y != -1 && build_type)
-			{
-				Dimension::RenderBuildOutline(build_type, build_x, build_y);
-			}*/
-
-			AI::aiFramesPerformedSinceLastRender = 0;
-
-		}
-
 		bool GameWindow::PaintAll()
 		{
 			// nollställ backbufferten och depthbufferten
@@ -847,18 +662,14 @@ namespace Game
 			// nollställ vyn
 			glLoadIdentity();
 
-			PaintGame();
+			Audio::PlaceSoundNodes(*Dimension::Camera::instance.GetPosVector());
 
-			if(pMainPanel != NULL)
-			{
-				Utilities::SwitchTo2DViewport(w, h);
-				pMainPanel->Paint();
-				pMainPanel->PaintTooltip();
-				Utilities::RevertViewport();
-			}
+			AI::aiFramesPerformedSinceLastRender = 0;
+
+			GUINode::instance.SetParams(pMainPanel, w, h);
 
 			Scene::Graph::rootNode.Traverse();
-			
+
 			SDL_GL_SwapBuffers();
 			return true;
 		}
@@ -907,29 +718,29 @@ namespace Game
 
 			//Key States operations
 			if (input->GetKeyState(SDLK_UP))
-				worldCamera->Fly(-1.5f * time_since_last_frame);
+				Dimension::Camera::instance.Fly(-1.5f * time_since_last_frame);
 					
 			else if (input->GetKeyState(SDLK_DOWN))
-				worldCamera->Fly(1.5f * time_since_last_frame);
+				Dimension::Camera::instance.Fly(1.5f * time_since_last_frame);
 
 				
 			if (input->GetKeyState(SDLK_LEFT))
-				worldCamera->FlyHorizontally(-Game::Dimension::cameraFlySpeed * time_since_last_frame);					
+				Dimension::Camera::instance.FlyHorizontally(-Game::Dimension::cameraFlySpeed * time_since_last_frame);					
 			else if (input->GetKeyState(SDLK_RIGHT))
-				worldCamera->FlyHorizontally(Game::Dimension::cameraFlySpeed * time_since_last_frame);
+				Dimension::Camera::instance.FlyHorizontally(Game::Dimension::cameraFlySpeed * time_since_last_frame);
 				
 			if (input->GetKeyState(SDLK_PAGEUP))
-				worldCamera->Zoom(Game::Dimension::cameraZoomSpeed * time_since_last_frame);				
+				Dimension::Camera::instance.Zoom(Game::Dimension::cameraZoomSpeed * time_since_last_frame);				
 			else if (input->GetKeyState(SDLK_PAGEDOWN))
-				worldCamera->Zoom(-Game::Dimension::cameraZoomSpeed * time_since_last_frame);
+				Dimension::Camera::instance.Zoom(-Game::Dimension::cameraZoomSpeed * time_since_last_frame);
 
 			if (input->GetKeyState(SDLK_HOME))
-				worldCamera->Rotate(Game::Dimension::cameraRotationSpeed * time_since_last_frame);		
+				Dimension::Camera::instance.Rotate(Game::Dimension::cameraRotationSpeed * time_since_last_frame);		
 			else if (input->GetKeyState(SDLK_END))
-				worldCamera->Rotate(-Game::Dimension::cameraRotationSpeed * time_since_last_frame);
+				Dimension::Camera::instance.Rotate(-Game::Dimension::cameraRotationSpeed * time_since_last_frame);
 
 			//Empty current UnitBuild and execute building
-			if(Dimension::unitsSelected.size() == 0)
+			if(Dimension::GetSelectedUnits().size() == 0)
 			{
 				if(buildingUnit != NULL)
 				{
@@ -943,7 +754,7 @@ namespace Game
 			}
 			else
 			{
-				Dimension::Unit* unit = Dimension::unitsSelected.at(0);
+				Dimension::Unit* unit = Dimension::GetSelectedUnits()[0];
 				pPlayBar->pSelected->Update();
 				pPlayBar->pActions->Update();
 
@@ -1048,5 +859,31 @@ namespace Game
 		{
 			go = false;
 		}
+		
+		GameWindow::GUINode::GUINode() : pMainPanel(NULL), w(0), h(0)
+		{
+
+		}
+
+		void GameWindow::GUINode::Render()
+		{
+			matrices[MATRIXTYPE_MODELVIEW].Apply();
+			if(pMainPanel != NULL)
+			{
+				Utilities::SwitchTo2DViewport(w, h);
+				pMainPanel->Paint();
+				pMainPanel->PaintTooltip();
+				Utilities::RevertViewport();
+			}
+		}
+
+		void GameWindow::GUINode::SetParams(Panel* pMainPanel, float w, float h)
+		{
+			this->pMainPanel = pMainPanel;
+			this->w = w;
+			this->h = h;
+		}
+		
+		GameWindow::GUINode GameWindow::GUINode::instance;
 	}
 }

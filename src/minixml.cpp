@@ -1,7 +1,6 @@
 #include "minixml.h"
 #include <string>
 #include <iostream>
-#include <locale>
 
 namespace Utilities
 {
@@ -25,7 +24,7 @@ namespace Utilities
 		ofile.close();
 	}
 
-	void XMLWriter::PrepareBeginTag(std::string tag)
+	void XMLWriter::PrepareBeginTag(const std::string& tag)
 	{
 		if (tags.size() > 0)
 		{
@@ -42,7 +41,7 @@ namespace Utilities
 		last_was_push = true;
 	}
 
-	void XMLWriter::BeginTag(std::string tag)
+	void XMLWriter::BeginTag(const std::string& tag)
 	{
 		FinishTag();
 		PrepareBeginTag(tag);
@@ -50,12 +49,12 @@ namespace Utilities
 		deferred_tag_ending = true;
 	}
 
-	void XMLWriter::BeginTag(std::string tag, AttrList attributes)
+	void XMLWriter::BeginTag(const std::string& tag, const SAttrList& attributes)
 	{
 		FinishTag();
 		PrepareBeginTag(tag);
 		ofile << "<" << tag << " ";
-		for (AttrList::iterator it = attributes.begin(); it != attributes.end(); )
+		for (SAttrList::const_iterator it = attributes.begin(); it != attributes.end(); )
 		{
 			ofile << it->first << "=\"" << it->second << "\"";
 			it++;
@@ -76,7 +75,7 @@ namespace Utilities
 		}
 	}
 
-	void XMLWriter::Write(std::string text)
+	void XMLWriter::Write(const std::string &text)
 	{
 		FinishTag();
 		ofile << text;
@@ -138,8 +137,8 @@ namespace Utilities
 	
 	XMLReader::XMLReader()
 	{
-		xmlElementAlloc = new ChunkAllocator<XMLElement>(65536);
-		xmlTextNodeAlloc = new ChunkAllocator<XMLTextNode>(65536);
+		xmlElementAlloc = new ChunkAllocator<XMLElement>(1024);
+		xmlTextNodeAlloc = new ChunkAllocator<XMLTextNode>(1024);
 		root = NULL;
 	}
 
@@ -156,7 +155,7 @@ namespace Utilities
 		root = NULL;
 	}
 
-	std::string XMLReader::ReadTag(bool &open, AttrList &attributes)
+	Utilities::FEString XMLReader::ReadTag(bool &open, AttrList &attributes)
 	{
 		std::string tag = "";
 		bool tag_read = false;
@@ -270,7 +269,8 @@ namespace Utilities
 	
 	XMLElement *XMLReader::ReadTagBlock()
 	{
-		std::string tag1, tag2;
+		Utilities::FEString tag1;
+		std::string tag2;
 		char c;
 		ifile.get(c);
 		bool open;
@@ -305,7 +305,7 @@ namespace Utilities
 		}
 		else
 		{
-			node = new XMLElement();
+			node = xmlElementAlloc->New();
 		}
 
 		node->tag = tag1;
@@ -319,11 +319,11 @@ namespace Utilities
 		return c == ' ' || c == '\n' || c == '\r' || c == '\t';
 	}
 
-	std::string XMLReader::CleanWhitespace(std::string s)
+	std::string XMLReader::CleanWhitespace(const std::string& s)
 	{
 		std::string out;
 		bool hasWS = false;
-		for (std::string::iterator it = s.begin(); it != s.end(); it++)
+		for (std::string::const_iterator it = s.begin(); it != s.end(); it++)
 		{
 			char c = *it;
 			if (IsWhitespace(c))
@@ -397,32 +397,36 @@ namespace Utilities
 		return node;
 	}
 
-	bool XMLReader::Read(std::string filename)
+	bool XMLReader::Read(const std::string& filename)
 	{
 		Deallocate();
 		level = 0;
 		ifile.open(filename.c_str());
+		if (!ifile.good())
+		{
+			return false;
+		}
 		root = ReadText();
 		ifile.close();
 		return root != NULL;
 	}
 
-	void XMLNode::Apply(TagFuncMap tag_funcs, TextFunc text_func)
+	void XMLNode::Apply(const TagFuncMap& tag_funcs, const TextFunc& text_func)
 	{
 		
 	}
 
-	void XMLNode::Apply(std::string tag, TagFunc tag_func)
+	void XMLNode::Apply(const Utilities::FEString& tag, const TagFunc& tag_func)
 	{
 		
 	}
 
-	void XMLNode::Apply(TextFunc text_func)
+	void XMLNode::Apply(const TextFunc& text_func)
 	{
 		
 	}
 
-	void XMLTextNode::Apply(TagFuncMap tag_funcs, TextFunc text_func)
+	void XMLTextNode::Apply(const TagFuncMap& tag_funcs, const TextFunc& text_func)
 	{
 		if (text_func)
 		{
@@ -430,7 +434,7 @@ namespace Utilities
 		}
 	}
 
-	void XMLTextNode::Apply(TextFunc text_func)
+	void XMLTextNode::Apply(const TextFunc& text_func)
 	{
 		if (text_func)
 		{
@@ -438,16 +442,16 @@ namespace Utilities
 		}
 	}
 
-	void XMLElement::Apply(TagFuncMap tag_funcs, TextFunc text_func)
+	void XMLElement::Apply(const TagFuncMap& tag_funcs, const TextFunc& text_func)
 	{
-		void (*tag_func)(XMLElement *elem) = tag_funcs[tag];
-		if (tag_func)
+		TagFuncMap::const_iterator it = tag_funcs.find(tag);
+		if (it != tag_funcs.end())
 		{
-			tag_func(this);
+			it->second(this);
 		}
 	}
 
-	void XMLElement::Apply(std::string tag, TagFunc tag_func)
+	void XMLElement::Apply(const Utilities::FEString& tag, const TagFunc& tag_func)
 	{
 		if (this->tag == tag)
 		{
@@ -455,7 +459,7 @@ namespace Utilities
 		}
 	}
 
-	void XMLElement::Iterate(TagFuncMap tag_funcs, TextFunc text_func)
+	void XMLElement::Iterate(const TagFuncMap& tag_funcs, const TextFunc& text_func)
 	{
 		for (std::vector<XMLNode*>::iterator it = children.begin(); it != children.end(); it++)
 		{
@@ -463,7 +467,7 @@ namespace Utilities
 		}
 	}
 		
-	void XMLElement::Iterate(std::string tag, TagFunc tag_func)
+	void XMLElement::Iterate(const Utilities::FEString& tag, const TagFunc& tag_func)
 	{
 		for (std::vector<XMLNode*>::iterator it = children.begin(); it != children.end(); it++)
 		{
@@ -471,7 +475,7 @@ namespace Utilities
 		}
 	}
 
-	void XMLElement::Iterate(TextFunc text_func)
+	void XMLElement::Iterate(const TextFunc& text_func)
 	{
 		for (std::vector<XMLNode*>::iterator it = children.begin(); it != children.end(); it++)
 		{
@@ -479,22 +483,22 @@ namespace Utilities
 		}
 	}
 		
-	void XMLElement::Iterate(AttrFuncMap attr_funcs)
+	void XMLElement::Iterate(const AttrFuncMap& attr_funcs)
 	{
 		for (AttrList::iterator it = attributes.begin(); it != attributes.end(); it++)
 		{
-			std::string attr = it->first;
-			AttrFunc f = attr_funcs[attr];
-			if (f)
+			const Utilities::FEString &attr = it->first;
+			AttrFuncMap::const_iterator it2 = attr_funcs.find(attr);
+			if (it2 != attr_funcs.end())
 			{
-				f(this, it->second);
+				it2->second(this, it->second);
 			}
 		}
 	}
 	
-	std::string XMLElement::GetAttribute(std::string attr, std::string def)
+	const std::string& XMLElement::GetAttribute(const Utilities::FEString& attr, const std::string& def)
 	{
-		AttrList::iterator it = attributes.find(attr);
+		const AttrList::iterator it = attributes.find(attr);
 		if (it != attributes.end())
 		{
 			return it->second;
@@ -502,17 +506,17 @@ namespace Utilities
 		return def;
 	}
 	
-	std::string XMLElement::GetAttribute(std::string attr)
+	const std::string& XMLElement::GetAttribute(const Utilities::FEString& attr)
 	{
 		return GetAttribute(attr, "");
 	}
 	
-	bool XMLElement::HasAttribute(std::string attr)
+	bool XMLElement::HasAttribute(const Utilities::FEString& attr)
 	{
 		return attributes.find(attr) != attributes.end();
 	}
 	
-	unsigned XMLElement::Count(std::string tag)
+	unsigned XMLElement::Count(const Utilities::FEString& tag)
 	{
 		unsigned n = 0;
 		for (std::vector<XMLNode*>::iterator it = children.begin(); it != children.end(); it++)

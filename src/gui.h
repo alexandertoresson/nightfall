@@ -9,6 +9,7 @@
 
 #include "terrain-pre.h"
 #include "font.h"
+#include "scenegraph.h"
 
 #include "sdlheader.h"
 #include "errors.h"
@@ -452,6 +453,7 @@ namespace Window
 				Map(GLuint map);
 				int Paint();
 		};
+			
 	}
 }
 #ifdef DEBUG_DEP

@@ -42,9 +42,22 @@ namespace Utilities
 		} primitiveType;
 
 		std::vector<OgreVertexBuffer*> vbs;
+		unsigned numElems;
+		Material* material;
+		
+		bool CheckRayIntersect(const Vector3D& near, const Vector3D& far, float& distance);
+
 	};
 
-	OgreMesh* LoadOgreXMLModel(std::string filename);
+	struct OgreMesh
+	{
+		std::vector<OgreSubMesh*> submeshes;
+		std::vector<OgreVertexBuffer*> shared;
+		std::vector<Scene::Render::MeshTransformation*> transforms;
+		bool CheckRayIntersect(const Vector3D& near, const Vector3D& far, float& distance);
+	};
+
+	OgreMesh* LoadSpecificOgreXMLModel(std::string filename);
 }
 
 #ifdef DEBUG_DEP
