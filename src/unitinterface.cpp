@@ -212,10 +212,10 @@ namespace UnitLuaInterface
 
 	int LGetUnitTypeIsMobile(lua_State* pVM)
 	{
-		int index = (int)lua_tonumber(pVM, 1);
+		unsigned index = lua_tointeger(pVM, 1);
 		bool isMobile = false;
 
-		if (index >= 0 && index <= allUnitTypes.size())
+		if (index <= allUnitTypes.size())
 		{
 			UnitType* ptr = allUnitTypes[index];
 			if (ptr != NULL)
@@ -342,12 +342,12 @@ namespace UnitLuaInterface
 
 	int LGetNearestSuitableAndLightedPosition(lua_State* pVM)
 	{
-		int ut_index = (int)lua_tonumber(pVM, 1);
+		unsigned ut_index = lua_tointeger(pVM, 1);
 		int  x       = lua_tointeger(pVM, 2);
 		int  y       = lua_tointeger(pVM, 3);
 		bool ret     = false;
 		
-		if (ut_index >= 0 && ut_index < allUnitTypes.size())
+		if (ut_index < allUnitTypes.size())
 		{
 			UnitType* pUnitType = allUnitTypes[ut_index];
 			
@@ -363,12 +363,12 @@ namespace UnitLuaInterface
 
 	int LGetSuitablePositionForLightTower(lua_State* pVM)
 	{
-		int  ut_index    = (int)lua_tonumber(pVM, 1);
+		unsigned ut_index = lua_tointeger(pVM, 1);
 		int  x           = lua_tointeger(pVM, 2), y = lua_tointeger(pVM, 3);
 		bool needLighted = lua_toboolean(pVM, 4);
 		bool ret         = false;
 		
-		if (ut_index >= 0 && ut_index < allUnitTypes.size())
+		if (ut_index < allUnitTypes.size())
 		{
 			UnitType* pUnitType = allUnitTypes[ut_index];
 			
@@ -451,10 +451,10 @@ namespace UnitLuaInterface
 
 	int LGetUnitTypeIncomeAtNoon(lua_State* pVM)
 	{
-		int ut_index = (int)lua_tonumber(pVM, 1);
+		unsigned ut_index = lua_tointeger(pVM, 1);
 		float income = 0;
 		
-		if (ut_index >= 0 && ut_index < allUnitTypes.size())
+		if (ut_index < allUnitTypes.size())
 		{
 			UnitType* pUnitType = allUnitTypes[ut_index];
 
@@ -471,10 +471,10 @@ namespace UnitLuaInterface
 
 	int LGetUnitTypeIncomeAtNight(lua_State* pVM)
 	{
-		int ut_index = (int)lua_tonumber(pVM, 1);
+		unsigned ut_index = lua_tointeger(pVM, 1);
 		float income = 0;
 		
-		if (ut_index >= 0 && ut_index < allUnitTypes.size())
+		if (ut_index < allUnitTypes.size())
 		{
 			UnitType* pUnitType = allUnitTypes[ut_index];
 			
@@ -631,10 +631,10 @@ namespace UnitLuaInterface
 
 	int LGetUnitTypeBuildCost(lua_State* pVM)
 	{
-		int ut_index = (int)lua_tonumber(pVM, 1);
+		unsigned ut_index = lua_tointeger(pVM, 1);
 		int cost = 0;
 		
-		if (ut_index >= 0 && ut_index < allUnitTypes.size())
+		if (ut_index < allUnitTypes.size())
 		{
 			UnitType* pUnitType = allUnitTypes[ut_index];
 			
@@ -660,10 +660,10 @@ namespace UnitLuaInterface
 	
 	int LIsResearched(lua_State* pVM)
 	{
-		int ut_index = (int)lua_tonumber(pVM, 1);
+		unsigned ut_index = lua_tointeger(pVM, 1);
 		bool ret = false;
 
-		if (ut_index >= 0 && ut_index < allUnitTypes.size())
+		if (ut_index < allUnitTypes.size())
 		{
 			UnitType* pUnitType = allUnitTypes[ut_index];
 
@@ -772,9 +772,9 @@ namespace UnitLuaInterface
 
 	int LGetUnitTypeRequirements(lua_State* pVM)
 	{
-		int ut_index = (int)lua_tonumber(pVM, 1);
+		unsigned ut_index = lua_tointeger(pVM, 1);
 		
-		if (ut_index >= 0 && ut_index < allUnitTypes.size())
+		if (ut_index < allUnitTypes.size())
 		{
 			UnitType* pUnitType = allUnitTypes[ut_index];
 		
@@ -799,9 +799,9 @@ namespace UnitLuaInterface
 	
 	int LGetBuilder(lua_State* pVM)
 	{
-		int ut_index = (int)lua_tonumber(pVM, 1);
+		unsigned ut_index = lua_tointeger(pVM, 1);
 		
-		if (ut_index >= 0 && ut_index < allUnitTypes.size())
+		if (ut_index < allUnitTypes.size())
 		{
 			UnitType* pUnitType = allUnitTypes[ut_index];
 		
@@ -849,10 +849,10 @@ namespace UnitLuaInterface
 	
 	int LSquaresAreLightedAround(lua_State* pVM)
 	{
-		int ut_index = (int)lua_tonumber(pVM, 1);
+		unsigned ut_index = lua_tointeger(pVM, 1);
 		int lighted = false;
 		
-		if (ut_index >= 0 && ut_index < allUnitTypes.size())
+		if (ut_index < allUnitTypes.size())
 		{
 			UnitType* pUnitType = allUnitTypes[ut_index];
 			
@@ -866,10 +866,10 @@ namespace UnitLuaInterface
 	
 	int LSquaresAreLighted(lua_State* pVM)
 	{
-		int ut_index = (int)lua_tonumber(pVM, 1);
+		unsigned ut_index = lua_tointeger(pVM, 1);
 		int lighted = false;
 		
-		if (ut_index >= 0 && ut_index < allUnitTypes.size())
+		if (ut_index < allUnitTypes.size())
 		{
 			UnitType* pUnitType = allUnitTypes[ut_index];
 			
@@ -1087,8 +1087,8 @@ namespace UnitLuaInterface
 		int position[2] = { lua_tointeger(pVM, 2), 
 		                    lua_tointeger(pVM, 3) };
 
-		int ut_index = (int)lua_tonumber(pVM, 4);
-		if (ut_index >= 0 && ut_index < allUnitTypes.size())
+		unsigned ut_index = lua_tointeger(pVM, 4);
+		if (ut_index < allUnitTypes.size())
 		{
 			UnitType* pUnitType = allUnitTypes[ut_index];
 			
@@ -1189,8 +1189,8 @@ namespace UnitLuaInterface
 
 		std::string handlerString = (std::string) handler;
 
-		if ((int)context >= 0 && (int)context < allUnitTypes.size())
-			context = (void*)allUnitTypes[(int)context];
+		if ((unsigned)context < allUnitTypes.size())
+			context = (void*)allUnitTypes[(unsigned)context];
 		
 		if (!context)
 		{
@@ -1322,8 +1322,8 @@ namespace UnitLuaInterface
 		int delay = lua_tointeger(pVM, 3);
 		Player *player = GetPlayerByVMstate(pVM);
 
-		if ((int)context >= 0 && (int)context < allUnitTypes.size())
-			context = (void*)allUnitTypes[(int)context];
+		if ((unsigned)context < allUnitTypes.size())
+			context = (void*)allUnitTypes[(unsigned)context];
 		
 		if (!context)
 		{
@@ -1394,10 +1394,10 @@ namespace UnitLuaInterface
 		
 		if (contextType == AI_CONTEXT_UNITTYPE)
 		{
-			int ut_index = (int)context;
+			unsigned ut_index = (unsigned)context;
 			UnitType* unittype = NULL;
 			
-			if (ut_index >= 0 && ut_index < allUnitTypes.size())
+			if (ut_index < allUnitTypes.size())
 				unittype = allUnitTypes[ut_index];
 			
 			if (unittype == NULL)
@@ -1473,10 +1473,10 @@ namespace UnitLuaInterface
 
 	int LCreateUnit(lua_State* pVM)
 	{
-		int ut_index = (int)lua_tonumber(pVM, 1);
+		unsigned ut_index = lua_tointeger(pVM, 1);
 		UnitType* pUnitType = NULL;
 		
-		if (ut_index >= 0 && ut_index < allUnitTypes.size())
+		if (ut_index < allUnitTypes.size())
 		{
 			 pUnitType = allUnitTypes[ut_index];
 		}
@@ -1538,11 +1538,11 @@ namespace UnitLuaInterface
 
 	int LCanCreateUnitAt(lua_State* pVM)
 	{
-		int ut_index = lua_tonumber(pVM, 1);
+		unsigned ut_index = lua_tointeger(pVM, 1);
 		
 		UnitType* pUnitType = NULL;
 		
-		if (ut_index >= 0 && ut_index < allUnitTypes.size())
+		if (ut_index < allUnitTypes.size())
 			pUnitType = allUnitTypes[ut_index];
 		
 		if (!pUnitType)
@@ -1588,7 +1588,7 @@ namespace UnitLuaInterface
 
 	int LGetPlayerByIndex(lua_State* pVM)
 	{
-		const Uint32 index = static_cast<const Uint32>(lua_tonumber(pVM, 1));
+		const Uint32 index = lua_tointeger(pVM, 1);
 
 		if (index >= pWorld->vPlayers.size())
 			LUA_FAILURE("Player index out of vector bounds")
@@ -1687,9 +1687,9 @@ namespace UnitLuaInterface
 
 	int LGetUnitTypeName(lua_State* pVM)
 	{
-		int index = (int)lua_tonumber(pVM, 1);
+		unsigned index = lua_tointeger(pVM, 1);
 		const char* name = "";
-		if (index >= 0 || index < allUnitTypes.size())
+		if (index < allUnitTypes.size())
 		{
 			UnitType* pUnitType = allUnitTypes[index];
 			
