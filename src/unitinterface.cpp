@@ -16,6 +16,7 @@
 #include "luawrapper.h"
 #include "gui.h"
 #include "game.h"
+#include "ogrexmlmodel.h"
 #include <sstream>
 #include <iostream>
 
@@ -3100,18 +3101,11 @@ else \
 		model = lua_tostring(pVM, 2);
 		lua_pop(pVM, 1);
 
-		pUnitType->model = LoadModel(model);
+		pUnitType->mesh = LoadOgreXMLModel(std::string(model));
 					
-		if(pUnitType->model == NULL)
+		if(pUnitType->mesh == NULL)
 		{
 			LUA_FAILURE("Model could not be found or loaded")
-		}
-		else
-		{
-			for (int i = 0; i < Game::AI::ACTION_NUM; i++)
-			{
-				pUnitType->animations[i] = CreateAnimation(CreateTransAnim(CreateMorphAnim(1.0, 1, model, 0.0), NULL, 0, 1.0, 1, CreateTransformData(Utilities::Vector3D(0.0, 0.0, 0.0), Utilities::Vector3D(0.0, 0.0, 0.0), Utilities::Vector3D(0.0, 0.0, 0.0), Utilities::Vector3D(1.0, 1.0, 1.0)), 0.0));
-			}
 		}
 
 		InterpretStringTableField(pVM, "canBuild", pUnitType->canBuildIDs);
@@ -3177,7 +3171,7 @@ else \
 				lua_pop(pVM, 1);
 				LUA_FAILURE("Required field \"model\" not found in projectiletype table or is not a string")
 			}
-			pUnitType->projectileType->model = LoadModel(lua_tostring(pVM, -1));
+			pUnitType->projectileType->mesh = LoadOgreXMLModel(std::string(lua_tostring(pVM, -1)));
 			lua_pop(pVM, 1);
 
 			GET_FLOAT_FIELD_OPTIONAL(pUnitType->projectileType->size, "size", 0.0)

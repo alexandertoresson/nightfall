@@ -11,38 +11,52 @@
 #include "unittype-pre.h"
 #include "sdlheader.h"
 #include "vector3d.h"
+#include "scenegraph.h"
+#include "render.h"
+#include "dimension.h"
 
 namespace Game
 {
 	namespace Dimension
 	{
-		extern GLfloat unitMaterialAmbient[2][2][4];
-		extern GLfloat unitMaterialDiffuse[2][2][4];
-		extern GLfloat unitMaterialSpecular[2][2][4];
-		extern GLfloat unitMaterialEmission[2][2][4];
-		extern GLfloat unitMaterialShininess[2][2];
-
-		void SetUnitCoordSpace(Unit* unit, bool ignoreCompleteness = false);
 		bool DoesHitUnit(Unit* unit, int clickx, int clicky, float& distance);
 		Utilities::Vector3D GetUnitWindowPos(Unit* unit);
-		void SetBillBoardCoordSystem(Unit* unit);
 
-		void RenderBuildOutline(UnitType* type, int start_x, int start_y);
-
-		TransformData* CreateTransformData(Utilities::Vector3D pretrans, Utilities::Vector3D rot, Utilities::Vector3D aftertrans, Utilities::Vector3D scale);
-		Animation* CreateAnimation(TransformAnim* transAnim);
-		TransformAnim* CreateTransAnim(MorphAnim* morphAnim, TransformAnim** children, int numChildren, float length, int numKeyFrames, ...);
-		MorphAnim* CreateMorphAnim(float length, int numKeyFrames, ...);
-
-		void PrepareAnimationData(Unit* const);
-		
-		class UnitTransfNode
+		class UnitTransfNode : public Scene::Graph::Node
 		{
-			private:
+			protected:
 				virtual void PreRender();
 				virtual void PostRender();
+				Unit* unit;
 			public:
 				UnitTransfNode(Unit* unit);
+		};
+
+		class UnitRenderNode : public Scene::Render::GeometryNode
+		{
+			protected:
+				virtual void Render();
+		};
+
+		class ProjectileNode : public Scene::Render::GeometryNode
+		{
+			protected:
+				virtual void PreRender();
+				virtual void Render();
+				virtual void PostRender();
+				Projectile* proj;
+			public:
+				ProjectileNode(Projectile* proj);
+		};
+
+		class OutlineNode : public UnitTransfNode
+		{
+			protected:
+				virtual void Render();
+				UnitType* type;
+				IntPosition pos;
+			public:
+				OutlineNode(UnitType* type, IntPosition pos);
 		};
 
 	}

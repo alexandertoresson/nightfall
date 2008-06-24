@@ -1,6 +1,5 @@
 #include "game.h"
 
-#include "model.h"
 #include "dimension.h"
 #include "font.h"
 #include "aibase.h"
@@ -571,9 +570,6 @@ namespace Game
 				graphicsLoaded = true;
 			}
 
-//			Utilities::OgreMesh* mesh = Utilities::LoadOgreXMLModel("/home/alex/nightfall/trunk/resources/models/unfinished/Cylinder.mesh.xml");
-//			delete mesh;
-
 			Dimension::Environment::FourthDimension* pDimension = Dimension::Environment::FourthDimension::Instance();
 			
 			////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -768,12 +764,12 @@ namespace Game
 			Dimension::Environment::FourthDimension::Instance()->ApplyLight();
 			Dimension::Environment::FourthDimension::Instance()->RenderSkyBox();
 			Dimension::DrawTerrain();
-			Dimension::RenderUnits();
+//			Dimension::RenderUnits();
 			Dimension::DrawWater();
 			//Particle test
 			FX::pParticleSystems->Render();
 
-			Dimension::RenderHealthBars();
+//			Dimension::RenderHealthBars();
 
 			Audio::PlaceSoundNodes(*worldCamera->GetPosVector());
 
@@ -834,10 +830,10 @@ namespace Game
 				glEnable(GL_TEXTURE_2D);
 			}
 
-			if (build_x != -1 && build_y != -1 && build_type)
+/*			if (build_x != -1 && build_y != -1 && build_type)
 			{
 				Dimension::RenderBuildOutline(build_type, build_x, build_y);
-			}
+			}*/
 
 			AI::aiFramesPerformedSinceLastRender = 0;
 

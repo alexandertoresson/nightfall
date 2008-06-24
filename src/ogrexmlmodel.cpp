@@ -2,6 +2,7 @@
 
 #include "unit.h"
 #include "minixml.h"
+#include "render-pre.h"
 #include <sstream>
 
 namespace Utilities
@@ -10,7 +11,7 @@ namespace Utilities
 	OgreSubMesh* submesh = NULL;
 	OgreVertexBuffer* vb = NULL;
 	std::vector<OgreVertexBuffer*> vbs;
-	VBO* texCoordVBO = NULL;
+	Scene::Render::VBO* texCoordVBO = NULL;
 	unsigned numVertices;
 	unsigned face_index, vertex_index, texcoord_index;
 	
@@ -135,21 +136,21 @@ namespace Utilities
 		vb = new OgreVertexBuffer;
 		if (elem->GetAttribute("positions") == "true")
 		{
-			vb->positions = new VBO;
+			vb->positions = new Scene::Render::VBO;
 			vb->positions->data.floats = new GLfloat[numVertices * 3];
 			vb->positions->numVals = numVertices * 3;
 			vb->positions->size = numVertices * 3 * sizeof(GLfloat);
 		}
 		if (elem->GetAttribute("normals") == "true")
 		{
-			vb->normals = new VBO;
+			vb->normals = new Scene::Render::VBO;
 			vb->normals->data.floats = new GLfloat[numVertices * 3];
 			vb->normals->numVals = numVertices * 3;
 			vb->normals->size = numVertices * 3 * sizeof(GLfloat);
 		}
 		if (elem->GetAttribute("binormals") == "true")
 		{
-			vb->binormals = new VBO;
+			vb->binormals = new Scene::Render::VBO;
 			vb->binormals->data.floats = new GLfloat[numVertices * 3];
 			vb->binormals->numVals = numVertices * 3;
 			vb->binormals->size = numVertices * 3 * sizeof(GLfloat);
@@ -161,7 +162,7 @@ namespace Utilities
 			dims_ss >> dims;
 
 			vb->tangentDims = dims;
-			vb->tangents = new VBO;
+			vb->tangents = new Scene::Render::VBO;
 			vb->tangents->data.floats = new GLfloat[numVertices * dims];
 			vb->tangents->numVals = numVertices * dims;
 			vb->tangents->size = numVertices * dims * sizeof(GLfloat);
@@ -268,7 +269,7 @@ namespace Utilities
 		Utilities::XMLReader xmlReader;
 		xmlReader.Read(filename);
 
-//		xmlReader.root->Iterate("mesh", ParseMesh);
+		xmlReader.root->Iterate("mesh", ParseMesh);
 
 		xmlReader.Deallocate();
 		return mesh;

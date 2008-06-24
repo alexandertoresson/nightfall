@@ -12,6 +12,7 @@
 #include "aibase-pre.h"
 #include "dimension.h"
 #include "audio.h"
+#include "ogrexmlmodel.h"
 
 #include <vector>
 #include <cmath>
@@ -55,7 +56,7 @@ namespace Game
 		
 		struct ProjectileType
 		{
-			Model*              model;
+			Utilities::OgreMesh* mesh;
 			float               size;
 			float               areaOfEffect;
 			Utilities::Vector3D startPos;
@@ -69,81 +70,11 @@ namespace Game
 			ProjectileType(char* model, float aoe, Utilities::Vector3D start_pos, float speed, float size);
 		};
 
-		struct MorphAnim
-		{
-			Model** models;            // models used for the keyframes
-			float*  keyFramePositions; // position in time space of the keyframes
-			int     numKeyFrames;
-			float   length;            // total length of the animation
-			float   lengthVariation;
-			Model*  tempModel;        // model to store temporary interpolated vertices, normals, texCoords, and material parameter
-		};
-
-		struct TransformData
-		{
-			Utilities::Vector3D pretrans;
-			Utilities::Vector3D rot;
-			Utilities::Vector3D aftertrans;
-			Utilities::Vector3D scale;
-		};
-
-		struct TransformAnim
-		{
-			MorphAnim* morphAnim;
-			TransformData** transDatas;  // transformation data used
-			float*  keyFramePositions; // position in time space of the keyframes
-			int     numKeyFrames;
-			float   length;            // total length of the animation
-			float   lengthVariation;
-			TransformAnim** children;
-			int     numChildren;
-		};
-
-		struct Animation
-		{
-			TransformAnim** transAnim;
-			int num_parts;
-		};
-
-		union CurAnim
-		{
-			Model* model;
-			TransformData* transdata;
-		};
-
-		enum AnimType
-		{
-			ANIM_TRANSFORM,
-			ANIM_MORPH
-		};
-
-		struct SingleAnimData
-		{
-
-			float   animPos; // positions into the different morphing and transforming animations for the UnitType.
-			CurAnim curFrames[4]; // current frames being interpolated between
-			int     nextFrameIndex;
-			float   curFrameLength; // length of current frame
-			SingleAnimData();
-		};
-
-		struct UnitAnimData
-		{
-			SingleAnimData** sAnimData[2];
-			float transitionPos;
-			float transitionLength;
-			Animation* anim[2];
-			bool isTransition;
-
-			UnitAnimData();
-		};
-
 		struct UnitType
 		{
 			std::string name;
 			std::string id;
-			Model*      model;
-			Animation*  animations[AI::ACTION_NUM];    // one per action, NULL if an animation doesn't exist for that action
+			Utilities::OgreMesh* mesh;
 			float       armor;
 			int         maxHealth;
 			float       regenHealth;

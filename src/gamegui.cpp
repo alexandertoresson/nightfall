@@ -564,7 +564,7 @@ namespace Game
 						{
 							AddSelectedUnit(*it);
 						}
-					}						
+					}
 				}
 				else
 				{

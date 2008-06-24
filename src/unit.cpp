@@ -1535,7 +1535,7 @@ namespace Game
 			Unit* unit = new Unit;
 
 			PrepareUnitEssentials(unit, type);
-			PrepareAnimationData(unit);
+//			PrepareAnimationData(unit);
 
 			unit->lastSeenPositions = new IntPosition[pWorld->vPlayers.size()];
 			unit->unitAIFuncs = type->unitAIFuncs;
@@ -1891,14 +1891,6 @@ namespace Game
 			if (unit->rallypoint != NULL)
 				delete unit->rallypoint;
 			
-			for (int i = 0; i < 10; i++)
-			{
-				delete[] unit->animData.sAnimData[0][i];
-				delete[] unit->animData.sAnimData[1][i];
-			}
-
-			delete[] unit->animData.sAnimData[0];
-			delete[] unit->animData.sAnimData[1];
 			delete[] unit->lastSeenPositions;
 			
 			for (int i = 0; i < Audio::SFX_ACT_COUNT; i++)
@@ -1988,22 +1980,13 @@ namespace Game
 			unit->health = (float) type->maxHealth;
 
 			PrepareUnitEssentials(unit, type);
-			PrepareAnimationData(unit);
+//			PrepareAnimationData(unit);
 
 			return unit;
 		}
 
 		void DeleteGhostUnit(Unit*& unit)
 		{
-			for (int i = 0; i < 10 ; i++)
-			{
-				delete [] unit->animData.sAnimData[0][i];
-				delete [] unit->animData.sAnimData[1][i];
-			}
-
-			delete [] unit->animData.sAnimData[0];
-			delete [] unit->animData.sAnimData[1];
-
 			delete unit->pMovementData;
 
 			delete unit;
@@ -2081,7 +2064,7 @@ namespace Game
 		
 			InitUnitSquares();
 
-			InitRenderUnits();
+//			InitRenderUnits();
 
 			a_seed = 23467;
 			r_seed = 23467;

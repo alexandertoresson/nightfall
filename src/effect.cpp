@@ -4,6 +4,7 @@
 #include "utilities.h"
 #include "unit.h"
 #include "unitsquares.h"
+#include "unitrender.h"
 #include <cmath>
 
 #undef PI

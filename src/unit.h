@@ -39,26 +39,6 @@ namespace Game
 
 		extern Unit** unitByID;
 		
-		struct Model
-		{
-			int tri_count;
-			int pointCount;
-			int texPointCount;
-			float* vertices;
-			float* normals;
-			float* texCoords;
-			int* tris;
-			int* tex_tris;
-			GLuint texture;
-			GLfloat *Material_Ambient;
-			GLfloat *Material_Diffuse;
-			GLfloat *Material_Specular;
-			GLfloat *Material_Shininess;
-			GLfloat *Material_Emissive;
-			VBOArrays staticArrays;
-			VBOArrays dynamicArrays;
-		};
-
 		struct ActionQueueItem : public BaseActionData
 		{
 			Unit* ghost;
@@ -109,7 +89,6 @@ namespace Game
 			IntPosition         curAssociatedSquare;
 			IntPosition         curAssociatedBigSquare;
 			float               rotation;  // how rotated the model is
-			UnitAnimData        animData;
 			std::deque<ActionQueueItem*>  actionQueue;
 			AI::MovementData*   pMovementData;
 			std::vector<Projectile*> projectiles;

@@ -45,7 +45,7 @@ am__installdirs = "$(DESTDIR)$(bindir)"
 binPROGRAMS_INSTALL = $(INSTALL_PROGRAM)
 PROGRAMS = $(bin_PROGRAMS)
 am_rts_OBJECTS = main.$(OBJEXT) window.$(OBJEXT) game.$(OBJEXT) \
-	utilities.$(OBJEXT) model.$(OBJEXT) audio.$(OBJEXT) \
+	utilities.$(OBJEXT) ogrexmlmodel.$(OBJEXT) audio.$(OBJEXT) \
 	terrain.$(OBJEXT) aibase.$(OBJEXT) dimension.$(OBJEXT) \
 	font.$(OBJEXT) unit.$(OBJEXT) aipathfinding.$(OBJEXT) \
 	vector3d.$(OBJEXT) luawrapper.$(OBJEXT) \
@@ -57,7 +57,7 @@ am_rts_OBJECTS = main.$(OBJEXT) window.$(OBJEXT) game.$(OBJEXT) \
 	minixml.$(OBJEXT) saveandload.$(OBJEXT) unittype.$(OBJEXT) \
 	unitsquares.$(OBJEXT) unitrender.$(OBJEXT) \
 	scenegraph.$(OBJEXT) matrix4x4.$(OBJEXT) lockchecker.$(OBJEXT) \
-	memdebug.$(OBJEXT) ogrexmlmodel.$(OBJEXT)
+	memdebug.$(OBJEXT) render.$(OBJEXT)
 rts_OBJECTS = $(am_rts_OBJECTS)
 rts_LDADD = $(LDADD)
 DEFAULT_INCLUDES = -I.@am__isrc@
@@ -167,12 +167,12 @@ target_alias = @target_alias@
 top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
 AM_CXXFLAGS = ${LUA_CFLAGS} ${SDL_CFLAGS} -Wall -Werror -Wextra -Wno-unused-parameter -Wpointer-arith -Wcast-align -pedantic -ansi -std=c++98
-rts_SOURCES = main.cpp window.cpp game.cpp utilities.cpp model.cpp audio.cpp terrain.cpp \
-	      aibase.cpp dimension.cpp font.cpp unit.cpp aipathfinding.cpp vector3d.cpp luawrapper.cpp \
-	      unitinterface.cpp gui.cpp environment.cpp console.cpp linkedlist.cpp textures.cpp \
-	      effect.cpp camera.cpp gamegui.cpp randomgenerator.cpp networking.cpp filesystem.cpp \
-	      paths.cpp circularbuffer.cpp minixml.cpp saveandload.cpp unittype.cpp unitsquares.cpp \
-	      unitrender.cpp scenegraph.cpp matrix4x4.cpp lockchecker.cpp memdebug.cpp ogrexmlmodel.cpp
+rts_SOURCES = main.cpp window.cpp game.cpp utilities.cpp ogrexmlmodel.cpp audio.cpp terrain.cpp \
+              aibase.cpp dimension.cpp font.cpp unit.cpp aipathfinding.cpp vector3d.cpp luawrapper.cpp \
+              unitinterface.cpp gui.cpp environment.cpp console.cpp linkedlist.cpp textures.cpp \
+              effect.cpp camera.cpp gamegui.cpp randomgenerator.cpp networking.cpp filesystem.cpp \
+              paths.cpp circularbuffer.cpp minixml.cpp saveandload.cpp unittype.cpp unitsquares.cpp \
+              unitrender.cpp scenegraph.cpp matrix4x4.cpp lockchecker.cpp memdebug.cpp render.cpp
 
 all: config.h
 	$(MAKE) $(AM_MAKEFLAGS) all-am
@@ -279,11 +279,11 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/matrix4x4.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/memdebug.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/minixml.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/model.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/networking.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ogrexmlmodel.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/paths.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/randomgenerator.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/render.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/saveandload.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/scenegraph.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/terrain.Po@am__quote@

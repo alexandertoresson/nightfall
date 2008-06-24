@@ -1,6 +1,7 @@
 #include "unittype.h"
 
 #include "unit.h"
+#include "ogrexmlmodel.h"
 
 namespace Game
 {
@@ -26,24 +27,6 @@ namespace Game
 			}
 		}
 		
-		SingleAnimData::SingleAnimData()
-		{
-			animPos = 0;
-			for (int i = 0; i < 4; i++)
-				curFrames[i].model = NULL;
-			nextFrameIndex = 0;
-			curFrameLength = 0;
-		}
-
-		UnitAnimData::UnitAnimData()
-		{
-			transitionPos = 0;
-			transitionLength = 0;
-			anim[0] = NULL;
-			anim[1] = NULL;
-			isTransition = false;
-		}
-
 		UnitType::~UnitType()
 		{
 			if (attackRangeArray)
@@ -126,7 +109,7 @@ namespace Game
 
 		ProjectileType::ProjectileType(char* model, float aoe, Utilities::Vector3D start_pos, float speed, float size)
 		{
-			this->model = LoadModel(model);
+			this->mesh = Utilities::LoadOgreXMLModel(std::string(model));
 			this->areaOfEffect = aoe;
 			this->startPos = start_pos;
 			this->speed = speed;

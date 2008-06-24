@@ -8,7 +8,6 @@
 #include "console.h"
 #include "networking.h"
 #include "game.h"
-#include "model.h"
 #include "utilities.h"
 #include <cmath>
 #include <set>
@@ -28,8 +27,6 @@ namespace Game
 		Player*    currentPlayer     = NULL;
 
 		map<Player*, bool> validPlayerPointers;
-
-		Utilities::ModelParser modelLoader;
 
 		bool IsValidPlayerPointer(Player* player)
 		{
@@ -264,80 +261,6 @@ namespace Game
 			}
 		}
 
-		Model* LoadModel(const char* model)
-		{
-			Model* data;
-			char *file, *modelname;
-			if (Game::Rules::noGraphics)
-				return (Model*) 0x1;
-			SplitString(model, '#', file, modelname);
-			if((data = modelLoader.GetModel(modelname)) != NULL)
-			{
-				delete[] file;
-				delete[] modelname;
-				return data;
-			}
-
-			int ret = modelLoader.Parse(file); 
-			if(ret != SUCCESS)
-			{
-				string errmess = "";
-				switch(ret)
-				{
-					case MODEL_ERROR_FILE_NOT_FOUND:
-					{
-						errmess = "File not found";
-						break;
-					}
-					case MODEL_ERROR_PARSE:
-					{
-						errmess = "Parse error";
-						break;
-					}
-					case MODEL_ERROR_UNEXPECTED_ERROR:
-					{
-						errmess = "Unexpected error";
-						break;
-					}
-					case MODEL_ERROR_INVALID_FORMAT:
-					{
-						errmess = "Invalid format";
-						break;
-					}
-					case MODEL_ERROR_NAME_CONFLICT:
-					{
-						errmess = "Name Conflict";
-						break;
-					}
-					default:
-					{
-						errmess = "Unknown";
-						break;
-					}
-				}
-				cout << "Failed to load '" << file << "' ModelLoader says: " << errmess << endl;
-				delete[] file;
-				delete[] modelname;
-				return NULL;
-			}
-			if(modelLoader.GetModelCount() != 0)
-			{
-				Model* model = modelLoader.GetModel(modelname);
-				if (!model)
-				{
-					console << Console::err << "Failed to get model \"" << modelname << "\", falling back to getting latest model loaded..." << Console::nl;
-					model = modelLoader.GetModel(modelLoader.GetModelCount() - 1);
-				}
-				console << "Triangles: " << model->tri_count << Console::nl;
-				delete[] file;
-				delete[] modelname;
-				return model;
-			}
-			delete[] file;
-			delete[] modelname;
-			return NULL;
-		}
-		
 		void UnloadUnitType(Player* player, UnitType* pUnitType)
 		{
 			// TODO

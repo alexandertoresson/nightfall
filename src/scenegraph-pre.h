@@ -21,11 +21,7 @@ namespace Scene
 		class SwitchNode;
 		class IndependentSwitchNode;
 
-		class GeometryNode;
-
-/*		class UnitTransfNode;
-
-		class GUINode;*/
+/*		class GUINode;*/
 	}
 }
 

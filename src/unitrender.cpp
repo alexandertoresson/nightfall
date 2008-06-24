@@ -8,6 +8,7 @@
 #include "aipathfinding.h"
 #include "window.h"
 #include "textures.h"
+#include "ogrexmlmodel.h"
 
 using namespace std;
 
@@ -83,56 +84,6 @@ namespace Game
 			unit_y = GetTerrainHeight(unit_x, unit_z) + z;
 			glTranslatef(unit_x * 0.125f - terrainOffsetX, unit_y, unit_z * 0.125f - terrainOffsetY);
 			glScalef(0.0625f*scale, 0.0625f*scale, 0.0625f*scale);
-		}
-
-		// Set the coordinate space of a unit, so you then can just render the unit and it will be placed at the appropriate
-		// position in the landscape
-		void SetUnitCoordSpace(Unit* unit, bool ignoreCompleteness /* = false */)
-		{
-			UnitType* type = unit->type;
-			float unit_x, unit_y, unit_z, degrees_to_rotate;
-			Utilities::Vector3D up_vector, normal, rotate_axis;
-		
-			unit_x = unit->pos.x;
-			unit_z = unit->pos.y;
-
-			if ((type->widthOnMap >> 1) << 1 == type->widthOnMap)
-			{
-				unit_x -= 0.5f;
-			}
-			if ((type->heightOnMap >> 1) << 1 == type->heightOnMap)
-			{
-				unit_z -= 0.5f;
-			}
-			
-			// Translate to the position of the terrain at the position of the unit
-			unit_y = GetTerrainHeight(unit_x, unit_z);
-			glTranslatef(unit_x * 0.125f - terrainOffsetX, unit_y, unit_z * 0.125f - terrainOffsetY);
-
-			// rotate so the unit will be placed correctly onto possibly leaning ground, by rotating by the difference between
-			// the up vector and the terrain normal (get degrees to rotate by with dot product, get axis with cross product)
-			up_vector.set(0.0f, 1.0f, 0.0f);
-			normal = GetTerrainNormal(unit->pos.x, unit->pos.y);
-
-			rotate_axis = up_vector;
-			rotate_axis.cross(normal);
-
-			degrees_to_rotate = acos(up_vector.dot(normal)) * (float) (180 / PI);
-
-			glRotatef(degrees_to_rotate, rotate_axis.x, rotate_axis.y, rotate_axis.z);
-
-			// rotate the unit by how much it's supposed to be rotated
-			glRotatef(unit->rotation, 0.0f, 1.0f, 0.0f);
-			
-			// scale down
-			if (ignoreCompleteness)
-				glScalef(0.0625f*type->size, 0.0625f*type->size, 0.0625f*type->size);
-			else
-				glScalef(0.0625f*type->size * unit->completeness / 100.0f, 0.0625f*type->size * unit->completeness / 100.0f, 0.0625f*type->size * unit->completeness / 100.0f);
-			
-			// translate upwards (in the direction of the terrain normal, because of the rotation before)
-			glTranslatef(0.0f, 1.05f, 0.0f);
-			
 		}
 
 		// sets the coordinate system so you can render a billboard at the current position
@@ -224,7 +175,7 @@ namespace Game
 		bool DoesHitUnit(Unit* unit, int clickx, int clicky, float& distance)
 		{
 			UnitType* type = unit->type;
-			Model* model = type->model;
+			Utilities::OgreMesh* model = type->mesh;
 			Utilities::Vector3D near_plane, far_plane, tp1, tp2, tp3, hit_pos;
 			int index, index_v;
 
@@ -239,7 +190,7 @@ namespace Game
 				
 				index = 0;
 
-				for (int i = 0; i < model->tri_count; i++)
+/*				for (int i = 0; i < model->tri_count; i++)
 				{
 					index_v = model->tris[index++] * 3;
 					tp1.set(model->vertices[index_v], model->vertices[index_v+1], model->vertices[index_v+2]);
@@ -253,7 +204,7 @@ namespace Game
 						distance = near_plane.distance(hit_pos);
 						return true;
 					}
-				}
+				}*/
 
 			glPopMatrix();
 
@@ -301,173 +252,6 @@ namespace Game
 				}
 			}
 			return cur_unit;
-		}
-
-		Model* CreateEmptyModel(Model* template_model)
-		{
-			Model* model = new Model;
-			model->pointCount = template_model->pointCount;
-			model->texPointCount = template_model->texPointCount;
-			model->vertices = new float[model->pointCount*3];
-			model->normals = new float[model->pointCount*3];
-			if (template_model->texCoords)
-			{
-				model->texCoords = new float[model->texPointCount*2];
-			}
-			else
-			{
-				model->texCoords = NULL;
-			}
-			return model;
-		}
-
-		MorphAnim* CreateMorphAnim(float length, int numKeyFrames, ...)
-		{
-			MorphAnim* morphAnim = new MorphAnim;
-			va_list ap;
-			va_start(ap, numKeyFrames);
-
-			morphAnim->numKeyFrames = numKeyFrames;
-			morphAnim->length = length;
-			morphAnim->models = new Model*[numKeyFrames];
-			morphAnim->keyFramePositions = new float[numKeyFrames];
-
-			for (int i = 0; i < numKeyFrames; i++)
-			{
-				morphAnim->models[i] = LoadModel(va_arg(ap, char*));
-				morphAnim->keyFramePositions[i] = (float) va_arg(ap, double);
-			}
-
-			va_end(ap);
-
-			if (!Game::Rules::noGraphics)
-				morphAnim->tempModel = CreateEmptyModel(morphAnim->models[0]);
-
-			return morphAnim;
-		}
-
-		TransformAnim** CreateAnimChildren(int num, ...)
-		{
-			TransformAnim** children = new TransformAnim*[num];
-			va_list ap;
-			va_start(ap, num);
-
-			for (int i = 0; i < num; i++)
-			{
-				children[i] = va_arg(ap, TransformAnim*);
-			}
-
-			va_end(ap);
-
-			return children;
-		}
-
-		TransformData* CreateTransformData(Utilities::Vector3D pretrans, Utilities::Vector3D rot, Utilities::Vector3D aftertrans, Utilities::Vector3D scale)
-		{
-			TransformData* transData = new TransformData;
-			transData->pretrans = pretrans;
-			transData->rot = rot;
-			transData->aftertrans = aftertrans;
-			transData->scale = scale;
-			return transData;
-		}
-
-		TransformAnim* CreateTransAnim(MorphAnim* morphAnim, TransformAnim** children, int numChildren, float length, int numKeyFrames, ...)
-		{
-			TransformAnim* transAnim = new TransformAnim;
-			va_list ap;
-			va_start(ap, numKeyFrames);
-
-			transAnim->morphAnim = morphAnim;
-			transAnim->numKeyFrames = numKeyFrames;
-			transAnim->length = length;
-			transAnim->transDatas = new TransformData*[numKeyFrames];
-			transAnim->keyFramePositions = new float[numKeyFrames];
-			transAnim->children = children;
-			transAnim->numChildren = numChildren;
-			transAnim->transDatas = new TransformData*[numKeyFrames];
-
-			for (int i = 0; i < numKeyFrames; i++)
-			{
-				transAnim->transDatas[i] = va_arg(ap, TransformData*);
-				transAnim->keyFramePositions[i] = (float) va_arg(ap, double);
-			}
-			
-			va_end(ap);
-
-			return transAnim;
-		}
-
-		Animation* CreateAnimation(TransformAnim* transAnim)
-		{
-			Animation* animation = new Animation;
-			animation->transAnim = new TransformAnim*;
-			animation->transAnim[0] = transAnim;
-			animation->num_parts = 1;
-			return animation;
-		}
-
-		void HandleAnim(int (&a_frames)[2][4], int& animNum, float mix, Unit* pUnit, void* Anim, AnimType animtype, float (&pos_between_anim_frames)[2])
-		{
-			float animPos;
-			float* keyFramePositions;
-			int numKeyFrames;
-			float animLength, frameLength;
-			int i = 0;
-			if (animtype == ANIM_MORPH)
-			{
-				keyFramePositions = ((MorphAnim*) Anim)->keyFramePositions;
-				numKeyFrames = ((MorphAnim*) Anim)->numKeyFrames;
-				animLength = ((MorphAnim*) Anim)->length;
-			}
-			else
-			{
-				keyFramePositions = ((TransformAnim*) Anim)->keyFramePositions;
-				numKeyFrames = ((TransformAnim*) Anim)->numKeyFrames;
-				animLength = ((TransformAnim*) Anim)->length;
-			}
-//			for (int i = 0; i < (1 + pUnit->animData.isTransition ? 1 : 0); i++)
-//			{
-				while (pUnit->animData.sAnimData[i][animNum]->animPos >= animLength)
-					pUnit->animData.sAnimData[i][animNum]->animPos -= animLength;
-
-				animPos = pUnit->animData.sAnimData[i][animNum]->animPos;
-
-				a_frames[i][1] = 0;
-				for (int j = 1; j < numKeyFrames; j++)
-				{
-					if (animPos >= keyFramePositions[j])
-					{
-						a_frames[i][1]++;
-					}
-				}
-
-				a_frames[i][0] = a_frames[i][1]-1;
-				a_frames[i][2] = a_frames[i][1]+1;
-				a_frames[i][3] = a_frames[i][1]+2;
-
-				if (a_frames[i][0] < 0)
-					a_frames[i][0] = numKeyFrames-1;
-
-				if (a_frames[i][2] >= numKeyFrames)
-					a_frames[i][2] = 0;
-
-				while (a_frames[i][3] >= numKeyFrames)
-					a_frames[i][3] -= numKeyFrames;
-
-				if (a_frames[i][1] == numKeyFrames-1)
-				{
-					frameLength = animLength - keyFramePositions[a_frames[i][1]];
-				}
-				else
-				{
-					frameLength = keyFramePositions[a_frames[i][2]] - keyFramePositions[a_frames[i][1]];
-				}
-				pos_between_anim_frames[i] = (animPos - keyFramePositions[a_frames[i][1]]) / frameLength;
-				
-				pUnit->animData.sAnimData[i][animNum]->animPos += (float) AI::aiFramesPerformedSinceLastRender / (float) AI::aiFps;
-//			}
-//			mix = Utilities::InterpolateCatmullRomBounded(0.0, 0.0, 1.0, 1.0, pUnit->animData.transitionPos / pUnit->animData.transitionLength);
 		}
 
 		void RenderBuildOutline(UnitType* type, int pos_x, int pos_y)
@@ -538,38 +322,6 @@ namespace Game
 			glEnable(GL_LIGHTING);
 			glEnable(GL_DEPTH_TEST);
 			glEnable(GL_TEXTURE_2D);
-		}
-
-		void RenderTriangles(int tri_count, int* tris, float* normals, float* vertices)
-		{
-			int index_v, index = 0;
-			for (int j = 0; j < tri_count; j++)
-			{
-				for (int k = 0; k < 3; k++)
-				{
-					index_v = tris[index] * 3;
-					glNormal3f(normals[index_v], normals[index_v+1], normals[index_v+2]);
-					glVertex3f(vertices[index_v], vertices[index_v+1], vertices[index_v+2]);
-					index++;
-				}
-			}
-		}
-
-		void RenderTrianglesTextured(int tri_count, int* tris, int* tex_tris, float* normals, float* vertices, float* texcoords)
-		{
-			int index_v, index_t, index = 0;
-			for (int j = 0; j < tri_count; j++)
-			{
-				for (int k = 0; k < 3; k++)
-				{
-					index_v = tris[index] * 3;
-					index_t = tex_tris[index] * 2;
-					glNormal3f(normals[index_v], normals[index_v+1], normals[index_v+2]);
-					glTexCoord2f(texcoords[index_t], texcoords[index_t+1]);
-					glVertex3f(vertices[index_v], vertices[index_v+1], vertices[index_v+2]);
-					index++;
-				}
-			}
 		}
 
 		void RenderProjectile(Projectile* proj)
@@ -837,35 +589,8 @@ namespace Game
 
 					glEnableClientState(GL_NORMAL_ARRAY);
 
-/*					if (unit->completeness < 100.0f)
-					{
-						GLfloat *normals = new GLfloat[model->tri_count * 9];
-						int index_v, index = 0;
-						int write_v = 0;
-						for (int j = 0; j < model->tri_count; j++)
-						{
-							for (int k = 0; k < 3; k++)
-							{
-								index_v = model->tris[index] * 3;
-
-								normals[write_v] = model->normals[index_v] * normal_scale_factor;
-								normals[write_v+1] = model->normals[index_v+1] * normal_scale_factor;
-								normals[write_v+2] = model->normals[index_v+2] * normal_scale_factor;
-
-								write_v += 3;
-								index++;
-							}
-						}
-						glBindBufferARB(GL_ARRAY_BUFFER_ARB, model->dynamicArrays.normalArray);
-						glBufferDataARB(GL_ARRAY_BUFFER_ARB, model->tri_count * 9 * sizeof(GLfloat), normals, GL_STREAM_DRAW_ARB);
-						glNormalPointer(GL_FLOAT, 0, NULL);
-						delete[] normals;
-					}
-					else
-					{*/
-						glBindBufferARB(GL_ARRAY_BUFFER_ARB, model->staticArrays.normalArray);
-						glNormalPointer(GL_FLOAT, 0, NULL);
-//					}
+					glBindBufferARB(GL_ARRAY_BUFFER_ARB, model->staticArrays.normalArray);
+					glNormalPointer(GL_FLOAT, 0, NULL);
 
 					glEnableClientState(GL_VERTEX_ARRAY);
 					glBindBufferARB(GL_ARRAY_BUFFER_ARB, model->staticArrays.vertexArray);
@@ -926,46 +651,6 @@ namespace Game
 			animNum++;
 		}
 
-		void RenderTransAnim(Unit* unit, TransformAnim* transAnim, int& animNum)
-		{
-			int a_frames[2][4];
-			TransformData* a_transdatas[4];
-			Utilities::Vector3D pretrans, rot, aftertrans, scale;
-			float pos_between_anim_frames[2];
-			float mix = 0.0f; // << don't forget to define variables! :)
-			glPushMatrix();
-
-				HandleAnim(a_frames, animNum, mix, unit, transAnim, ANIM_TRANSFORM, pos_between_anim_frames);
-	
-				for (int i = 0; i < 4; i++)
-				{
-					a_transdatas[i] = transAnim->transDatas[a_frames[0][i]];
-				}
-
-				pretrans = Utilities::InterpolateCatmullRomBounded(a_transdatas[0]->pretrans, a_transdatas[1]->pretrans, a_transdatas[2]->pretrans, a_transdatas[3]->pretrans, pos_between_anim_frames[0]);
-				rot = Utilities::InterpolateCatmullRomBounded(a_transdatas[0]->rot, a_transdatas[1]->rot, a_transdatas[2]->rot, a_transdatas[3]->rot, pos_between_anim_frames[0]);
-				aftertrans = Utilities::InterpolateCatmullRomBounded(a_transdatas[0]->aftertrans, a_transdatas[1]->aftertrans, a_transdatas[2]->aftertrans, a_transdatas[3]->aftertrans, pos_between_anim_frames[0]);
-				scale = Utilities::InterpolateCatmullRomBounded(a_transdatas[0]->scale, a_transdatas[1]->scale, a_transdatas[2]->scale, a_transdatas[3]->scale, pos_between_anim_frames[0]);
-
-				glTranslatef(pretrans.x, pretrans.y, pretrans.z);
-				glRotatef(rot.x, 1.0, 0.0, 0.0);
-				glRotatef(rot.y, 0.0, 1.0, 0.0);
-				glRotatef(rot.z, 0.0, 0.0, 1.0);
-				glTranslatef(aftertrans.x, aftertrans.y, aftertrans.z);
-				glScalef(scale.x, scale.y, scale.z);
-
-				animNum++;
-
-				RenderMorphAnim(unit, transAnim->morphAnim, animNum);
-				
-				for (int i = 0; i < transAnim->numChildren; i++)
-				{
-					RenderTransAnim(unit, transAnim->children[i], animNum);
-				}
-
-			glPopMatrix();
-		}
-
 		void RenderUnits()
 		{
 			Unit* unit;
@@ -1008,7 +693,9 @@ namespace Game
 				}
 			}
 
-			glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+		}
+
+/*			glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 						
 			size = Dimension::unitsDisplayQueue.size();
 			Unit* master = NULL;
@@ -1042,8 +729,7 @@ namespace Game
 					}
 				}
 			}
-			glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-		}
+			glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);*/
 
 		void RenderHealthBars()
 		{
@@ -1080,13 +766,6 @@ namespace Game
 						float y_e = 0.2f;
 						float progress = 0;
 
-/*
-						float y_s_i = y_s + 0.20 * (y_e - y_s);
-						float y_e_i = y_s + 1.00 * (y_e - y_s);
-						float x_s_i = x_s + 0.05 * (x_e - x_s);
-						float x_e_i = x_s + 0.95 * (x_e - x_s);
-*/
-
 						glBegin(GL_QUADS);
 						
 							progress = (float) unit->health / (float) type->maxHealth * (x_e - x_s);
@@ -1102,38 +781,7 @@ namespace Game
 							glVertex3f(x_e, y_s, 0.0);
 							glVertex3f(x_e, y_e, 0.0);
 							glVertex3f(x_s + progress, y_e, 0.0);
-/*
-							glVertex3f(x_s_i, y_s_i, 0.0);
-							glVertex3f(x_s_i + (float) (unit->health) / type->maxHealth * (x_e_i - x_s_i), y_s_i, 0.0);
-							glVertex3f(x_s_i + (float) (unit->health) / type->maxHealth * (x_e_i - x_s_i), y_e_i, 0.0);
-							glVertex3f(x_s_i, y_e_i, 0.0);
 
-							glColor4f(0.0f, 0.0f, 0.0f, 1.0f);
-							glVertex3f(x_s, y_s, 0.0);
-							glVertex3f(x_e, y_s, 0.0);
-							glVertex3f(x_e, y_s_i, 0.0);
-							glVertex3f(x_s, y_s_i, 0.0);
-							
-							glVertex3f(x_s, y_e_i, 0.0);
-							glVertex3f(x_e, y_e_i, 0.0);
-							glVertex3f(x_e, y_e, 0.0);
-							glVertex3f(x_s, y_e, 0.0);
-
-							glVertex3f(x_s, y_s_i, 0.0);
-							glVertex3f(x_s_i, y_s_i, 0.0);
-							glVertex3f(x_s_i, y_e_i, 0.0);
-							glVertex3f(x_s, y_e_i, 0.0);
-
-							glVertex3f(x_e_i, y_s_i, 0.0);
-							glVertex3f(x_e, y_s_i, 0.0);
-							glVertex3f(x_e, y_e_i, 0.0);
-							glVertex3f(x_e_i, y_e_i, 0.0);
-							
-							glVertex3f(x_s_i + (float) (unit->health) / type->maxHealth * (x_e_i - x_s_i), y_s, 0.0);
-							glVertex3f(x_e, y_s, 0.0);
-							glVertex3f(x_e, y_e, 0.0);
-							glVertex3f(x_s_i + (float) (unit->health) / type->maxHealth * (x_e_i - x_s_i), y_e, 0.0);
-*/
 							if (unit->pMovementData->action.action == AI::ACTION_BUILD)
 							{
 								if (unit->pMovementData->action.goal.unit != NULL)
@@ -1156,42 +804,6 @@ namespace Game
 										glVertex3f(x_e, y_s, 0.0);
 										glVertex3f(x_e, y_e, 0.0);
 										glVertex3f(x_s + progress, y_e, 0.0);
-/*
-										y_s_i = y_s + 0.20 * (y_e - y_s);
-										y_e_i = y_s + 1.00 * (y_e - y_s);
-
-										glColor4f(1.0f, 0.75f, 0.0f, 1.0f);
-										glVertex3f(x_s_i, y_s_i, 0.0);
-										glVertex3f(x_s_i + target->completeness / 100.0 * (x_e_i - x_s_i), y_s_i, 0.0);
-										glVertex3f(x_s_i + target->completeness / 100.0 * (x_e_i - x_s_i), y_e_i, 0.0);
-										glVertex3f(x_s_i, y_e_i, 0.0);
-
-										glColor4f(0.0f, 0.0f, 0.0f, 1.0f);
-										glVertex3f(x_s, y_s, 0.0);
-										glVertex3f(x_e, y_s, 0.0);
-										glVertex3f(x_e, y_s_i, 0.0);
-										glVertex3f(x_s, y_s_i, 0.0);
-
-										glVertex3f(x_s, y_e_i, 0.0);
-										glVertex3f(x_e, y_e_i, 0.0);
-										glVertex3f(x_e, y_e, 0.0);
-										glVertex3f(x_s, y_e, 0.0);
-
-										glVertex3f(x_s, y_s_i, 0.0);
-										glVertex3f(x_s_i, y_s_i, 0.0);
-										glVertex3f(x_s_i, y_e_i, 0.0);
-										glVertex3f(x_s, y_e_i, 0.0);
-
-										glVertex3f(x_e_i, y_s_i, 0.0);
-										glVertex3f(x_e, y_s_i, 0.0);
-										glVertex3f(x_e, y_e_i, 0.0);
-										glVertex3f(x_e_i, y_e_i, 0.0);
-
-										glVertex3f(x_s_i + target->completeness / 100.0 * (x_e_i - x_s_i), y_s, 0.0);
-										glVertex3f(x_e, y_s, 0.0);
-										glVertex3f(x_e, y_e, 0.0);
-										glVertex3f(x_s_i + target->completeness / 100.0 * (x_e_i - x_s_i), y_e, 0.0);
-*/
 									}
 								}
 							}
@@ -1222,30 +834,71 @@ namespace Game
 				}
 
 			}
-			/*
-			glEnable(GL_TEXTURE_2D);
-			glEnable(GL_LIGHTING);*/
 			Utilities::RevertViewport();
 			
-		}
-
-		void PrepareAnimationData(Unit* const unit)
-		{
-			unit->animData.sAnimData[0] = new SingleAnimData*[10];
-			unit->animData.sAnimData[1] = new SingleAnimData*[10];
-			for (int i = 0; i < 10; i++)
-			{
-				unit->animData.sAnimData[0][i] = new SingleAnimData[10];
-				unit->animData.sAnimData[1][i] = new SingleAnimData[10];
-			}
-
-			unit->pMovementData = new AI::MovementData;
- 			AI::InitMovementData(unit);
 		}
 
 		void InitRenderUnits()
 		{
 			genericTexture = Utilities::LoadGLTexture((char*) "models/textures/generic.png");
+		}
+
+		UnitTransfNode::UnitTransfNode(Unit* unit)
+		{
+			this->unit = unit;
+		}
+
+		void UnitTransfNode::PreRender()
+		{
+			UnitType* type = unit->type;
+			float unit_x, unit_y, unit_z, radians_to_rotate;
+			Utilities::Vector3D up_vector, normal, rotate_axis;
+			Matrix4x4& mVMatrix = matrices[MATRIXTYPE_MODELVIEW];
+
+			mtxStack[MATRIXTYPE_MODELVIEW].push(mVMatrix);
+		
+			unit_x = unit->pos.x;
+			unit_z = unit->pos.y;
+
+			if ((type->widthOnMap >> 1) << 1 == type->widthOnMap)
+			{
+				unit_x -= 0.5f;
+			}
+			if ((type->heightOnMap >> 1) << 1 == type->heightOnMap)
+			{
+				unit_z -= 0.5f;
+			}
+			
+			// Translate to the position of the terrain at the position of the unit
+			unit_y = GetTerrainHeight(unit_x, unit_z);
+			mVMatrix.Translate(unit_x * 0.125f - terrainOffsetX, unit_y, unit_z * 0.125f - terrainOffsetY);
+
+			// rotate so the unit will be placed correctly onto possibly leaning ground, by rotating by the difference between
+			// the up vector and the terrain normal (get degrees to rotate by with dot product, get axis with cross product)
+			up_vector.set(0.0f, 1.0f, 0.0f);
+			normal = GetTerrainNormal(unit->pos.x, unit->pos.y);
+
+			rotate_axis = up_vector;
+			rotate_axis.cross(normal);
+
+			radians_to_rotate = acos(up_vector.dot(normal));
+
+			mVMatrix.Rotate(radians_to_rotate, rotate_axis.x, rotate_axis.y, rotate_axis.z);
+
+			// rotate the unit by how much it's supposed to be rotated
+			mVMatrix.Rotate(unit->rotation, 0.0f, 1.0f, 0.0f);
+			
+			mVMatrix.Scale(0.0625f*type->size * unit->completeness / 100.0f, 0.0625f*type->size * unit->completeness / 100.0f, 0.0625f*type->size * unit->completeness / 100.0f);
+			
+			// translate upwards (in the direction of the terrain normal, because of the rotation before)
+			mVMatrix.Translate(0.0f, 1.05f, 0.0f);
+			
+		}
+		
+		void UnitTransfNode::PostRender()
+		{
+			matrices[MATRIXTYPE_MODELVIEW] = mtxStack[MATRIXTYPE_MODELVIEW].top();
+			mtxStack[MATRIXTYPE_MODELVIEW].pop();
 		}
 
 	}

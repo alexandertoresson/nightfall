@@ -15,7 +15,6 @@
 #include "game.h"
 #include "font.h"
 #include "aibase.h"
-#include "model.h"
 #include "utilities.h"
 #include "unitinterface.h"
 #include "gui.h"
@@ -23,6 +22,7 @@
 #include "paths.h"
 #include "camera.h"
 #include "aipathfinding.h"
+#include "unit.h"
 
 #if USE_FONT == 1
 #include "font.h"

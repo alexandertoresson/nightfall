@@ -11,19 +11,6 @@ namespace Game
 {
 	namespace Dimension
 	{
-		struct VBOArrays
-		{
-			GLuint normalArray;
-			GLuint vertexArray;
-			GLuint texCoordArray;
-			VBOArrays()
-			{
-				normalArray = 0;
-				vertexArray = 0;
-				texCoordArray = 0;
-			}
-		};
-
 		void SetParticleCoordSpace(float x, float y, float z, float scale = 1.0f);
 		
 		void RenderUnits();
@@ -32,6 +19,10 @@ namespace Game
 		void InitRenderUnits();
 
 		class UnitTransfNode;
+		class UnitRenderNode;
+
+		class ProjectileNode;
+		class OutlineNode;
 	}
 }
 

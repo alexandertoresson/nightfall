@@ -8,7 +8,6 @@
 #include "dimension-pre.h"
 
 #include "sdlheader.h"
-#include "model-pre.h"
 #include "aibase.h"
 #include "luawrapper.h"
 
@@ -167,13 +166,9 @@ namespace Game
 		
 		extern   World*                   pWorld;
 		extern   Unit***                  pppElements;
-		extern   Utilities::ModelParser   modelLoader;
 		
 		void GetApproximateMapPosOfClick(int clickx, int clicky, int &map_x, int &map_y);
 		bool GetTerrainPosClicked(int clickx, int clicky, int map_x, int map_y, int &ter_x, int &ter_y);
-
-		// Ladda modell ur textfil
-		Model*  LoadModel(const char* file);
 
 		// Ladda unittype ur textfil
 		UnitType*  LoadUnitType(const char* file);

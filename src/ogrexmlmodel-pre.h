@@ -10,58 +10,9 @@
 
 namespace Utilities
 {
-	struct VBO
-	{
-		union
-		{
-			GLfloat* floats;
-			GLuint* uints;
-			GLushort* ushorts;
-		} data;
-		unsigned numVals;
-		unsigned size;
-		GLuint buffer;
-		bool isElemBuffer;
+	struct OgreSubMesh;
 
-		VBO() : numVals(0), size(0), buffer(0), isElemBuffer(false)
-		{
-			data.floats = NULL;
-		}
-
-	};
-
-	struct OgreVertexBuffer
-	{
-		unsigned numVertices;
-		VBO* positions;
-		VBO* normals;
-		VBO* tangents;
-		VBO* binormals;
-		VBO* colorDiffuse;
-		VBO* colorSpecular;
-		unsigned tangentDims;
-		std::vector<VBO*> texCoords;
-		std::vector<unsigned> texCoordDims;
-		
-		OgreVertexBuffer() : positions(NULL), normals(NULL), tangents(NULL), binormals(NULL), colorDiffuse(NULL), colorSpecular(NULL), tangentDims(0)
-		{
-			
-		}
-	};
-
-	struct OgreSubMesh
-	{
-		VBO faces;
-
-		enum 
-		{
-			PRIMITIVETYPE_TRIANGLELIST,
-			PRIMITIVETYPE_TRIANGLESTRIP,
-			PRIMITIVETYPE_TRIANGLEFAN
-		} primitiveType;
-
-		std::vector<OgreVertexBuffer*> vbs;
-	};
+	struct OgreVertexBuffer;
 
 	struct OgreMesh
 	{
