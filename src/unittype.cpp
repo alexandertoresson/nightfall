@@ -118,5 +118,17 @@ namespace Game
 			this->isHoming = false;
 		}
 
+		std::vector<UnitType*> allUnitTypes;
+
+		UnitType* GetUnitTypeByID(unsigned i)
+		{
+			i -= 65536;
+			if (i < allUnitTypes.size())
+			{
+				return allUnitTypes[i];
+			}
+			return NULL;
+		}
+
 	}
 }

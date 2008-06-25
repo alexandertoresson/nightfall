@@ -138,7 +138,21 @@ namespace Game
 			command->x = x;
 			command->y = y;
 			command->action = action;
-			command->argument = argument;
+			if (command->action == ACTION_BUILD)
+			{
+				if (argument)
+				{
+					command->argument = (void*) ((Dimension::UnitType*) argument)->globalIndex;
+				}
+				else
+				{
+					command->argument = (void*) -1;
+				}
+			}
+			else
+			{
+				command->argument = argument;
+			}
 			command->rotation = rotation;
 			scheduledCommands.push_back(command);
 		}
@@ -152,7 +166,21 @@ namespace Game
 			command->playerIndex = pUnit->owner->index;
 			command->destinationID = destination->id;
 			command->action = action;
-			command->argument = argument;
+			if (command->action == ACTION_BUILD)
+			{
+				if (argument)
+				{
+					command->argument = (void*) ((Dimension::UnitType*) argument)->globalIndex;
+				}
+				else
+				{
+					command->argument = (void*) -1;
+				}
+			}
+			else
+			{
+				command->argument = argument;
+			}
 			command->rotation = rotation;
 			scheduledCommands.push_back(command);
 		}
@@ -253,7 +281,21 @@ namespace Game
 			{
 				event->targetID = 0;
 			}
-			event->arg = pUnit->pMovementData->action.arg;
+			if (pUnit->pMovementData->action.action == ACTION_BUILD)
+			{
+				if (pUnit->pMovementData->action.arg)
+				{
+					event->arg = (void*) ((Dimension::UnitType*) pUnit->pMovementData->action.arg)->globalIndex;
+				}
+				else
+				{
+					event->arg = (void*) -1;
+				}
+			}
+			else
+			{
+				event->arg = pUnit->pMovementData->action.arg;
+			}
 			event->func = aiEvent->func;
 			event->eventType = UNITEVENTTYPE_ACTION;
 

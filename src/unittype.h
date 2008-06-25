@@ -145,7 +145,12 @@ namespace Game
 			~UnitType();
 		
 			void GenerateRanges();
+
 		};
+
+		UnitType* GetUnitTypeByID(unsigned i);
+	
+		extern std::vector<UnitType*> allUnitTypes;
 
 	}
 }
