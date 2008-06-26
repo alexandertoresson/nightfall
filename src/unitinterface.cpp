@@ -989,9 +989,14 @@ namespace UnitLuaInterface
 		CHECK_UNIT_PTR(pUnit01)
 		CHECK_UNIT_PTR(pUnit02)
 		
-		UnitType* pUnitType = _GetUnitType(lua_touserdata(pVM, 4));
+		void* arg = _GetUnitType(lua_touserdata(pVM, 5));
 
-		CommandUnit_TargetUnit(pUnit01, pUnit02, (UnitAction) lua_tointeger(pVM, 3), pUnitType, lua_tonumber(pVM, 5));
+		if (!arg)
+		{
+			arg = lua_touserdata(pVM, 5);
+		}
+
+		CommandUnit_TargetUnit(pUnit01, pUnit02, (UnitAction) lua_tointeger(pVM, 3), arg, lua_tonumber(pVM, 5));
 
 		LUA_SUCCESS
 	}
@@ -1002,9 +1007,14 @@ namespace UnitLuaInterface
 
 		CHECK_UNIT_PTR(pUnit)
 		
-		UnitType* pUnitType = _GetUnitType(lua_touserdata(pVM, 5));
+		void* arg = _GetUnitType(lua_touserdata(pVM, 5));
 
-		CommandUnit_TargetPos(pUnit, lua_tointeger(pVM, 2), lua_tointeger(pVM, 3), (UnitAction) lua_tointeger(pVM, 4), pUnitType, lua_tonumber(pVM, 6));
+		if (!arg)
+		{
+			arg = lua_touserdata(pVM, 5);
+		}
+
+		CommandUnit_TargetPos(pUnit, lua_tointeger(pVM, 2), lua_tointeger(pVM, 3), (UnitAction) lua_tointeger(pVM, 4), arg, lua_tonumber(pVM, 6));
 
 		LUA_SUCCESS
 	}
