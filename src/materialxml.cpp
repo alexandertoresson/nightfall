@@ -160,7 +160,7 @@ namespace Utilities
 	static bool GetShaderCompileError(GLhandleARB handle, std::string filename)
 	{
 		char errorbuffer[1000];
-		int errorbufferlen = 0;
+		GLsizei errorbufferlen = 0;
 		glGetInfoLogARB(handle, 999, &errorbufferlen, errorbuffer);
 		errorbuffer[errorbufferlen] = 0;
 		if (errorbufferlen > 0)
