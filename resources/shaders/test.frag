@@ -18,7 +18,8 @@ void main(void)
 
 	vec4 main = texture2D(mainTexture, gl_TexCoord[0].st);
 	vec4 pmask = texture2D(colourTexture, gl_TexCoord[1].st);
+
 	float total = pmask.r + pmask.g + pmask.b + pmask.a;
-	vec4 color = ((main * pmask.a + playerColour0 * pmask.r + playerColour1 * pmask.g + playerColour2 * pmask.b) / total * (ambient + diffuse) + specular);
+	vec4 color = ((main * pmask.a + playerColour0 * pmask.r + playerColour1 * pmask.g + playerColour2 * pmask.b) / vec4(total) * vec4(ambient + diffuse) + vec4(specular));
 	gl_FragColor = vec4(color.rgb * vec3(materialModifier), color.a);
 }
