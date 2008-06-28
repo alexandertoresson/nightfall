@@ -11,7 +11,7 @@ namespace Utilities
 		{
 #ifdef WIN32
 			std::string str = "The OpenGL extension " + extension + " doesn't seem to be supported by your hardware.\nPlease make sure you have the latest drivers installed.";
-			MessageBoxA(NULL, str, "OpenGL Extension error!", MB_OK | MB_ICONERROR);
+			MessageBoxA(NULL, str.c_str(), "OpenGL Extension error!", MB_OK | MB_ICONERROR);
 #else
 			std::cout << extension << " extension could not be found!" << std::endl;
 #endif

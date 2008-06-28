@@ -76,7 +76,7 @@ namespace Scene
 			{
 				if (curSetState && curSetState->material)
 				{
-					for (std::vector<Utilities::TextureImageData*>::iterator it = curSetState->material->textures.begin(); it != curSetState->material->textures.end(); it++, i++)
+					for (std::vector<Utilities::TextureImageData*>::iterator it = curSetState->material->textures.begin(); it != curSetState->material->textures.end(); it++)
 						(*it)->Unlock();
 				}
 

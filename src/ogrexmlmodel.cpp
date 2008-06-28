@@ -387,11 +387,11 @@ namespace Utilities
 		return false;
 	}
 
-	bool OgreMesh::CheckRayIntersect(const Vector3D& near, const Vector3D& far, float& distance)
+	bool OgreMesh::CheckRayIntersect(const Vector3D& near_plane, const Vector3D& far_plane, float& distance)
 	{
 		for (std::vector<OgreSubMesh*>::iterator it = submeshes.begin(); it != submeshes.end(); it++)
 		{
-			if ((*it)->CheckRayIntersect(near, far, distance))
+			if ((*it)->CheckRayIntersect(near_plane, far_plane, distance))
 				return true;
 		}
 		return false;

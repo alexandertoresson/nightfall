@@ -54,7 +54,7 @@ namespace Utilities
 		std::vector<OgreSubMesh*> submeshes;
 		std::vector<OgreVertexBuffer*> shared;
 		std::vector<Scene::Render::MeshTransformation*> transforms;
-		bool CheckRayIntersect(const Vector3D& near, const Vector3D& far, float& distance);
+		bool CheckRayIntersect(const Vector3D& near_plane, const Vector3D& far_plane, float& distance);
 	};
 
 	OgreMesh* LoadSpecificOgreXMLModel(std::string filename);

@@ -78,9 +78,6 @@ int main(int argc, char** argv)
 
 		if (errCode != SUCCESS)
 		{
-#ifdef WIN32
-			MessageBoxA( NULL, "config.txt could not be not parsed!", "Error", MB_OK | MB_ICONERROR);
-#endif
 			std::cerr << "config.txt could not be not parsed!" << std::endl;
 //			return errCode; // Non-critical now that we have default values
 		}
