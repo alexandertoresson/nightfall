@@ -2,5 +2,6 @@
 <modifiers version="1.0">
 	<transforms>
 		<scale amount="0.2" />
+		<translate x="-20.0" y="0.0" z="22.5" />
 	</transforms>
 </modifiers>

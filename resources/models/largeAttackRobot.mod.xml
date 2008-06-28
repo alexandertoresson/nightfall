@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <modifiers version="1.0">
 	<transforms>
-		<scale amount="0.4" />
-		<translate x="-1.0" y="1.0" z="-1.0" />
+		<scale amount="0.3" />
+		<translate x="-4.5" y="1.0" z="4.5" />
 	</transforms>
 </modifiers>

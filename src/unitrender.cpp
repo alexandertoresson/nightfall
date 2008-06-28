@@ -178,6 +178,7 @@ namespace Game
 		void UnitMainNode::ScheduleSelection(Unit* unit)
 		{
 			SDL_LockMutex(listsMutex);
+			std::cout << "select " << std::endl;
 			unitScheduledForSelection.insert(unit);
 			SDL_UnlockMutex(listsMutex);
 		}
@@ -188,10 +189,12 @@ namespace Game
 			std::set<Unit*>::iterator it = unitScheduledForSelection.find(unit);
 			if (it != unitScheduledForSelection.end())
 			{
+				std::cout << "unselect " << std::endl;
 				unitScheduledForSelection.erase(it);
 			}
 			else
 			{
+				std::cout << "deselect " << std::endl;
 				unitScheduledForDeselection.push_back(unit);
 			}
 			SDL_UnlockMutex(listsMutex);
@@ -239,41 +242,6 @@ namespace Game
 		{
 			SDL_LockMutex(listsMutex);
 			
-			// Additions
-			/////////////////////////////////////////////////////////////////////////
-
-			for (std::set<Unit*>::iterator it = unitScheduledForAddition.begin(); it != unitScheduledForAddition.end(); it++)
-			{
-				Unit* unit = *it;
-				UnitNode* unitNode = new UnitNode(unit);
-//				std::cout << "add " << unit->id << " (" << unit << ")" << std::endl;
-				AddChild(unitNode);
-				unitToUnitNode[unit] = unitNode;
-			}
-			unitScheduledForAddition.clear();
-			
-			for (std::set<Unit*>::iterator it = unitScheduledForSelection.begin(); it != unitScheduledForSelection.end(); it++)
-			{
-				Unit* unit = *it;
-				UnitNode* unitNode = unitToUnitNode[unit];
-				if (!unitToSelectNode[unit])
-				{
-					UnitSelectionNode* selectNode = new UnitSelectionNode(unit);
-					unitNode->AddChild(selectNode);
-					unitToSelectNode[unit] = selectNode;
-				}
-			}
-			unitScheduledForSelection.clear();
-
-			for (std::set<Projectile*>::iterator it = projScheduledForAddition.begin(); it != projScheduledForAddition.end(); it++)
-			{
-				Projectile* proj = *it;
-				ProjectileNode* projNode = new ProjectileNode(proj);
-				AddChild(projNode);
-				projToProjNode[proj] = projNode;
-			}
-			projScheduledForAddition.clear();
-			
 			// Removals
 			/////////////////////////////////////////////////////////////////////////
 
@@ -316,6 +284,41 @@ namespace Game
 			}
 			projScheduledForDeletion.clear();
 
+			// Additions
+			/////////////////////////////////////////////////////////////////////////
+
+			for (std::set<Unit*>::iterator it = unitScheduledForAddition.begin(); it != unitScheduledForAddition.end(); it++)
+			{
+				Unit* unit = *it;
+				UnitNode* unitNode = new UnitNode(unit);
+//				std::cout << "add " << unit->id << " (" << unit << ")" << std::endl;
+				AddChild(unitNode);
+				unitToUnitNode[unit] = unitNode;
+			}
+			unitScheduledForAddition.clear();
+			
+			for (std::set<Unit*>::iterator it = unitScheduledForSelection.begin(); it != unitScheduledForSelection.end(); it++)
+			{
+				Unit* unit = *it;
+				UnitNode* unitNode = unitToUnitNode[unit];
+				if (!unitToSelectNode[unit])
+				{
+					UnitSelectionNode* selectNode = new UnitSelectionNode(unit);
+					unitNode->AddChild(selectNode);
+					unitToSelectNode[unit] = selectNode;
+				}
+			}
+			unitScheduledForSelection.clear();
+
+			for (std::set<Projectile*>::iterator it = projScheduledForAddition.begin(); it != projScheduledForAddition.end(); it++)
+			{
+				Projectile* proj = *it;
+				ProjectileNode* projNode = new ProjectileNode(proj);
+				AddChild(projNode);
+				projToProjNode[proj] = projNode;
+			}
+			projScheduledForAddition.clear();
+			
 			BuildOutlineNode::instance.Set(buildOutlineType, buildOutlinePosition);
 
 			SDL_UnlockMutex(listsMutex);
@@ -358,14 +361,6 @@ namespace Game
 
 			mVMatrix.Scale(0.0625f);
 
-			if (unit->type->mesh->transforms.size())
-			{
-				for (std::vector<Scene::Render::MeshTransformation*>::iterator it = unit->type->mesh->transforms.begin(); it != unit->type->mesh->transforms.end(); it++)
-				{
-					(*it)->Apply(mVMatrix);
-				}
-			}
-
 			// rotate so the unit will be placed correctly onto possibly leaning ground, by rotating by the difference between
 			// the up vector and the terrain normal (get degrees to rotate by with dot product, get axis with cross product)
 			up_vector.set(0.0f, 1.0f, 0.0f);
@@ -381,6 +376,14 @@ namespace Game
 			// rotate the unit by how much it's supposed to be rotated
 			mVMatrix.Rotate(unit->rotation * (PI / 180), 0.0f, 1.0f, 0.0f);
 			
+			if (unit->type->mesh->transforms.size())
+			{
+				for (std::vector<Scene::Render::MeshTransformation*>::iterator it = unit->type->mesh->transforms.begin(); it != unit->type->mesh->transforms.end(); it++)
+				{
+					(*it)->Apply(mVMatrix);
+				}
+			}
+
 			mVMatrix.Scale(unit->completeness / 100.0f);
 			
 		}

@@ -1180,7 +1180,7 @@ namespace Game
 			GetTypeUpperLeftCorner(type, x, y, start_x, start_y);
 			end_y = start_y + type->heightOnMap - 1;
 			end_x = start_x + type->widthOnMap - 1;
-			if (start_x < 0 || start_y < 0 || end_x > pWorld->width || end_y > pWorld->height)
+			if (start_x < 0 || start_y < 0 || end_x >= pWorld->width || end_y >= pWorld->height)
 			{
 				return false;
 			}
@@ -1295,14 +1295,14 @@ namespace Game
 			int offset = rangeScanlines->yOffset;
 			int size = rangeScanlines->height;
 			start_y = y - offset < 0 ? offset - y : 0;
-			end_y = y + offset >= pWorld->height ? size - offset + pWorld->height - y - 2 : size;
+			end_y = y + offset >= pWorld->height ? size - offset + pWorld->height - y - 1 : size;
 			for (int ry = start_y; ry < end_y; ry++)
 			{
 				int ny = ry + y - offset;
 				start_x = x + rangeScanlines->scanlines[ry].startX;
 				end_x = x + rangeScanlines->scanlines[ry].endX;
 				start_x = start_x < 0 ? 0 : start_x;
-				end_x = end_x >= pWorld->width ? pWorld->width-1 : end_x;
+				end_x = end_x >= pWorld->width ? pWorld->width : end_x;
 				if (operation)
 				{
 					for (int nx = start_x; nx < end_x; nx++)
@@ -1368,14 +1368,14 @@ namespace Game
 			int offset = rangeScanlines->yOffset;
 			int size = rangeScanlines->height;
 			start_y = y - offset < 0 ? offset - y : 0;
-			end_y = y + offset >= pWorld->height ? size - offset + pWorld->height - y - 2 : size;
+			end_y = y + offset >= pWorld->height ? size - offset + pWorld->height - y - 1 : size;
 			for (int ry = start_y; ry < end_y; ry++)
 			{
 				int ny = ry + y - offset;
 				start_x = x + rangeScanlines->scanlines[ry].startX;
 				end_x = x + rangeScanlines->scanlines[ry].endX;
 				start_x = start_x < 0 ? 0 : start_x;
-				end_x = end_x >= pWorld->width ? pWorld->width-1 : end_x;
+				end_x = end_x >= pWorld->width ? pWorld->width : end_x;
 
 				if (operation == 1)
 				{
