@@ -37,6 +37,7 @@ namespace Utilities
 	{
 		std::string name;
 		virtual void Set(GLint id) = 0;
+		virtual ~Uniform() {};
 	};
 
 	struct Uniform4f : public Uniform
@@ -65,6 +66,8 @@ namespace Utilities
 		{
 			glUniform4fARB(id, val[0], val[1], val[2], val[3]);
 		}
+		
+		virtual ~Uniform4f() {};
 	};
 
 	struct UniformInt : public Uniform
@@ -80,6 +83,8 @@ namespace Utilities
 		{
 			glUniform1iARB(id, val);
 		}
+		
+		virtual ~UniformInt() {};
 	};
 
 	struct UniformFloat : public Uniform
@@ -95,6 +100,8 @@ namespace Utilities
 		{
 			glUniform1fARB(id, val);
 		}
+		
+		virtual ~UniformFloat() {};
 	};
 
 	struct TextureImageData

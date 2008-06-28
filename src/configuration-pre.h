@@ -22,6 +22,7 @@ namespace Utilities
 				public:
 					virtual std::string Apply(std::string str) = 0;
 					virtual std::string GetDefault() = 0;
+					virtual ~Restriction() {}
 			};
 			
 			template<typename T>

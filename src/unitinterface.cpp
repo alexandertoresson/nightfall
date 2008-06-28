@@ -1344,7 +1344,7 @@ namespace UnitLuaInterface
 	int LSetRegularAIEnabled(lua_State* pVM)
 	{
 		void* context = lua_touserdata(pVM, 1);
-		int contextType = lua_tonumber(pVM, 4);
+		int contextType = lua_tointeger(pVM, 4);
 		EventType eventtype = (EventType) lua_tointeger(pVM, 2);
 		bool enabled = lua_toboolean(pVM, 3);
 		Player *player = GetPlayerByVMstate(pVM);

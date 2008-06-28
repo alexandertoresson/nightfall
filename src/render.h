@@ -126,6 +126,7 @@ namespace Scene
 		{
 			public:
 				virtual void Apply(Utilities::Matrix4x4& matrix) = 0;
+				virtual ~MeshTransformation() {};
 		};
 
 		class MeshTranslation : public MeshTransformation
@@ -138,6 +139,7 @@ namespace Scene
 					
 				}
 				void Apply(Utilities::Matrix4x4& matrix);
+				virtual ~MeshTranslation() {};
 		};
 
 		class MeshRotation : public MeshTransformation
@@ -150,6 +152,7 @@ namespace Scene
 					
 				}
 				void Apply(Utilities::Matrix4x4& matrix);
+				virtual ~MeshRotation() {};
 		};
 
 		class MeshScaling : public MeshTransformation
@@ -162,6 +165,7 @@ namespace Scene
 					
 				}
 				void Apply(Utilities::Matrix4x4& matrix);
+				virtual ~MeshScaling() {};
 		};
 
 	}
