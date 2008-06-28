@@ -157,14 +157,19 @@ namespace Utilities
 		return buffer;
 	}
 
-	static bool GetShaderCompileError(GLhandleARB handle, std::string filename)
+	static bool GetShaderCompileError(GLhandleARB handle, GLenum boolean, std::string filename)
 	{
-		char errorbuffer[1000];
-		GLsizei errorbufferlen = 0;
-		glGetInfoLogARB(handle, 999, &errorbufferlen, errorbuffer);
-		errorbuffer[errorbufferlen] = 0;
-		if (errorbufferlen > 0)
+		GLint succeeded = 0;
+		glGetObjectParameterivARB(handle, boolean, &succeeded);
+		if (!succeeded)
 		{
+			char errorbuffer[1000];
+			GLsizei errorbufferlen = 0;
+			glGetInfoLogARB(handle, 999, &errorbufferlen, errorbuffer);
+			errorbuffer[errorbufferlen] = 0;
+#ifdef WIN32
+			MessageBoxA( NULL, errorbuffer, ("Error compiling " + filename + "!").c_str(), MB_OK | MB_ICONERROR);
+#endif
 			std::cout << "Error compiling " << filename << ":" << std::endl;
 			std::cout << errorbuffer << std::endl;
 			return true;
@@ -184,7 +189,7 @@ namespace Utilities
 			glCompileShaderARB(material->vertShader);
 			delete[] vdata;
 
-			if (GetShaderCompileError(material->vertShader, vertFilename))
+			if (GetShaderCompileError(material->vertShader, GL_OBJECT_COMPILE_STATUS_ARB, vertFilename))
 			{
 				glDeleteObjectARB(material->vertShader);
 				material->vertShader = 0;
@@ -205,7 +210,7 @@ namespace Utilities
 			glCompileShaderARB(material->fragShader);
 			delete[] fdata;
 
-			if (GetShaderCompileError(material->fragShader, fragFilename))
+			if (GetShaderCompileError(material->fragShader, GL_OBJECT_COMPILE_STATUS_ARB, fragFilename))
 			{
 				glDeleteObjectARB(material->fragShader);
 				material->fragShader = 0;
@@ -222,9 +227,8 @@ namespace Utilities
 			glAttachObjectARB(material->program, material->vertShader);
 			glAttachObjectARB(material->program, material->fragShader);
 			glLinkProgramARB(material->program);
-			glValidateProgramARB(material->program);
 
-			if (GetShaderCompileError(material->program, fragFilename + "+" + vertFilename))
+			if (GetShaderCompileError(material->program, GL_OBJECT_LINK_STATUS_ARB, fragFilename + "+" + vertFilename))
 			{
 				glDeleteObjectARB(material->program);
 				material->program = 0;
