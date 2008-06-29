@@ -105,15 +105,15 @@ namespace Game
 				mZoom = 67.5f;
 			
 			// Check so x and z of mFocus isn't outside the map
-			if (mFocus.x <= -terrainOffsetX)
-				mFocus.x = -terrainOffsetX;
-			else if (mFocus.x >= terrainOffsetX)
-				mFocus.x = terrainOffsetX - 0.0001;
+			if (mFocus.x <= -terrainOffsetX + 1)
+				mFocus.x = -terrainOffsetX + 1;
+			else if (mFocus.x >= terrainOffsetX - 1)
+				mFocus.x = terrainOffsetX - 1;
 			
-			if (mFocus.z <= -terrainOffsetY)
-				mFocus.z = -terrainOffsetY;
-			else if (mFocus.z >= terrainOffsetY)
-				mFocus.z = terrainOffsetY - 0.0001;
+			if (mFocus.z <= -terrainOffsetY + 1)
+				mFocus.z = -terrainOffsetY + 1;
+			else if (mFocus.z >= terrainOffsetY - 1)
+				mFocus.z = terrainOffsetY - 1;
 
 			// Set Y of focus to right above the ground at the focus point
 			mFocus.y = GetTerrainHeightHighestLevel((mFocus.x + terrainOffsetX) * 8, (mFocus.z + terrainOffsetY) * 8) + 0.5;

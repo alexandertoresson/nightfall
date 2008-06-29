@@ -1386,6 +1386,11 @@ namespace Game
 			x2_i = (int) floor(x2);
 			y2_i = (int) floor(y2);
 
+			if (x1_i < 0 || x2_i < 0 || y1_i < 0 || y2_i < 0 || x1_i >= levelmap_width || x2_i >= levelmap_width || y1_i >= levelmap_height || y2_i >= levelmap_height)
+			{
+				return;
+			}
+
 			if (x1_i == x2_i) // special case: x is constant
 			{
 				if (y2_i >= y1_i) // two cases: y2 > y1 and y1 < y2
