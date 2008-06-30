@@ -32,7 +32,7 @@ namespace Scene
 					};
 
 					std::map<GLStateBool, bool> stateBools;
-					Utilities::Material *material;
+					ref_ptr<Utilities::Material> material;
 
 					GLState() : material(NULL)
 					{
@@ -72,15 +72,15 @@ namespace Scene
 					struct AttribArray
 					{
 						std::string name;
-						VBO *array;
+						ref_ptr<VBO> array;
 						GLenum type;
 					};
 
-					VBO* vertexArray;
-					VBO* normalArray;
-					VBO* indicesArray;
+					ref_ptr<VBO> vertexArray;
+					ref_ptr<VBO> normalArray;
+					ref_ptr<VBO> indicesArray;
 					bool indicesAre32Bit;
-					std::vector<VBO*> texCoordArrays;
+					std::vector<ref_ptr<VBO> > texCoordArrays;
 					std::vector<AttribArray> attribArrays;
 					GLenum primitive;
 					unsigned numElems;
@@ -105,19 +105,19 @@ namespace Scene
 			protected:
 				virtual void Render();
 			public:
-				OgreSubMeshNode(Utilities::OgreSubMesh *mesh);
+				OgreSubMeshNode(const ref_ptr<Utilities::OgreSubMesh>& mesh);
 				virtual ~OgreSubMeshNode();
 		};
 		
 		class OgreMeshNode : public Scene::Graph::Node
 		{
 			private:
-				Utilities::OgreMesh* mesh;
+				ref_ptr<Utilities::OgreMesh> mesh;
 			protected:
 				virtual void ApplyMatrix();
 				virtual void PostRender();
 			public:
-				OgreMeshNode(Utilities::OgreMesh *mesh);
+				OgreMeshNode(const ref_ptr<Utilities::OgreMesh> mesh);
 		};
 
 

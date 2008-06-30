@@ -56,7 +56,7 @@ namespace Game
 		
 		struct ProjectileType
 		{
-			Utilities::OgreMesh* mesh;
+			ref_ptr<Utilities::OgreMesh> mesh;
 			float               size;
 			float               areaOfEffect;
 			Utilities::Vector3D startPos;
@@ -74,7 +74,7 @@ namespace Game
 		{
 			std::string name;
 			std::string id;
-			Utilities::OgreMesh* mesh;
+			ref_ptr<Utilities::OgreMesh> mesh;
 			float       armor;
 			int         maxHealth;
 			float       regenHealth;

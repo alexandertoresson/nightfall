@@ -12,7 +12,7 @@
 
 namespace Utilities
 {
-	OgreMesh* LoadOgreXMLModel(std::string name);
+	ref_ptr<OgreMesh> LoadOgreXMLModel(std::string name);
 }
 
 #ifdef DEBUG_DEP

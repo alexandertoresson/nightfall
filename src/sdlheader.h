@@ -46,6 +46,8 @@
 	#include <GL/glu.h>
 #endif
 
+#include "ref_ptr.h"
+
 #ifndef GL_ARB_multitexture
 #error GL_ARB_multitexture is needed for this program
 #endif

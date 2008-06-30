@@ -33,7 +33,7 @@ namespace Scene
 				virtual void Render();
 				virtual void PostRender();
 
-				std::map<int, Node*> children;
+				std::map<int, ref_ptr<Node> > children;
 				Node* parent;
 				static Utilities::Matrix4x4 matrices[MATRIXTYPE_NUM];
 				static std::stack<Utilities::Matrix4x4> mtxStack[MATRIXTYPE_NUM];
@@ -51,18 +51,18 @@ namespace Scene
 				Node();
 				virtual ~Node();
 
-				virtual void AddChild(Node* node, int placement);
-				virtual void AddChild(Node* node);
-				virtual void RemoveChild(Node* node);
+				virtual void AddChild(ref_ptr<Node> node, int placement);
+				virtual void AddChild(ref_ptr<Node> node);
+				virtual void RemoveChild(ref_ptr<Node> node);
 
-				virtual void DeleteTree(bool removeFromParent = true);
+				virtual void DeleteTree();
 				virtual void Traverse();
 
 				void SetEnabled(bool enabled);
 
-				Utilities::Matrix4x4 GetMatrix(MatrixType type, Node* baseNode = NULL);
+				Utilities::Matrix4x4 GetMatrix(MatrixType type, ref_ptr<Node> baseNode = NULL);
 				
-				void BuildMatrices(Node* baseNode);
+				void BuildMatrices(ref_ptr<Node> baseNode);
 				static void ResetMatrices();
 
 				virtual bool HandleEvent(SDL_Event* event);

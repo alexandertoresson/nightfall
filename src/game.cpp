@@ -472,16 +472,16 @@ namespace Game
 			
 			////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 			
-			Scene::Graph::rootNode.AddChild(&Dimension::Camera::instance);
-			Dimension::Camera::instance.AddChild(&Dimension::Environment::EnvironmentNode::instance);
-			Dimension::Camera::instance.AddChild(&Dimension::Environment::SkyboxNode::instance);
-			Dimension::Camera::instance.AddChild(&Dimension::TerrainNode::instance);
-			Dimension::Camera::instance.AddChild(&Dimension::UnitMainNode::instance);
+			Scene::Graph::rootNode.AddChild(ref_ptr<Scene::Graph::Node>(&Dimension::Camera::instance, null_deleter));
+			Dimension::Camera::instance.AddChild(ref_ptr<Scene::Graph::Node>(&Dimension::Environment::EnvironmentNode::instance, null_deleter));
+			Dimension::Camera::instance.AddChild(ref_ptr<Scene::Graph::Node>(&Dimension::Environment::SkyboxNode::instance, null_deleter));
+			Dimension::Camera::instance.AddChild(ref_ptr<Scene::Graph::Node>(&Dimension::TerrainNode::instance, null_deleter));
+			Dimension::Camera::instance.AddChild(ref_ptr<Scene::Graph::Node>(&Dimension::UnitMainNode::instance, null_deleter));
 			// cleanup node, for resetting stuff for fixed function stuff...
 			Dimension::Camera::instance.AddChild(new Scene::Render::GLStateNode(new Scene::Render::GLStateNode::GLState()));
-			Dimension::Camera::instance.AddChild(&Dimension::BuildOutlineNode::instance);
-			Dimension::Camera::instance.AddChild(&FX::ParticleNode::instance);
-			Scene::Graph::rootNode.AddChild(&GUINode::instance);
+			Dimension::Camera::instance.AddChild(ref_ptr<Scene::Graph::Node>(&Dimension::BuildOutlineNode::instance, null_deleter));
+			Dimension::Camera::instance.AddChild(ref_ptr<Scene::Graph::Node>(&FX::ParticleNode::instance, null_deleter));
+			Scene::Graph::rootNode.AddChild(ref_ptr<Scene::Graph::Node>(&GUINode::instance, null_deleter));
 
 			/*
 

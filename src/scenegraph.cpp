@@ -9,12 +9,10 @@ namespace Scene
 
 		Node::Node() : parent(NULL), enabled(true), lastPlacement(0)
 		{
-			
 		}
 
 		Node::~Node()
 		{
-			
 		}
 
 		void Node::SetEnabled(bool enabled)
@@ -43,6 +41,7 @@ namespace Scene
 		}
 
 		void Node::Traverse()
+
 		{
 			if (enabled)
 			{
@@ -52,19 +51,12 @@ namespace Scene
 			}
 		}
 
-		void Node::DeleteTree(bool removeFromParent)
+		void Node::DeleteTree()
 		{
-			for (std::map<int, Node*>::iterator it = children.begin(); it != children.end(); it++)
+			if (parent)
 			{
-				// removeFromParent = false, or the child will attempt to remove itself from this
-				it->second->DeleteTree(false);
+				parent->RemoveChild(ref_ptr<Node>(this, null_deleter));
 			}
-			children.clear();
-			if (parent && removeFromParent)
-			{
-				parent->RemoveChild(this);
-			}
-			delete this;
 		}
 
 		bool Node::HandleEvent(SDL_Event* event)
@@ -72,7 +64,7 @@ namespace Scene
 			return SendEventToAllChildren(event);
 		}
 
-		void Node::AddChild(Node* node, int placement)
+		void Node::AddChild(ref_ptr<Node> node, int placement)
 		{
 			children[placement] = node;
 			if (node->parent)
@@ -86,14 +78,14 @@ namespace Scene
 			}
 		}
 
-		void Node::AddChild(Node* node)
+		void Node::AddChild(ref_ptr<Node> node)
 		{
 			AddChild(node, lastPlacement + 1);
 		}
 
-		void Node::RemoveChild(Node* node)
+		void Node::RemoveChild(ref_ptr<Node> node)
 		{
-			for (std::map<int, Node*>::iterator it = children.begin(); it != children.end(); it++)
+			for (std::map<int, ref_ptr<Node> >::iterator it = children.begin(); it != children.end(); it++)
 			{
 				if (it->second == node)
 				{
@@ -106,7 +98,7 @@ namespace Scene
 
 		void Node::TraverseAllChildren()
 		{
-			for (std::map<int, Node*>::iterator it = children.begin(); it != children.end(); it++)
+			for (std::map<int, ref_ptr<Node> >::iterator it = children.begin(); it != children.end(); it++)
 			{
 				it->second->Traverse();
 			}
@@ -114,7 +106,7 @@ namespace Scene
 
 		bool Node::SendEventToAllChildren(SDL_Event* event)
 		{
-			for (std::map<int, Node*>::reverse_iterator it = children.rbegin(); it != children.rend(); it++)
+			for (std::map<int, ref_ptr<Node> >::reverse_iterator it = children.rbegin(); it != children.rend(); it++)
 			{
 				if (it->second->HandleEvent(event))
 				{
@@ -136,9 +128,9 @@ namespace Scene
 			}
 		}
 
-		void Node::BuildMatrices(Node* baseNode)
+		void Node::BuildMatrices(ref_ptr<Node> baseNode)
 		{
-			if (parent && parent != baseNode)
+			if (parent && baseNode != ref_ptr<Node>(parent, null_deleter))
 			{
 				parent->BuildMatrices(baseNode);
 			}
@@ -149,7 +141,7 @@ namespace Scene
 			ApplyMatrix();
 		}
 
-		Utilities::Matrix4x4 Node::GetMatrix(MatrixType type, Node* baseNode)
+		Utilities::Matrix4x4 Node::GetMatrix(MatrixType type, ref_ptr<Node> baseNode)
 		{
 			Utilities::Matrix4x4 mat;
 			BuildMatrices(baseNode);
@@ -194,7 +186,7 @@ namespace Scene
 
 		void SwitchNode::Render()
 		{
-			for (std::map<int, Node*>::iterator it = children.begin(); it != children.end(); it++)
+			for (std::map<int, ref_ptr<Node> >::iterator it = children.begin(); it != children.end(); it++)
 			{
 				if (it->first == active)
 				{

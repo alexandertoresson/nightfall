@@ -32,7 +32,15 @@ namespace Scene
 
 			VBO() : numVals(0), size(0), valsPerItem(0), buffer(0), isElemBuffer(false)
 			{
-				data.floats = NULL;
+				data.pnt = NULL;
+			}
+
+			~VBO()
+			{
+				if (data.floats)
+				{
+					delete[] data.floats;
+				}
 			}
 
 			void Lock();

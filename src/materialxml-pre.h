@@ -110,7 +110,7 @@ namespace Utilities
 		unsigned dimensions;
 		unsigned width, height, channels;
 		GLenum pixelFormat, channelFormat;
-		SDL_Surface *image;
+		ref_ptr<SDL_Surface> image;
 		GLuint buffer;
 
 		TextureImageData(std::string filename, std::string name);
@@ -127,8 +127,8 @@ namespace Utilities
 		Colour specular;
 		Colour emission;
 		GLfloat shininess;
-		std::vector<TextureImageData*> textures;
-		std::vector<Uniform*> uniforms;
+		std::vector<ref_ptr<TextureImageData> > textures;
+		std::vector<ref_ptr<Uniform> > uniforms;
 		GLhandleARB program;
 		GLhandleARB vertShader;
 		GLhandleARB fragShader;

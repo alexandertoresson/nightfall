@@ -76,7 +76,7 @@ namespace Scene
 			{
 				if (curSetState && curSetState->material)
 				{
-					for (std::vector<Utilities::TextureImageData*>::iterator it = curSetState->material->textures.begin(); it != curSetState->material->textures.end(); it++)
+					for (std::vector<ref_ptr<Utilities::TextureImageData> >::iterator it = curSetState->material->textures.begin(); it != curSetState->material->textures.end(); it++)
 						(*it)->Unlock();
 				}
 
@@ -94,7 +94,7 @@ namespace Scene
 				{
 					glUseProgramObjectARB(myGLState->material->program);
 
-					for (std::vector<Utilities::Uniform*>::iterator it = myGLState->material->uniforms.begin(); it != myGLState->material->uniforms.end(); it++)
+					for (std::vector<ref_ptr<Utilities::Uniform> >::iterator it = myGLState->material->uniforms.begin(); it != myGLState->material->uniforms.end(); it++)
 					{
 						GLint id = glGetUniformLocationARB(myGLState->material->program, (*it)->name.c_str());
 						if (id != -1)
@@ -108,7 +108,7 @@ namespace Scene
 					}
 
 					i = 0;
-					for (std::vector<Utilities::TextureImageData*>::iterator it = myGLState->material->textures.begin(); it != myGLState->material->textures.end(); it++, i++)
+					for (std::vector<ref_ptr<Utilities::TextureImageData> >::iterator it = myGLState->material->textures.begin(); it != myGLState->material->textures.end(); it++, i++)
 					{
 						(*it)->Lock();
 
@@ -173,7 +173,7 @@ namespace Scene
 						curSetState->vertexArray->Unlock();
 					for (std::vector<GeomState::AttribArray>::iterator it = curSetState->attribArrays.begin(); it != curSetState->attribArrays.end(); it++)
 						it->array->Unlock();
-					for (std::vector<VBO*>::iterator it = curSetState->texCoordArrays.begin(); it != curSetState->texCoordArrays.end(); it++, i++)
+					for (std::vector<ref_ptr<VBO> >::iterator it = curSetState->texCoordArrays.begin(); it != curSetState->texCoordArrays.end(); it++, i++)
 						(*it)->Unlock();
 				}
 
@@ -216,9 +216,9 @@ namespace Scene
 				}
 
 				i = 0;
-				for (std::vector<VBO*>::iterator it = myGeomState->texCoordArrays.begin(); it != myGeomState->texCoordArrays.end(); it++, i++)
+				for (std::vector<ref_ptr<VBO> >::iterator it = myGeomState->texCoordArrays.begin(); it != myGeomState->texCoordArrays.end(); it++, i++)
 				{
-					VBO* vbo = *it;
+					const ref_ptr<VBO>& vbo = *it;
 					
 					vbo->Lock();
 					glBindBufferARB(GL_ARRAY_BUFFER_ARB, vbo->buffer);
@@ -266,10 +266,10 @@ namespace Scene
 		ref_ptr<GeometryNode::GeomState> GeometryNode::curSetState = NULL;
 		unsigned GeometryNode::curNumAttribArrays = 0;
 
-		OgreSubMeshNode::OgreSubMeshNode(Utilities::OgreSubMesh* submesh) : GeometryNode(new GeomState, new GLState)
+		OgreSubMeshNode::OgreSubMeshNode(const ref_ptr<Utilities::OgreSubMesh>& submesh) : GeometryNode(new GeomState, new GLState)
 		{
-			Utilities::OgreVertexBuffer* vb = submesh->vbs[0];
-			myGeomState->indicesArray = &submesh->faces;
+			const ref_ptr<Utilities::OgreVertexBuffer>& vb = submesh->vbs[0];
+			myGeomState->indicesArray = submesh->faces;
 			myGeomState->vertexArray = vb->positions;
 			myGeomState->normalArray = vb->normals;
 			switch (submesh->primitiveType)
@@ -286,7 +286,7 @@ namespace Scene
 			}
 			myGeomState->indicesAre32Bit = true;
 			myGeomState->numElems = submesh->numElems;
-			for (std::vector<VBO*>::iterator it = vb->texCoords.begin(); it != vb->texCoords.end(); it++)
+			for (std::vector<ref_ptr<VBO> >::iterator it = vb->texCoords.begin(); it != vb->texCoords.end(); it++)
 			{
 				myGeomState->texCoordArrays.push_back(*it);
 			}
@@ -310,7 +310,7 @@ namespace Scene
 
 				Utilities::Matrix4x4& mVMatrix = matrices[MATRIXTYPE_MODELVIEW];
 
-				for (std::vector<MeshTransformation*>::iterator it = mesh->transforms.begin(); it != mesh->transforms.end(); it++)
+				for (std::vector<ref_ptr<MeshTransformation> >::iterator it = mesh->transforms.begin(); it != mesh->transforms.end(); it++)
 				{
 					(*it)->Apply(mVMatrix);
 				}
@@ -323,9 +323,9 @@ namespace Scene
 				PopMatrix(MATRIXTYPE_MODELVIEW);
 		}
 
-		OgreMeshNode::OgreMeshNode(Utilities::OgreMesh* mesh)
+		OgreMeshNode::OgreMeshNode(const ref_ptr<Utilities::OgreMesh> mesh)
 		{
-			for (std::vector<Utilities::OgreSubMesh*>::iterator it = mesh->submeshes.begin(); it != mesh->submeshes.end(); it++)
+			for (std::vector<ref_ptr<Utilities::OgreSubMesh> >::iterator it = mesh->submeshes.begin(); it != mesh->submeshes.end(); it++)
 			{
 				this->AddChild(new OgreSubMeshNode(*it));
 			}

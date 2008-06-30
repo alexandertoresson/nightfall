@@ -9,7 +9,7 @@
 
 namespace Utilities
 {
-	static OgreMesh* mesh = NULL;
+	static ref_ptr<OgreMesh> mesh = NULL;
 	static unsigned submesh_index = 0;
 
 	static void ParseSubMesh(Utilities::XMLElement *elem)
@@ -18,7 +18,7 @@ namespace Utilities
 		{
 			if (mesh)
 			{
-				OgreSubMesh* submesh = mesh->submeshes[submesh_index];
+				ref_ptr<OgreSubMesh> submesh = mesh->submeshes[submesh_index];
 				submesh->material = LoadMaterialXML(elem->GetAttribute("material"));
 			}
 			else
@@ -148,9 +148,9 @@ namespace Utilities
 
 	}
 
-	static std::map<std::string, OgreMesh*> filenameToMesh;
+	static std::map<std::string, ref_ptr<OgreMesh> > filenameToMesh;
 
-	OgreMesh* LoadOgreXMLModel(std::string name)
+	ref_ptr<OgreMesh> LoadOgreXMLModel(std::string name)
 	{
 		mesh = filenameToMesh[name];
 

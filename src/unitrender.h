@@ -36,9 +36,9 @@ namespace Game
 				}
 
 				SDL_mutex* listsMutex;
-				std::map<Unit*, UnitNode*> unitToUnitNode;
-				std::map<Unit*, UnitSelectionNode*> unitToSelectNode;
-				std::map<Projectile*, ProjectileNode*> projToProjNode;
+				std::map<Unit*, ref_ptr<UnitNode> > unitToUnitNode;
+				std::map<Unit*, ref_ptr<UnitSelectionNode> > unitToSelectNode;
+				std::map<Projectile*, ref_ptr<ProjectileNode> > projToProjNode;
 
 				std::set<Unit*> unitScheduledForAddition;
 				std::vector<Unit*> unitScheduledForDeletion;
@@ -66,7 +66,7 @@ namespace Game
 				void ScheduleBuildOutlineAddition(UnitType* type, int x, int y);
 				void ScheduleBuildOutlineDeletion();
 
-				UnitNode* GetUnitNode(Unit* unit);
+				const ref_ptr<UnitNode>& GetUnitNode(Unit* unit);
 
 				static UnitMainNode instance;
 		};
@@ -81,7 +81,7 @@ namespace Game
 				virtual void PreRender();
 				virtual void Render();
 			public:
-				UnitSubMeshRenderNode(Unit* unit, Utilities::OgreSubMesh* submesh);
+				UnitSubMeshRenderNode(Unit* unit, const ref_ptr<Utilities::OgreSubMesh>& submesh);
 				~UnitSubMeshRenderNode();
 				int i;
 		};

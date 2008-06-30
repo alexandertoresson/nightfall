@@ -12,10 +12,10 @@
 
 namespace Utilities
 {
-	static OgreMesh* mesh = NULL;
-	static OgreSubMesh* submesh = NULL;
-	static OgreVertexBuffer* vb = NULL;
-	static std::vector<OgreVertexBuffer*> vbs;
+	static ref_ptr<OgreMesh> mesh = NULL;
+	static ref_ptr<OgreSubMesh> submesh = NULL;
+	static ref_ptr<OgreVertexBuffer> vb = NULL;
+	static std::vector<ref_ptr<OgreVertexBuffer> > vbs;
 	static unsigned numVertices;
 	static unsigned face_index, vertex_index, texcoord_index;
 
@@ -212,23 +212,24 @@ namespace Utilities
 		std::stringstream v1_ss(elem->GetAttribute(v1_str)),
 		                  v2_ss(elem->GetAttribute(v2_str)),
 		                  v3_ss(elem->GetAttribute(v3_str));
-		v1_ss >> submesh->faces.data.uints[face_index++];
+		v1_ss >> submesh->faces->data.uints[face_index++];
 		if (elem->HasAttribute(v2_str))
-			v2_ss >> submesh->faces.data.uints[face_index++];
+			v2_ss >> submesh->faces->data.uints[face_index++];
 		if (elem->HasAttribute(v3_str))
-			v3_ss >> submesh->faces.data.uints[face_index++];
+			v3_ss >> submesh->faces->data.uints[face_index++];
 	}
 
 	void ParseFaces(Utilities::XMLElement *elem)
 	{
+		submesh->faces = new Scene::Render::VBO;
 		std::stringstream nv_ss(elem->GetAttribute("count"));
-		nv_ss >> submesh->faces.numVals;
-		submesh->faces.data.uints = new GLuint[submesh->faces.numVals*3];
+		nv_ss >> submesh->faces->numVals;
+		submesh->faces->data.uints = new GLuint[submesh->faces->numVals*3];
 		face_index = 0;
 		elem->Iterate("face", ParseFace);
 		submesh->numElems = face_index;
-		submesh->faces.size = face_index * sizeof(GLuint);
-		submesh->faces.isElemBuffer = true;
+		submesh->faces->size = face_index * sizeof(GLuint);
+		submesh->faces->isElemBuffer = true;
 	}
 
 	void ParseSubmesh(Utilities::XMLElement *elem)
@@ -325,9 +326,9 @@ namespace Utilities
 		elem->Iterate("transforms", ParseModTransforms);
 	}
 
-	static std::map<std::string, OgreMesh*> filenameToMesh;
+	static std::map<std::string, ref_ptr<OgreMesh> > filenameToMesh;
 
-	OgreMesh* LoadSpecificOgreXMLModel(std::string name)
+	ref_ptr<OgreMesh> LoadSpecificOgreXMLModel(std::string name)
 	{
 		Utilities::XMLReader xmlReader;
 		
@@ -366,17 +367,17 @@ namespace Utilities
 
 	bool OgreSubMesh::CheckRayIntersect(const Vector3D& near_plane, const Vector3D& far_plane, float& distance)
 	{
-		OgreVertexBuffer* vb = vbs[0];
+		const ref_ptr<OgreVertexBuffer>& vb = vbs[0];
 		Utilities::Vector3D tp1, tp2, tp3, hit_pos;
 		int index_v;
 
-		for (unsigned i = 0; i < faces.numVals*3; )
+		for (unsigned i = 0; i < faces->numVals*3; )
 		{
-			index_v = faces.data.uints[i++] * 3;
+			index_v = faces->data.uints[i++] * 3;
 			tp1.set(vb->positions->data.floats[index_v], vb->positions->data.floats[index_v+1], vb->positions->data.floats[index_v+2]);
-			index_v = faces.data.uints[i++] * 3;
+			index_v = faces->data.uints[i++] * 3;
 			tp2.set(vb->positions->data.floats[index_v], vb->positions->data.floats[index_v+1], vb->positions->data.floats[index_v+2]);
-			index_v = faces.data.uints[i++] * 3;
+			index_v = faces->data.uints[i++] * 3;
 			tp3.set(vb->positions->data.floats[index_v], vb->positions->data.floats[index_v+1], vb->positions->data.floats[index_v+2]);
 			if (CheckLineIntersectTri(tp1, tp3, tp2, near_plane, far_plane, hit_pos))
 			{
@@ -389,7 +390,7 @@ namespace Utilities
 
 	bool OgreMesh::CheckRayIntersect(const Vector3D& near_plane, const Vector3D& far_plane, float& distance)
 	{
-		for (std::vector<OgreSubMesh*>::iterator it = submeshes.begin(); it != submeshes.end(); it++)
+		for (std::vector<ref_ptr<OgreSubMesh> >::iterator it = submeshes.begin(); it != submeshes.end(); it++)
 		{
 			if ((*it)->CheckRayIntersect(near_plane, far_plane, distance))
 				return true;

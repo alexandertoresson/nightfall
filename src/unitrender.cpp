@@ -48,7 +48,7 @@ namespace Game
 		bool DoesHitUnit(Unit* unit, int clickx, int clicky, float& distance)
 		{
 			UnitType* type = unit->type;
-			Utilities::OgreMesh* mesh = type->mesh;
+			const ref_ptr<Utilities::OgreMesh>& mesh = type->mesh;
 			Utilities::Vector3D near_plane, far_plane;
 
 			if (!mesh)
@@ -56,7 +56,7 @@ namespace Game
 
 			glPushMatrix();
 
-				UnitNode* unitNode = UnitMainNode::instance.GetUnitNode(unit);
+				const ref_ptr<UnitNode>& unitNode = UnitMainNode::instance.GetUnitNode(unit);
 
 				unitNode->GetMatrix(Scene::Graph::Node::MATRIXTYPE_MODELVIEW).Apply();
 				
@@ -75,7 +75,7 @@ namespace Game
 			Utilities::Vector3D win_vector;
 			glPushMatrix();
 
-				UnitNode* unitNode = UnitMainNode::instance.GetUnitNode(unit);
+				const ref_ptr<UnitNode>& unitNode = UnitMainNode::instance.GetUnitNode(unit);
 
 				unitNode->GetMatrix(Scene::Graph::Node::MATRIXTYPE_MODELVIEW).Apply();
 
@@ -248,7 +248,7 @@ namespace Game
 			for (std::vector<Unit*>::iterator it = unitScheduledForDeselection.begin(); it != unitScheduledForDeselection.end(); it++)
 			{
 				Unit* unit = *it;
-				UnitSelectionNode* selectNode = unitToSelectNode[unit];
+				ref_ptr<UnitSelectionNode>& selectNode = unitToSelectNode[unit];
 				if (selectNode)
 				{
 					selectNode->DeleteTree();
@@ -260,7 +260,7 @@ namespace Game
 			for (std::vector<Unit*>::iterator it = unitScheduledForDeletion.begin(); it != unitScheduledForDeletion.end(); it++)
 			{
 				Unit* unit = *it;
-				UnitNode* unitNode = unitToUnitNode[unit];
+				ref_ptr<UnitNode>& unitNode = unitToUnitNode[unit];
 //				std::cout << "delete " << unit->id << " (" << unit << ")" << std::endl;
 				if (unitNode)
 				{
@@ -274,7 +274,7 @@ namespace Game
 			for (std::vector<Projectile*>::iterator it = projScheduledForDeletion.begin(); it != projScheduledForDeletion.end(); it++)
 			{
 				Projectile* proj = *it;
-				ProjectileNode* projNode = projToProjNode[proj];
+				ref_ptr<ProjectileNode>& projNode = projToProjNode[proj];
 				if (projNode)
 				{
 					projNode->DeleteTree();
@@ -290,7 +290,7 @@ namespace Game
 			for (std::set<Unit*>::iterator it = unitScheduledForAddition.begin(); it != unitScheduledForAddition.end(); it++)
 			{
 				Unit* unit = *it;
-				UnitNode* unitNode = new UnitNode(unit);
+				ref_ptr<UnitNode> unitNode = new UnitNode(unit);
 //				std::cout << "add " << unit->id << " (" << unit << ")" << std::endl;
 				AddChild(unitNode);
 				unitToUnitNode[unit] = unitNode;
@@ -300,10 +300,10 @@ namespace Game
 			for (std::set<Unit*>::iterator it = unitScheduledForSelection.begin(); it != unitScheduledForSelection.end(); it++)
 			{
 				Unit* unit = *it;
-				UnitNode* unitNode = unitToUnitNode[unit];
+				ref_ptr<UnitNode>& unitNode = unitToUnitNode[unit];
 				if (!unitToSelectNode[unit])
 				{
-					UnitSelectionNode* selectNode = new UnitSelectionNode(unit);
+					ref_ptr<UnitSelectionNode> selectNode = new UnitSelectionNode(unit);
 					unitNode->AddChild(selectNode);
 					unitToSelectNode[unit] = selectNode;
 				}
@@ -313,7 +313,7 @@ namespace Game
 			for (std::set<Projectile*>::iterator it = projScheduledForAddition.begin(); it != projScheduledForAddition.end(); it++)
 			{
 				Projectile* proj = *it;
-				ProjectileNode* projNode = new ProjectileNode(proj);
+				ref_ptr<ProjectileNode> projNode = new ProjectileNode(proj);
 				AddChild(projNode);
 				projToProjNode[proj] = projNode;
 			}
@@ -324,7 +324,7 @@ namespace Game
 			SDL_UnlockMutex(listsMutex);
 		}
 
-		UnitNode* UnitMainNode::GetUnitNode(Unit* unit)
+		const ref_ptr<UnitNode>& UnitMainNode::GetUnitNode(Unit* unit)
 		{
 			return unitToUnitNode[unit];
 		}
@@ -378,7 +378,7 @@ namespace Game
 			
 			if (unit->type->mesh->transforms.size())
 			{
-				for (std::vector<Scene::Render::MeshTransformation*>::iterator it = unit->type->mesh->transforms.begin(); it != unit->type->mesh->transforms.end(); it++)
+				for (std::vector<ref_ptr<Scene::Render::MeshTransformation> >::iterator it = unit->type->mesh->transforms.begin(); it != unit->type->mesh->transforms.end(); it++)
 				{
 					(*it)->Apply(mVMatrix);
 				}
@@ -404,7 +404,7 @@ namespace Game
 			}
 		}
 
-		UnitSubMeshRenderNode::UnitSubMeshRenderNode(Unit* unit, Utilities::OgreSubMesh* submesh) : OgreSubMeshNode(submesh), unit(unit)
+		UnitSubMeshRenderNode::UnitSubMeshRenderNode(Unit* unit, const ref_ptr<Utilities::OgreSubMesh>& submesh) : OgreSubMeshNode(submesh), unit(unit)
 		{
 			int i = 0;
 			for (std::vector<Utilities::Colour>::iterator it = unit->owner->colours.begin(); it != unit->owner->colours.end(); it++, i++)
@@ -483,9 +483,9 @@ namespace Game
 
 		UnitNode::UnitNode(Unit* unit)
 		{
-			Utilities::OgreMesh* mesh = unit->type->mesh;
+			const ref_ptr<Utilities::OgreMesh>& mesh = unit->type->mesh;
 			this->unit = unit;
-			for (std::vector<Utilities::OgreSubMesh*>::iterator it = mesh->submeshes.begin(); it != mesh->submeshes.end(); it++)
+			for (std::vector<ref_ptr<Utilities::OgreSubMesh> >::iterator it = mesh->submeshes.begin(); it != mesh->submeshes.end(); it++)
 			{
 				this->AddChild(new UnitSubMeshRenderNode(unit, *it));
 			}
@@ -674,7 +674,7 @@ namespace Game
 				
 			if (proj->type->mesh->transforms.size())
 			{
-				for (std::vector<Scene::Render::MeshTransformation*>::iterator it = proj->type->mesh->transforms.begin(); it != proj->type->mesh->transforms.end(); it++)
+				for (std::vector<ref_ptr<Scene::Render::MeshTransformation> >::iterator it = proj->type->mesh->transforms.begin(); it != proj->type->mesh->transforms.end(); it++)
 				{
 					(*it)->Apply(mVMatrix);
 				}

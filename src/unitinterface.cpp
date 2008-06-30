@@ -3039,7 +3039,7 @@ else \
 
 			pUnitType->mesh = LoadOgreXMLModel(std::string(model));
 						
-			if(pUnitType->mesh == NULL)
+			if(!pUnitType->mesh)
 			{
 				LUA_FAILURE("Model " << model << " could not be found or loaded")
 			}
@@ -3110,7 +3110,7 @@ else \
 			}
 			pUnitType->projectileType->mesh = LoadOgreXMLModel(std::string(lua_tostring(pVM, -1)));
 			
-			if(pUnitType->projectileType->mesh == NULL)
+			if(!pUnitType->projectileType->mesh)
 			{
 				LUA_FAILURE("Model " << lua_tostring(pVM, -1) << " could not be found or loaded")
 			}

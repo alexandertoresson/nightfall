@@ -1,12 +1,31 @@
 #ifndef __REF_PTR_H__
 #define __REF_PTR_H__
 
+//#define REF_PTR_DEBUG
+
+#include <cstdlib>
+#include <iostream>
+#include <typeinfo>
+
+#ifdef REF_PTR_DEBUG
+#include <map>
+#endif
+
+template <typename T>
+class enc_ptr;
+
 template <typename T>
 class ref_ptr
 {
 	private:
+#ifdef REF_PTR_DEBUG
+		static std::map<T*, unsigned*> refs;
+		static std::map<T*, unsigned*> test;
+#endif
 		T* ref;
-		int* numrefs;
+		unsigned* numrefs;
+		unsigned* weakrefs;
+		void(*func)(T*);
 
 		void decrefs()
 		{
@@ -14,10 +33,24 @@ class ref_ptr
 			if (*numrefs == 0)
 			{
 				if (ref)
-					delete ref;
-				delete numrefs;
+				{
+					if (func)
+						func(ref);
+					else
+						delete ref;
+				}
+				if (*weakrefs == 0)
+				{
+#ifdef REF_PTR_DEBUG
+					remcheckref();
+#endif
+					delete numrefs;
+					delete weakrefs;
+				}
 				ref = NULL;
 				numrefs = NULL;
+				weakrefs = NULL;
+				func = NULL;
 			}
 		}
 
@@ -26,22 +59,70 @@ class ref_ptr
 			(*numrefs)++;
 		}
 
-	public:
-		ref_ptr() : ref(NULL), numrefs(new int(1))
+#ifdef REF_PTR_DEBUG
+		void checkref() const
 		{
+/*			if (ref && refs[ref] && refs[ref] != numrefs)
+				delete test[ref];
+			if (ref)
+			{
+				refs[ref] = numrefs;
+				test[ref] = new unsigned;
+				delete test[ref];
+			}*/
 		}
 
-		ref_ptr(const ref_ptr& a) : ref(a.ref), numrefs(a.numrefs)
+		void remcheckref()
 		{
+//			refs.erase(ref);
+		}
+#endif
+
+	public:
+		ref_ptr() : ref(NULL), numrefs(new unsigned(1)), weakrefs(new unsigned(0)), func(NULL)
+		{
+#ifdef REF_PTR_DEBUG
+			checkref();
+#endif
+		}
+
+		template <typename T2>
+		ref_ptr(const ref_ptr<T2>& a) : ref(a.ref), numrefs(a.numrefs), weakrefs(a.weakrefs), func((void(*)(T*))a.func)
+		{
+#ifdef REF_PTR_DEBUG
+			checkref();
+#endif
 			increfs();
 		}
 
-		ref_ptr(T* a) : ref(a), numrefs(new int(1))
+		ref_ptr(const ref_ptr<T>& a) : ref(a.ref), numrefs(a.numrefs), weakrefs(a.weakrefs), func(a.func)
 		{
+#ifdef REF_PTR_DEBUG
+			checkref();
+#endif
+			increfs();
+		}
+
+		template <typename T2>
+		ref_ptr(T2* a, void(*func)(T*) = NULL, unsigned refs = 1) : ref(a), numrefs(new unsigned(refs)), weakrefs(new unsigned(0)), func((void(*)(T*))func)
+		{
+#ifdef REF_PTR_DEBUG
+			checkref();
+#endif
+		}
+
+		ref_ptr(T* a, void(*func)(T*) = NULL, unsigned refs = 1) : ref(a), numrefs(new unsigned(refs)), weakrefs(new unsigned(0)), func(func)
+		{
+#ifdef REF_PTR_DEBUG
+			checkref();
+#endif
 		}
 
 		~ref_ptr()
 		{
+#ifdef REF_PTR_DEBUG
+			checkref();
+#endif
 			decrefs();
 		}
 
@@ -49,148 +130,301 @@ class ref_ptr
 		{
 			a.increfs();
 			
+#ifdef REF_PTR_DEBUG
+			a.checkref();
+			checkref();
+#endif
 			decrefs();
 
 			ref = a.ref;
 			numrefs = a.numrefs;
+			weakrefs = a.weakrefs;
+			func = a.func;
+#ifdef REF_PTR_DEBUG
+			checkref();
+#endif
+			return *this;
+		}
+
+		template <typename T2>
+		ref_ptr& operator = (const ref_ptr<T2>& a)
+		{
+			a.increfs();
+			
+#ifdef REF_PTR_DEBUG
+			a.checkref();
+			checkref();
+#endif
+			decrefs();
+
+			ref = a.ref;
+			numrefs = a.numrefs;
+			weakrefs = a.weakrefs;
+			func = a.func;
+#ifdef REF_PTR_DEBUG
+			checkref();
+#endif
+			return *this;
+		}
+
+		ref_ptr& operator = (const T*& a)
+		{
+			if (ref == a)
+				return *this;
+
+			decrefs();
+
+			ref = a;
+			numrefs = new unsigned(1);
+			weakrefs = new unsigned(0);
+			func = NULL;
+#ifdef REF_PTR_DEBUG
+			checkref();
+#endif
 			return *this;
 		}
 
 		ref_ptr& operator = (T* a)
 		{
+			if (ref == a)
+				return *this;
+
 			decrefs();
 
 			ref = a;
-			numrefs = new int(1);
+			numrefs = new unsigned(1);
+			weakrefs = new unsigned(0);
+			func = NULL;
+#ifdef REF_PTR_DEBUG
+			checkref();
+#endif
 			return *this;
 		}
 
-		bool operator == (const ref_ptr& a) const
+		template <typename T2>
+		ref_ptr& operator = (const T2*& a)
 		{
+			if (ref == a)
+				return *this;
+
+			decrefs();
+
+			ref = a;
+			numrefs = new unsigned(1);
+			weakrefs = new unsigned(0);
+			func = NULL;
+#ifdef REF_PTR_DEBUG
+			checkref();
+#endif
+			return *this;
+		}
+
+		template <typename T2>
+		ref_ptr& operator = (T2* a)
+		{
+			if (ref == a)
+				return *this;
+
+			decrefs();
+
+			ref = a;
+			numrefs = new unsigned(1);
+			weakrefs = new unsigned(0);
+			func = NULL;
+#ifdef REF_PTR_DEBUG
+			checkref();
+#endif
+			return *this;
+		}
+
+		bool operator == (const ref_ptr<T>& a) const
+		{
+#ifdef REF_PTR_DEBUG
+			checkref();
+#endif
 			return ref == a.ref;
 		}
 
-		bool operator != (const ref_ptr& a) const
+		bool operator != (const ref_ptr<T>& a) const
 		{
+#ifdef REF_PTR_DEBUG
+			checkref();
+#endif
 			return ref != a.ref;
+		}
+
+		bool operator == (const T*& a) const
+		{
+#ifdef REF_PTR_DEBUG
+			checkref();
+#endif
+			return ref == a;
+		}
+
+		bool operator != (const T*& a) const
+		{
+#ifdef REF_PTR_DEBUG
+			checkref();
+#endif
+			return ref != a;
+		}
+
+		template <typename T2>
+		bool operator == (const ref_ptr<T2>& a) const
+		{
+#ifdef REF_PTR_DEBUG
+			checkref();
+#endif
+			return ref == a.ref;
+		}
+
+		template <typename T2>
+		bool operator != (const ref_ptr<T2>& a) const
+		{
+#ifdef REF_PTR_DEBUG
+			checkref();
+#endif
+			return ref != a.ref;
+		}
+
+		template <typename T2>
+		bool operator == (const T2*& a) const
+		{
+#ifdef REF_PTR_DEBUG
+			checkref();
+#endif
+			return ref == a;
+		}
+
+		template <typename T2>
+		bool operator != (const T2*& a) const
+		{
+#ifdef REF_PTR_DEBUG
+			checkref();
+#endif
+			return ref != a;
 		}
 
 		T operator * () const throw()
 		{
+#ifdef REF_PTR_DEBUG
+			checkref();
+#endif
 			return *ref;
 		}
 
 		T* operator -> () const throw()
 		{
+#ifdef REF_PTR_DEBUG
+			checkref();
+#endif
 			return ref;
 		}
 
 		T& operator [] (unsigned i) const throw()
 		{
+#ifdef REF_PTR_DEBUG
+			checkref();
+#endif
 			return ref[i];
 		}
 
 		operator bool() const
 		{
+#ifdef REF_PTR_DEBUG
+			checkref();
+#endif
 			return ref != 0;
 		}
 
+		template <typename T2>
+		friend class ref_ptr;
+		template <typename T2>
+		friend class weak_ptr;
+
 };
 
+#ifdef REF_PTR_DEBUG
 template <typename T>
-class ref_ptr_array
+std::map<T*, unsigned*> ref_ptr<T>::refs;
+template <typename T>
+std::map<T*, unsigned*> ref_ptr<T>::test;
+#endif
+
+template <typename T>
+class enc_ptr
 {
 	private:
 		T* ref;
-		int* numrefs;
-
-		void decrefs()
+		unsigned* numrefs;
+		unsigned* weakrefs;
+	public:
+		
+		enc_ptr() : ref(NULL), numrefs(NULL), weakrefs(NULL)
 		{
-			(*numrefs)--;
-			if (*numrefs == 0)
+		}
+
+		template <typename T2>
+		enc_ptr(const ref_ptr<T2>& a) : ref(a.ref), numrefs(a.numrefs), weakrefs(a.weakrefs)
+		{
+			(*weakrefs)++;
+		}
+		
+		~enc_ptr()
+		{
+			(*weakrefs)--;
+			if (*weakrefs == 0)
 			{
-				if (ref)
-					delete[] ref;
+				delete weakrefs;
 				delete numrefs;
-				ref = NULL;
-				numrefs = NULL;
 			}
 		}
 
-		void increfs() const
-		{
-			(*numrefs)++;
-		}
-
-	public:
-		ref_ptr_array() : ref(NULL), numrefs(new int(1))
-		{
-		}
-
-		ref_ptr_array(const ref_ptr_array& a) : ref(a.ref), numrefs(a.numrefs)
-		{
-			increfs();
-		}
-
-		ref_ptr_array(T* a) : ref(a), numrefs(new int(1))
-		{
-		}
-
-		~ref_ptr_array()
-		{
-			decrefs();
-		}
-
-		ref_ptr_array& operator = (const ref_ptr_array& a)
-		{
-			a.increfs();
-			
-			decrefs();
-
-			ref = a.ref;
-			numrefs = a.numrefs;
-			return *this;
-		}
-
-		ref_ptr_array& operator = (T* a)
-		{
-			decrefs();
-
-			ref = a;
-			numrefs = new int(1);
-			return *this;
-		}
-
-		bool operator == (const ref_ptr_array& a) const
+		template <typename T2>
+		bool operator == (const enc_ptr<T2>& a) const
 		{
 			return ref == a.ref;
 		}
 
-		bool operator != (const ref_ptr_array& a) const
+		template <typename T2>
+		bool operator != (const enc_ptr<T2>& a) const
 		{
 			return ref != a.ref;
 		}
 
 		T operator * () const throw()
 		{
-			return *ref;
+			return *numrefs ? *ref : NULL;
 		}
 
 		T* operator -> () const throw()
 		{
-			return ref;
+			return *numrefs ? ref : NULL;
 		}
 
 		T& operator [] (unsigned i) const throw()
 		{
-			return ref[i];
+			return *numrefs ? ref[i] : T();
 		}
 
 		operator bool() const
 		{
-			return ref != 0;
+			return *numrefs ? ref != 0 : false;
 		}
-
+		
+		template <typename T2>
+		friend class enc_ptr;
 };
+
+template <typename T>
+void array_deleter(T* a)
+{
+	delete[] a;
+}
+
+template <typename T>
+void null_deleter(T* a)
+{
+}
 
 #endif

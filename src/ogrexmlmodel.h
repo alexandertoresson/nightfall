@@ -14,14 +14,14 @@ namespace Utilities
 	struct OgreVertexBuffer
 	{
 		unsigned numVertices;
-		Scene::Render::VBO* positions;
-		Scene::Render::VBO* normals;
-		Scene::Render::VBO* tangents;
-		Scene::Render::VBO* binormals;
-		Scene::Render::VBO* colorDiffuse;
-		Scene::Render::VBO* colorSpecular;
+		ref_ptr<Scene::Render::VBO> positions;
+		ref_ptr<Scene::Render::VBO> normals;
+		ref_ptr<Scene::Render::VBO> tangents;
+		ref_ptr<Scene::Render::VBO> binormals;
+		ref_ptr<Scene::Render::VBO> colorDiffuse;
+		ref_ptr<Scene::Render::VBO> colorSpecular;
 		unsigned tangentDims;
-		std::vector<Scene::Render::VBO*> texCoords;
+		std::vector<ref_ptr<Scene::Render::VBO> > texCoords;
 		std::vector<unsigned> texCoordDims;
 		
 		OgreVertexBuffer() : positions(NULL), normals(NULL), tangents(NULL), binormals(NULL), colorDiffuse(NULL), colorSpecular(NULL), tangentDims(0)
@@ -32,7 +32,7 @@ namespace Utilities
 
 	struct OgreSubMesh
 	{
-		Scene::Render::VBO faces;
+		ref_ptr<Scene::Render::VBO> faces;
 
 		enum 
 		{
@@ -41,9 +41,9 @@ namespace Utilities
 			PRIMITIVETYPE_TRIANGLEFAN
 		} primitiveType;
 
-		std::vector<OgreVertexBuffer*> vbs;
+		std::vector<ref_ptr<OgreVertexBuffer> > vbs;
 		unsigned numElems;
-		Material* material;
+		ref_ptr<Material> material;
 		
 		bool CheckRayIntersect(const Vector3D& near, const Vector3D& far, float& distance);
 
@@ -51,13 +51,13 @@ namespace Utilities
 
 	struct OgreMesh
 	{
-		std::vector<OgreSubMesh*> submeshes;
-		std::vector<OgreVertexBuffer*> shared;
-		std::vector<Scene::Render::MeshTransformation*> transforms;
+		std::vector<ref_ptr<OgreSubMesh> > submeshes;
+		std::vector<ref_ptr<OgreVertexBuffer> > shared;
+		std::vector<ref_ptr<Scene::Render::MeshTransformation> > transforms;
 		bool CheckRayIntersect(const Vector3D& near_plane, const Vector3D& far_plane, float& distance);
 	};
 
-	OgreMesh* LoadSpecificOgreXMLModel(std::string filename);
+	ref_ptr<OgreMesh> LoadSpecificOgreXMLModel(std::string filename);
 }
 
 #ifdef DEBUG_DEP
