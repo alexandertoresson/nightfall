@@ -305,7 +305,7 @@ class ref_ptr
 			return ref != a;
 		}
 
-		T operator * () const throw()
+		T& operator * () const throw()
 		{
 #ifdef REF_PTR_DEBUG
 			checkref();
