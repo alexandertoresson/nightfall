@@ -66,7 +66,7 @@ namespace Game
 				float goto_x, goto_y;
 				int build_x, build_y;
 		
-				Dimension::UnitType* build_type;
+				ref_ptr<Dimension::UnitType> build_type;
 				Uint32 goto_time;
 				int pause;
 				

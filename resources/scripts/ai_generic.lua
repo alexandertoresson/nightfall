@@ -37,7 +37,7 @@ function PerformAI_Unit_Generic(Unit, action)
 		targetUnit = GetNearestUnitInRange(Unit, RangeType.Sight, PlayerState.Enemy)
 		LastCheckForTarget[Unit] = GetCurrentFrame()
 		if IsNonNull(targetUnit) then
-			CommandUnit_TargetUnit(Unit, targetUnit, UnitAction.Attack, Null())
+			CommandUnit(Unit, targetUnit, 0, 0, UnitAction.Attack)
 		end
 		action = GetUnitAction(Unit);
 	end

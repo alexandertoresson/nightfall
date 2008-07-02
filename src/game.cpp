@@ -762,23 +762,6 @@ namespace Game
 				{
 					pPlayBar->SwitchSelected(unit);
 					buildingUnit = unit;
-/*
-					map<Dimension::UnitType*, UnitBuild*>::iterator match = GUI_Build.find(unit->type);
-					if(match == GUI_Build.end())
-					{
-						buildingUnit = unit;
-						buildingGUI = NULL;
-					}
-					else
-					{
-						buildingUnit = unit;
-						buildingGUI = (*match).second;
-						Window::GUI::PanelWidget obj;
-						obj.pPanel = buildingGUI;
-						pMainGame->SetElement(selection_panel, obj, typePanel);
-						buildingGUI->SetUnit(unit);
-					}
-*/
 				}
 			}
 		}

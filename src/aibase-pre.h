@@ -65,8 +65,7 @@ namespace Game
 		{
 			RegularAIFunc performPlayerAI;
 			EventAIFunc unitCreation;
-			EventAIFunc commandUnitTargetUnit;
-			EventAIFunc commandUnitTargetPos;
+			EventAIFunc commandUnit;
 		};
 
 		void InitAIThreads();

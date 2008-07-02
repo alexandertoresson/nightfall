@@ -14,6 +14,7 @@
 #include "vector3d.h"
 #include "unittype.h"
 #include "unitrender-pre.h"
+#include "action.h"
 
 #include <vector>
 #include <deque>
@@ -23,31 +24,17 @@ namespace Game
 	namespace Dimension
 	{
 		
-		struct UnitGoal
-		{
-			Dimension::Unit* unit;
-			Dimension::IntPosition pos;
-		};
-		
-		struct BaseActionData
-		{
-			UnitGoal goal;
-			void*    arg;
-			AI::UnitAction action;
-			float rotation;
-		};
-
 		extern Unit** unitByID;
 		
 		struct ActionQueueItem : public BaseActionData
 		{
 			Unit* ghost;
 
-			ActionQueueItem(int end_x, int end_y, Unit* goal, AI::UnitAction action, void* arg, float rotation, bool visrep) : ghost(NULL)
+			ActionQueueItem(int end_x, int end_y, Unit* goal, AI::UnitAction action, const ActionArguments& args, float rotation, bool visrep) : BaseActionData(UnitGoal(goal, end_x, end_y), action, rotation, args), ghost(NULL)
 			{
 				this->action = action;
 				this->rotation = rotation;
-				this->arg = arg;
+				this->args = args;
 				this->goal.pos.x = end_x;
 				this->goal.pos.y = end_y;
 				this->goal.unit = goal;
@@ -82,7 +69,7 @@ namespace Game
 		{
 			float               health;
 			float               power;
-			UnitType*           type;
+			ref_ptr<UnitType>   type;
 			Player*             owner;
 			Position            pos;
 			IntPosition*        lastSeenPositions;
@@ -139,7 +126,7 @@ namespace Game
 		void InitiateAttack(Unit* attacker, Unit* target);
 		void HandleProjectiles(Unit* pUnit);
 		bool CanReach(Unit* attacker, Unit* target);
-		void ChangePath(Unit* pUnit, int goal_x, int goal_y, AI::UnitAction action, Unit* target, void* arg, float rotation);
+		void ChangePath(Unit* pUnit, int goal_x, int goal_y, AI::UnitAction action, Unit* target, const ActionArguments& args, float rotation);
 
 		void SelectUnit(Unit* unit);
 		void DeselectUnit(Unit* unit);
@@ -148,10 +135,10 @@ namespace Game
 		
 		Unit* GetUnitClicked(int clickx, int clicky, int map_x, int map_y);
 
-		void PrepareUnitEssentials(Unit* const unit, UnitType* const type);
-		Unit* CreateUnitNoDisplay(UnitType* type, int id = -1, bool complete = true);
+		void PrepareUnitEssentials(Unit* const unit, const ref_ptr<UnitType>& type);
+		Unit* CreateUnitNoDisplay(const ref_ptr<UnitType>& type, int id = -1, bool complete = true);
 		Unit* CreateUnitNoDisplay(unsigned type, Player* owner, int id = -1, bool complete = true);
-		Unit* CreateUnit(UnitType* type, int x, int y, int id = -1, bool complete = true);
+		Unit* CreateUnit(const ref_ptr<UnitType>& type, int x, int y, int id = -1, bool complete = true);
 		Unit* CreateUnit(unsigned type, Player *owner, int x, int y, int id = -1, bool complete = true);
 		bool ScheduleDisplayUnit(Unit* unit, int x, int y);
 		void DisplayScheduledUnits();
@@ -161,7 +148,7 @@ namespace Game
 		void ScheduleUnitDeletion(Unit* unit);
 		void DeleteScheduledUnits();
 
-		Unit* CreateGhostUnit(UnitType*);
+		Unit* CreateGhostUnit(const ref_ptr<UnitType>&);
 		void DeleteGhostUnit(Unit*&);
 		void AppendToActionDisplayQueueIfOK(Unit*);
 		

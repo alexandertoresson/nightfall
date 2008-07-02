@@ -352,7 +352,7 @@ namespace Game
 					 clicked_on_ground = false, 
 					 shift_pressed     = pGame->input->GetKeyState(SDLK_LSHIFT);
 
-				void* arg             = NULL;
+				Dimension::ActionArguments args;
 				AI::UnitAction action = AI::ACTION_NONE;
 				Dimension::Unit* unit = NULL;
 				
@@ -427,22 +427,22 @@ namespace Game
 				{
 					if (clicked_on_unit)
 					{
-						AI::CommandUnit(unitsSelected[0], unit, action, arg, shift_pressed, false);
+						AI::CommandUnit(unitsSelected[0], unit, action, args, shift_pressed, false);
 					}
 					else if (clicked_on_ground)
 					{
-						AI::CommandUnit(unitsSelected[0], ter_x, ter_y, action, arg, shift_pressed, false);
+						AI::CommandUnit(unitsSelected[0], ter_x, ter_y, action, args, shift_pressed, false);
 					}
 				}
 				else
 				{
 					if (clicked_on_unit)
 					{
-						AI::CommandUnits(unitsSelected, unit, action, arg, shift_pressed, false);
+						AI::CommandUnits(unitsSelected, unit, action, args, shift_pressed, false);
 					}
 					else if (clicked_on_ground)
 					{
-						AI::CommandUnits(unitsSelected, ter_x, ter_y, action, arg, shift_pressed, false);
+						AI::CommandUnits(unitsSelected, ter_x, ter_y, action, args, shift_pressed, false);
 					}
 				}
 			}
@@ -502,11 +502,11 @@ namespace Game
 						const std::vector<Dimension::Unit*> unitsSelected = Dimension::GetSelectedUnits();
 						if (unitsSelected.size() == 1)
 						{
-							AI::CommandUnit(unitsSelected.at(0), ter_x, ter_y, AI::ACTION_BUILD, (void*) pGame->build_type, true, false);
+							AI::CommandUnit(unitsSelected.at(0), ter_x, ter_y, AI::ACTION_BUILD, Dimension::ActionArguments(pGame->build_type), true, false);
 						}
 						else
 						{
-							AI::CommandUnits(unitsSelected, ter_x, ter_y, AI::ACTION_BUILD, (void*) pGame->build_type, true, false);
+							AI::CommandUnits(unitsSelected, ter_x, ter_y, AI::ACTION_BUILD, Dimension::ActionArguments(pGame->build_type), true, false);
 						}
 						pGame->build_type = NULL;
 						Dimension::UnitMainNode::instance.ScheduleBuildOutlineDeletion();
@@ -602,11 +602,11 @@ namespace Game
 					{
 						if (unitsSelected.size() == 1)
 						{
-							AI::CommandUnit(unitsSelected[0], 0, 0, AI::ACTION_BUILD, (void*) pGame->build_type, true, false);
+							AI::CommandUnit(unitsSelected[0], 0, 0, AI::ACTION_BUILD, Dimension::ActionArguments(pGame->build_type), true, false);
 						}
 						else
 						{
-							AI::CommandUnits(unitsSelected, 0, 0, AI::ACTION_BUILD, (void*) pGame->build_type, true, false);
+							AI::CommandUnits(unitsSelected, 0, 0, AI::ACTION_BUILD, Dimension::ActionArguments(pGame->build_type), true, false);
 						}
 						pGame->build_type = NULL;
 					}
@@ -648,7 +648,7 @@ namespace Game
 					{
 						case SDLK_ESCAPE:
 						{
-							if (pGame->build_type == NULL)
+							if (!pGame->build_type)
 							{
 								pGame->go = false;
 								pGame->returnValue = INGAMEMENU;
@@ -1290,7 +1290,7 @@ namespace Game
 			{
 				if (pUnit->type->canBuild.size())
 				{
-					Game::Dimension::UnitType* unitType = pUnit->type;
+					const ref_ptr<Game::Dimension::UnitType>& unitType = pUnit->type;
 					UnitBuild* unitBuilder = new UnitBuild(nopic, pGame);
 					Window::GUI::PanelWidget obj;
 					obj.pPanel = unitBuilder;
@@ -1337,9 +1337,9 @@ namespace Game
 
 			pActions->InitLayout();
 
-			for(vector<Game::Dimension::UnitType*>::iterator iter = Dimension::currentPlayerView->vUnitTypes.begin(); iter != Dimension::currentPlayerView->vUnitTypes.end(); iter++)
+			for(vector<ref_ptr<Game::Dimension::UnitType> >::iterator iter = Dimension::currentPlayerView->vUnitTypes.begin(); iter != Dimension::currentPlayerView->vUnitTypes.end(); iter++)
 			{
-				Game::Dimension::UnitType* unitTyp = (*iter);
+				const ref_ptr<Game::Dimension::UnitType>& unitTyp = (*iter);
 				if (unitTyp->canBuild.size() || unitTyp->canResearch.size())
 				{
 					UnitBuild* unitBuilder = new UnitBuild(nopic, pGame);
@@ -1510,7 +1510,7 @@ namespace Game
 			this->pUnit = pUnit;
 		}
 
-		void UnitBuild::SetUnitType(Dimension::UnitType *pUnitType)
+		void UnitBuild::SetUnitType(const ref_ptr<Dimension::UnitType>& pUnitType)
 		{
 			this->pUnitType = pUnitType;
 			SetLayout();
@@ -1525,14 +1525,14 @@ namespace Game
 				const std::vector<Dimension::Unit*> unitsSelected = Dimension::GetSelectedUnits();
 				if (obj->parent->pUnit->type->canBuild.size() <= (unsigned) obj->buildID)
 				{
-					Game::Dimension::Research* research = obj->parent->pUnit->type->canResearch.at(obj->buildID - obj->parent->pUnit->type->canBuild.size());
+					const ref_ptr<Game::Dimension::Research>& research = obj->parent->pUnit->type->canResearch.at(obj->buildID - obj->parent->pUnit->type->canBuild.size());
 					if (unitsSelected.size() == 1)
 					{
-						AI::CommandUnit(obj->parent->pGame->buildingUnit, 0, 0, AI::ACTION_RESEARCH, (void*)research, true, false);
+						AI::CommandUnit(obj->parent->pGame->buildingUnit, 0, 0, AI::ACTION_RESEARCH, Dimension::ActionArguments(research), true, false);
 					}
 					else
 					{
-						AI::CommandUnits(unitsSelected, 0, 0, AI::ACTION_RESEARCH, (void*)research, true, false);
+						AI::CommandUnits(unitsSelected, 0, 0, AI::ACTION_RESEARCH, Dimension::ActionArguments(research), true, false);
 					}
 				}
 				else
@@ -1542,11 +1542,11 @@ namespace Game
 					{
 						if (unitsSelected.size() == 1)
 						{
-							AI::CommandUnit(obj->parent->pGame->buildingUnit, 0, 0, AI::ACTION_BUILD, (void*)obj->parent->pGame->build_type, true, false);
+							AI::CommandUnit(obj->parent->pGame->buildingUnit, 0, 0, AI::ACTION_BUILD, Dimension::ActionArguments(obj->parent->pGame->build_type), true, false);
 						}
 						else
 						{
-							AI::CommandUnits(unitsSelected, 0, 0, AI::ACTION_BUILD, (void*)obj->parent->pGame->build_type, true, false);
+							AI::CommandUnits(unitsSelected, 0, 0, AI::ACTION_BUILD, Dimension::ActionArguments(obj->parent->pGame->build_type), true, false);
 						}
 						obj->parent->pGame->build_type = NULL;
 					}
@@ -1818,7 +1818,7 @@ namespace Game
 			}
 			else if (pUnit->pMovementData->action.action == AI::ACTION_RESEARCH)
 			{
-				Dimension::Research* research = (Dimension::Research*) pUnit->pMovementData->action.arg;
+				const ref_ptr<Dimension::Research>& research = pUnit->pMovementData->action.args.research;
 				if((unsigned) id >= pUnit->type->canBuild.size() && pUnit->type->canResearch.at(id - pUnit->type->canBuild.size()) == research)
 				{
 					stringstream status;
@@ -1873,7 +1873,7 @@ namespace Game
 			float cx = 0.0f;
 			float cy = 0.0f;
 			int c = 0;
-			for(vector<Dimension::UnitType*>::iterator iter = this->pUnitType->canBuild.begin(); iter != this->pUnitType->canBuild.end(); iter++, cx += ow, c++)
+			for(vector<ref_ptr<Dimension::UnitType> >::iterator iter = this->pUnitType->canBuild.begin(); iter != this->pUnitType->canBuild.end(); iter++, cx += ow, c++)
 			{
 				if(c == nxt)
 				{
@@ -1897,7 +1897,7 @@ namespace Game
 				picbtn->SetTooltip((*iter)->name);
 				objects.push_back(picbtn);
 			}
-			for(vector<Dimension::Research*>::iterator iter = this->pUnitType->canResearch.begin(); iter != this->pUnitType->canResearch.end(); iter++, cx += ow, c++)
+			for(vector<ref_ptr<Dimension::Research> >::iterator iter = this->pUnitType->canResearch.begin(); iter != this->pUnitType->canResearch.end(); iter++, cx += ow, c++)
 			{
 				if(c == nxt)
 				{

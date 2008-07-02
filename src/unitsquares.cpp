@@ -19,7 +19,7 @@ namespace Game
 		char***       traversalTimeBySize;
 		int bigSquareHeight, bigSquareWidth;
 		int bigSquareRightShift = 4;
-		RangeArray* nextToRangeArray;
+		ref_ptr<RangeArray> nextToRangeArray;
 		GLfloat unitBuildingMaximumAltitude = -0.3f;
 
 		void GetWHUpperLeftCorner(int width, int height, float mx, float my, int& lx, int& uy)
@@ -46,19 +46,19 @@ namespace Game
 			uy = my - (size>>1);
 		}
 
-		void GetTypeUpperLeftCorner(UnitType* type, int mx, int my, int& lx, int& uy)
+		void GetTypeUpperLeftCorner(const ref_ptr<UnitType>& type, int mx, int my, int& lx, int& uy)
 		{
 			lx = mx - (type->widthOnMap>>1);
 			uy = my - (type->heightOnMap>>1);
 		}
 
-		void GetTypeUpperLeftCorner(UnitType* type, float mx, float my, int& lx, int& uy)
+		void GetTypeUpperLeftCorner(const ref_ptr<UnitType>& type, float mx, float my, int& lx, int& uy)
 		{
 			lx = (int) mx - (type->widthOnMap>>1);
 			uy = (int) my - (type->heightOnMap>>1);
 		}
 
-		void GetTypeUpperLeftCorner(UnitType* type, float mx, float my, float& lx, float& uy)
+		void GetTypeUpperLeftCorner(const ref_ptr<UnitType>& type, float mx, float my, float& lx, float& uy)
 		{
 			lx = floor(mx) - (float) (type->widthOnMap>>1);
 			uy = floor(my) - (float) (type->heightOnMap>>1);
@@ -82,7 +82,7 @@ namespace Game
 			uy = my - (unit->type->heightOnMap>>1);
 		}
 
-		bool WithinRange(UnitType* type, int attacker_x, int attacker_y, int target_x, int target_y, float maxrange, float minrange)
+		bool WithinRange(const ref_ptr<UnitType>& type, int attacker_x, int attacker_y, int target_x, int target_y, float maxrange, float minrange)
 		{
 			int start_x, start_y;
 			int end_x, end_y;
@@ -147,7 +147,7 @@ namespace Game
 			return false;
 		}
 
-		bool WithinRangeArray(UnitType* type, int attacker_x, int attacker_y, int target_x, int target_y, RangeArray* rangeArray)
+		bool WithinRangeArray(const ref_ptr<UnitType>& type, int attacker_x, int attacker_y, int target_x, int target_y, const ref_ptr<RangeArray>& rangeArray)
 		{
 			int start_x, start_y;
 			int end_x, end_y;
@@ -197,7 +197,7 @@ namespace Game
 			return WithinRange(unit->type, pos_x, pos_y, unit->curAssociatedSquare.x, unit->curAssociatedSquare.y, maxrange, minrange);
 		}
 
-		bool WithinRangeArray(Unit* unit, int pos_x, int pos_y, RangeArray* rangeArray)
+		bool WithinRangeArray(Unit* unit, int pos_x, int pos_y, const ref_ptr<RangeArray> rangeArray)
 		{
 			return WithinRangeArray(unit->type, pos_x, pos_y, unit->curAssociatedSquare.x, unit->curAssociatedSquare.y, rangeArray);
 		}
@@ -221,7 +221,7 @@ namespace Game
 			return sqrt(float(x * x + y * y));
 		}
 
-		void GetNearestUnoccupiedPosition(UnitType* type, int& x, int& y)
+		void GetNearestUnoccupiedPosition(const ref_ptr<UnitType>& type, int& x, int& y)
 		{
 			int num_steps = 1;
 			if (SquaresAreWalkable(type, x, y, SIW_ALLKNOWING))
@@ -277,13 +277,13 @@ namespace Game
 		{
 			if (unit->type->isMobile)
 			{
-				if (unit->pMovementData->action.arg)
+				if (unit->pMovementData->action.args.unitType)
 				{
-					return WithinRangeArray((UnitType*) unit->pMovementData->action.arg, unit->curAssociatedSquare.x, unit->curAssociatedSquare.y, unit->pMovementData->action.goal.pos.x, unit->pMovementData->action.goal.pos.y, nextToRangeArray);
+					return WithinRangeArray(unit->pMovementData->action.args.unitType, unit->curAssociatedSquare.x, unit->curAssociatedSquare.y, unit->pMovementData->action.goal.pos.x, unit->pMovementData->action.goal.pos.y, nextToRangeArray);
 				}
 				else
 				{
-					return WithinRangeArray((UnitType*) unit->pMovementData->action.goal.unit->type, unit->curAssociatedSquare.x, unit->curAssociatedSquare.y, unit->pMovementData->action.goal.unit->curAssociatedSquare.x, unit->pMovementData->action.goal.unit->curAssociatedSquare.y, nextToRangeArray);
+					return WithinRangeArray(unit->pMovementData->action.goal.unit->type, unit->curAssociatedSquare.x, unit->curAssociatedSquare.y, unit->pMovementData->action.goal.unit->curAssociatedSquare.x, unit->pMovementData->action.goal.unit->curAssociatedSquare.y, nextToRangeArray);
 				}
 			}
 			else
@@ -292,7 +292,7 @@ namespace Game
 			}
 		}
 
-		bool IsSuitableForBuilding(UnitType* type, UnitType *test_type, int build_x, int build_y)
+		bool IsSuitableForBuilding(const ref_ptr<UnitType> type, const ref_ptr<UnitType>& test_type, int build_x, int build_y)
 		{
 			int m_add_x, m_sub_x;
 			int m_add_y, m_sub_y;
@@ -374,7 +374,7 @@ namespace Game
 			return changes <= 2;
 		}
 		
-		bool IsSuitableForBuilding(UnitType* type, int build_x, int build_y)
+		bool IsSuitableForBuilding(const ref_ptr<UnitType>& type, int build_x, int build_y)
 		{
 			return (IsSuitableForBuilding(type, type->player->unitTypeMap["LargeTank"], build_x, build_y) && 
 			        IsSuitableForBuilding(type, type->player->unitTypeMap["SmallTank"], build_x, build_y) &&
@@ -384,7 +384,7 @@ namespace Game
 
 		int PositionSearch_NumStepsTaken = 0;
 
-		bool GetNearestSuitableAndLightedPosition(UnitType* type, int& x, int& y)
+		bool GetNearestSuitableAndLightedPosition(const ref_ptr<UnitType>& type, int& x, int& y)
 		{
 			int num_steps = 1;
 			if (SquaresAreLightedAround(type, x, y) && IsSuitableForBuilding(type, x, y) && SquaresAreWalkable(type, x, y))
@@ -442,7 +442,7 @@ namespace Game
 			return false;
 		}
 
-		float PercentLightedAtPosition(UnitType* type, int x, int y)
+		float PercentLightedAtPosition(const ref_ptr<UnitType>& type, int x, int y)
 		{
 			Uint16** NumLightsOnSquare = pWorld->NumLightsOnSquare;
 			int covered = 0, total = 0;
@@ -488,7 +488,7 @@ namespace Game
 			return (float) covered / (float) total;
 		}
 
-		bool GetSuitablePositionForLightTower(UnitType* type, int& x, int& y, bool needLighted)
+		bool GetSuitablePositionForLightTower(const ref_ptr<UnitType>& type, int& x, int& y, bool needLighted)
 		{
 			int num_steps = 1;
 			if (!needLighted)
@@ -604,7 +604,7 @@ namespace Game
 			return false;
 		}
 
-		bool DoesNotBlock(Unit* unit, UnitType* build_type, int build_x, int build_y, int x, int y)
+		bool DoesNotBlock(Unit* unit, const ref_ptr<UnitType>& build_type, int build_x, int build_y, int x, int y)
 		{
 			int start_x_u, start_y_u;
 			int start_x_t, start_y_t;
@@ -624,7 +624,7 @@ namespace Game
 			return true;
 		}
 
-		void NearestSquareFromBuildingPlace(Unit* unit, UnitType* build_type, int build_x, int build_y, int &x, int &y)
+		void NearestSquareFromBuildingPlace(Unit* unit, const ref_ptr<UnitType>& build_type, int build_x, int build_y, int &x, int &y)
 		{
 			int num_steps = 1;
 			x = build_x;
@@ -955,22 +955,22 @@ namespace Game
 			return true;
 		}
 
-		inline bool UnitTypeCanWalkOnSquare(UnitType* type, int x, int y)
+		inline bool UnitTypeCanWalkOnSquare(const ref_ptr<UnitType>& type, int x, int y)
 		{
 			return MovementTypeCanWalkOnSquare(type->movementType, x, y);
 		}
 
-		inline bool UnitTypeCanWalkOnSquare_UnGuarded(UnitType* type, int x, int y)
+		inline bool UnitTypeCanWalkOnSquare_UnGuarded(const ref_ptr<UnitType>& type, int x, int y)
 		{
 			return MovementTypeCanWalkOnSquare_UnGuarded(type->movementType, x, y);
 		}
 
-		inline bool UnitTypeCanWalkOnSquares(UnitType* type, int x, int y)
+		inline bool UnitTypeCanWalkOnSquares(const ref_ptr<UnitType>& type, int x, int y)
 		{
 			return MovementTypeCanWalkOnSquares(type->movementType, type->heightOnMap, x, y);
 		}
 
-		inline bool UnitTypeCanWalkOnSquares_UnGuarded(UnitType* type, int x, int y)
+		inline bool UnitTypeCanWalkOnSquares_UnGuarded(const ref_ptr<UnitType>& type, int x, int y)
 		{
 			return MovementTypeCanWalkOnSquares_UnGuarded(type->movementType, type->heightOnMap, x, y);
 		}
@@ -1059,12 +1059,12 @@ namespace Game
 			return SquareIsWalkable_Internal(unit, unit->type->movementType, unit->owner, x, y, SIW_DEFAULT);
 		}
 
-		bool SquareIsWalkable(UnitType *type, int x, int y, int flags)
+		bool SquareIsWalkable(const ref_ptr<UnitType>& type, int x, int y, int flags)
 		{
 			return SquareIsWalkable_Internal(NULL, type->movementType, type->player, x, y, flags);
 		}
 
-		inline bool SquareIsWalkable(UnitType *type, int x, int y)
+		inline bool SquareIsWalkable(const ref_ptr<UnitType>& type, int x, int y)
 		{
 			return SquareIsWalkable_Internal(NULL, type->movementType, type->player, x, y, SIW_DEFAULT);
 		}
@@ -1118,7 +1118,7 @@ namespace Game
 
 		bool SquaresAreWalkable(Unit* unit, int x, int y, int flags)
 		{
-			UnitType* type = unit->type;
+			const ref_ptr<UnitType>& type = unit->type;
 			return SquaresAreWalkable_Internal(unit, type->movementType, type->widthOnMap, type->heightOnMap, unit->owner, x, y, flags);
 		}
 
@@ -1127,7 +1127,7 @@ namespace Game
 			return SquaresAreWalkable(unit, x, y, SIW_DEFAULT);
 		}
 
-		bool SquaresAreWalkable(UnitType *type, int x, int y, int flags)
+		bool SquaresAreWalkable(const ref_ptr<UnitType>& type, int x, int y, int flags)
 		{
 			return SquaresAreWalkable_Internal(NULL, type->movementType, type->widthOnMap, type->heightOnMap, type->player, x, y, flags);
 		}
@@ -1137,7 +1137,7 @@ namespace Game
 			return SquaresAreWalkable_Internal(NULL, movementType, width, height, player, x, y, flags);
 		}
 
-		inline bool SquaresAreWalkable(UnitType *type, int x, int y)
+		inline bool SquaresAreWalkable(const ref_ptr<UnitType>& type, int x, int y)
 		{
 			return SquaresAreWalkable(type, x, y, SIW_DEFAULT);
 		}
@@ -1173,7 +1173,7 @@ namespace Game
 			}
 		}
 
-		bool SquaresAreLighted(UnitType *type, int x, int y)
+		bool SquaresAreLighted(const ref_ptr<UnitType>& type, int x, int y)
 		{
 			int start_x, start_y;
 			int end_x, end_y;
@@ -1197,7 +1197,7 @@ namespace Game
 			return true;
 		}
 
-		bool SquaresAreLightedAround(UnitType *type, int x, int y)
+		bool SquaresAreLightedAround(const ref_ptr<UnitType>& type, int x, int y)
 		{
 			int start_x, start_y;
 			GetTypeUpperLeftCorner(type, x, y, start_x, start_y);
@@ -1220,19 +1220,19 @@ namespace Game
 		{
 			Unit*       target = NULL;
 			IntPosition pos;
-			void*       arg;
+			ActionArguments args;
 			
 			if (!use_internal)
 			{
 				target = unit->pMovementData->action.goal.unit;
 				pos    = unit->pMovementData->action.goal.pos;
-				arg    = unit->pMovementData->action.arg;
+				args   = unit->pMovementData->action.args;
 			}
 			else
 			{
 				target = unit->pMovementData->_action.goal.unit;
 				pos    = unit->pMovementData->_action.goal.pos;
-				arg    = unit->pMovementData->_action.arg;
+				args   = unit->pMovementData->_action.args;
 			}
 		
 			if(target)
@@ -1247,9 +1247,9 @@ namespace Game
 				}
 				else if (unit->pMovementData->action.action == AI::ACTION_BUILD)
 				{
-					if (arg)
+					if (args.unitType)
 					{
-						return WithinRangeArray((UnitType*) arg, x, y, pos.x, pos.y, nextToRangeArray);
+						return WithinRangeArray(args.unitType, x, y, pos.x, pos.y, nextToRangeArray);
 					}
 					else
 					{
@@ -1272,7 +1272,7 @@ namespace Game
 		{
 			int start_x, start_y, end_x, end_y;
 			Uint16** NumUnitsSeeingSquare = unit->owner->NumUnitsSeeingSquare;
-			RangeScanlines* rangeScanlines = unit->type->sightRangeScanlines;
+			const ref_ptr<RangeScanlines>& rangeScanlines = unit->type->sightRangeScanlines;
 
 			if (unit->owner->isRemote)
 			{
@@ -1335,7 +1335,7 @@ namespace Game
 		{
 			int start_x, start_y, end_x, end_y;
 			Uint16** NumLightsOnSquare = pWorld->NumLightsOnSquare;
-			RangeScanlines* rangeScanlines = unit->type->lightRangeScanlines;
+			const ref_ptr<RangeScanlines>& rangeScanlines = unit->type->lightRangeScanlines;
 
 			if (unit->type->lightRange < 1e-3)
 			{
@@ -1574,7 +1574,7 @@ namespace Game
 			return time;
 		}
 
-		void CheckPrecomputedArrays(UnitType* type)
+		void CheckPrecomputedArrays(const ref_ptr<UnitType>& type)
 		{
 			if (type->isMobile)
 			{

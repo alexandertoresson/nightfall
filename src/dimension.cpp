@@ -134,8 +134,7 @@ namespace Game
 			this->playerAIFuncs.performPlayerAI.delay = 6;
 			this->playerAIFuncs.performPlayerAI.enabled = true;
 			this->playerAIFuncs.unitCreation.func = "UnitEvent_UnitCreation";
-			this->playerAIFuncs.commandUnitTargetPos.func = "CommandUnit_TargetPos";
-			this->playerAIFuncs.commandUnitTargetUnit.func = "CommandUnit_TargetUnit";
+			this->playerAIFuncs.commandUnit.func = "CommandUnit";
 					
 			this->unitAIFuncs.performUnitAI.func = "PerformAI_Unit";
 			this->unitAIFuncs.performUnitAI.delay = 6;
@@ -152,8 +151,7 @@ namespace Game
 				case PLAYER_TYPE_HUMAN:
 					this->playerAIFuncs.performPlayerAI.func += "_Human";
 					this->playerAIFuncs.unitCreation.func += "_Human";
-					this->playerAIFuncs.commandUnitTargetPos.func += "_Human";
-					this->playerAIFuncs.commandUnitTargetUnit.func += "_Human";
+					this->playerAIFuncs.commandUnit.func += "_Human";
 					this->unitAIFuncs.performUnitAI.func += "_Human";
 					this->unitAIFuncs.commandCompleted.func += "_Human";
 					this->unitAIFuncs.commandCancelled.func += "_Human";
@@ -165,8 +163,7 @@ namespace Game
 				case PLAYER_TYPE_AI:
 					this->playerAIFuncs.performPlayerAI.func += "_AI";
 					this->playerAIFuncs.unitCreation.func += "_AI";
-					this->playerAIFuncs.commandUnitTargetPos.func += "_AI";
-					this->playerAIFuncs.commandUnitTargetUnit.func += "_AI";
+					this->playerAIFuncs.commandUnit.func += "_AI";
 					this->unitAIFuncs.performUnitAI.func += "_AI";
 					this->unitAIFuncs.commandCompleted.func += "_AI";
 					this->unitAIFuncs.commandCancelled.func += "_AI";
@@ -204,14 +201,8 @@ namespace Game
 		Player::~Player()
 		{
 			validPlayerPointers.erase(this);
-			for (unsigned i = 0; i < this->vUnitTypes.size(); i++)
-			{
-				delete this->vUnitTypes[i];
-			}
-			for (unsigned i = 0; i < this->vResearchs.size(); i++)
-			{
-				delete this->vResearchs[i];
-			}
+			vUnitTypes.clear();
+			vResearchs.clear();
 			for(int y = 0; y < pWorld->height; y++)
 			{
 				delete [] this->NumUnitsSeeingSquare[y];
@@ -251,7 +242,7 @@ namespace Game
 			}
 		}
 
-		void UnloadUnitType(Player* player, UnitType* pUnitType)
+		void UnloadUnitType(Player* player, const ref_ptr<UnitType>& pUnitType)
 		{
 			// TODO
 /*			int index = pUnitType->index;
@@ -287,8 +278,8 @@ namespace Game
 
 		static struct
 		{
-			std::set<UnitType*> sUnitTypes;
-			std::set<Research*> sResearchs;
+			std::set<ref_ptr<UnitType> > sUnitTypes;
+			std::set<ref_ptr<Research> > sResearchs;
 		} notMeetingExistanceReqs;
 
 		void CheckRequirements(Player *player, ConjunctiveRequirements &reqs)
@@ -307,7 +298,7 @@ namespace Game
 			{
 				for (std::vector<UnitRequirement>::iterator it = reqs.units.begin(); it != reqs.units.end(); it++)
 				{
-					UnitType* unitType = it->type;
+					const ref_ptr<UnitType>& unitType = it->type;
 					if (unitType->numBuilt > it->maxBuilt || unitType->numBuilt < it->minBuilt ||
 					    unitType->numExisting > it->maxExisting || unitType->numExisting < it->minExisting)
 					{
@@ -327,9 +318,9 @@ namespace Game
 
 		void RecheckAllRequirements(Player *player)
 		{
-			for (std::vector<Research*>::iterator it = player->vResearchs.begin(); it != player->vResearchs.end(); it++)
+			for (std::vector<ref_ptr<Research> >::iterator it = player->vResearchs.begin(); it != player->vResearchs.end(); it++)
 			{
-				Research* research = *it;
+				const ref_ptr<Research>& research = *it;
 				CheckObjectRequirements(player, research->requirements);
 				if (!research->requirements.existance.isSatisfied && research->isResearched)
 				{
@@ -337,9 +328,9 @@ namespace Game
 				}
 			}
 
-			for (std::vector<UnitType*>::iterator it = player->vUnitTypes.begin(); it != player->vUnitTypes.end(); it++)
+			for (std::vector<ref_ptr<UnitType> >::iterator it = player->vUnitTypes.begin(); it != player->vUnitTypes.end(); it++)
 			{
-				UnitType* unitType = *it;
+				const ref_ptr<UnitType>& unitType = *it;
 				CheckObjectRequirements(player, unitType->requirements);
 				if (!unitType->requirements.existance.isSatisfied && unitType->numExisting)
 				{
@@ -354,11 +345,11 @@ namespace Game
 			int n = 0;
 			while ((notMeetingExistanceReqs.sResearchs.size() || notMeetingExistanceReqs.sUnitTypes.size()) && n < 5)
 			{
-				std::set<Research*> &researchs = notMeetingExistanceReqs.sResearchs;
-				std::set<UnitType*> &unitTypes = notMeetingExistanceReqs.sUnitTypes;
-				for (std::set<Research*>::iterator it = researchs.begin(); it != researchs.end(); it++)
+				std::set<ref_ptr<Research> > &researchs = notMeetingExistanceReqs.sResearchs;
+				std::set<ref_ptr<UnitType> > &unitTypes = notMeetingExistanceReqs.sUnitTypes;
+				for (std::set<ref_ptr<Research> >::iterator it = researchs.begin(); it != researchs.end(); it++)
 				{
-					Research* research = *it;
+					const ref_ptr<Research>& research = *it;
 					research->isResearched = false;
 
  					if (research->luaEffectObj.length())
@@ -375,7 +366,8 @@ namespace Game
  						research->player->aiState.CallFunction(1);
  					}
 				}
-				for (std::set<UnitType*>::iterator it = unitTypes.begin(); it != unitTypes.end(); it++)
+				researchs.clear();
+				for (std::set<ref_ptr<UnitType> >::iterator it = unitTypes.begin(); it != unitTypes.end(); it++)
 				{
 					for (unsigned i = 0; i < pWorld->vUnits.size(); )
 					{
@@ -390,6 +382,7 @@ namespace Game
 						}
 					}
 				}
+				unitTypes.clear();
 				for (std::vector<Player*>::iterator it = pWorld->vPlayers.begin(); it != pWorld->vPlayers.end(); it++)
 				{
 					RecheckAllRequirements(*it);
@@ -428,5 +421,14 @@ namespace Game
 			delete pWorld;
 		}
 		
+		ref_ptr<Research> GetResearchByID(unsigned i)
+		{
+			if (i < pWorld->vAllResearchs.size())
+			{
+				return pWorld->vAllResearchs[i];
+			}
+			return ref_ptr<Research>();
+		}
+
 	}
 }

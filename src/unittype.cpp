@@ -8,47 +8,9 @@ namespace Game
 {
 	namespace Dimension
 	{
-		RangeScanlines::~RangeScanlines()
+		ref_ptr<RangeScanlines> GenerateRangeScanlines(float maxrange)
 		{
-			if (scanlines != NULL)
-			{
-				delete[] scanlines;
-			}
-		}
-		
-		RangeArray::~RangeArray()
-		{
-			if (array != NULL)
-			{
-				for (int i = 0; i < size; i++)
-				{
-					delete[] array[i];
-				}
-				delete[] array;
-			}
-		}
-		
-		UnitType::~UnitType()
-		{
-			if (attackRangeArray)
-				delete attackRangeArray;
-			
-			if (sightRangeArray)
-				delete sightRangeArray;
-			
-			if (lightRangeArray)
-				delete lightRangeArray;
-			
-			if (lightRangeScanlines)
-				delete lightRangeScanlines;
-			
-			if (sightRangeScanlines)
-				delete sightRangeScanlines;
-		}
-
-		RangeScanlines *GenerateRangeScanlines(float maxrange)
-		{
-			RangeScanlines *ret = new RangeScanlines;
+			ref_ptr<RangeScanlines> ret = new RangeScanlines;
 			int height = ((int)floor(maxrange) << 1) + 1;
 			int y_offset = (int)floor(maxrange);
 			int x_min = -y_offset;
@@ -79,9 +41,9 @@ namespace Game
 			return ret;
 		}
 
-		RangeArray *GenerateRangeArray(float maxrange, float minrange)
+		ref_ptr<RangeArray> GenerateRangeArray(float maxrange, float minrange)
 		{
-			RangeArray *ret = new RangeArray;
+			ref_ptr<RangeArray> ret = new RangeArray;
 			int size = ((int)floor(maxrange) << 1) + 1;
 			int offset = (int)floor(maxrange);
 			ret->size = size;
@@ -118,16 +80,13 @@ namespace Game
 			this->isHoming = false;
 		}
 
-		std::vector<UnitType*> allUnitTypes;
-
-		UnitType* GetUnitTypeByID(unsigned i)
+		ref_ptr<UnitType> GetUnitTypeByID(unsigned i)
 		{
-			i -= 65536;
-			if (i < allUnitTypes.size())
+			if (i < pWorld->vAllUnitTypes.size())
 			{
-				return allUnitTypes[i];
+				return pWorld->vAllUnitTypes[i];
 			}
-			return NULL;
+			return ref_ptr<UnitType>();
 		}
 
 	}

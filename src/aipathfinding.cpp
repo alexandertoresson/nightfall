@@ -259,12 +259,12 @@ namespace Game
 			goal.unit = NULL;
 			changedGoalPos.x = 0;
 			changedGoalPos.y = 0;
-			arg = NULL;
+			args = Dimension::ActionArguments();
 			action = ACTION_NONE;
 			rotation = 0.0;
 		}
 
-		void ActionData::Set(int start_x, int start_y, int end_x, int end_y, Dimension::Unit* goal, AI::UnitAction action, void* arg, float rotation)
+		void ActionData::Set(int start_x, int start_y, int end_x, int end_y, Dimension::Unit* goal, AI::UnitAction action, const Dimension::ActionArguments& args, float rotation)
 		{
 			this->startPos.x = start_x;
 			this->startPos.y = start_y;
@@ -273,7 +273,7 @@ namespace Game
 			this->goal.unit = goal;
 			this->changedGoalPos.x = end_x;
 			this->changedGoalPos.y = end_y;
-			this->arg = arg;
+			this->args = args;
 			this->action = action;
 			this->rotation = rotation;
 		}
@@ -652,7 +652,7 @@ namespace Game
 #endif
 		}
 
-		IPResult CommandPathfinding(Dimension::Unit* pUnit, int start_x, int start_y, int goal_x, int goal_y, AI::UnitAction action, Dimension::Unit* target, void* arg, float rotation)
+		IPResult CommandPathfinding(Dimension::Unit* pUnit, int start_x, int start_y, int goal_x, int goal_y, AI::UnitAction action, Dimension::Unit* target, const Dimension::ActionArguments& args, float rotation)
 		{
 			assert(pUnit != NULL);
 
@@ -684,7 +684,7 @@ namespace Game
 
 			if (action == ACTION_BUILD)
 			{
-				if (!target && !arg)
+				if (!target && !args.unitType)
 				{
 					cout << "Invalid unit target and arg, fixing up action" << std::endl;
 					action = ACTION_GOTO;
@@ -693,7 +693,7 @@ namespace Game
 			
 			if (action == ACTION_RESEARCH)
 			{
-				if (!arg)
+				if (!args.research)
 				{
 					cout << "Invalid action arg, fixing up action" << std::endl;
 					action = ACTION_GOTO;
@@ -717,7 +717,7 @@ namespace Game
 
 //			cout << "Command " << pUnit << " " << start_x << ", " << start_y << " " << goal_x << ", " << goal_y << " " << action <<  " " << target << " " << args << " " << currentFrame << endl;
 		
-			md->_newAction.Set(start_x, start_y, goal_x, goal_y, target, action, arg, rotation);
+			md->_newAction.Set(start_x, start_y, goal_x, goal_y, target, action, args, rotation);
 
 			IntThrState curState = pUnit->pMovementData->_currentState;
 
@@ -871,7 +871,7 @@ namespace Game
 
 			if (md->_action.action == ACTION_BUILD)
 			{
-				if (!md->_action.goal.unit && !md->_action.arg)
+				if (!md->_action.goal.unit && !md->_action.args.unitType)
 				{
 					std::cout << "Invalid action, needs target or arg. Fixing up action." << std::endl;
 					md->_action.action = ACTION_GOTO;
@@ -881,7 +881,7 @@ namespace Game
 			
 			if (md->_action.action == ACTION_RESEARCH)
 			{
-				if (!md->_action.arg)
+				if (!md->_action.args.research)
 				{
 					std::cout << "Invalid action, needs arg. Fixing up action." << std::endl;
 					md->_action.action = ACTION_GOTO;

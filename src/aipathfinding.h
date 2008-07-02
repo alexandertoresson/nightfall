@@ -21,6 +21,7 @@
 #include "dimension.h"
 #include "unit.h"
 #include "utilities.h"
+#include "action.h"
 
 #include <vector>
 
@@ -99,7 +100,7 @@ namespace Game
 			}
 
 			void Reset();
-			void Set(int start_x, int start_y, int end_x, int end_y, Dimension::Unit* goal, AI::UnitAction action, void* arg, float rotation);
+			void Set(int start_x, int start_y, int end_x, int end_y, Dimension::Unit* goal, AI::UnitAction action, const Dimension::ActionArguments& args, float rotation);
 		};
 
 		struct MovementData
@@ -171,7 +172,7 @@ namespace Game
 		//            target - target unit. default NULL
 		//            args   - unit action arguments. default NULL
 		//
-		IPResult CommandPathfinding(Dimension::Unit* pUnit, int start_x, int start_y, int goal_x, int goal_y, AI::UnitAction action = AI::ACTION_GOTO, Dimension::Unit* target = NULL, void* args = NULL, float rotation = 0.0f);
+		IPResult CommandPathfinding(Dimension::Unit* pUnit, int start_x, int start_y, int goal_x, int goal_y, AI::UnitAction action = AI::ACTION_GOTO, Dimension::Unit* target = NULL, const Dimension::ActionArguments& args = Dimension::ActionArguments(), float rotation = 0.0f);
 		
 		//
 		// Get the internal path state, PATHSTATE_*

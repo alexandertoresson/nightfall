@@ -5,6 +5,8 @@
 #warning "dimension.h-pre"
 #endif
 
+#include "ref_ptr.h"
+
 namespace Game
 {
 	namespace Dimension
@@ -27,6 +29,49 @@ namespace Game
 			PLAYER_TYPE_AI
 		};
 
+		struct Resources
+		{
+			double power;
+			double money;
+			Resources()
+			{
+				money = 1000.0;
+				power = 1000.0;
+			}
+		};
+		
+		struct Position
+		{
+			float x;
+			float y;
+			
+			Position()
+			{
+				x = y = 0;
+			}
+
+			Position(float nx, float ny) : x(nx), y(nx)
+			{
+
+			}
+		};
+		
+		struct IntPosition
+		{
+			int x;
+			int y;
+
+			IntPosition() : x(-1), y(-1)
+			{
+				
+			}
+
+			IntPosition(int x, int y) : x(x), y(y)
+			{
+				
+			}
+		};
+
 		typedef int PlayerState;
 
 		const int PLAYER_STATE_ALLY = 1,
@@ -38,6 +83,7 @@ namespace Game
 		
 		// Stänger ned världen
 		void UnloadWorld(void);
+		ref_ptr<Research> GetResearchByID(unsigned i);
 	}
 }
 

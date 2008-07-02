@@ -43,14 +43,14 @@ namespace Game
 		
 		void ActionQueueItem::CreateVisualRepresentation()
 		{
-			if (this->action == AI::ACTION_BUILD && this->arg)
-				this->ghost = CreateGhostUnit((UnitType*)this->arg);
+			if (action == AI::ACTION_BUILD && args.unitType)
+				ghost = CreateGhostUnit(args.unitType);
 			
-			if (this->ghost)
+			if (ghost)
 			{
-				this->ghost->pos.x = this->goal.pos.x;
-				this->ghost->pos.y = this->goal.pos.y;
-				this->ghost->rotation = this->rotation;
+				ghost->pos.x = goal.pos.x;
+				ghost->pos.y = goal.pos.y;
+				ghost->rotation = rotation;
 			}
 		}
 
@@ -126,7 +126,7 @@ namespace Game
 			{
 				if ((*it)->isDisplayed)
 				{
-					UnitType* unittype = (*it)->type;
+					ref_ptr<UnitType> unittype = (*it)->type;
 					income += unittype->powerIncrement;
 					income -= unittype->powerUsage + unittype->lightPowerUsage + (unittype->attackPowerUsage + unittype->movePowerUsage + unittype->buildPowerUsage) * 0.5;
 				}
@@ -141,7 +141,7 @@ namespace Game
 			{
 				if ((*it)->isDisplayed)
 				{
-					UnitType* unittype = (*it)->type;
+					ref_ptr<UnitType> unittype = (*it)->type;
 					if (unittype->powerType == POWERTYPE_TWENTYFOURSEVEN)
 					{
 						income += unittype->powerIncrement;
@@ -247,7 +247,7 @@ namespace Game
 		{
 			double build_cost;
 			double power_usage = unit->type->buildPowerUsage / AI::aiFps;
-			UnitType* build_type = (UnitType*) unit->pMovementData->action.arg;
+			ref_ptr<UnitType> build_type = unit->pMovementData->action.args.unitType;
 
 			if (unit->owner->resources.power < power_usage)
 			{
@@ -309,7 +309,7 @@ namespace Game
 												int goto_x, goto_y;
 												NearestSquareFromBuildingPlace(pppElements[y][x], build_type, unit->pMovementData->action.goal.pos.x, unit->pMovementData->action.goal.pos.y, goto_x, goto_y);
 		//										cout << "command " << pppElements[y][x]->type->id << endl;
-												CommandUnit(pppElements[y][x], goto_x, goto_y, AI::ACTION_GOTO, unit->pMovementData->action.arg, true, true);
+												CommandUnit(pppElements[y][x], goto_x, goto_y, AI::ACTION_GOTO, unit->pMovementData->action.args, true, true);
 											}
 										}
 									}
@@ -402,7 +402,7 @@ namespace Game
 				
 				if (unit->rallypoint != NULL)
 				{
-					AI::CommandUnit(newUnit, unit->rallypoint->x, unit->rallypoint->y, AI::ACTION_GOTO, NULL, true, true);
+					AI::CommandUnit(newUnit, unit->rallypoint->x, unit->rallypoint->y, AI::ACTION_GOTO, ActionArguments(), true, true);
 				}
 				
 			}
@@ -412,7 +412,7 @@ namespace Game
 		void PerformResearch(Unit* unit)
 		{
 			double research_cost;
-			Research* research = (Research*) unit->pMovementData->action.arg;
+			const ref_ptr<Research>& research = unit->pMovementData->action.args.research;
 			double power_usage = (unit->type->buildPowerUsage + research->requirements.power / research->requirements.time) / AI::aiFps;
 
 			
@@ -489,8 +489,8 @@ namespace Game
  					lua_getglobal(pVM, research->luaEffectObj.c_str());
  					lua_getfield(pVM, -1, "apply");
  					lua_pushlightuserdata(pVM, unit->owner);
- 					lua_pushlightuserdata(pVM, unit->type);
- 					lua_pushlightuserdata(pVM, unit);
+ 					lua_pushlightuserdata(pVM, (void*) unit->type->globalIndex);
+ 					lua_pushlightuserdata(pVM, (void*) unit->id);
  					unit->owner->aiState.CallFunction(3);
  				}
 			}
@@ -505,11 +505,11 @@ namespace Game
 			if (pUnit->pMovementData == NULL)
 				return;
 
-			if (pUnit->pMovementData->action.arg == NULL)
+			if (!pUnit->pMovementData->action.args.unitType)
 				return;
 
 			int cost;
-			Dimension::UnitType* build_type = (Dimension::UnitType*) pUnit->pMovementData->action.arg;
+			ref_ptr<UnitType> build_type = pUnit->pMovementData->action.args.unitType;
 
 			if (pUnit->pMovementData->action.goal.unit && pUnit->pMovementData->action.goal.unit->pMovementData->action.action != AI::ACTION_DIE)
 			{
@@ -540,7 +540,7 @@ namespace Game
 		void CancelResearch(Dimension::Unit* pUnit)
 		{
 			int cost;
-			Research* research = (Research*) pUnit->pMovementData->action.arg;
+			ref_ptr<Research> research = pUnit->pMovementData->action.args.research;
 			cost = research->requirements.money;
 			pUnit->owner->resources.money += (float)cost * pUnit->action_completeness / 200;
 		}
@@ -787,11 +787,11 @@ namespace Game
 			}
 		}
 
-		void ChangePath(Unit* pUnit, int goal_x, int goal_y, AI::UnitAction action, Unit* target, void* arg, float rotation)
+		void ChangePath(Unit* pUnit, int goal_x, int goal_y, AI::UnitAction action, Unit* target, const ActionArguments& args, float rotation)
 		{
 			if (pUnit->type->isMobile)
 			{
-				AI::CommandPathfinding(pUnit, pUnit->curAssociatedSquare.x, pUnit->curAssociatedSquare.y, goal_x, goal_y, action, target, arg, rotation);
+				AI::CommandPathfinding(pUnit, pUnit->curAssociatedSquare.x, pUnit->curAssociatedSquare.y, goal_x, goal_y, action, target, args, rotation);
 			}
 		}
 
@@ -1056,7 +1056,7 @@ namespace Game
 										{
 											cout << "Move " << curUnit << " " << goto_new_x << " " << goto_new_y << " " << flags[j] << " " << i << endl;
 											numSentCommands++;
-											CommandUnit(curUnit, goto_new_x, goto_new_y, AI::ACTION_GOTO, NULL, true, true);
+											CommandUnit(curUnit, goto_new_x, goto_new_y, AI::ACTION_GOTO, ActionArguments(), true, true);
 											curUnit->isPushed = true;
 											if (pUnit->pushID)
 											{
@@ -1151,7 +1151,7 @@ namespace Game
 					if (pUnit->pMovementData->action.goal.unit->lastSeenPositions[pUnit->owner->index].x != pUnit->pMovementData->action.goal.pos.x ||
 					    pUnit->pMovementData->action.goal.unit->lastSeenPositions[pUnit->owner->index].y != pUnit->pMovementData->action.goal.pos.y)
 					{
-						ChangePath(pUnit, pUnit->pMovementData->action.goal.unit->lastSeenPositions[pUnit->owner->index].x, pUnit->pMovementData->action.goal.unit->lastSeenPositions[pUnit->owner->index].y, pUnit->pMovementData->action.action, pUnit->pMovementData->action.goal.unit, pUnit->pMovementData->action.arg, pUnit->pMovementData->action.rotation);
+						ChangePath(pUnit, pUnit->pMovementData->action.goal.unit->lastSeenPositions[pUnit->owner->index].x, pUnit->pMovementData->action.goal.unit->lastSeenPositions[pUnit->owner->index].y, pUnit->pMovementData->action.action, pUnit->pMovementData->action.goal.unit, pUnit->pMovementData->action.args, pUnit->pMovementData->action.rotation);
 					}
 				}
 			
@@ -1204,13 +1204,13 @@ namespace Game
 							{
 								ChangePath(pUnit, pUnit->pMovementData->action.goal.unit->lastSeenPositions[pUnit->owner->index].x, 
 										  pUnit->pMovementData->action.goal.unit->lastSeenPositions[pUnit->owner->index].y,
-										  pUnit->pMovementData->action.action, pUnit->pMovementData->action.goal.unit, pUnit->pMovementData->action.arg,
+										  pUnit->pMovementData->action.action, pUnit->pMovementData->action.goal.unit, pUnit->pMovementData->action.args,
 										  pUnit->pMovementData->action.rotation);
 							}
 							else
 							{
 								ChangePath(pUnit, pUnit->pMovementData->action.goal.pos.x, pUnit->pMovementData->action.goal.pos.y,
-										  pUnit->pMovementData->action.action, pUnit->pMovementData->action.goal.unit, pUnit->pMovementData->action.arg,
+										  pUnit->pMovementData->action.action, pUnit->pMovementData->action.goal.unit, pUnit->pMovementData->action.args,
 										  pUnit->pMovementData->action.rotation);
 							}
 						}
@@ -1283,7 +1283,7 @@ namespace Game
 				pUnit->isMoving = false;
 				if (!pUnit->owner->isRemote && !AI::IsUndergoingPathCalc(pUnit))
 				{
-					ChangePath(pUnit, pUnit->pMovementData->action.goal.pos.x, pUnit->pMovementData->action.goal.pos.y, pUnit->pMovementData->action.action, pUnit->pMovementData->action.goal.unit, pUnit->pMovementData->action.arg, pUnit->pMovementData->action.rotation);
+					ChangePath(pUnit, pUnit->pMovementData->action.goal.pos.x, pUnit->pMovementData->action.goal.pos.y, pUnit->pMovementData->action.action, pUnit->pMovementData->action.goal.unit, pUnit->pMovementData->action.args, pUnit->pMovementData->action.rotation);
 				}
 			}
 
@@ -1349,13 +1349,13 @@ namespace Game
 									{
 										ChangePath(pUnit, pUnit->pMovementData->action.goal.unit->lastSeenPositions[pUnit->owner->index].x, 
 											  	  pUnit->pMovementData->action.goal.unit->lastSeenPositions[pUnit->owner->index].y,
-										  	  pUnit->pMovementData->action.action, pUnit->pMovementData->action.goal.unit, pUnit->pMovementData->action.arg,
+										  	  pUnit->pMovementData->action.action, pUnit->pMovementData->action.goal.unit, pUnit->pMovementData->action.args,
 										  pUnit->pMovementData->action.rotation);
 									}
 									else
 									{
 										ChangePath(pUnit, pUnit->pMovementData->action.goal.pos.x, pUnit->pMovementData->action.goal.pos.y,
-										  	  pUnit->pMovementData->action.action, pUnit->pMovementData->action.goal.unit, pUnit->pMovementData->action.arg,
+										  	  pUnit->pMovementData->action.action, pUnit->pMovementData->action.goal.unit, pUnit->pMovementData->action.args,
 										  pUnit->pMovementData->action.rotation);
 									}
 								}
@@ -1545,7 +1545,7 @@ namespace Game
 			return ((float)r_seed / 65535.0f);
 		}
 
-		void PrepareUnitEssentials(Unit* const unit, UnitType* const type)
+		void PrepareUnitEssentials(Unit* const unit, const ref_ptr<UnitType>& type)
 		{
 			if (!unit || !type)
 				return ;
@@ -1587,7 +1587,7 @@ namespace Game
 		SDL_mutex* unitCreationMutex = SDL_CreateMutex();
 
 		// create a unit, but don't display it
-		Unit* CreateUnitNoDisplay(UnitType* type, int id, bool complete)
+		Unit* CreateUnitNoDisplay(const ref_ptr<UnitType>& type, int id, bool complete)
 		{
 			SDL_LockMutex(unitCreationMutex);
 			if (pWorld->vUnits.size() >= 0xFFFF)
@@ -1746,7 +1746,7 @@ namespace Game
 		}
 
 		// create a unit
-		Unit* CreateUnit(UnitType* type, int x, int y, int id, bool complete)
+		Unit* CreateUnit(const ref_ptr<UnitType>& type, int x, int y, int id, bool complete)
 		{
 			if (!SquaresAreWalkable(type, x, y, SIW_ALLKNOWING))
 			{
@@ -2028,7 +2028,7 @@ namespace Game
 		}
 
 		vector<Unit*> unitsDisplayQueue;
-		Unit* CreateGhostUnit(UnitType* type)
+		Unit* CreateGhostUnit(const ref_ptr<UnitType>& type)
 		{
 			Player* owner = Game::Dimension::currentPlayer;
 

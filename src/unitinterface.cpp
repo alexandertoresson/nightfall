@@ -63,10 +63,16 @@ namespace UnitLuaInterface
 		return unit;
 	}
 
-	UnitType* _GetUnitType(void* ptr)
+	ref_ptr<UnitType> _GetUnitType(void* ptr)
 	{
 		unsigned long ut_index = (unsigned long) ptr;
-		return Game::Dimension::GetUnitTypeByID(ut_index);
+		return Game::Dimension::GetUnitTypeByID(ut_index-65536);
+	}
+
+	ref_ptr<Research> _GetResearch(void* ptr)
+	{
+		unsigned long r_index = (unsigned long) ptr;
+		return Game::Dimension::GetResearchByID(r_index-131072);
 	}
 
 	int LGetUnitHealth(lua_State* pVM)
@@ -137,7 +143,7 @@ namespace UnitLuaInterface
 		Unit* pUnit = _GetUnit(lua_touserdata(pVM, 1));
 
 		if (pUnit != NULL && IsDisplayedUnitPointer(pUnit))
-			arg = pUnit->pMovementData->action.arg;
+			arg = (void*) pUnit->pMovementData->action.args.argHandle;
 
 		lua_pushlightuserdata(pVM, arg);
 		return 1;
@@ -219,9 +225,9 @@ namespace UnitLuaInterface
 	{
 		bool isMobile = false;
 
-		UnitType* ptr = _GetUnitType(lua_touserdata(pVM, 1));
+		ref_ptr<UnitType> ptr = _GetUnitType(lua_touserdata(pVM, 1));
 
-		if (ptr != NULL)
+		if (ptr)
 			isMobile = ptr->isMobile;
 		
 		lua_pushboolean(pVM, isMobile);
@@ -344,12 +350,12 @@ namespace UnitLuaInterface
 
 	int LGetNearestSuitableAndLightedPosition(lua_State* pVM)
 	{
-		UnitType* pUnitType = _GetUnitType(lua_touserdata(pVM, 1));
+		ref_ptr<UnitType> pUnitType = _GetUnitType(lua_touserdata(pVM, 1));
 		int  x       = lua_tointeger(pVM, 2);
 		int  y       = lua_tointeger(pVM, 3);
 		bool ret     = false;
 
-		if (pUnitType != NULL)
+		if (pUnitType)
 			ret = GetNearestSuitableAndLightedPosition(pUnitType, x, y);
 		
 		lua_pushinteger(pVM, x);
@@ -360,12 +366,12 @@ namespace UnitLuaInterface
 
 	int LGetSuitablePositionForLightTower(lua_State* pVM)
 	{
-		UnitType* pUnitType = _GetUnitType(lua_touserdata(pVM, 1));
+		ref_ptr<UnitType> pUnitType = _GetUnitType(lua_touserdata(pVM, 1));
 		int  x           = lua_tointeger(pVM, 2), y = lua_tointeger(pVM, 3);
 		bool needLighted = lua_toboolean(pVM, 4);
 		bool ret         = false;
 
-		if (pUnitType != NULL)
+		if (pUnitType)
 			ret = GetSuitablePositionForLightTower(pUnitType, x, y, needLighted);
 		
 		lua_pushinteger(pVM, x);
@@ -443,10 +449,10 @@ namespace UnitLuaInterface
 
 	int LGetUnitTypeIncomeAtNoon(lua_State* pVM)
 	{
-		UnitType* pUnitType = _GetUnitType(lua_touserdata(pVM, 1));
+		ref_ptr<UnitType> pUnitType = _GetUnitType(lua_touserdata(pVM, 1));
 		float income = 0;
 		
-		if (pUnitType != NULL)
+		if (pUnitType)
 		{
 			income += (float) pUnitType->powerIncrement;
 			income -= float(pUnitType->powerUsage + pUnitType->lightPowerUsage + (pUnitType->attackPowerUsage + pUnitType->movePowerUsage + pUnitType->buildPowerUsage) * 0.1);
@@ -458,10 +464,10 @@ namespace UnitLuaInterface
 
 	int LGetUnitTypeIncomeAtNight(lua_State* pVM)
 	{
-		UnitType* pUnitType = _GetUnitType(lua_touserdata(pVM, 1));
+		ref_ptr<UnitType> pUnitType = _GetUnitType(lua_touserdata(pVM, 1));
 		float income = 0;
 		
-		if (pUnitType != NULL)
+		if (pUnitType)
 		{	
 			if (pUnitType->powerType == POWERTYPE_TWENTYFOURSEVEN)
 			{
@@ -613,7 +619,7 @@ namespace UnitLuaInterface
 
 	int LGetUnitTypeBuildCost(lua_State* pVM)
 	{
-		UnitType* pUnitType = _GetUnitType(lua_touserdata(pVM, 1));
+		ref_ptr<UnitType> pUnitType = _GetUnitType(lua_touserdata(pVM, 1));
 		int cost = 0;
 		
 		if (pUnitType)
@@ -625,7 +631,7 @@ namespace UnitLuaInterface
 	
 	int LGetResearchCost(lua_State* pVM)
 	{
-		Research* pResearch = (Research*) lua_touserdata(pVM, 1);
+		const ref_ptr<Research>& pResearch = _GetResearch(lua_touserdata(pVM, 1));
 		int cost = 0;
 
 		if (pResearch)
@@ -637,7 +643,7 @@ namespace UnitLuaInterface
 	
 	int LIsResearched(lua_State* pVM)
 	{
-		UnitType* pUnitType = _GetUnitType(lua_touserdata(pVM, 1));
+		ref_ptr<UnitType> pUnitType = _GetUnitType(lua_touserdata(pVM, 1));
 		bool ret = false;
 
 		if (pUnitType)
@@ -659,7 +665,7 @@ namespace UnitLuaInterface
 			std::stringstream ss;
 			lua_newtable(pVM);
 
-			lua_pushlightuserdata(pVM, it->research);
+			lua_pushlightuserdata(pVM, (void*) it->research->globalIndex);
 			lua_setfield(pVM, -2, "research");
 			
 			lua_pushboolean(pVM, it->desiredState);
@@ -674,7 +680,7 @@ namespace UnitLuaInterface
 			std::stringstream ss;
 			lua_newtable(pVM);
 
-			lua_pushlightuserdata(pVM, it->research);
+			lua_pushlightuserdata(pVM, (void*) it->research->globalIndex);
 			lua_setfield(pVM, -2, "research");
 			
 			lua_pushboolean(pVM, it->desiredState);
@@ -744,7 +750,7 @@ namespace UnitLuaInterface
 
 	int LGetUnitTypeRequirements(lua_State* pVM)
 	{
-		UnitType* pUnitType = _GetUnitType(lua_touserdata(pVM, 1));
+		ref_ptr<UnitType> pUnitType = _GetUnitType(lua_touserdata(pVM, 1));
 
 		if (pUnitType)
 			return GetObjReqs(pVM, pUnitType->requirements);
@@ -755,8 +761,8 @@ namespace UnitLuaInterface
 	
 	int LGetResearchRequirements(lua_State* pVM)
 	{
-		Research* pResearch = (Research*) lua_touserdata(pVM, 1);
-		if (!IsValidResearchPointer(pResearch))
+		const ref_ptr<Research>& pResearch = _GetResearch(lua_touserdata(pVM, 1));
+		if (!pResearch)
 		{
 			lua_pushboolean(pVM, false);
 			return 1;
@@ -766,15 +772,15 @@ namespace UnitLuaInterface
 	
 	int LGetBuilder(lua_State* pVM)
 	{
-		UnitType* pUnitType = _GetUnitType(lua_touserdata(pVM, 1));
+		ref_ptr<UnitType> pUnitType = _GetUnitType(lua_touserdata(pVM, 1));
 
 		if (pUnitType)
 		{
 			
 			Player *player = GetPlayerByVMstate(pVM);
-			for (vector<UnitType*>::iterator it = player->vUnitTypes.begin(); it != player->vUnitTypes.end(); it++)
+			for (vector<ref_ptr<UnitType> >::iterator it = player->vUnitTypes.begin(); it != player->vUnitTypes.end(); it++)
 			{
-				for (vector<UnitType*>::iterator it2 = (*it)->canBuild.begin(); it2 != (*it)->canBuild.end(); it2++)
+				for (vector<ref_ptr<UnitType> >::iterator it2 = (*it)->canBuild.begin(); it2 != (*it)->canBuild.end(); it2++)
 				{
 					if (*it2 == pUnitType)
 					{
@@ -792,15 +798,15 @@ namespace UnitLuaInterface
 	
 	int LGetResearcher(lua_State* pVM)
 	{
-		Research* pResearch = (Research*) lua_touserdata(pVM, 1);
+		const ref_ptr<Research>& pResearch = _GetResearch(lua_touserdata(pVM, 1));
 		Player *player = GetPlayerByVMstate(pVM);
-		for (vector<UnitType*>::iterator it = player->vUnitTypes.begin(); it != player->vUnitTypes.end(); it++)
+		for (vector<ref_ptr<UnitType> >::iterator it = player->vUnitTypes.begin(); it != player->vUnitTypes.end(); it++)
 		{
-			for (vector<Research*>::iterator it2 = (*it)->canResearch.begin(); it2 != (*it)->canResearch.end(); it2++)
+			for (vector<ref_ptr<Research> >::iterator it2 = (*it)->canResearch.begin(); it2 != (*it)->canResearch.end(); it2++)
 			{
 				if (*it2 == pResearch)
 				{
-					lua_pushlightuserdata(pVM, (void*) (*it)->globalIndex);
+					lua_pushlightuserdata(pVM, (void*) ((*it)->globalIndex + 131072));
 					return 1;
 				}
 			}
@@ -811,7 +817,7 @@ namespace UnitLuaInterface
 	
 	int LSquaresAreLightedAround(lua_State* pVM)
 	{
-		UnitType* pUnitType = _GetUnitType(lua_touserdata(pVM, 1));
+		ref_ptr<UnitType> pUnitType = _GetUnitType(lua_touserdata(pVM, 1));
 		int lighted = false;
 		
 		if (pUnitType)
@@ -823,7 +829,7 @@ namespace UnitLuaInterface
 	
 	int LSquaresAreLighted(lua_State* pVM)
 	{
-		UnitType* pUnitType = _GetUnitType(lua_touserdata(pVM, 1));
+		ref_ptr<UnitType> pUnitType = _GetUnitType(lua_touserdata(pVM, 1));
 		int lighted = false;
 		
 		if (pUnitType)
@@ -903,13 +909,13 @@ namespace UnitLuaInterface
 	struct ScheduledAction : public BaseActionData
 	{
 		Unit *unit;
-		ScheduledAction(Unit* unit, int end_x, int end_y, Unit* goal, UnitAction action, void* arg, float rotation) : unit(unit)
+		ScheduledAction(Unit* unit, int end_x, int end_y, Unit* goal, UnitAction action, const ActionArguments& args, float rotation) : unit(unit)
 		{
 			this->goal.pos.x = end_x;
 			this->goal.pos.y = end_y;
 			this->goal.unit = goal;
 			this->action = action;
-			this->arg = arg;
+			this->args = args;
 			this->rotation = rotation;
 		}
 	};
@@ -930,27 +936,34 @@ namespace UnitLuaInterface
 					action->goal.unit = NULL;
 				}
 
-				ApplyAction(action->unit, action->action, action->goal.pos.x, action->goal.pos.y, action->goal.unit, action->arg, action->rotation);
-				Game::Dimension::ChangePath(action->unit, action->goal.pos.x, action->goal.pos.y, action->action, action->goal.unit, action->arg, action->rotation);
+				ApplyAction(action->unit, action->action, action->goal.pos.x, action->goal.pos.y, action->goal.unit, action->args, action->rotation);
+				Game::Dimension::ChangePath(action->unit, action->goal.pos.x, action->goal.pos.y, action->action, action->goal.unit, action->args, action->rotation);
 			}
 			delete action;
 		}
 		scheduledActions.clear();
 	}
 
-	void CommandUnit_TargetUnit(Unit* unit, Unit* target, UnitAction action, void* arg = NULL, float rotation = 0.0f)
+	void CommandUnit(Unit* unit, Unit* target, int x, int y, UnitAction action, const ActionArguments& args = ActionArguments(), float rotation = 0.0f)
 	{
 		if (action == ACTION_NONE)
 			return;
 		
 		Game::AI::action_changes++;
+
+		if (target)
+		{
+			x = target->curAssociatedSquare.x;
+			y = target->curAssociatedSquare.y;
+		}
+
 		if (Game::Networking::isNetworked)
 		{
-			Game::Networking::PrepareAction(unit, target, target->curAssociatedSquare.x, target->curAssociatedSquare.y, action, arg, rotation);
+			Game::Networking::PrepareAction(unit, target, x, y, action, args, rotation);
 		}
 		else
 		{
-			ScheduledAction *sAction = new ScheduledAction(unit, target->curAssociatedSquare.x, target->curAssociatedSquare.y, target, action, arg, rotation);
+			ScheduledAction *sAction = new ScheduledAction(unit, x, y, target, action, args, rotation);
 
 			SDL_LockMutex(scheduledActionsMutex);
 			scheduledActions.push_back(sAction);
@@ -958,63 +971,17 @@ namespace UnitLuaInterface
 		}
 	}
 
-	void CommandUnit_TargetPos(Unit* unit, int x, int y, UnitAction action, void* arg = NULL, float rotation = 0.0f)
-	{
-		if (!unit->type->isMobile && action == ACTION_GOTO)
-			return;
-
-		if (action == ACTION_NONE)
-			return;
-		
-		Game::AI::action_changes++;
-		if (Game::Networking::isNetworked)
-		{
-			Game::Networking::PrepareAction(unit, NULL, x, y, action, arg, rotation);
-		}
-		else
-		{
-			ScheduledAction *sAction = new ScheduledAction(unit, x, y, NULL, action, arg, rotation);
-
-			SDL_LockMutex(scheduledActionsMutex);
-			scheduledActions.push_back(sAction);
-			SDL_UnlockMutex(scheduledActionsMutex);
-		}
-	}
-
-	int LCommandUnit_TargetUnit(lua_State* pVM)
+	int LCommandUnit(lua_State* pVM)
 	{
 		Unit* pUnit01 = _GetUnit(lua_touserdata(pVM, 1));
 		Unit* pUnit02 = _GetUnit(lua_touserdata(pVM, 2));
 
 		CHECK_UNIT_PTR(pUnit01)
-		CHECK_UNIT_PTR(pUnit02)
+		CHECK_UNIT_PTR_NULL_VALID(pUnit02)
 		
-		void* arg = _GetUnitType(lua_touserdata(pVM, 5));
+		ActionArguments args = (unsigned) lua_touserdata(pVM, 6);
 
-		if (!arg)
-		{
-			arg = lua_touserdata(pVM, 5);
-		}
-
-		CommandUnit_TargetUnit(pUnit01, pUnit02, (UnitAction) lua_tointeger(pVM, 3), arg, lua_tonumber(pVM, 5));
-
-		LUA_SUCCESS
-	}
-
-	int LCommandUnit_TargetPos(lua_State* pVM)
-	{
-		Unit* pUnit = _GetUnit(lua_touserdata(pVM, 1));
-
-		CHECK_UNIT_PTR(pUnit)
-		
-		void* arg = _GetUnitType(lua_touserdata(pVM, 5));
-
-		if (!arg)
-		{
-			arg = lua_touserdata(pVM, 5);
-		}
-
-		CommandUnit_TargetPos(pUnit, lua_tointeger(pVM, 2), lua_tointeger(pVM, 3), (UnitAction) lua_tointeger(pVM, 4), arg, lua_tonumber(pVM, 6));
+		CommandUnit(pUnit01, pUnit02, lua_tointeger(pVM, 3), lua_tointeger(pVM, 4), (UnitAction) lua_tointeger(pVM, 5), args, lua_tonumber(pVM, 7));
 
 		LUA_SUCCESS
 	}
@@ -1028,7 +995,7 @@ namespace UnitLuaInterface
 		int position[2] = { lua_tointeger(pVM, 2), 
 		                    lua_tointeger(pVM, 3) };
 
-		CommandUnit_TargetPos(pUnit, position[0], position[1], ACTION_GOTO);
+		CommandUnit(pUnit, NULL, position[0], position[1], ACTION_GOTO);
 		LUA_SUCCESS
 	}
 
@@ -1041,7 +1008,7 @@ namespace UnitLuaInterface
 		int position[2] = { lua_tointeger(pVM, 2), 
 		                    lua_tointeger(pVM, 3) };
 
-		CommandUnit_TargetPos(pUnit, position[0], position[1], ACTION_MOVE_ATTACK);
+		CommandUnit(pUnit, NULL, position[0], position[1], ACTION_MOVE_ATTACK);
 		LUA_SUCCESS
 	}
 
@@ -1054,10 +1021,10 @@ namespace UnitLuaInterface
 		int position[2] = { lua_tointeger(pVM, 2), 
 		                    lua_tointeger(pVM, 3) };
 
-		UnitType* pUnitType = _GetUnitType(lua_touserdata(pVM, 4));
+		ref_ptr<UnitType> pUnitType = _GetUnitType(lua_touserdata(pVM, 4));
 			
 		if (pUnitType)
-			CommandUnit_TargetPos(pUnit, position[0], position[1], ACTION_BUILD, pUnitType, lua_isnumber(pVM, 5) ? lua_tonumber(pVM, 5) : Utilities::RandomDegree());
+			CommandUnit(pUnit, NULL, position[0], position[1], ACTION_BUILD, pUnitType, lua_isnumber(pVM, 5) ? lua_tonumber(pVM, 5) : Utilities::RandomDegree());
 
 		LUA_SUCCESS
 	}
@@ -1068,9 +1035,14 @@ namespace UnitLuaInterface
 
 		CHECK_UNIT_PTR(pUnit)
 
-		Research* pResearch = (Research*) lua_touserdata(pVM, 2);
+		ActionArguments args = (unsigned) lua_touserdata(pVM, 2);
 
-		CommandUnit_TargetPos(pUnit, 0, 0, ACTION_RESEARCH, pResearch);
+		if (!args.research)
+		{
+			LUA_FAILURE("Invalid research handle received")
+		}
+
+		CommandUnit(pUnit, NULL, 0, 0, ACTION_RESEARCH, args);
 		LUA_SUCCESS
 	}
 
@@ -1082,7 +1054,7 @@ namespace UnitLuaInterface
 		CHECK_UNIT_PTR(pUnit01)
 		CHECK_UNIT_PTR(pUnit02)
 
-		CommandUnit_TargetUnit(pUnit01, pUnit02, ACTION_FOLLOW);
+		CommandUnit(pUnit01, pUnit02, 0, 0, ACTION_FOLLOW);
 		LUA_SUCCESS
 	}
 
@@ -1094,7 +1066,7 @@ namespace UnitLuaInterface
 		CHECK_UNIT_PTR(pUnit01)
 		CHECK_UNIT_PTR(pUnit02)
 
-		CommandUnit_TargetUnit(pUnit01, pUnit02, ACTION_ATTACK);
+		CommandUnit(pUnit01, pUnit02, 0, 0, ACTION_ATTACK);
 		LUA_SUCCESS
 	}
 
@@ -1106,7 +1078,7 @@ namespace UnitLuaInterface
 		CHECK_UNIT_PTR(pUnit01)
 		CHECK_UNIT_PTR(pUnit02)
 
-		CommandUnit_TargetUnit(pUnit01, pUnit02, ACTION_COLLECT);
+		CommandUnit(pUnit01, pUnit02, 0, 0, ACTION_COLLECT);
 		LUA_SUCCESS
 	}
 
@@ -1118,7 +1090,7 @@ namespace UnitLuaInterface
 		CHECK_UNIT_PTR(pUnit01)
 		CHECK_UNIT_PTR(pUnit02)
 
-		CommandUnit_TargetUnit(pUnit01, pUnit02, ACTION_BUILD);
+		CommandUnit(pUnit01, pUnit02, 0, 0, ACTION_BUILD);
 		LUA_SUCCESS
 	}
 
@@ -1130,7 +1102,7 @@ namespace UnitLuaInterface
 		CHECK_UNIT_PTR(pUnit01)
 		CHECK_UNIT_PTR(pUnit02)
 
-		CommandUnit_TargetUnit(pUnit01, pUnit02, ACTION_MOVE_ATTACK_UNIT);
+		CommandUnit(pUnit01, pUnit02, 0, 0, ACTION_MOVE_ATTACK_UNIT);
 		LUA_SUCCESS
 	}
 
@@ -1160,7 +1132,7 @@ namespace UnitLuaInterface
 
 		if (IsValidUnitTypePointer(_GetUnitType(context)))
 		{
-			UnitType* unittype = _GetUnitType(context);
+			ref_ptr<UnitType> unittype = _GetUnitType(context);
 			if (IsValidPlayerPointer(player) && unittype)
 			{
 				switch (eventtype)
@@ -1289,7 +1261,7 @@ namespace UnitLuaInterface
 		
 		if (IsValidUnitTypePointer(_GetUnitType(context)))
 		{
-			UnitType* unittype = _GetUnitType(context);
+			ref_ptr<UnitType> unittype = _GetUnitType(context);
 			if (IsValidPlayerPointer(player) && unittype)
 			{
 				if (eventtype == EVENTTYPE_PERFORMUNITAI)
@@ -1351,9 +1323,9 @@ namespace UnitLuaInterface
 		
 		if (contextType == AI_CONTEXT_UNITTYPE)
 		{
-			UnitType* unittype = _GetUnitType(context);
+			ref_ptr<UnitType> unittype = _GetUnitType(context);
 			
-			if (unittype == NULL)
+			if (!unittype)
 				LUA_FAILURE("Null pointer context received")
 				
 			if (IsValidPlayerPointer(player))
@@ -1426,7 +1398,7 @@ namespace UnitLuaInterface
 
 	int LCreateUnit(lua_State* pVM)
 	{
-		UnitType* pUnitType = _GetUnitType(lua_touserdata(pVM, 1));
+		ref_ptr<UnitType> pUnitType = _GetUnitType(lua_touserdata(pVM, 1));
 		
 		if (!pUnitType)
 			LUA_FAILURE("Invalid unit type - null pointer")
@@ -1485,7 +1457,7 @@ namespace UnitLuaInterface
 
 	int LCanCreateUnitAt(lua_State* pVM)
 	{
-		UnitType* pUnitType = _GetUnitType(lua_touserdata(pVM, 1));
+		ref_ptr<UnitType> pUnitType = _GetUnitType(lua_touserdata(pVM, 1));
 		
 		if (!pUnitType)
 			LUA_FAIL
@@ -1518,7 +1490,7 @@ namespace UnitLuaInterface
 		
 		if (player)
 		{
-			UnitType* ptr = player->unitTypeMap[name];
+			ref_ptr<UnitType>& ptr = player->unitTypeMap[name];
 			
 			if (ptr)
 				ut = ptr->globalIndex;
@@ -1626,7 +1598,7 @@ namespace UnitLuaInterface
 
 	int LGetUnitTypeName(lua_State* pVM)
 	{
-		UnitType* pUnitType = _GetUnitType(lua_touserdata(pVM, 1));
+		ref_ptr<UnitType> pUnitType = _GetUnitType(lua_touserdata(pVM, 1));
 		const char* name = "";
 			
 		if (pUnitType)
@@ -2932,33 +2904,33 @@ else \
 		lua_pop(pVM, 1);
 	}
 
-	map<UnitType*, bool> validUnitTypePointers;
+	map<ref_ptr<UnitType>, bool> validUnitTypePointers;
 
-	map<Research*, bool> validResearchPointers;
+	map<ref_ptr<Research>, bool> validResearchPointers;
 
-	bool IsValidUnitTypePointer(UnitType* unittype)
+	bool IsValidUnitTypePointer(const ref_ptr<UnitType>& unittype)
 	{
 		return validUnitTypePointers[unittype];
 	}
 
-	bool IsValidResearchPointer(Research* research)
+	bool IsValidResearchPointer(const ref_ptr<Research>& research)
 	{
 		return validResearchPointers[research];
 	}
 
-	UnitType *GetUnitTypeByID(Player* owner, std::string str)
+	ref_ptr<UnitType>& GetUnitTypeByID(Player* owner, std::string str)
 	{
 		return owner->unitTypeMap[str];
 	}
 
-	Research *GetResearchByID(Player* owner, std::string str)
+	ref_ptr<Research>& GetResearchByID(Player* owner, std::string str)
 	{
 		return owner->researchMap[str];
 	}
 
 	int LCreateUnitType(lua_State* pVM)
 	{
-		UnitType *pUnitType;
+		ref_ptr<UnitType> pUnitType;
 		Player *player = GetPlayerByVMstate(pVM);
 
 		if (!lua_istable(pVM, 1))
@@ -3059,7 +3031,7 @@ else \
 
 		if (!isResearched)
 		{
-			Research *research = new Research;
+			ref_ptr<Research> research = new Research;
 			ResearchRequirement res_req;
 
 			research->id = "Research" + std::string(pUnitType->id);
@@ -3081,6 +3053,10 @@ else \
 
 			research->index = player->vResearchs.size();
 			player->vResearchs.push_back(research);
+
+			research->globalIndex = pWorld->vAllResearchs.size() + 131072;
+			pWorld->vAllResearchs.push_back(research);
+
 			player->researchMap[research->id] = research;
 			validResearchPointers[research] = true;
 
@@ -3163,7 +3139,7 @@ else \
 			pUnitType->actionSounds[i] = NULL;
 		}
 
-		pUnitType->globalIndex = 65536 + allUnitTypes.size();
+		pUnitType->globalIndex = pWorld->vAllUnitTypes.size() + 65536;
 
 		lua_pushlightuserdata(pVM, (void*) pUnitType->globalIndex);
 		lua_setfield(pVM, 1, "pointer");
@@ -3191,14 +3167,14 @@ else \
 
 		validUnitTypePointers[pUnitType] = true;
 		
-		allUnitTypes.push_back(pUnitType);
+		pWorld->vAllUnitTypes.push_back(pUnitType);
 
 		LUA_SUCCESS
 	}
 
 	int LCreateResearch(lua_State* pVM)
 	{
-		Research *pResearch;
+		ref_ptr<Research> pResearch;
 		Player *player = GetPlayerByVMstate(pVM);
 
 		if (!lua_istable(pVM, 1))
@@ -3224,6 +3200,10 @@ else \
 			
 		pResearch->index = player->vResearchs.size();
 		player->vResearchs.push_back(pResearch);
+
+		pResearch->globalIndex = pWorld->vAllResearchs.size() + 131072;
+		pWorld->vAllResearchs.push_back(pResearch);
+
 		player->researchMap[pResearch->id] = pResearch;
 		validResearchPointers[pResearch] = true;
 
@@ -3281,8 +3261,8 @@ else \
 				reqstring++;
 			}
 			std::string symbol = GetReqStringSymbol(reqstring);
-			UnitType* unitType = GetUnitTypeByID(player, symbol);
-			Research* research = GetResearchByID(player, symbol);
+			const ref_ptr<UnitType>& unitType = GetUnitTypeByID(player, symbol);
+			const ref_ptr<Research>& research = GetResearchByID(player, symbol);
 			UnitRequirement unit_req;
 			ResearchRequirement res_req;
 
@@ -3502,7 +3482,7 @@ else \
 		InterpretRequirementsString(player, requirements.existance.cReqString.c_str(), requirements.existance);
 	}
 
-	void PostProcessBuildResearch(UnitType* unitType)
+	void PostProcessBuildResearch(const ref_ptr<UnitType>& unitType)
 	{
 		for (std::vector<std::string>::iterator it_bld = unitType->canBuildIDs.begin(); it_bld != unitType->canBuildIDs.end(); it_bld++)
 		{
@@ -3519,8 +3499,8 @@ else \
 		for (std::vector<std::string>::iterator it_rch = unitType->canResearchIDs.begin(); it_rch != unitType->canResearchIDs.end(); it_rch++)
 		{
 			std::string id = *it_rch;
-			Research* res1 = GetResearchByID(unitType->player, id);
-			Research* res2 = GetResearchByID(unitType->player, "Research" + id);
+			const ref_ptr<Research>& res1 = GetResearchByID(unitType->player, id);
+			const ref_ptr<Research>& res2 = GetResearchByID(unitType->player, "Research" + id);
 			if (res1 || res2)
 			{
 				if (res1)
@@ -3544,14 +3524,14 @@ else \
 		for (std::vector<Player*>::iterator it = pWorld->vPlayers.begin(); it != pWorld->vPlayers.end(); it++)
 		{
 			Player *player = *it;
-			for (std::vector<Research*>::iterator it_res = player->vResearchs.begin(); it_res != player->vResearchs.end(); it_res++)
+			for (std::vector<ref_ptr<Research> >::iterator it_res = player->vResearchs.begin(); it_res != player->vResearchs.end(); it_res++)
 			{
-				Research *research = *it_res;
+				const ref_ptr<Research>& research = *it_res;
 				PostProcessReqStrings(player, research->requirements);
 			}
-			for (std::vector<UnitType*>::iterator it_unt = player->vUnitTypes.begin(); it_unt != player->vUnitTypes.end(); it_unt++)
+			for (std::vector<ref_ptr<UnitType> >::iterator it_unt = player->vUnitTypes.begin(); it_unt != player->vUnitTypes.end(); it_unt++)
 			{
-				UnitType *unitType = *it_unt;
+				const ref_ptr<UnitType>& unitType = *it_unt;
 				PostProcessReqStrings(player, unitType->requirements);
 				PostProcessBuildResearch(unitType);
 			}
@@ -3600,8 +3580,7 @@ else \
 		pVM->RegisterFunction("Attack", LAttack);
 		pVM->RegisterFunction("CanReach", LCanReach);
 		
-		pVM->RegisterFunction("CommandUnit_TargetUnit", LCommandUnit_TargetUnit);
-		pVM->RegisterFunction("CommandUnit_TargetPos", LCommandUnit_TargetPos);
+		pVM->RegisterFunction("CommandUnit", LCommandUnit);
 		pVM->RegisterFunction("CommandGoto", LCommandGoto);
 		pVM->RegisterFunction("CommandMoveAttack", LCommandMoveAttack);
 		pVM->RegisterFunction("CommandBuild", LCommandBuild);

@@ -5,6 +5,7 @@
 #include "unit.h"
 #include "game.h"
 #include "camera.h"
+#include "action.h"
 #include <fstream>
 #include <cmath>
 #include <iostream>
@@ -442,7 +443,7 @@ namespace Game
 
 		SDL_mutex* prepareActionMutex = SDL_CreateMutex();
 
-		void PrepareAction(Dimension::Unit* unit, Dimension::Unit* target, int x, int y, AI::UnitAction action, void* arg, float rotation)
+		void PrepareAction(Dimension::Unit* unit, Dimension::Unit* target, int x, int y, AI::UnitAction action, const Dimension::ActionArguments& args, float rotation)
 		{
 			NetActionData* actiondata = new NetActionData;
 			actiondata->unit_id = unit->id;
@@ -454,7 +455,7 @@ namespace Game
 				actiondata->goalunit_id = target->id;
 			else
 				actiondata->goalunit_id = 0xFFFF;
-			actiondata->arg = arg;
+			actiondata->arg = args.argHandle;
 			actiondata->valid_at_frame = AI::currentFrame + netDelay;
 			SDL_LockMutex(prepareActionMutex);
 			if (networkType == SERVER)
@@ -489,7 +490,7 @@ namespace Game
 
 		SDL_mutex* prepareCreationMutex = SDL_CreateMutex();
 
-		void PrepareCreation(Dimension::UnitType* unittype, int x, int y, float rot)
+		void PrepareCreation(const ref_ptr<Dimension::UnitType>& unittype, int x, int y, float rot)
 		{
 			NetCreate* create = new NetCreate;
 			create->unittype_id = unittype->index;
@@ -2564,37 +2565,19 @@ namespace Game
 		{
 			BUFFER *data = new BUFFER[ACTION_CHUNK_SIZE];
 			Chunk *chunk = new Chunk;
-			int arg_id = -1;
 			chunk->id[0] = 'A'; // bleh
 			chunk->id[1] = 'C';
 			chunk->id[2] = 'T';
 			chunk->id[3] = 'N';
 			chunk->length = ACTION_CHUNK_SIZE;
 			chunk->data = data;
-			if (actiondata->arg)
-			{
-				if (actiondata->action == Game::AI::ACTION_RESEARCH)
-				{
-					arg_id = ((Dimension::Research*) actiondata->arg)->index;
-				}
-				else
-				{
-					arg_id = ((Dimension::UnitType*) actiondata->arg)->index;
-				}
-			}
-			if (actiondata->arg && arg_id == -1)
-			{
-				delete[] data;
-				delete chunk;
-				return NULL;
-			}
 
 			APPEND32BIT(data, actiondata->valid_at_frame)
 			APPEND16BIT(data, actiondata->unit_id)
 			APPEND16BIT(data, actiondata->x)
 			APPEND16BIT(data, actiondata->y)
 			APPEND16BIT(data, actiondata->goalunit_id)
-			APPEND16BIT(data, arg_id)
+			APPEND16BIT(data, actiondata->arg)
 			APPEND8BIT(data, actiondata->action)
 			APPEND8BIT(data, actiondata->rot)
 
@@ -2605,7 +2588,6 @@ namespace Game
 		{
 			Uint8* data = chunk->data;
 			NetActionData* actiondata = new NetActionData;
-			unsigned arg_id;
 
 			if (chunk->length != ACTION_CHUNK_SIZE)
 			{
@@ -2618,7 +2600,7 @@ namespace Game
 			actiondata->x = READ16BIT(data);
 			actiondata->y = READ16BIT(data);
 			actiondata->goalunit_id = READ16BIT(data);
-			arg_id = READ16BIT(data);
+			actiondata->arg = READ16BIT(data);
 			actiondata->action = (AI::UnitAction) READ8BIT(data);
 			actiondata->rot = READ8BIT(data);
 
@@ -2628,28 +2610,6 @@ namespace Game
 			{
 				delete actiondata;
 				return ERROR_GENERAL;
-			}
-
-			if (arg_id != 0xFFFF && arg_id >= unit->owner->vUnitTypes.size())
-			{
-				delete actiondata;
-				return ERROR_GENERAL;
-			}
-			
-			if (arg_id != 0xFFFF)
-			{
-				if (actiondata->action == Game::AI::ACTION_RESEARCH)
-				{
-					actiondata->arg = unit->owner->vResearchs.at(arg_id);
-				}
-				else
-				{
-					actiondata->arg = unit->owner->vUnitTypes.at(arg_id);
-				}
-			}
-			else
-			{
-				actiondata->arg = NULL;
 			}
 
 			waitingActions.push_back(actiondata);

@@ -10,9 +10,9 @@
 #include "vector3d.h"
 #include "unit-pre.h"
 #include "aibase-pre.h"
-#include "dimension.h"
-#include "audio.h"
+#include "audio-pre.h"
 #include "ogrexmlmodel.h"
+#include "requirements.h"
 
 #include <vector>
 #include <cmath>
@@ -37,7 +37,14 @@ namespace Game
 				
 			}
 
-			~RangeScanlines();
+			~RangeScanlines()
+			{
+				if (scanlines != NULL)
+				{
+					delete[] scanlines;
+				}
+			}
+		
 		};
 
 		struct RangeArray
@@ -51,7 +58,18 @@ namespace Game
 				
 			}
 
-			~RangeArray();
+			~RangeArray()
+			{
+				if (array != NULL)
+				{
+					for (int i = 0; i < size; i++)
+					{
+						delete[] array[i];
+					}
+					delete[] array;
+				}
+			}
+			
 		};
 		
 		struct ProjectileType
@@ -83,20 +101,20 @@ namespace Game
 			int         minAttack;     // in hitpoints
 			int         maxAttack;
 			bool        canAttack;
-			int         containingCapacity;
-			UnitType**  enterableUnitTypes;
+/*			int         containingCapacity;
+			UnitType**  enterableUnitTypes;  // Not implemented
 			bool        canEnterEnemyUnits;
-			bool**      secondaryActionMatrix;
+			bool**      secondaryActionMatrix;*/
 			float       attackAccuracy;  // accuracy of attack (0 - 100)
 			float       attackMinRange;  // the minimum range of the unit's attack
 			float       attackMaxRange;  // the maximum range of the unit's attack
 			float       sightRange;      // how far the unit can see
 			float       lightRange;      // how far the unit spreads light
-			RangeArray* attackRangeArray;
-			RangeArray* sightRangeArray;
-			RangeScanlines* sightRangeScanlines;
-			RangeArray* lightRangeArray;
-			RangeScanlines* lightRangeScanlines;
+			ref_ptr<RangeArray> attackRangeArray;
+			ref_ptr<RangeArray> sightRangeArray;
+			ref_ptr<RangeScanlines> sightRangeScanlines;
+			ref_ptr<RangeArray> lightRangeArray;
+			ref_ptr<RangeScanlines> lightRangeScanlines;
 			bool        isMobile;        // whether the unit is moveable
 			PowerType   powerType;       // defines how long the unit generates light.
 			double      powerIncrement;  // the power generation quantity per second per unit.
@@ -107,8 +125,8 @@ namespace Game
 			double      movePowerUsage;  // the power moving uses per second
 			float       movementSpeed;   // in squares per second
 			float       attackSpeed;     // in times per second
-			std::vector<UnitType*> canBuild;  // vector of what the unit can build, if anything at all
-			std::vector<Research*> canResearch;// vector of what the unit can research, if anything at all
+			std::vector<ref_ptr<UnitType> > canBuild;  // vector of what the unit can build, if anything at all
+			std::vector<ref_ptr<Research> > canResearch;// vector of what the unit can research, if anything at all
 			std::vector<std::string> canBuildIDs; // IDs of builds as string; this is used before loading is finished
 			std::vector<std::string> canResearchIDs; // IDs of researches as string; this is used before loading is finished
 			bool        hasAI;           // whether the unit has an AI
@@ -142,15 +160,9 @@ namespace Game
 				
 			}
 
-			~UnitType();
-		
 			void GenerateRanges();
 
 		};
-
-		UnitType* GetUnitTypeByID(unsigned i);
-	
-		extern std::vector<UnitType*> allUnitTypes;
 
 	}
 }

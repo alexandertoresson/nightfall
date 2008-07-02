@@ -9,6 +9,7 @@
 
 #include "aibase-pre.h"
 #include "dimension-pre.h"
+#include "action-pre.h"
 
 #include <vector>
 
@@ -19,13 +20,13 @@ namespace Game
 		void PerformAI(Dimension::Unit* unit);     // Execute AI stuff for a unit
 		void PerformAI(Dimension::Player* player); // Execute player AI (things that have nothing to do with the units, that is)
 		void PerformAIFrame(); // Perform a full AI frame, if possible
-		void CommandUnit(Dimension::Unit* unit, int x, int y, UnitAction action, void* argument, bool queue, bool insert);
+		void CommandUnit(Dimension::Unit* unit, int x, int y, UnitAction action, const Dimension::ActionArguments& args, bool queue, bool insert);
 		// command/instruct a unit to do something at (x, y)
-		void CommandUnit(Dimension::Unit* unit, Dimension::Unit* destination, UnitAction action, void* argument, bool queue, bool insert); 
+		void CommandUnit(Dimension::Unit* unit, Dimension::Unit* destination, UnitAction action, const Dimension::ActionArguments& args, bool queue, bool insert); 
 		// command/instruct the unit to do something with another unit
-		void CommandUnits(const std::vector<Dimension::Unit*>& units, int x, int y, UnitAction action, void* argument, bool queue, bool insert);
+		void CommandUnits(const std::vector<Dimension::Unit*>& units, int x, int y, UnitAction action, const Dimension::ActionArguments& args, bool queue, bool insert);
 		// command/instruct several units to do something at (x, y)
-		void CommandUnits(const std::vector<Dimension::Unit*>& units, Dimension::Unit* destination, UnitAction action, void* argument, bool queue, bool insert); 
+		void CommandUnits(const std::vector<Dimension::Unit*>& units, Dimension::Unit* destination, UnitAction action, const Dimension::ActionArguments& args, bool queue, bool insert); 
 		// command/instruct several units to do something with another unit
 		// note: argument is an optional argument that is needed for for example the ACTION_BUILD action to say what should be built...
 		
@@ -34,7 +35,7 @@ namespace Game
 		void CompleteAction(Dimension::Unit* pUnit);
 		void CancelAllActions(Dimension::Unit* pUnit);
 		void IssueNextAction(Dimension::Unit* pUnit);
-		void ApplyAction(Dimension::Unit* pUnit, UnitAction action, int goal_x, int goal_y, Dimension::Unit* target, void* arg, float rotation);
+		void ApplyAction(Dimension::Unit* pUnit, UnitAction action, int goal_x, int goal_y, Dimension::Unit* target, const Dimension::ActionArguments& args, float rotation);
 		
 		void SendUnitEventToLua_IsAttacked(Dimension::Unit* pUnit, Dimension::Unit* attacker);
 		void SendUnitEventToLua_UnitCreation(Dimension::Unit* pUnit);

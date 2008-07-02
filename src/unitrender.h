@@ -49,7 +49,7 @@ namespace Game
 				std::set<Projectile*> projScheduledForAddition;
 				std::vector<Projectile*> projScheduledForDeletion;
 
-				UnitType* buildOutlineType;
+				ref_ptr<UnitType> buildOutlineType;
 				IntPosition buildOutlinePosition;
 			protected:
 				virtual void PreRender();
@@ -63,7 +63,7 @@ namespace Game
 				void ScheduleProjectileAddition(Projectile* proj);
 				void ScheduleProjectileDeletion(Projectile* proj);
 
-				void ScheduleBuildOutlineAddition(UnitType* type, int x, int y);
+				void ScheduleBuildOutlineAddition(const ref_ptr<UnitType>& type, int x, int y);
 				void ScheduleBuildOutlineDeletion();
 
 				const ref_ptr<UnitNode>& GetUnitNode(Unit* unit);
@@ -124,7 +124,7 @@ namespace Game
 		{
 			protected:
 				virtual void Render();
-				UnitType* type;
+				ref_ptr<UnitType> type;
 				IntPosition pos;
 
 				BuildOutlineNode() : type(NULL)
@@ -132,7 +132,7 @@ namespace Game
 					
 				}
 			public:
-				void Set(UnitType* type, IntPosition pos);
+				void Set(const ref_ptr<UnitType>& type, IntPosition pos);
 				static BuildOutlineNode instance;
 		};
 

@@ -10,7 +10,6 @@ namespace Game
 	namespace AI
 	{
 		struct MovementData;
-		struct UnitGoal;
 	}
 }
 

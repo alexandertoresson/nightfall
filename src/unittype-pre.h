@@ -5,6 +5,8 @@
 #warning "unittype.h-pre"
 #endif
 
+#include "sdlheader.h"
+
 namespace Game
 {
 	namespace Dimension
@@ -13,7 +15,7 @@ namespace Game
 		struct RangeScanlines;
 		struct RangeArray;
 
-		RangeArray *GenerateRangeArray(float maxrange, float minrange);
+		ref_ptr<RangeArray> GenerateRangeArray(float maxrange, float minrange);
 
 		struct UnitType;
 
@@ -23,6 +25,8 @@ namespace Game
 		struct TransformAnim;
 		struct TransformData;
 		struct Animation;
+		
+		ref_ptr<UnitType> GetUnitTypeByID(unsigned i);
 	}
 }
 

@@ -33,7 +33,7 @@ function PerformAI_Unit_AI(Unit, action)
 			targetUnit = GetNearestUnitInRange(Unit, RangeType.Sight, PlayerState.Neutral)
 			LastCommands[Unit] = os.time()
 			if IsNonNull(targetUnit) then
-				CommandUnit_TargetUnit(Unit, targetUnit, UnitAction.Attack, Null())
+				CommandUnit(Unit, targetUnit, 0, 0, UnitAction.Attack, Null())
 			end
 		end
 
@@ -42,7 +42,7 @@ function PerformAI_Unit_AI(Unit, action)
 	if action == UnitAction.None and (LastCommands[Unit] == nil or os.difftime(os.time(), LastCommands[Unit]) > 0.25) then
 		if math.random() > 0.3 then
 			x, y = GetUnitPosition(Unit)
-			CommandUnit_TargetPos(Unit, x + math.random(-1, 1) * 10, y + math.random(-1, 1) * 10, UnitAction.Move, Null())
+			CommandUnit(Unit, Null(), x + math.random(-1, 1) * 10, y + math.random(-1, 1) * 10, UnitAction.Move, Null())
 		end
 		LastCommands[Unit] = os.time();
 	end
@@ -100,10 +100,7 @@ end
 function UnitEvent_IsAttacked_AI(Unit, attacker)
 end
 
-function CommandUnit_TargetPos_AI(Unit, x, y, action, argument, rotation)
+function CommandUnit_AI(Unit, target, x, y, action, argument, rotation)
 	-- ignore received commands
 end
 
-function CommandUnit_TargetUnit_AI(Unit, target, action, argument, rotation)
-	-- ignore received commands
-end

@@ -458,11 +458,7 @@ function PerformAI_Player_AI()
 	Cached_IncomeAtNight = nil
 end
 
-function CommandUnit_TargetPos_AI(Unit, x, y, action, argument, rotation)
-	-- ignore received commands
-end
-
-function CommandUnit_TargetUnit_AI(Unit, target, action, argument, rotation)
+function CommandUnit_AI(Unit, target, x, y, action, argument, rotation)
 	-- ignore received commands
 end
 

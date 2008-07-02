@@ -136,20 +136,16 @@ namespace Game
 					
 				xmlfile.EndTag();
 
-				if (actionData->arg)
+				if (actionData->args.research)
 				{
 					xmlfile.BeginTag("arg");
-						if (actionData->action == Game::AI::ACTION_RESEARCH)
-						{
-							OutputString(xmlfile, "research", ((Research*) actionData->arg)->name);
-						}
-						else
-						{
-							if (UnitLuaInterface::IsValidUnitTypePointer((UnitType*) actionData->arg))
-							{
-								OutputString(xmlfile, "unittype", ((UnitType*) actionData->arg)->id);
-							}
-						}
+						OutputString(xmlfile, "research", actionData->args.research->name);
+					xmlfile.EndTag();
+				}
+				else if (actionData->args.unitType)
+				{
+					xmlfile.BeginTag("arg");
+						OutputString(xmlfile, "unittype", actionData->args.unitType->id);
 					xmlfile.EndTag();
 				}
 				
@@ -536,7 +532,7 @@ namespace Game
 			bool isDisplayed, isCompleted;
 			int id;
 			Player *owner;
-			UnitType *type;
+			ref_ptr<Dimension::UnitType> type;
 
 			unit = NULL;
 
@@ -623,7 +619,7 @@ namespace Game
 
 		bool is_back;
 		Dimension::UnitGoal goal;
-		void *arg;
+		ActionArguments args;
 
 		void ParseUnitGoal(Utilities::XMLElement *elem)
 		{
@@ -637,13 +633,13 @@ namespace Game
 		void ParseUnitArgUnitType(Utilities::XMLElement *elem)
 		{
 			elem->Iterate("unittype", ParseStringBlock);
-			arg = UnitLuaInterface::GetUnitTypeByID(unit->owner, str);
+			args = UnitLuaInterface::GetUnitTypeByID(unit->owner, str);
 		}
 
 		void ParseUnitArgResearch(Utilities::XMLElement *elem)
 		{
 			elem->Iterate("research", ParseStringBlock);
-			arg = UnitLuaInterface::GetResearchByID(unit->owner, str);
+			args = UnitLuaInterface::GetResearchByID(unit->owner, str);
 		}
 
 		std::vector<IntPosition> nodes;
@@ -754,7 +750,7 @@ namespace Game
 
 			if (action == AI::ACTION_BUILD)
 			{
-				if (!goal.unit && !arg)
+				if (!goal.unit && !args.unitType)
 				{
 					std::cout << "ParseActionData() detected an action that needed a unit goal or an argument, but had neither" << std::endl;
 					return;
@@ -763,7 +759,7 @@ namespace Game
 			
 			if (action == AI::ACTION_RESEARCH)
 			{
-				if (!arg)
+				if (!args.research)
 				{
 					std::cout << "ParseActionData() detected an action that needed a an argument, but had none" << std::endl;
 					return;
@@ -778,12 +774,12 @@ namespace Game
 					{
 						if (!unit->owner->isRemote)
 						{
-							AI::CommandPathfinding(unit, startPos.x, startPos.y, goal.pos.x, goal.pos.y, action, goal.unit, arg);
+							AI::CommandPathfinding(unit, startPos.x, startPos.y, goal.pos.x, goal.pos.y, action, goal.unit, args);
 						}
 					}
 					else
 					{
-						AI::ApplyAction(unit, action, goal.pos.x, goal.pos.y, goal.unit, arg, rotation);
+						AI::ApplyAction(unit, action, goal.pos.x, goal.pos.y, goal.unit, args, rotation);
 					}
 				}
 				else
