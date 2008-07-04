@@ -18,8 +18,8 @@ namespace Game
 		struct ObjectRequirements;
 		struct Research;
 		
-		extern Player*       currentPlayerView;
-		extern Player*       currentPlayer;
+		extern ref_ptr<Player> currentPlayerView;
+		extern ref_ptr<Player> currentPlayer;
 		
 		class InputController;
 		

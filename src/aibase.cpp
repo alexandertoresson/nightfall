@@ -94,12 +94,11 @@ namespace Game
 
 		void SendCommandUnitToLua(const ScheduledCommand& command)
 		{
-			unsigned playerIndex = command.unit->owner->index;
-			Utilities::Scripting::LuaVMState& pVM = Game::Dimension::pWorld->vPlayers[playerIndex]->aiState;
-			if (Dimension::pWorld->vPlayers[playerIndex]->isRemote)
+			Utilities::Scripting::LuaVMState& pVM = command.unit->owner->aiState;
+			if (command.unit->owner->isRemote)
 				return;
 
-			pVM.SetFunction(Dimension::pWorld->vPlayers[playerIndex]->playerAIFuncs.commandUnit.func);
+			pVM.SetFunction(command.unit->owner->playerAIFuncs.commandUnit.func);
 
 			lua_pushlightuserdata(pVM.GetState(), (void*) command.unit->id);
 			lua_pushlightuserdata(pVM.GetState(), (void*) (command.goal.unit ? command.goal.unit->id : -1));
@@ -159,8 +158,7 @@ namespace Game
 			for (vector<UnitEvent >::iterator it = scheduledUnitEvents.begin(); it != scheduledUnitEvents.end(); it++)
 			{
 				const UnitEvent& event = *it;
-				unsigned playerIndex = event.unit->owner->index;
-				Utilities::Scripting::LuaVMState& pVM = Game::Dimension::pWorld->vPlayers[playerIndex]->aiState;
+				Utilities::Scripting::LuaVMState& pVM = event.unit->owner->aiState;
 				pVM.SetFunction(event.func);
 				switch (event.eventType)
 				{
@@ -497,18 +495,18 @@ namespace Game
 			
 		}
 
-		void PerformLuaPlayerAI(Dimension::Player* player)
+		void PerformLuaPlayerAI(const ref_ptr<Dimension::Player>& player)
 		{
 			player->aiFrame++;
 			if (player->aiFrame >= player->playerAIFuncs.performPlayerAI.delay && !player->isRemote)
 			{
-				Utilities::Scripting::LuaVMState& pVM = Game::Dimension::pWorld->vPlayers[player->index]->aiState;
+				Utilities::Scripting::LuaVMState& pVM = player->aiState;
 
 				if (player->playerAIFuncs.performPlayerAI.enabled)
 				{
 					pVM.SetFunction(player->playerAIFuncs.performPlayerAI.func);
 
-					lua_pushlightuserdata(pVM.GetState(), player);
+					lua_pushlightuserdata(pVM.GetState(), (void*) player->GetHandle());
 					pVM.CallFunction(1);
 				}
 				player->aiFrame = 0;
@@ -531,7 +529,7 @@ namespace Game
 		volatile bool simpleAIThreadRunning = false;
 		volatile bool *luaAIThreadsRunning;
 
-		vector<Dimension::Player*> *playersHandledPerLuaThread;
+		vector<ref_ptr<Dimension::Player> > *playersHandledPerLuaThread;
 		int* numUnitsPerLuaThread;
 		volatile int aiThreadsDone;
 		volatile bool aiIsFired;
@@ -592,9 +590,9 @@ namespace Game
 					SDL_CondWait(fireAIConds[i+1], luaAIWaitMutexes[i]);
 				} while (!aiIsFired);
 				
-				for (vector<Dimension::Player*>::iterator it = playersHandledPerLuaThread[i].begin(); it != playersHandledPerLuaThread[i].end(); it++)
+				for (vector<ref_ptr<Dimension::Player> >::iterator it = playersHandledPerLuaThread[i].begin(); it != playersHandledPerLuaThread[i].end(); it++)
 				{
-					Dimension::Player* player = *it;
+					const ref_ptr<Dimension::Player>& player = *it;
 					PerformLuaPlayerAI(player);
 
 					for (vector<Dimension::Unit*>::iterator it2 = player->vUnitsWithLuaAI.begin(); it2 != player->vUnitsWithLuaAI.end(); it2++)
@@ -624,7 +622,7 @@ namespace Game
 				luaAIdoneConds = new SDL_cond*[numLuaAIThreads];
 				luaAIWaitMutexes = new SDL_mutex*[numLuaAIThreads];
 				luaAIThreadsRunning = new bool[numLuaAIThreads];
-				playersHandledPerLuaThread = new vector<Dimension::Player*>[numLuaAIThreads];
+				playersHandledPerLuaThread = new vector<ref_ptr<Dimension::Player> >[numLuaAIThreads];
 				numUnitsPerLuaThread = new int[numLuaAIThreads];
 				for (int i = 0; i < numLuaAIThreads; i++)
 				{
@@ -729,9 +727,9 @@ namespace Game
 
 				ApplyAllNewPaths();
 
-				for (vector<Dimension::Player*>::iterator it = Dimension::pWorld->vPlayers.begin(); it != Dimension::pWorld->vPlayers.end(); it++)
+				for (vector<ref_ptr<Dimension::Player> >::iterator it = Dimension::pWorld->vPlayers.begin(); it != Dimension::pWorld->vPlayers.end(); it++)
 				{
-					Dimension::Player* player = *it;
+					const ref_ptr<Dimension::Player>& player = *it;
 					player->oldResources = player->resources;
 				}
 
@@ -804,9 +802,9 @@ namespace Game
 					///////////////////////////////////////////////////////////////////////////
 					// No threads? Do lua ai and simple ai the non-threaded way.
 					
-					for (vector<Dimension::Player*>::iterator it = Dimension::pWorld->vPlayers.begin(); it != Dimension::pWorld->vPlayers.end(); it++)
+					for (vector<ref_ptr<Dimension::Player> >::iterator it = Dimension::pWorld->vPlayers.begin(); it != Dimension::pWorld->vPlayers.end(); it++)
 					{
-						Dimension::Player* player = *it;
+						const ref_ptr<Dimension::Player>& player = *it;
 						PerformLuaPlayerAI(player);
 						for (vector<Dimension::Unit*>::iterator it2 = player->vUnitsWithLuaAI.begin(); it2 != player->vUnitsWithLuaAI.end(); it2++)
 						{

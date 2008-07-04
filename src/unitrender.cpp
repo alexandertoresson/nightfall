@@ -47,7 +47,7 @@ namespace Game
 		// Check whether a click at (clickx, clicky) hit unit
 		bool DoesHitUnit(Unit* unit, int clickx, int clicky, float& distance)
 		{
-			const ref_ptr<UnitType>& type = unit->type;
+			const enc_ptr<UnitType>& type = unit->type;
 			const ref_ptr<Utilities::OgreMesh>& mesh = type->mesh;
 			Utilities::Vector3D near_plane, far_plane;
 
@@ -222,7 +222,7 @@ namespace Game
 			SDL_UnlockMutex(listsMutex);
 		}
 
-		void UnitMainNode::ScheduleBuildOutlineAddition(const ref_ptr<UnitType>& type, int x, int y)
+		void UnitMainNode::ScheduleBuildOutlineAddition(const enc_ptr<UnitType>& type, int x, int y)
 		{
 			SDL_LockMutex(listsMutex);
 			buildOutlineType = type;
@@ -234,7 +234,7 @@ namespace Game
 		void UnitMainNode::ScheduleBuildOutlineDeletion()
 		{
 			SDL_LockMutex(listsMutex);
-			buildOutlineType = NULL;
+			buildOutlineType.reset();
 			SDL_UnlockMutex(listsMutex);
 		}
 
@@ -333,7 +333,7 @@ namespace Game
 
 		void UnitNode::ApplyMatrix()
 		{
-			const ref_ptr<UnitType> type = unit->type;
+			const enc_ptr<UnitType> type = unit->type;
 			float unit_x, unit_y, unit_z, radians_to_rotate;
 			Utilities::Vector3D up_vector, normal, rotate_axis;
 
@@ -781,7 +781,7 @@ namespace Game
 			}
 		}
 		
-		void BuildOutlineNode::Set(const ref_ptr<UnitType>& type, IntPosition pos)
+		void BuildOutlineNode::Set(const enc_ptr<UnitType>& type, IntPosition pos)
 		{
 			this->type = type;
 			this->pos = pos;

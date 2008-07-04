@@ -18,10 +18,7 @@ namespace Utilities
 {
 	namespace Scripting
 	{
-		map<lua_State*, Game::Dimension::Player*> luaStateToPlayer;
-		map<lua_State*, LuaVMState*> luaStateToObject;
-		
-		LuaVMState globalVMState(NULL);
+		ref_ptr<LuaVMState> globalVMState;
 
 		void SetEnum(lua_State *L, const char* field, int value)
 		{
@@ -102,7 +99,7 @@ namespace Utilities
 			lua_setglobal(L, "Console");
 		}
 
-		LuaVMState::LuaVMState(Game::Dimension::Player* player)
+		LuaVMState::LuaVMState(const ref_ptr<Game::Dimension::Player>& player)
 		{
 #ifdef LUA_DEBUG
 			std::cout << "[Lua VM] Constructing" << std::endl;
@@ -110,9 +107,12 @@ namespace Utilities
 			m_pState = lua_open();
 
 			if (player)
-				luaStateToPlayer[m_pState] = player;
+			{
+				Game::Dimension::pWorld->luaStateToPlayer[m_pState] = player;
+				Game::Dimension::pWorld->luaStateToObject[m_pState] = this;
+			}
 
-			luaStateToObject[m_pState] = this;
+			global = !player;
 			
 			if (m_pState == NULL)
 			{
@@ -131,8 +131,11 @@ namespace Utilities
 		{
 			if (m_pState)
 			{
-				luaStateToPlayer.erase(m_pState);
-				luaStateToObject.erase(m_pState);
+				if (!global)
+				{
+					Game::Dimension::pWorld->luaStateToPlayer.erase(m_pState);
+					Game::Dimension::pWorld->luaStateToObject.erase(m_pState);
+				}
 				lua_close(m_pState);
 			}
 			SDL_DestroyMutex(CallErrMutex);
@@ -236,12 +239,17 @@ namespace Utilities
 			return m_pState;
 		}
 		
+		void InitGlobalState()
+		{
+			globalVMState = new LuaVMState(NULL);
+		}
+
 		void StartPlayerStates(void)
 		{
 			int i = 1;
-			for (vector<Game::Dimension::Player*>::iterator it = Game::Dimension::pWorld->vPlayers.begin(); it != Game::Dimension::pWorld->vPlayers.end(); it++)
+			for (vector<ref_ptr<Game::Dimension::Player> >::iterator it = Game::Dimension::pWorld->vPlayers.begin(); it != Game::Dimension::pWorld->vPlayers.end(); it++)
 			{
-				Game::Dimension::Player* player = *it;
+				const ref_ptr<Game::Dimension::Player>& player = *it;
 				if (!player->isRemote)
 				{
 					std::cout << "Initializing LUA states for player " << i++ << std::endl;
@@ -256,15 +264,15 @@ namespace Utilities
 		{
 			for (unsigned i = 0; i < Game::Dimension::pWorld->vPlayers.size(); i++)
 			{
-				Game::Dimension::Player* player = Game::Dimension::pWorld->vPlayers[i];
+				const ref_ptr<Game::Dimension::Player>& player = Game::Dimension::pWorld->vPlayers[i];
 				if (!player->isRemote)
 				{
 					player->aiState.SetFunction("InitRace");
-					lua_pushlightuserdata(player->aiState.GetState(), player);
+					lua_pushlightuserdata(player->aiState.GetState(), (void*) player->GetHandle());
 					player->aiState.CallFunction(1);
 
 					player->aiState.SetFunction("InitAI");
-					lua_pushlightuserdata(player->aiState.GetState(), player);
+					lua_pushlightuserdata(player->aiState.GetState(), (void*) player->GetHandle());
 					player->aiState.CallFunction(1);
 
 					RecheckAllRequirements(player);
@@ -274,19 +282,19 @@ namespace Utilities
 			UnitLuaInterface::PostProcessStrings();
 		}
 
-		Game::Dimension::Player *GetPlayerByVMstate(lua_State *vmState)
+		const enc_ptr<Game::Dimension::Player>& GetPlayerByVMstate(lua_State *vmState)
 		{
-			return luaStateToPlayer[vmState];
+			return Game::Dimension::pWorld->luaStateToPlayer[vmState];
 		}
 
 		LuaVMState *GetObjectByVMstate(lua_State *vmState)
 		{
-			return luaStateToObject[vmState];
+			return Game::Dimension::pWorld->luaStateToObject[vmState];
 		}
 
 		bool IsGlobalLuaState(lua_State *vmState)
 		{
-			return vmState == globalVMState.GetState();
+			return vmState == globalVMState->GetState();
 		}
 
 	}

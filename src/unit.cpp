@@ -119,14 +119,14 @@ namespace Game
 			return NULL;
 		}
 
-		double GetIncomeAtNoon(Player* player)
+		double GetIncomeAtNoon(const ref_ptr<Player>& player)
 		{
 			double income = 0;
 			for (vector<Unit*>::iterator it = player->vUnits.begin(); it != player->vUnits.end(); it++)
 			{
 				if ((*it)->isDisplayed)
 				{
-					ref_ptr<UnitType> unittype = (*it)->type;
+					enc_ptr<UnitType> unittype = (*it)->type;
 					income += unittype->powerIncrement;
 					income -= unittype->powerUsage + unittype->lightPowerUsage + (unittype->attackPowerUsage + unittype->movePowerUsage + unittype->buildPowerUsage) * 0.5;
 				}
@@ -134,14 +134,14 @@ namespace Game
 			return income;
 		}
 
-		double GetIncomeAtNight(Player* player)
+		double GetIncomeAtNight(const ref_ptr<Player>& player)
 		{
 			double income = 0;
 			for (vector<Unit*>::iterator it = player->vUnits.begin(); it != player->vUnits.end(); it++)
 			{
 				if ((*it)->isDisplayed)
 				{
-					ref_ptr<UnitType> unittype = (*it)->type;
+					enc_ptr<UnitType> unittype = (*it)->type;
 					if (unittype->powerType == POWERTYPE_TWENTYFOURSEVEN)
 					{
 						income += unittype->powerIncrement;
@@ -164,17 +164,17 @@ namespace Game
 			return 12 * pDimension->GetHourLength();
 		}
 
-		double GetPower(Player* player)
+		double GetPower(const ref_ptr<Player>& player)
 		{
 			return player->resources.power;
 		}
 
-		double GetMoney(Player* player)
+		double GetMoney(const ref_ptr<Player>& player)
 		{
 			return player->resources.money;
 		}
 
-		void SellPower(Player* player, double amount)
+		void SellPower(const enc_ptr<Player>& player, double amount)
 		{
 			if (amount > player->resources.power)
 				amount = player->resources.power;
@@ -184,7 +184,7 @@ namespace Game
 			player->oldResources.power -= amount;
 		}
 
-		double GetPowerAtDawn(Player* player)
+		double GetPowerAtDawn(const ref_ptr<Player>& player)
 		{
 			Dimension::Environment::FourthDimension* pDimension = Dimension::Environment::FourthDimension::Instance();
 			double curPower = player->resources.power;
@@ -208,7 +208,7 @@ namespace Game
 			return curPower;
 		}
 
-		double GetPowerAtDusk(Player* player)
+		double GetPowerAtDusk(const ref_ptr<Player>& player)
 		{
 			Dimension::Environment::FourthDimension* pDimension = Dimension::Environment::FourthDimension::Instance();
 			double curPower = player->resources.power;
@@ -247,7 +247,7 @@ namespace Game
 		{
 			double build_cost;
 			double power_usage = unit->type->buildPowerUsage / AI::aiFps;
-			ref_ptr<UnitType> build_type = unit->pMovementData->action.args.unitType;
+			enc_ptr<UnitType> build_type = unit->pMovementData->action.args.unitType;
 
 			if (unit->owner->resources.power < power_usage)
 			{
@@ -488,8 +488,8 @@ namespace Game
 					// Get the "apply" function from the user-supplied table
  					lua_getglobal(pVM, research->luaEffectObj.c_str());
  					lua_getfield(pVM, -1, "apply");
- 					lua_pushlightuserdata(pVM, unit->owner);
- 					lua_pushlightuserdata(pVM, (void*) unit->type->globalIndex);
+ 					lua_pushlightuserdata(pVM, (void*) unit->owner->GetHandle());
+ 					lua_pushlightuserdata(pVM, (void*) unit->type->GetHandle());
  					lua_pushlightuserdata(pVM, (void*) unit->id);
  					unit->owner->aiState.CallFunction(3);
  				}
@@ -1664,7 +1664,7 @@ namespace Game
 			return unit;
 		}
 		
-		Unit* CreateUnitNoDisplay(unsigned type, Player* owner, int id, bool complete)
+		Unit* CreateUnitNoDisplay(unsigned type, const ref_ptr<Player>& owner, int id, bool complete)
 		{
 			if (type < owner->vUnitTypes.size())
 			{
@@ -1758,7 +1758,7 @@ namespace Game
 			return unit;
 		}
 		
-		Unit* CreateUnit(unsigned type, Player* owner, int x, int y, int id, bool complete)
+		Unit* CreateUnit(unsigned type, const ref_ptr<Player>& owner, int x, int y, int id, bool complete)
 		{
 			if (type < owner->vUnitTypes.size())
 			{
@@ -2028,9 +2028,9 @@ namespace Game
 		}
 
 		vector<Unit*> unitsDisplayQueue;
-		Unit* CreateGhostUnit(const ref_ptr<UnitType>& type)
+		Unit* CreateGhostUnit(const enc_ptr<UnitType>& type)
 		{
-			Player* owner = Game::Dimension::currentPlayer;
+			const enc_ptr<Player>& owner = Game::Dimension::currentPlayer;
 
 			if (!owner)
 				return NULL;

@@ -69,8 +69,8 @@ namespace Game
 		{
 			float               health;
 			float               power;
-			ref_ptr<UnitType>   type;
-			Player*             owner;
+			enc_ptr<UnitType>   type;
+			enc_ptr<Player>     owner;
 			Position            pos;
 			IntPosition*        lastSeenPositions;
 			IntPosition         curAssociatedSquare;
@@ -137,9 +137,9 @@ namespace Game
 
 		void PrepareUnitEssentials(Unit* const unit, const ref_ptr<UnitType>& type);
 		Unit* CreateUnitNoDisplay(const ref_ptr<UnitType>& type, int id = -1, bool complete = true);
-		Unit* CreateUnitNoDisplay(unsigned type, Player* owner, int id = -1, bool complete = true);
+		Unit* CreateUnitNoDisplay(unsigned type, const ref_ptr<Player>& owner, int id = -1, bool complete = true);
 		Unit* CreateUnit(const ref_ptr<UnitType>& type, int x, int y, int id = -1, bool complete = true);
-		Unit* CreateUnit(unsigned type, Player *owner, int x, int y, int id = -1, bool complete = true);
+		Unit* CreateUnit(unsigned type, const ref_ptr<Player>& owner, int x, int y, int id = -1, bool complete = true);
 		bool ScheduleDisplayUnit(Unit* unit, int x, int y);
 		void DisplayScheduledUnits();
 		void RemoveUnitFromLists(Unit* unit);
@@ -148,22 +148,22 @@ namespace Game
 		void ScheduleUnitDeletion(Unit* unit);
 		void DeleteScheduledUnits();
 
-		Unit* CreateGhostUnit(const ref_ptr<UnitType>&);
+		Unit* CreateGhostUnit(const enc_ptr<UnitType>&);
 		void DeleteGhostUnit(Unit*&);
 		void AppendToActionDisplayQueueIfOK(Unit*);
 		
 		void NotEnoughPowerForLight(Unit* unit);
 		void EnoughPowerForLight(Unit* unit);
 		
-		double GetIncomeAtNoon(Player* player);
-		double GetIncomeAtNight(Player* player);
+		double GetIncomeAtNoon(const ref_ptr<Player>& player);
+		double GetIncomeAtNight(const ref_ptr<Player>& player);
 		double GetNightLength();
 		double GetDayLength();
-		double GetPower(Player* player);
-		double GetMoney(Player* player);
-		void SellPower(Player* player, double amount);
-		double GetPowerAtDawn(Player* player);
-		double GetPowerAtDusk(Player* player);
+		double GetPower(const ref_ptr<Player>& player);
+		double GetMoney(const ref_ptr<Player>& player);
+		void SellPower(const enc_ptr<Player>& player, double amount);
+		double GetPowerAtDawn(const ref_ptr<Player>& player);
+		double GetPowerAtDusk(const ref_ptr<Player>& player);
 		
 		Projectile* CreateProjectile(ProjectileType* type, Utilities::Vector3D start, Unit* goal);
 		

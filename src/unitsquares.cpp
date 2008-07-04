@@ -46,19 +46,19 @@ namespace Game
 			uy = my - (size>>1);
 		}
 
-		void GetTypeUpperLeftCorner(const ref_ptr<UnitType>& type, int mx, int my, int& lx, int& uy)
+		void GetTypeUpperLeftCorner(const enc_ptr<UnitType>& type, int mx, int my, int& lx, int& uy)
 		{
 			lx = mx - (type->widthOnMap>>1);
 			uy = my - (type->heightOnMap>>1);
 		}
 
-		void GetTypeUpperLeftCorner(const ref_ptr<UnitType>& type, float mx, float my, int& lx, int& uy)
+		void GetTypeUpperLeftCorner(const enc_ptr<UnitType>& type, float mx, float my, int& lx, int& uy)
 		{
 			lx = (int) mx - (type->widthOnMap>>1);
 			uy = (int) my - (type->heightOnMap>>1);
 		}
 
-		void GetTypeUpperLeftCorner(const ref_ptr<UnitType>& type, float mx, float my, float& lx, float& uy)
+		void GetTypeUpperLeftCorner(const enc_ptr<UnitType>& type, float mx, float my, float& lx, float& uy)
 		{
 			lx = floor(mx) - (float) (type->widthOnMap>>1);
 			uy = floor(my) - (float) (type->heightOnMap>>1);
@@ -82,7 +82,7 @@ namespace Game
 			uy = my - (unit->type->heightOnMap>>1);
 		}
 
-		bool WithinRange(const ref_ptr<UnitType>& type, int attacker_x, int attacker_y, int target_x, int target_y, float maxrange, float minrange)
+		bool WithinRange(const enc_ptr<UnitType>& type, int attacker_x, int attacker_y, int target_x, int target_y, float maxrange, float minrange)
 		{
 			int start_x, start_y;
 			int end_x, end_y;
@@ -147,7 +147,7 @@ namespace Game
 			return false;
 		}
 
-		bool WithinRangeArray(const ref_ptr<UnitType>& type, int attacker_x, int attacker_y, int target_x, int target_y, const ref_ptr<RangeArray>& rangeArray)
+		bool WithinRangeArray(const enc_ptr<UnitType>& type, int attacker_x, int attacker_y, int target_x, int target_y, const ref_ptr<RangeArray>& rangeArray)
 		{
 			int start_x, start_y;
 			int end_x, end_y;
@@ -221,7 +221,7 @@ namespace Game
 			return sqrt(float(x * x + y * y));
 		}
 
-		void GetNearestUnoccupiedPosition(const ref_ptr<UnitType>& type, int& x, int& y)
+		void GetNearestUnoccupiedPosition(const enc_ptr<UnitType>& type, int& x, int& y)
 		{
 			int num_steps = 1;
 			if (SquaresAreWalkable(type, x, y, SIW_ALLKNOWING))
@@ -292,7 +292,7 @@ namespace Game
 			}
 		}
 
-		bool IsSuitableForBuilding(const ref_ptr<UnitType> type, const ref_ptr<UnitType>& test_type, int build_x, int build_y)
+		bool IsSuitableForBuilding(const enc_ptr<UnitType> type, const enc_ptr<UnitType>& test_type, int build_x, int build_y)
 		{
 			int m_add_x, m_sub_x;
 			int m_add_y, m_sub_y;
@@ -374,7 +374,7 @@ namespace Game
 			return changes <= 2;
 		}
 		
-		bool IsSuitableForBuilding(const ref_ptr<UnitType>& type, int build_x, int build_y)
+		bool IsSuitableForBuilding(const enc_ptr<UnitType>& type, int build_x, int build_y)
 		{
 			return (IsSuitableForBuilding(type, type->player->unitTypeMap["LargeTank"], build_x, build_y) && 
 			        IsSuitableForBuilding(type, type->player->unitTypeMap["SmallTank"], build_x, build_y) &&
@@ -384,7 +384,7 @@ namespace Game
 
 		int PositionSearch_NumStepsTaken = 0;
 
-		bool GetNearestSuitableAndLightedPosition(const ref_ptr<UnitType>& type, int& x, int& y)
+		bool GetNearestSuitableAndLightedPosition(const enc_ptr<UnitType>& type, int& x, int& y)
 		{
 			int num_steps = 1;
 			if (SquaresAreLightedAround(type, x, y) && IsSuitableForBuilding(type, x, y) && SquaresAreWalkable(type, x, y))
@@ -442,7 +442,7 @@ namespace Game
 			return false;
 		}
 
-		float PercentLightedAtPosition(const ref_ptr<UnitType>& type, int x, int y)
+		float PercentLightedAtPosition(const enc_ptr<UnitType>& type, int x, int y)
 		{
 			Uint16** NumLightsOnSquare = pWorld->NumLightsOnSquare;
 			int covered = 0, total = 0;
@@ -488,7 +488,7 @@ namespace Game
 			return (float) covered / (float) total;
 		}
 
-		bool GetSuitablePositionForLightTower(const ref_ptr<UnitType>& type, int& x, int& y, bool needLighted)
+		bool GetSuitablePositionForLightTower(const enc_ptr<UnitType>& type, int& x, int& y, bool needLighted)
 		{
 			int num_steps = 1;
 			if (!needLighted)
@@ -604,7 +604,7 @@ namespace Game
 			return false;
 		}
 
-		bool DoesNotBlock(Unit* unit, const ref_ptr<UnitType>& build_type, int build_x, int build_y, int x, int y)
+		bool DoesNotBlock(Unit* unit, const enc_ptr<UnitType>& build_type, int build_x, int build_y, int x, int y)
 		{
 			int start_x_u, start_y_u;
 			int start_x_t, start_y_t;
@@ -624,7 +624,7 @@ namespace Game
 			return true;
 		}
 
-		void NearestSquareFromBuildingPlace(Unit* unit, const ref_ptr<UnitType>& build_type, int build_x, int build_y, int &x, int &y)
+		void NearestSquareFromBuildingPlace(Unit* unit, const enc_ptr<UnitType>& build_type, int build_x, int build_y, int &x, int &y)
 		{
 			int num_steps = 1;
 			x = build_x;
@@ -727,9 +727,9 @@ namespace Game
 			if (big_end_x >= bigSquareWidth)
 				big_end_x = bigSquareWidth-1;
 			
-			for (vector<Player*>::iterator it = pWorld->vPlayers.begin(); it != pWorld->vPlayers.end(); it++)
+			for (vector<ref_ptr<Player> >::iterator it = pWorld->vPlayers.begin(); it != pWorld->vPlayers.end(); it++)
 			{
-				Player *owner = *it;
+				const ref_ptr<Player>& owner = *it;
 				if (unit->owner->states[owner->index] & state)
 				{
 					int owner_index = owner->index;
@@ -776,7 +776,7 @@ namespace Game
 			return bestUnit;
 		}
 
-		bool UnitIsRendered(Unit *unit, Player *player)
+		bool UnitIsRendered(Unit *unit, const enc_ptr<Player>& player)
 		{
 			int start_x, start_y;
 			Uint16** NumUnitsSeeingSquare = player->NumUnitsSeeingSquare;
@@ -823,7 +823,7 @@ namespace Game
 			return temp / (float) num;
 		}
 
-		bool UnitIsVisible(Unit *unit, Player *player)
+		bool UnitIsVisible(Unit *unit, const enc_ptr<Player>& player)
 		{
 			int start_x, start_y;
 			int end_x, end_y;
@@ -849,12 +849,12 @@ namespace Game
 			return false;
 		}
 
-		inline bool SquareIsVisible_UnGuarded(Player *player, int x, int y)
+		inline bool SquareIsVisible_UnGuarded(const enc_ptr<Player>& player, int x, int y)
 		{
 			return player->NumUnitsSeeingSquare[y][x];
 		}
 
-		bool SquareIsVisible(Player *player, int x, int y)
+		bool SquareIsVisible(const enc_ptr<Player>& player, int x, int y)
 		{
 			if (x >= 0 && y >= 0 && x < pWorld->width && y < pWorld->height)
 			{
@@ -955,27 +955,27 @@ namespace Game
 			return true;
 		}
 
-		inline bool UnitTypeCanWalkOnSquare(const ref_ptr<UnitType>& type, int x, int y)
+		inline bool UnitTypeCanWalkOnSquare(const enc_ptr<UnitType>& type, int x, int y)
 		{
 			return MovementTypeCanWalkOnSquare(type->movementType, x, y);
 		}
 
-		inline bool UnitTypeCanWalkOnSquare_UnGuarded(const ref_ptr<UnitType>& type, int x, int y)
+		inline bool UnitTypeCanWalkOnSquare_UnGuarded(const enc_ptr<UnitType>& type, int x, int y)
 		{
 			return MovementTypeCanWalkOnSquare_UnGuarded(type->movementType, x, y);
 		}
 
-		inline bool UnitTypeCanWalkOnSquares(const ref_ptr<UnitType>& type, int x, int y)
+		inline bool UnitTypeCanWalkOnSquares(const enc_ptr<UnitType>& type, int x, int y)
 		{
 			return MovementTypeCanWalkOnSquares(type->movementType, type->heightOnMap, x, y);
 		}
 
-		inline bool UnitTypeCanWalkOnSquares_UnGuarded(const ref_ptr<UnitType>& type, int x, int y)
+		inline bool UnitTypeCanWalkOnSquares_UnGuarded(const enc_ptr<UnitType>& type, int x, int y)
 		{
 			return MovementTypeCanWalkOnSquares_UnGuarded(type->movementType, type->heightOnMap, x, y);
 		}
 
-		inline bool SquareIsWalkable_Internal(Unit *unit, MovementType movementType, Player *player, int x, int y, int flags)
+		inline bool SquareIsWalkable_Internal(Unit *unit, MovementType movementType, const enc_ptr<Player>& player, int x, int y, int flags)
 		{
 			bool walkable;
 			if (x >= 0 && y >= 0 && x < pWorld->width && y < pWorld->height)
@@ -1014,7 +1014,7 @@ namespace Game
 			return false;
 		}
 
-		inline bool SquareIsWalkable_MultipleInternal(Unit *unit, Player *player, int x, int y, int flags)
+		inline bool SquareIsWalkable_MultipleInternal(Unit *unit, const enc_ptr<Player>& player, int x, int y, int flags)
 		{
 			if (flags & SIW_ALLKNOWING || SquareIsVisible_UnGuarded(player, x, y))
 			{
@@ -1049,7 +1049,7 @@ namespace Game
 			return SquareIsWalkable_Internal(unit, unit->type->movementType, unit->owner, x, y, flags);
 		}
 
-		inline bool SquareIsWalkable(MovementType movementType, Player* player, int x, int y, int flags)
+		inline bool SquareIsWalkable(MovementType movementType, const enc_ptr<Player>& player, int x, int y, int flags)
 		{
 			return SquareIsWalkable_Internal(NULL, movementType, player, x, y, flags);
 		}
@@ -1059,17 +1059,17 @@ namespace Game
 			return SquareIsWalkable_Internal(unit, unit->type->movementType, unit->owner, x, y, SIW_DEFAULT);
 		}
 
-		bool SquareIsWalkable(const ref_ptr<UnitType>& type, int x, int y, int flags)
+		bool SquareIsWalkable(const enc_ptr<UnitType>& type, int x, int y, int flags)
 		{
 			return SquareIsWalkable_Internal(NULL, type->movementType, type->player, x, y, flags);
 		}
 
-		inline bool SquareIsWalkable(const ref_ptr<UnitType>& type, int x, int y)
+		inline bool SquareIsWalkable(const enc_ptr<UnitType>& type, int x, int y)
 		{
 			return SquareIsWalkable_Internal(NULL, type->movementType, type->player, x, y, SIW_DEFAULT);
 		}
 
-		bool SquaresAreWalkable_Internal(Unit *unit, MovementType movementType, int width, int height, Player* player, int x, int y, int flags)
+		bool SquaresAreWalkable_Internal(Unit *unit, MovementType movementType, int width, int height, const enc_ptr<Player>& player, int x, int y, int flags)
 		{
 			int start_x, start_y;
 			int end_x, end_y;
@@ -1118,7 +1118,7 @@ namespace Game
 
 		bool SquaresAreWalkable(Unit* unit, int x, int y, int flags)
 		{
-			const ref_ptr<UnitType>& type = unit->type;
+			const enc_ptr<UnitType>& type = unit->type;
 			return SquaresAreWalkable_Internal(unit, type->movementType, type->widthOnMap, type->heightOnMap, unit->owner, x, y, flags);
 		}
 
@@ -1127,22 +1127,22 @@ namespace Game
 			return SquaresAreWalkable(unit, x, y, SIW_DEFAULT);
 		}
 
-		bool SquaresAreWalkable(const ref_ptr<UnitType>& type, int x, int y, int flags)
+		bool SquaresAreWalkable(const enc_ptr<UnitType>& type, int x, int y, int flags)
 		{
 			return SquaresAreWalkable_Internal(NULL, type->movementType, type->widthOnMap, type->heightOnMap, type->player, x, y, flags);
 		}
 		
-		bool SquaresAreWalkable(MovementType movementType, int width, int height, Player *player, int x, int y, int flags)
+		bool SquaresAreWalkable(MovementType movementType, int width, int height, const enc_ptr<Player>& player, int x, int y, int flags)
 		{
 			return SquaresAreWalkable_Internal(NULL, movementType, width, height, player, x, y, flags);
 		}
 
-		inline bool SquaresAreWalkable(const ref_ptr<UnitType>& type, int x, int y)
+		inline bool SquaresAreWalkable(const enc_ptr<UnitType>& type, int x, int y)
 		{
 			return SquaresAreWalkable(type, x, y, SIW_DEFAULT);
 		}
 
-		bool SquareIsLighted(Player *player, int x, int y)
+		bool SquareIsLighted(const enc_ptr<Player>& player, int x, int y)
 		{
 			if (x >= 0 && y >= 0 && x < pWorld->width && y < pWorld->height)
 			{
@@ -1161,7 +1161,7 @@ namespace Game
 			}
 		}
 
-		inline bool SquareIsLighted_UnGuarded(Player *player, int x, int y)
+		inline bool SquareIsLighted_UnGuarded(const enc_ptr<Player>& player, int x, int y)
 		{
 			if (player->NumUnitsSeeingSquare[y][x])
 			{
@@ -1173,7 +1173,7 @@ namespace Game
 			}
 		}
 
-		bool SquaresAreLighted(const ref_ptr<UnitType>& type, int x, int y)
+		bool SquaresAreLighted(const enc_ptr<UnitType>& type, int x, int y)
 		{
 			int start_x, start_y;
 			int end_x, end_y;
@@ -1197,7 +1197,7 @@ namespace Game
 			return true;
 		}
 
-		bool SquaresAreLightedAround(const ref_ptr<UnitType>& type, int x, int y)
+		bool SquaresAreLightedAround(const enc_ptr<UnitType>& type, int x, int y)
 		{
 			int start_x, start_y;
 			GetTypeUpperLeftCorner(type, x, y, start_x, start_y);
@@ -1574,7 +1574,7 @@ namespace Game
 			return time;
 		}
 
-		void CheckPrecomputedArrays(const ref_ptr<UnitType>& type)
+		void CheckPrecomputedArrays(const enc_ptr<UnitType>& type)
 		{
 			if (type->isMobile)
 			{
@@ -1691,7 +1691,7 @@ namespace Game
 			
 			nextToRangeArray = GenerateRangeArray(1.5, 0);
 
-			for (vector<Player*>::iterator player = pWorld->vPlayers.begin(); player != pWorld->vPlayers.end(); player++)
+			for (vector<ref_ptr<Player> >::iterator player = pWorld->vPlayers.begin(); player != pWorld->vPlayers.end(); player++)
 			{
 				if ((*player)->unitTypeMap["LargeTank"])
 				{

@@ -21,6 +21,7 @@
 #include "defaultcolours.h"
 #include "modelselectorxml.h"
 #include "unittype.h"
+#include "handle.h"
 #include <sstream>
 #include <iostream>
 
@@ -65,14 +66,34 @@ namespace UnitLuaInterface
 
 	ref_ptr<UnitType> _GetUnitType(void* ptr)
 	{
-		unsigned long ut_index = (unsigned long) ptr;
-		return Game::Dimension::GetUnitTypeByID(ut_index-65536);
+		long ut_index = (long) ptr;
+		return HandleManager<UnitType>::InterpretHandle(ut_index);
 	}
 
 	ref_ptr<Research> _GetResearch(void* ptr)
 	{
-		unsigned long r_index = (unsigned long) ptr;
-		return Game::Dimension::GetResearchByID(r_index-131072);
+		long r_index = (long) ptr;
+		return HandleManager<Research>::InterpretHandle(r_index);
+	}
+
+	ref_ptr<Player> _GetPlayer(void* ptr)
+	{
+		long p_index = (long) ptr;
+		return HandleManager<Player>::InterpretHandle(p_index);
+	}
+
+	ActionArguments _GetActionArguments(void* ptr)
+	{
+		long index = (long) ptr;
+		if (HandleManager<UnitType>::IsCorrectHandle(index))
+		{
+			return ActionArguments(HandleManager<UnitType>::InterpretHandle(index));
+		}
+		else if (HandleManager<Research>::IsCorrectHandle(index))
+		{
+			return ActionArguments(HandleManager<Research>::InterpretHandle(index));
+		}
+		return ActionArguments();
 	}
 
 	int LGetUnitHealth(lua_State* pVM)
@@ -185,7 +206,7 @@ namespace UnitLuaInterface
 		if (pUnit != NULL && IsDisplayedUnitPointer(pUnit))
 		{
 			if (pUnit->type)
-				ut = pUnit->type->globalIndex;
+				ut = pUnit->type->GetHandle();
 		}
 
 		lua_pushlightuserdata(pVM, (void*) ut);
@@ -195,7 +216,7 @@ namespace UnitLuaInterface
 	int LGetUnitOwner(lua_State* pVM)
 	{
 		Unit* pUnit = _GetUnit(lua_touserdata(pVM, 1));
-		Player* pPlayer = NULL;
+		enc_ptr<Player> pPlayer;
 		int result = 0;
 
 		if (pUnit != NULL && IsDisplayedUnitPointer(pUnit))
@@ -205,7 +226,7 @@ namespace UnitLuaInterface
 		}
 
 //		lua_pushnumber(pVM, result);
-		lua_pushlightuserdata(pVM, (void*) pPlayer);
+		lua_pushlightuserdata(pVM, (void*) pPlayer->GetHandle());
 		return 1;
 	}
 
@@ -401,7 +422,7 @@ namespace UnitLuaInterface
 
 	int LGetPower(lua_State* pVM)
 	{
-		Player *player = GetPlayerByVMstate(pVM);
+		const ref_ptr<Player>& player = GetPlayerByVMstate(pVM);
 		float power = 0;
 
 		if (player)
@@ -413,7 +434,7 @@ namespace UnitLuaInterface
 
 	int LGetMoney(lua_State* pVM)
 	{
-		Player *player = GetPlayerByVMstate(pVM);
+		const ref_ptr<Player> &player = GetPlayerByVMstate(pVM);
 		float money = 0;
 
 		if (player)
@@ -425,7 +446,7 @@ namespace UnitLuaInterface
 
 	int LGetIncomeAtNoon(lua_State* pVM)
 	{
-		Player *player = GetPlayerByVMstate(pVM);
+		const ref_ptr<Player>& player = GetPlayerByVMstate(pVM);
 		float income = 0;
 
 		if (player)
@@ -437,7 +458,7 @@ namespace UnitLuaInterface
 	
 	int LGetIncomeAtNight(lua_State* pVM)
 	{
-		Player *player = GetPlayerByVMstate(pVM);
+		const ref_ptr<Player>& player = GetPlayerByVMstate(pVM);
 		float income = 0;
 
 		if (player)
@@ -482,7 +503,7 @@ namespace UnitLuaInterface
 
 	int LGetPowerAtDawn(lua_State* pVM)
 	{
-		Player *player = GetPlayerByVMstate(pVM);
+		const ref_ptr<Player>& player = GetPlayerByVMstate(pVM);
 		float power = 0;
 
 		if (player)
@@ -494,7 +515,7 @@ namespace UnitLuaInterface
 
 	int LGetPowerAtDusk(lua_State* pVM)
 	{
-		Player *player = GetPlayerByVMstate(pVM);
+		const ref_ptr<Player>& player = GetPlayerByVMstate(pVM);
 		float power = 0;
 
 		if (player)
@@ -506,7 +527,7 @@ namespace UnitLuaInterface
 
 	int LSellPower(lua_State* pVM)
 	{
-		Player *player = GetPlayerByVMstate(pVM);
+		const ref_ptr<Player>& player = GetPlayerByVMstate(pVM);
 		int power = lua_tointeger(pVM, 1);
 
 		if (player)
@@ -665,7 +686,7 @@ namespace UnitLuaInterface
 			std::stringstream ss;
 			lua_newtable(pVM);
 
-			lua_pushlightuserdata(pVM, (void*) it->research->globalIndex);
+			lua_pushlightuserdata(pVM, (void*) it->research->GetHandle());
 			lua_setfield(pVM, -2, "research");
 			
 			lua_pushboolean(pVM, it->desiredState);
@@ -680,7 +701,7 @@ namespace UnitLuaInterface
 			std::stringstream ss;
 			lua_newtable(pVM);
 
-			lua_pushlightuserdata(pVM, (void*) it->research->globalIndex);
+			lua_pushlightuserdata(pVM, (void*) it->research->GetHandle());
 			lua_setfield(pVM, -2, "research");
 			
 			lua_pushboolean(pVM, it->desiredState);
@@ -701,7 +722,7 @@ namespace UnitLuaInterface
 			std::stringstream ss;
 			lua_newtable(pVM);
 
-			lua_pushlightuserdata(pVM, (void*) it->type->globalIndex);
+			lua_pushlightuserdata(pVM, (void*) it->type->GetHandle());
 			lua_setfield(pVM, -2, "type");
 			
 			lua_pushinteger(pVM, it->minExisting);
@@ -725,7 +746,7 @@ namespace UnitLuaInterface
 			std::stringstream ss;
 			lua_newtable(pVM);
 
-			lua_pushlightuserdata(pVM, (void*) it->type->globalIndex);
+			lua_pushlightuserdata(pVM, (void*) it->type->GetHandle());
 			lua_setfield(pVM, -2, "type");
 			
 			lua_pushinteger(pVM, it->minExisting);
@@ -777,14 +798,14 @@ namespace UnitLuaInterface
 		if (pUnitType)
 		{
 			
-			Player *player = GetPlayerByVMstate(pVM);
+			const ref_ptr<Player>& player = GetPlayerByVMstate(pVM);
 			for (vector<ref_ptr<UnitType> >::iterator it = player->vUnitTypes.begin(); it != player->vUnitTypes.end(); it++)
 			{
-				for (vector<ref_ptr<UnitType> >::iterator it2 = (*it)->canBuild.begin(); it2 != (*it)->canBuild.end(); it2++)
+				for (vector<enc_ptr<UnitType> >::iterator it2 = (*it)->canBuild.begin(); it2 != (*it)->canBuild.end(); it2++)
 				{
 					if (*it2 == pUnitType)
 					{
-						lua_pushlightuserdata(pVM, (void*) (*it)->globalIndex);
+						lua_pushlightuserdata(pVM, (void*) (*it)->GetHandle());
 						return 1;
 					}
 				}
@@ -799,14 +820,14 @@ namespace UnitLuaInterface
 	int LGetResearcher(lua_State* pVM)
 	{
 		const ref_ptr<Research>& pResearch = _GetResearch(lua_touserdata(pVM, 1));
-		Player *player = GetPlayerByVMstate(pVM);
+		const ref_ptr<Player>& player = GetPlayerByVMstate(pVM);
 		for (vector<ref_ptr<UnitType> >::iterator it = player->vUnitTypes.begin(); it != player->vUnitTypes.end(); it++)
 		{
-			for (vector<ref_ptr<Research> >::iterator it2 = (*it)->canResearch.begin(); it2 != (*it)->canResearch.end(); it2++)
+			for (vector<enc_ptr<Research> >::iterator it2 = (*it)->canResearch.begin(); it2 != (*it)->canResearch.end(); it2++)
 			{
 				if (*it2 == pResearch)
 				{
-					lua_pushlightuserdata(pVM, (void*) ((*it)->globalIndex + 131072));
+					lua_pushlightuserdata(pVM, (void*) ((*it)->GetHandle()));
 					return 1;
 				}
 			}
@@ -979,7 +1000,7 @@ namespace UnitLuaInterface
 		CHECK_UNIT_PTR(pUnit01)
 		CHECK_UNIT_PTR_NULL_VALID(pUnit02)
 		
-		ActionArguments args = (unsigned) lua_touserdata(pVM, 6);
+		ActionArguments args = _GetActionArguments(lua_touserdata(pVM, 6));
 
 		CommandUnit(pUnit01, pUnit02, lua_tointeger(pVM, 3), lua_tointeger(pVM, 4), (UnitAction) lua_tointeger(pVM, 5), args, lua_tonumber(pVM, 7));
 
@@ -1035,7 +1056,7 @@ namespace UnitLuaInterface
 
 		CHECK_UNIT_PTR(pUnit)
 
-		ActionArguments args = (unsigned) lua_touserdata(pVM, 2);
+		ActionArguments args = _GetActionArguments(lua_touserdata(pVM, 2));
 
 		if (!args.research)
 		{
@@ -1116,7 +1137,7 @@ namespace UnitLuaInterface
 		void* context = lua_touserdata(pVM, 1);
 		EventType eventtype = (EventType) lua_tointeger(pVM, 2);
 		const char* handler = lua_tostring(pVM, 3);
-		Player *player = GetPlayerByVMstate(pVM);
+		const ref_ptr<Player>& player = GetPlayerByVMstate(pVM);
 
 		if (!handler)
 		{
@@ -1130,10 +1151,10 @@ namespace UnitLuaInterface
 			LUA_FAILURE("Null pointer context received")
 		}
 
-		if (IsValidUnitTypePointer(_GetUnitType(context)))
+		if (1 /*IsValidUnitTypePointer(_GetUnitType(context))*/)
 		{
 			ref_ptr<UnitType> unittype = _GetUnitType(context);
-			if (IsValidPlayerPointer(player) && unittype)
+			if (1 /*IsValidPlayerPointer(player) && unittype*/)
 			{
 				switch (eventtype)
 				{
@@ -1200,7 +1221,7 @@ namespace UnitLuaInterface
 					LUA_FAILURE("Event type not valid for unit")
 			}
 		}
-		else if (IsValidPlayerPointer(player))
+		else if (1 /*IsValidPlayerPointer(player)*/)
 		{
 			switch (eventtype)
 			{
@@ -1252,17 +1273,17 @@ namespace UnitLuaInterface
 		void* context = lua_touserdata(pVM, 1);
 		EventType eventtype = (EventType) lua_tointeger(pVM, 2);
 		int delay = lua_tointeger(pVM, 3);
-		Player *player = GetPlayerByVMstate(pVM);
+		const ref_ptr<Player>& player = GetPlayerByVMstate(pVM);
 
 		if (!context)
 		{
 			LUA_FAILURE("Null pointer context received")
 		}
 		
-		if (IsValidUnitTypePointer(_GetUnitType(context)))
+		if (1/*IsValidUnitTypePointer(_GetUnitType(context))*/)
 		{
 			ref_ptr<UnitType> unittype = _GetUnitType(context);
-			if (IsValidPlayerPointer(player) && unittype)
+			if (1 /*IsValidPlayerPointer(player)*/ && unittype)
 			{
 				if (eventtype == EVENTTYPE_PERFORMUNITAI)
 				{
@@ -1290,7 +1311,7 @@ namespace UnitLuaInterface
 				LUA_FAILURE("Event type not valid for unit")
 			}
 		}
-		else if (IsValidPlayerPointer(player))
+		else if (1/*IsValidPlayerPointer(player)*/)
 		{
 			if (eventtype == EVENTTYPE_PERFORMUNITAI)
 			{
@@ -1319,7 +1340,7 @@ namespace UnitLuaInterface
 		int contextType = lua_tointeger(pVM, 4);
 		EventType eventtype = (EventType) lua_tointeger(pVM, 2);
 		bool enabled = lua_toboolean(pVM, 3);
-		Player *player = GetPlayerByVMstate(pVM);
+		const ref_ptr<Player>& player = GetPlayerByVMstate(pVM);
 		
 		if (contextType == AI_CONTEXT_UNITTYPE)
 		{
@@ -1328,7 +1349,7 @@ namespace UnitLuaInterface
 			if (!unittype)
 				LUA_FAILURE("Null pointer context received")
 				
-			if (IsValidPlayerPointer(player))
+			if (1/*IsValidPlayerPointer(player)*/)
 			{
 				if (eventtype == EVENTTYPE_PERFORMUNITAI)
 				{
@@ -1367,7 +1388,7 @@ namespace UnitLuaInterface
 			if (!context)
 				LUA_FAILURE("Null pointer context received")
 
-			if (IsValidPlayerPointer(player))
+			if (1/*IsValidPlayerPointer(player)*/)
 			{
 				if (eventtype == EVENTTYPE_PERFORMUNITAI)
 				{
@@ -1403,12 +1424,12 @@ namespace UnitLuaInterface
 		if (!pUnitType)
 			LUA_FAILURE("Invalid unit type - null pointer")
 
-		Player* pOwner = GetPlayerByVMstate(pVM);
-		if (pOwner == NULL)
+		ref_ptr<Player> pOwner = GetPlayerByVMstate(pVM);
+		if (!pOwner)
 		{
 			if (IsGlobalLuaState(pVM))
 			{
-				pOwner = (Player*) lua_touserdata(pVM, 5);
+				pOwner = _GetPlayer(lua_touserdata(pVM, 5));
 				if (!pOwner)
 				{
 					LUA_FAILURE("Null player supplied")
@@ -1462,8 +1483,8 @@ namespace UnitLuaInterface
 		if (!pUnitType)
 			LUA_FAIL
 
-		Player* pOwner = GetPlayerByVMstate(pVM);
-		if (pOwner == NULL)
+		const ref_ptr<Player>& pOwner = GetPlayerByVMstate(pVM);
+		if (!pOwner)
 			LUA_FAIL
 
 		float position[2] = { (float) lua_tonumber(pVM, 2), (float) lua_tonumber(pVM, 3) };
@@ -1478,12 +1499,12 @@ namespace UnitLuaInterface
 
 	int LGetUnitTypeFromString(lua_State* pVM)
 	{
-		Player *player = GetPlayerByVMstate(pVM);
+		ref_ptr<Player> player = GetPlayerByVMstate(pVM);
 		const char *sz_name = lua_tostring(pVM, 1);
 		const string name = sz_name;
 		if (!player)
 		{
-			player = (Player*) lua_touserdata(pVM, 2);
+			player = _GetPlayer(lua_touserdata(pVM, 2));
 		}
 		
 		int ut = -1;
@@ -1493,7 +1514,7 @@ namespace UnitLuaInterface
 			ref_ptr<UnitType>& ptr = player->unitTypeMap[name];
 			
 			if (ptr)
-				ut = ptr->globalIndex;
+				ut = ptr->GetHandle();
 		}
 		
 		lua_pushlightuserdata(pVM, (void*) ut);
@@ -1507,7 +1528,7 @@ namespace UnitLuaInterface
 		if (index >= pWorld->vPlayers.size())
 			LUA_FAILURE("Player index out of vector bounds")
 
-		lua_pushlightuserdata(pVM, static_cast<void*>(pWorld->vPlayers.at(index)));
+		lua_pushlightuserdata(pVM, (void*) pWorld->vPlayers[index]->GetHandle());
 		return 1;
 	}
 
@@ -1518,8 +1539,8 @@ namespace UnitLuaInterface
 		if (sizeof(name)/sizeof(char) <= 0)
 			LUA_FAILURE("Player name too short")
 
-		std::vector<Player*>::const_iterator it;
-		Player* pPlayer = NULL;
+		std::vector<ref_ptr<Player> >::const_iterator it;
+		ref_ptr<Player> pPlayer = NULL;
 		for (it = pWorld->vPlayers.begin(); it != pWorld->vPlayers.end(); it++)
 		{
 			if (strcmp((*it)->name.c_str(), name) == 0)
@@ -1529,7 +1550,7 @@ namespace UnitLuaInterface
 			}
 		}
 
-		lua_pushlightuserdata(pVM, static_cast<void*>(pPlayer));
+		lua_pushlightuserdata(pVM, (void*) pPlayer->GetHandle());
 		return 1;
 	}
 	
@@ -2904,26 +2925,12 @@ else \
 		lua_pop(pVM, 1);
 	}
 
-	map<ref_ptr<UnitType>, bool> validUnitTypePointers;
-
-	map<ref_ptr<Research>, bool> validResearchPointers;
-
-	bool IsValidUnitTypePointer(const ref_ptr<UnitType>& unittype)
-	{
-		return validUnitTypePointers[unittype];
-	}
-
-	bool IsValidResearchPointer(const ref_ptr<Research>& research)
-	{
-		return validResearchPointers[research];
-	}
-
-	ref_ptr<UnitType>& GetUnitTypeByID(Player* owner, std::string str)
+	ref_ptr<UnitType>& GetUnitTypeByID(const enc_ptr<Player>& owner, std::string str)
 	{
 		return owner->unitTypeMap[str];
 	}
 
-	ref_ptr<Research>& GetResearchByID(Player* owner, std::string str)
+	ref_ptr<Research>& GetResearchByID(const enc_ptr<Player>& owner, std::string str)
 	{
 		return owner->researchMap[str];
 	}
@@ -2931,7 +2938,7 @@ else \
 	int LCreateUnitType(lua_State* pVM)
 	{
 		ref_ptr<UnitType> pUnitType;
-		Player *player = GetPlayerByVMstate(pVM);
+		const ref_ptr<Player>& player = GetPlayerByVMstate(pVM);
 
 		if (!lua_istable(pVM, 1))
 			LUA_FAILURE("Invalid argument, must be a table")
@@ -3051,14 +3058,10 @@ else \
 
 			pUnitType->requirements.creation.researchs.push_back(res_req);
 
-			research->index = player->vResearchs.size();
 			player->vResearchs.push_back(research);
-
-			research->globalIndex = pWorld->vAllResearchs.size() + 131072;
 			pWorld->vAllResearchs.push_back(research);
 
 			player->researchMap[research->id] = research;
-			validResearchPointers[research] = true;
 
 		}
 		else
@@ -3068,7 +3071,6 @@ else \
 
 		GET_STDSTRING_FIELD_OPTIONAL(pUnitType->requirements.existance.cReqString, "erequirements", "")
 
-		pUnitType->index = player->vUnitTypes.size();
 		player->vUnitTypes.push_back(pUnitType);
 
 		player->unitTypeMap[pUnitType->id] = pUnitType;
@@ -3139,9 +3141,7 @@ else \
 			pUnitType->actionSounds[i] = NULL;
 		}
 
-		pUnitType->globalIndex = pWorld->vAllUnitTypes.size() + 65536;
-
-		lua_pushlightuserdata(pVM, (void*) pUnitType->globalIndex);
+		lua_pushlightuserdata(pVM, (void*) pUnitType->GetHandle());
 		lua_setfield(pVM, 1, "pointer");
 
 		lua_pushvalue(pVM, 1); // Create a copy of the unittype table
@@ -3159,14 +3159,12 @@ else \
 		lua_setfield(pVM, 2, pUnitType->id.c_str());
 		lua_pop(pVM, 1);
 
-		pUnitType->playerAIFuncs = pWorld->vPlayers[player->index]->playerAIFuncs;
+		pUnitType->playerAIFuncs = player->playerAIFuncs;
 
-		pUnitType->unitAIFuncs = pWorld->vPlayers[player->index]->unitAIFuncs;
+		pUnitType->unitAIFuncs = player->unitAIFuncs;
 
 		pUnitType->GenerateRanges();
 
-		validUnitTypePointers[pUnitType] = true;
-		
 		pWorld->vAllUnitTypes.push_back(pUnitType);
 
 		LUA_SUCCESS
@@ -3175,7 +3173,7 @@ else \
 	int LCreateResearch(lua_State* pVM)
 	{
 		ref_ptr<Research> pResearch;
-		Player *player = GetPlayerByVMstate(pVM);
+		const ref_ptr<Player>& player = GetPlayerByVMstate(pVM);
 
 		if (!lua_istable(pVM, 1))
 			LUA_FAILURE("Invalid argument, must be a table")
@@ -3198,14 +3196,10 @@ else \
 		GET_STDSTRING_FIELD_OPTIONAL(pResearch->requirements.creation.cReqString, "crequirements", "")
 		GET_STDSTRING_FIELD_OPTIONAL(pResearch->requirements.existance.cReqString, "erequirements", "")
 			
-		pResearch->index = player->vResearchs.size();
 		player->vResearchs.push_back(pResearch);
-
-		pResearch->globalIndex = pWorld->vAllResearchs.size() + 131072;
 		pWorld->vAllResearchs.push_back(pResearch);
 
 		player->researchMap[pResearch->id] = pResearch;
-		validResearchPointers[pResearch] = true;
 
 		LUA_SUCCESS
 	}
@@ -3244,7 +3238,7 @@ else \
 		}
 	}
 
-	void InterpretRequirementsString(Player *player, const char *reqstring, ConjunctiveRequirements &reqs)
+	void InterpretRequirementsString(const ref_ptr<Player>& player, const char *reqstring, ConjunctiveRequirements &reqs)
 	{
 		if (!reqstring || *reqstring == 0)
 		{
@@ -3476,7 +3470,7 @@ else \
 		}
 	}
 
-	void PostProcessReqStrings(Player *player, ObjectRequirements &requirements)
+	void PostProcessReqStrings(const ref_ptr<Player>& player, ObjectRequirements &requirements)
 	{
 		InterpretRequirementsString(player, requirements.creation.cReqString.c_str(), requirements.creation);
 		InterpretRequirementsString(player, requirements.existance.cReqString.c_str(), requirements.existance);
@@ -3499,8 +3493,8 @@ else \
 		for (std::vector<std::string>::iterator it_rch = unitType->canResearchIDs.begin(); it_rch != unitType->canResearchIDs.end(); it_rch++)
 		{
 			std::string id = *it_rch;
-			const ref_ptr<Research>& res1 = GetResearchByID(unitType->player, id);
-			const ref_ptr<Research>& res2 = GetResearchByID(unitType->player, "Research" + id);
+			const enc_ptr<Research>& res1 = GetResearchByID(unitType->player, id);
+			const enc_ptr<Research>& res2 = GetResearchByID(unitType->player, "Research" + id);
 			if (res1 || res2)
 			{
 				if (res1)
@@ -3521,9 +3515,9 @@ else \
 
 	void PostProcessStrings()
 	{
-		for (std::vector<Player*>::iterator it = pWorld->vPlayers.begin(); it != pWorld->vPlayers.end(); it++)
+		for (std::vector<ref_ptr<Player> >::iterator it = pWorld->vPlayers.begin(); it != pWorld->vPlayers.end(); it++)
 		{
-			Player *player = *it;
+			const ref_ptr<Player>& player = *it;
 			for (std::vector<ref_ptr<Research> >::iterator it_res = player->vResearchs.begin(); it_res != player->vResearchs.end(); it_res++)
 			{
 				const ref_ptr<Research>& research = *it_res;

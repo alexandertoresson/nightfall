@@ -272,7 +272,7 @@ namespace Game
 
 		string GetPower()
 		{
-			Game::Dimension::Player* player = Game::Dimension::currentPlayerView;
+			const enc_ptr<Game::Dimension::Player>& player = Game::Dimension::currentPlayerView;
 			std::stringstream sstr, sstr2;
 			string change_str;
 
@@ -290,7 +290,7 @@ namespace Game
 
 		string GetMoney()
 		{
-			Game::Dimension::Player* player = Game::Dimension::currentPlayerView;
+			const enc_ptr<Game::Dimension::Player>& player = Game::Dimension::currentPlayerView;
 			std::stringstream sstr, sstr2;
 			string change_str;
 
@@ -337,7 +337,7 @@ namespace Game
 		{
 			if (pGame->build_type)
 			{
-				pGame->build_type = NULL;
+				pGame->build_type.reset();
 				Dimension::UnitMainNode::instance.ScheduleBuildOutlineDeletion();
 				return;
 			}
@@ -508,7 +508,7 @@ namespace Game
 						{
 							AI::CommandUnits(unitsSelected, ter_x, ter_y, AI::ACTION_BUILD, Dimension::ActionArguments(pGame->build_type), true, false);
 						}
-						pGame->build_type = NULL;
+						pGame->build_type.reset();
 						Dimension::UnitMainNode::instance.ScheduleBuildOutlineDeletion();
 					}
 				}
@@ -608,7 +608,7 @@ namespace Game
 						{
 							AI::CommandUnits(unitsSelected, 0, 0, AI::ACTION_BUILD, Dimension::ActionArguments(pGame->build_type), true, false);
 						}
-						pGame->build_type = NULL;
+						pGame->build_type.reset();
 					}
 				}
 			}
@@ -655,7 +655,7 @@ namespace Game
 							}
 							else
 							{
-								pGame->build_type = NULL;
+								pGame->build_type.reset();
 								Dimension::UnitMainNode::instance.ScheduleBuildOutlineDeletion();
 							}
 
@@ -716,7 +716,7 @@ namespace Game
 						{
 							if (!pGame->input->GetKeyState(SDLK_q))
 							{
-								Game::Dimension::Player* current_player = 
+								const enc_ptr<Game::Dimension::Player>& current_player = 
 									Game::Dimension::GetCurrentPlayer();
 									
 								if (current_player->vUnits.size())
@@ -1290,7 +1290,7 @@ namespace Game
 			{
 				if (pUnit->type->canBuild.size())
 				{
-					const ref_ptr<Game::Dimension::UnitType>& unitType = pUnit->type;
+					const enc_ptr<Game::Dimension::UnitType>& unitType = pUnit->type;
 					UnitBuild* unitBuilder = new UnitBuild(nopic, pGame);
 					Window::GUI::PanelWidget obj;
 					obj.pPanel = unitBuilder;
@@ -1510,7 +1510,7 @@ namespace Game
 			this->pUnit = pUnit;
 		}
 
-		void UnitBuild::SetUnitType(const ref_ptr<Dimension::UnitType>& pUnitType)
+		void UnitBuild::SetUnitType(const enc_ptr<Dimension::UnitType>& pUnitType)
 		{
 			this->pUnitType = pUnitType;
 			SetLayout();
@@ -1548,7 +1548,7 @@ namespace Game
 						{
 							AI::CommandUnits(unitsSelected, 0, 0, AI::ACTION_BUILD, Dimension::ActionArguments(obj->parent->pGame->build_type), true, false);
 						}
-						obj->parent->pGame->build_type = NULL;
+						obj->parent->pGame->build_type.reset();
 					}
 				}
 			}
@@ -1873,7 +1873,7 @@ namespace Game
 			float cx = 0.0f;
 			float cy = 0.0f;
 			int c = 0;
-			for(vector<ref_ptr<Dimension::UnitType> >::iterator iter = this->pUnitType->canBuild.begin(); iter != this->pUnitType->canBuild.end(); iter++, cx += ow, c++)
+			for(vector<enc_ptr<Dimension::UnitType> >::iterator iter = this->pUnitType->canBuild.begin(); iter != this->pUnitType->canBuild.end(); iter++, cx += ow, c++)
 			{
 				if(c == nxt)
 				{
@@ -1897,7 +1897,7 @@ namespace Game
 				picbtn->SetTooltip((*iter)->name);
 				objects.push_back(picbtn);
 			}
-			for(vector<ref_ptr<Dimension::Research> >::iterator iter = this->pUnitType->canResearch.begin(); iter != this->pUnitType->canResearch.end(); iter++, cx += ow, c++)
+			for(vector<enc_ptr<Dimension::Research> >::iterator iter = this->pUnitType->canResearch.begin(); iter != this->pUnitType->canResearch.end(); iter++, cx += ow, c++)
 			{
 				if(c == nxt)
 				{

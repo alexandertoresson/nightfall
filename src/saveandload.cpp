@@ -197,7 +197,7 @@ namespace Game
 			xmlfile.BeginTag("unit");
 
 				OutputInt(xmlfile, "id", unit->id);
-				OutputInt(xmlfile, "owner", unit->owner->index);
+				OutputInt(xmlfile, "owner", unit->owner->GetHandle());
 
 				OutputString(xmlfile, "type", unit->type->id);
 
@@ -249,7 +249,7 @@ namespace Game
 			xmlfile.EndTag();
 		}
 
-		void OutputPlayer(Utilities::XMLWriter &xmlfile, Player *player)
+		void OutputPlayer(Utilities::XMLWriter &xmlfile, const ref_ptr<Player>& player)
 		{
 			xmlfile.BeginTag("player");
 				
@@ -322,9 +322,9 @@ namespace Game
 
 				OutputCamera(xmlfile);
 
-				for (vector<Player*>::iterator it = pWorld->vPlayers.begin(); it != pWorld->vPlayers.end(); it++)
+				for (vector<ref_ptr<Player> >::iterator it = pWorld->vPlayers.begin(); it != pWorld->vPlayers.end(); it++)
 				{
-					Player* player = *it;
+					const ref_ptr<Player>& player = *it;
 
 					OutputPlayer(xmlfile, player);
 					
@@ -463,7 +463,7 @@ namespace Game
 			vec.z = f;
 		}
 
-		Player *player = NULL;
+		ref_ptr<Player> player = NULL;
 
 		unsigned sindex, pindex;
 
@@ -531,7 +531,7 @@ namespace Game
 		{
 			bool isDisplayed, isCompleted;
 			int id;
-			Player *owner;
+			ref_ptr<Player> owner;
 			ref_ptr<Dimension::UnitType> type;
 
 			unit = NULL;
@@ -576,7 +576,7 @@ namespace Game
 			if (isDisplayed)
 			{
 				elem->Iterate("curAssociatedSquare", ParseIntPosition);
-				unit = CreateUnit(type->index, owner, pos_int.x, pos_int.y, id, isCompleted);
+				unit = CreateUnit(type->GetHandle(), owner, pos_int.x, pos_int.y, id, isCompleted);
 
 				if (!unit)
 				{
@@ -603,7 +603,7 @@ namespace Game
 			}
 			else
 			{
-				unit = CreateUnitNoDisplay(type->index, owner, id, isCompleted);
+				unit = CreateUnitNoDisplay(type->GetHandle(), owner, id, isCompleted);
 			}
 			
 			elem->Iterate("health", ParseDoubleBlock);

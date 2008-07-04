@@ -21,17 +21,10 @@ namespace Game
 {
 	namespace Dimension
 	{	
-		World*     pWorld            = NULL;
+		ref_ptr<World> pWorld        = NULL;
 		Unit***    pppElements       = NULL;
-		Player*    currentPlayerView = NULL;
-		Player*    currentPlayer     = NULL;
-
-		map<Player*, bool> validPlayerPointers;
-
-		bool IsValidPlayerPointer(Player* player)
-		{
-			return validPlayerPointers[player];
-		}
+		ref_ptr<Player> currentPlayerView;
+		ref_ptr<Player> currentPlayer;
 
 		InputController::InputController(void)
 		{
@@ -111,11 +104,10 @@ namespace Game
 			}
 		}
 
-		Player::Player(std::string name, PlayerType playertype, std::string raceScript, std::string aiScript, Utilities::Colour colour0, Utilities::Colour colour1, Utilities::Colour colour2) : raceState(this), aiState(this)
+		Player::Player(std::string name, PlayerType playertype, std::string raceScript, std::string aiScript, Utilities::Colour colour0, Utilities::Colour colour1, Utilities::Colour colour2) : raceState(this->GetRef()), aiState(this->GetRef())
 		{
 			this->name = name;
 			this->type = playertype;
-			this->index = pWorld->vPlayers.size();
 			this->states = NULL;
 			this->resources.money = 1000;
 			this->resources.power = 1000;
@@ -174,7 +166,8 @@ namespace Game
 					break;
 			}
 
-			pWorld->vPlayers.push_back(this);
+			this->index = pWorld->vPlayers.size();
+			pWorld->vPlayers.push_back(this->GetRef());
 			for (unsigned int i = 0; i < pWorld->vPlayers.size(); i++)
 			{
 				PlayerState* new_states = new PlayerState[pWorld->vPlayers.size()];
@@ -195,12 +188,11 @@ namespace Game
 				}
 				pWorld->vPlayers.at(i)->states = new_states;
 			}
-			validPlayerPointers[this] = true;
+
 		}
 
 		Player::~Player()
 		{
-			validPlayerPointers.erase(this);
 			vUnitTypes.clear();
 			vResearchs.clear();
 			for(int y = 0; y < pWorld->height; y++)
@@ -209,6 +201,13 @@ namespace Game
 			}
 			delete [] this->NumUnitsSeeingSquare;
 			delete [] this->states;
+		}
+
+		World::~World()
+		{
+			vAllUnitTypes.clear();
+			vPlayers.clear();
+			vAllResearchs.clear();
 		}
 
 		void SetPlayerState(int player1, int player2, PlayerState state)
@@ -242,7 +241,7 @@ namespace Game
 			}
 		}
 
-		void UnloadUnitType(Player* player, const ref_ptr<UnitType>& pUnitType)
+		void UnloadUnitType(const ref_ptr<Player>& player, const ref_ptr<UnitType>& pUnitType)
 		{
 			// TODO
 /*			int index = pUnitType->index;
@@ -261,17 +260,17 @@ namespace Game
 			unitTypeMap.clear();*/
 		}
 
-		Player* GetCurrentPlayer()
+		const ref_ptr<Player>& GetCurrentPlayer()
 		{
 			return currentPlayer;
 		}
 		
-		void SetCurrentPlayer(Player* p)
+		void SetCurrentPlayer(const ref_ptr<Player>& p)
 		{
 			currentPlayer = p;
 		}
 		
-		void SetCurrentPlayerView(Player* p)
+		void SetCurrentPlayerView(const ref_ptr<Player>& p)
 		{
 			currentPlayerView = p;
 		}
@@ -282,7 +281,7 @@ namespace Game
 			std::set<ref_ptr<Research> > sResearchs;
 		} notMeetingExistanceReqs;
 
-		void CheckRequirements(Player *player, ConjunctiveRequirements &reqs)
+		void CheckRequirements(const ref_ptr<Player>& player, ConjunctiveRequirements &reqs)
 		{
 			bool isSatisfied = true;
 			for (std::vector<ResearchRequirement>::iterator it = reqs.researchs.begin(); it != reqs.researchs.end(); it++)
@@ -310,13 +309,13 @@ namespace Game
 			reqs.isSatisfied = isSatisfied;
 		}
 
-		void CheckObjectRequirements(Player *player, ObjectRequirements &requirements)
+		void CheckObjectRequirements(const ref_ptr<Player>& player, ObjectRequirements &requirements)
 		{
 			CheckRequirements(player, requirements.creation);
 			CheckRequirements(player, requirements.existance);
 		}
 
-		void RecheckAllRequirements(Player *player)
+		void RecheckAllRequirements(const ref_ptr<Player>& player)
 		{
 			for (std::vector<ref_ptr<Research> >::iterator it = player->vResearchs.begin(); it != player->vResearchs.end(); it++)
 			{
@@ -362,7 +361,7 @@ namespace Game
 						// Get the "apply" function from the user-supplied table
  						lua_getglobal(pVM, research->luaEffectObj.c_str());
  						lua_getfield(pVM, -1, "undo");
- 						lua_pushlightuserdata(pVM, research->player);
+ 						lua_pushlightuserdata(pVM, (void*) research->player->GetHandle());
  						research->player->aiState.CallFunction(1);
  					}
 				}
@@ -383,7 +382,7 @@ namespace Game
 					}
 				}
 				unitTypes.clear();
-				for (std::vector<Player*>::iterator it = pWorld->vPlayers.begin(); it != pWorld->vPlayers.end(); it++)
+				for (std::vector<ref_ptr<Player> >::iterator it = pWorld->vPlayers.begin(); it != pWorld->vPlayers.end(); it++)
 				{
 					RecheckAllRequirements(*it);
 				}
@@ -393,7 +392,7 @@ namespace Game
 		
 		void UnloadWorld(void)
 		{
-			if (pWorld == NULL)
+			if (!pWorld)
 				return;
 			
 			//Deallocate Units
@@ -403,22 +402,13 @@ namespace Game
 				DeleteUnit(pWorld->vUnits[0]);
 			}
 
-//			AI::ClearPathNodeStack();
-
-			//Deallocate Players
-			for(unsigned int i = 0; i < pWorld->vPlayers.size(); i++)
-			{
-				Player *pPlayer = pWorld->vPlayers.at(i);
-				delete pPlayer;
-			}
-
 			pWorld->vPlayers.clear();
 
 			//Deallocate Terrain & Water & Heightmap
 			UnloadTerrain();
 			glDeleteTextures(1, &Dimension::terraintexture);
-				
-			delete pWorld;
+		
+			pWorld.reset();
 		}
 		
 		ref_ptr<Research> GetResearchByID(unsigned i)

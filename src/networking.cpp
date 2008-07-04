@@ -6,6 +6,7 @@
 #include "game.h"
 #include "camera.h"
 #include "action.h"
+#include "handle.h"
 #include <fstream>
 #include <cmath>
 #include <iostream>
@@ -493,8 +494,8 @@ namespace Game
 		void PrepareCreation(const ref_ptr<Dimension::UnitType>& unittype, int x, int y, float rot)
 		{
 			NetCreate* create = new NetCreate;
-			create->unittype_id = unittype->index;
-			create->owner_id = unittype->player->index;
+			create->unittype_id = unittype->GetIndependentHandle();
+			create->owner_id = unittype->player->GetIndependentHandle();
 			create->x = x;
 			create->y = y;
 			create->rot = RotationToByte(rot);
@@ -531,10 +532,10 @@ namespace Game
 
 		SDL_mutex* prepareSellMutex = SDL_CreateMutex();
 
-		void PrepareSell(Dimension::Player* owner, int amount)
+		void PrepareSell(const enc_ptr<Dimension::Player>& owner, int amount)
 		{
 			NetSell* sell = new NetSell;
-			sell->owner_id = owner->index;
+			sell->owner_id = owner->GetIndependentHandle();
 			sell->amount = amount;
 			sell->valid_at_frame = AI::currentFrame + netDelay;
 			SDL_LockMutex(prepareSellMutex);
@@ -1181,10 +1182,9 @@ namespace Game
 					if (create->valid_at_frame <= AI::currentFrame)
 					{
 						waitingCreations.erase(waitingCreations.begin() + i--);
-						
-						if (create->owner_id < Dimension::pWorld->vPlayers.size())
+						const ref_ptr<Dimension::Player>& owner = Dimension::HandleManager<Dimension::Player>::InterpretIndependentHandle(create->owner_id);
+						if (owner)
 						{
-							Dimension::Player* owner = Dimension::pWorld->vPlayers.at(create->owner_id);
 							Dimension::Unit* unit = Dimension::CreateUnit(create->unittype_id, owner, create->x, create->y);
 							if (unit)
 							{
@@ -1226,7 +1226,8 @@ namespace Game
 					{
 						waitingSells.erase(waitingSells.begin() + i--);
 						
-						if (sell->owner_id < Dimension::pWorld->vPlayers.size())
+						const ref_ptr<Dimension::Player>& owner = Dimension::HandleManager<Dimension::Player>::InterpretIndependentHandle(sell->owner_id);
+						if (owner)
 						{
 							Dimension::SellPower(Dimension::pWorld->vPlayers.at(sell->owner_id), sell->amount);
 #ifdef CHECKSUM_DEBUG_HIGH
@@ -2876,9 +2877,9 @@ namespace Game
 			}
 
 			int bits = 0;
-			for (vector<Dimension::Player*>::iterator it = Dimension::pWorld->vPlayers.begin(); it != Dimension::pWorld->vPlayers.end(); it++)
+			for (vector<ref_ptr<Dimension::Player> >::iterator it = Dimension::pWorld->vPlayers.begin(); it != Dimension::pWorld->vPlayers.end(); it++)
 			{
-				Dimension::Player* player = *it;
+				const ref_ptr<Dimension::Player>& player = *it;
 				checksum ^= ((Uint32) floor(player->resources.power))<<bits;
 #ifdef CHECKSUM_DEBUG
 				sstr << (Uint32) floor(player->resources.power) << " ";

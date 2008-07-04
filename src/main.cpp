@@ -328,12 +328,10 @@ void KillAll(void)
 
 	if (Game::Rules::GameWindow::IsNull() == false)
 	{
-		if (Game::Dimension::pWorld != NULL)
+		if (Game::Dimension::pWorld)
 		{
 			while(Game::Dimension::pWorld->vUnits.size() > 0)
 				Game::Dimension::DeleteUnit(Game::Dimension::pWorld->vUnits.at(0));
-
-			delete Game::Dimension::pWorld;
 		}
 	}
 

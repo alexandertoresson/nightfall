@@ -18,7 +18,7 @@ namespace Game
 	namespace AI
 	{
 		void PerformAI(Dimension::Unit* unit);     // Execute AI stuff for a unit
-		void PerformAI(Dimension::Player* player); // Execute player AI (things that have nothing to do with the units, that is)
+		void PerformAI(const ref_ptr<Dimension::Player>& player); // Execute player AI (things that have nothing to do with the units, that is)
 		void PerformAIFrame(); // Perform a full AI frame, if possible
 		void CommandUnit(Dimension::Unit* unit, int x, int y, UnitAction action, const Dimension::ActionArguments& args, bool queue, bool insert);
 		// command/instruct a unit to do something at (x, y)

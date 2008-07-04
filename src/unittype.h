@@ -13,6 +13,7 @@
 #include "audio-pre.h"
 #include "ogrexmlmodel.h"
 #include "requirements.h"
+#include "handle.h"
 
 #include <vector>
 #include <cmath>
@@ -88,7 +89,7 @@ namespace Game
 			ProjectileType(char* model, float aoe, Utilities::Vector3D start_pos, float speed, float size);
 		};
 
-		struct UnitType
+		struct UnitType : public HasHandle<UnitType>
 		{
 			std::string name;
 			std::string id;
@@ -125,8 +126,8 @@ namespace Game
 			double      movePowerUsage;  // the power moving uses per second
 			float       movementSpeed;   // in squares per second
 			float       attackSpeed;     // in times per second
-			std::vector<ref_ptr<UnitType> > canBuild;  // vector of what the unit can build, if anything at all
-			std::vector<ref_ptr<Research> > canResearch;// vector of what the unit can research, if anything at all
+			std::vector<enc_ptr<UnitType> > canBuild;  // vector of what the unit can build, if anything at all
+			std::vector<enc_ptr<Research> > canResearch;// vector of what the unit can research, if anything at all
 			std::vector<std::string> canBuildIDs; // IDs of builds as string; this is used before loading is finished
 			std::vector<std::string> canResearchIDs; // IDs of researches as string; this is used before loading is finished
 			bool        hasAI;           // whether the unit has an AI
@@ -142,16 +143,12 @@ namespace Game
 			ProjectileType*     projectileType; // set to NULL to make the unit have normal, non-ranged attacks.
 			MovementType movementType;   // Type of movement the unit has
 			
-			int         index;           // index of the unit in vUnitTypes
-			int         globalIndex;     // index of the unit in vAllUnitTypes, which contains all unit types; regardless of player ownership. 
-			                             // Def. in unitinterface.cpp
-			
 			GLuint	    Symbol;	     // Build symbol or Unit Symbol
 			AI::UnitAIFuncs unitAIFuncs; // UnitAIFuncs
 			AI::PlayerAIFuncs playerAIFuncs; // PlayerAIFuncs
 			Audio::AudioFXInfo* actionSounds[Audio::SFX_ACT_COUNT];
 
-			Player *player;              // The player the unittype belongs so
+			enc_ptr<Player> player;              // The player the unittype belongs so
 			int numBuilt;
 			int numExisting;
 

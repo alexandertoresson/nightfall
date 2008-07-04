@@ -255,7 +255,6 @@ namespace Game
 			build_x = -1;
 			build_y = -1;
 				
-			build_type = NULL;
 			goto_time = 0;
 			pause = 0;
 
@@ -444,7 +443,9 @@ namespace Game
 			float increment = 0.9f / 13.0f; //0.9 (90%) divided on 12 updates...
 			Dimension::pWorld = new Dimension::World;
 
-			Utilities::Scripting::LuaVMState& pVM = Utilities::Scripting::globalVMState;
+			Utilities::Scripting::InitGlobalState();
+
+			Utilities::Scripting::LuaVMState& pVM = *Utilities::Scripting::globalVMState;
 
 			if (noGraphics)
 			{

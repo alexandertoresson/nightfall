@@ -42,6 +42,16 @@ namespace Game
 				
 			}
 			
+			ActionArguments(const ref_ptr<UnitType>& unitType) : unitType(unitType), argHandle(unitType->GetHandle())
+			{
+				
+			}
+			
+			ActionArguments(const ref_ptr<Research>& research) : research(research), argHandle(research->GetHandle())
+			{
+				
+			}
+			
 			ActionArguments(unsigned i) : argHandle(i)
 			{
 				
@@ -58,15 +68,6 @@ namespace Game
 				}
 			}
 			
-			ActionArguments(const ref_ptr<UnitType>& unitType) : unitType(unitType), argHandle(unitType->globalIndex)
-			{
-				
-			}
-			
-			ActionArguments(const ref_ptr<Research>& research) : research(research), argHandle(research->globalIndex)
-			{
-				
-			}
 		};
 
 		struct BaseActionData

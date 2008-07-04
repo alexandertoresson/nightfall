@@ -13,6 +13,7 @@
 #include "materialxml-pre.h"
 #include "unittype.h"
 #include "requirements.h"
+#include "handle.h"
 
 #include <vector>
 
@@ -21,7 +22,7 @@ namespace Game
 	namespace Dimension
 	{
 		
-		struct Research
+		struct Research : public HasHandle<Research>
 		{
 			std::string id;
 			std::string name;
@@ -31,9 +32,7 @@ namespace Game
 			std::string luaEffectObj;
 			ObjectRequirements requirements;
 			GLuint icon;
-			unsigned index;
-			unsigned globalIndex;
-			Player *player;
+			enc_ptr<Player> player;
 
 			Research()
 			{
@@ -41,7 +40,7 @@ namespace Game
 			}
 		};
 
-		struct Player
+		struct Player : public HasHandle<Player>
 		{
 			std::string       name;
 			PlayerType        type;
@@ -55,9 +54,9 @@ namespace Game
 			Resources         resources;
 			Resources         oldResources;
 			std::vector<Utilities::Colour> colours;
-			int               index;
 			AI::PlayerAIFuncs playerAIFuncs;
 			AI::UnitAIFuncs   unitAIFuncs;
+			int               index;
 			int               aiFrame;
 			bool              isRemote;
 			std::map<std::string, ref_ptr<UnitType> > unitTypeMap;
@@ -83,10 +82,15 @@ namespace Game
 			std::vector<Unit*>   vUnits;
 			std::vector<Unit*>   vUnitsWithAI;
 			std::vector<ref_ptr<UnitType> > vAllUnitTypes;
-			std::vector<Player*> vPlayers;
+			std::vector<ref_ptr<Player> > vPlayers;
 			std::vector<ref_ptr<Research> > vAllResearchs;
 			int             width;
 			int             height;
+		
+			std::map<lua_State*, enc_ptr<Player> > luaStateToPlayer;
+			std::map<lua_State*, Utilities::Scripting::LuaVMState*> luaStateToObject;
+
+			~World();
 		};
 		
 		class InputController
@@ -101,7 +105,7 @@ namespace Game
 				void SetKeyState(SDLKey key, bool value) { mKeys[key] = value; }
 		};
 		
-		extern   World*                   pWorld;
+		extern   ref_ptr<World>           pWorld;
 		extern   Unit***                  pppElements;
 		
 		void GetApproximateMapPosOfClick(int clickx, int clicky, int &map_x, int &map_y);
@@ -110,14 +114,13 @@ namespace Game
 		void InitPlayers(unsigned players_to_init);
 		void InitPlayers(std::vector<PlayerType> playertypes);
 		
-		Player* GetCurrentPlayer();
-		void SetCurrentPlayer(Player*);
-		void SetCurrentPlayerView(Player*);
+		const ref_ptr<Player>& GetCurrentPlayer();
+		void SetCurrentPlayer(const ref_ptr<Player>&);
+		void SetCurrentPlayerView(const ref_ptr<Player>&);
 		
 		void UnloadUnitType(const ref_ptr<UnitType>& pUnitType);
-		bool IsValidPlayerPointer(Player* player);
 
-		void RecheckAllRequirements(Player *player);
+		void RecheckAllRequirements(const ref_ptr<Player>& player);
 
 	}
 }

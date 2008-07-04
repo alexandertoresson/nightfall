@@ -37,15 +37,15 @@ namespace Game
 
 		bool IsWithinRangeForBuilding(Unit* unit);
 		
-		void GetTypeUpperLeftCorner(const ref_ptr<UnitType>& type, int mx, int my, int& lx, int& uy);
+		void GetTypeUpperLeftCorner(const enc_ptr<UnitType>& type, int mx, int my, int& lx, int& uy);
 		void GetUnitUpperLeftCorner(Unit* unit, int& lx, int& uy);
 		void GetUnitUpperLeftCorner(Unit* unit, float mx, float my, int& lx, int& uy);
 		void GetUnitUpperLeftCorner(Unit* unit, int mx, int my, int& lx, int& uy);
-		bool DoesNotBlock(Unit* unit, const ref_ptr<UnitType>& build_type, int build_x, int build_y, int x, int y);
+		bool DoesNotBlock(Unit* unit, const enc_ptr<UnitType>& build_type, int build_x, int build_y, int x, int y);
 
-		void NearestSquareFromBuildingPlace(Unit* unit, const ref_ptr<UnitType>& build_type, int build_x, int build_y, int &x, int &y);
-		void GetNearestUnoccupiedPosition(const ref_ptr<UnitType>& type, int& x, int& y);
-		bool IsSuitableForBuilding(const ref_ptr<UnitType>& type, int build_x, int build_y);
+		void NearestSquareFromBuildingPlace(Unit* unit, const enc_ptr<UnitType>& build_type, int build_x, int build_y, int &x, int &y);
+		void GetNearestUnoccupiedPosition(const enc_ptr<UnitType>& type, int& x, int& y);
+		bool IsSuitableForBuilding(const enc_ptr<UnitType>& type, int build_x, int build_y);
 
 		void Complete(Unit* unit);
 		void Incomplete(Unit* unit);
@@ -54,22 +54,22 @@ namespace Game
 		inline bool MovementTypeCanWalkOnSquare_UnGuarded(MovementType mType, int x, int y);
 		bool MovementTypeCanWalkOnSquare_Pathfinding(MovementType mType, int size, int pos_x, int pos_y);
 
-		bool SquareIsWalkable(const ref_ptr<UnitType>& type, int x, int y, int flags);
-		bool SquaresAreWalkable(const ref_ptr<UnitType>& type, int x, int y, int flags);
-		inline bool SquareIsWalkable(const ref_ptr<UnitType>& type, int x, int y);
-		bool SquaresAreWalkable(const ref_ptr<UnitType>& type, int x, int y);
+		bool SquareIsWalkable(const enc_ptr<UnitType>& type, int x, int y, int flags);
+		bool SquaresAreWalkable(const enc_ptr<UnitType>& type, int x, int y, int flags);
+		inline bool SquareIsWalkable(const enc_ptr<UnitType>& type, int x, int y);
+		bool SquaresAreWalkable(const enc_ptr<UnitType>& type, int x, int y);
 
-		bool SquareIsLighted(Player *player, int x, int y);
-		bool SquareIsVisible(Player *player, int x, int y);
-		inline bool SquareIsVisible_UnGuarded(Player *player, int x, int y);
-		bool SquaresAreLighted(const ref_ptr<UnitType>& type, int x, int y);
-		bool SquaresAreLightedAround(const ref_ptr<UnitType>& type, int x, int y);
+		bool SquareIsLighted(const enc_ptr<Player>& player, int x, int y);
+		bool SquareIsVisible(const enc_ptr<Player>& player, int x, int y);
+		inline bool SquareIsVisible_UnGuarded(const enc_ptr<Player>& player, int x, int y);
+		bool SquaresAreLighted(const enc_ptr<UnitType>& type, int x, int y);
+		bool SquaresAreLightedAround(const enc_ptr<UnitType>& type, int x, int y);
 		
-		bool GetNearestSuitableAndLightedPosition(const ref_ptr<UnitType>& type, int& x, int& y);
-		bool GetSuitablePositionForLightTower(const ref_ptr<UnitType>& type, int& x, int& y, bool needLighted);
+		bool GetNearestSuitableAndLightedPosition(const enc_ptr<UnitType>& type, int& x, int& y);
+		bool GetSuitablePositionForLightTower(const enc_ptr<UnitType>& type, int& x, int& y, bool needLighted);
 		
 		Unit* GetNearestUnitInRange(Unit* unit, RangeType rangeType, PlayerState state);
-		bool UnitIsVisible(Unit *unit, Player *player);
+		bool UnitIsVisible(Unit *unit, const enc_ptr<Player>& player);
 		
 		bool UpdateAssociatedSquares(Unit* unit, int new_x, int new_y, int old_x, int old_y);
 		bool SetAssociatedSquares(Unit* unit, int new_x, int new_y);
@@ -81,9 +81,9 @@ namespace Game
 		
 		bool CanSee(Unit* attacker, Unit* target);
 
-		bool UnitIsRendered(Unit *unit, Player *player);
+		bool UnitIsRendered(Unit *unit, const enc_ptr<Player>& player);
 
-		void CheckPrecomputedArrays(const ref_ptr<UnitType>& type);
+		void CheckPrecomputedArrays(const enc_ptr<UnitType>& type);
 
 		void InitUnitSquares();
 		
@@ -96,7 +96,7 @@ namespace Game
 		bool SquaresAreWalkable(Unit *unit, int x, int y, int flags);
 		inline bool SquareIsWalkable(Unit *unit, int x, int y);
 		bool SquaresAreWalkable(Unit *unit, int x, int y);
-		bool SquaresAreWalkable(const ref_ptr<UnitType>& type, int x, int y, int flags);
+		bool SquaresAreWalkable(const enc_ptr<UnitType>& type, int x, int y, int flags);
 
 		void RemoveUnitFromBigSquare(Unit* unit);
 	}
