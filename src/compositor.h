@@ -16,12 +16,14 @@
 
 #include <string>
 #include <sdlheader.h>
+#include <list>
+#include <vector>
 
 namespace GUI
 {
 	
 	/**
-	  * Handles low-level communication with SDL, event creation, global key-attachments, state-switching.
+	  * Handles low-level communication with SDL, event creation, global key-attachments, state-switching (replaced by scene graph).
 	  */
 	namespace Core
 	{
@@ -33,7 +35,7 @@ namespace GUI
 			/**
 			 * Mouse event types
 			 */
-			enum type
+			enum mouseEventType
 			{
 				MOUSEUP,    /**< Mousebutton up   */
 				MOUSEDOWN,  /**< Mousebutton down */
@@ -42,6 +44,8 @@ namespace GUI
 			};
 			
 			SDL_Event* pEvent;
+			
+			mouseEventType type; /**< Defines the mouse event type */
 			
 			int button; /**< Button code for which button that were pressed */
 			int state;  /**< Determines if scrolling if up(1) or down(-1)*/
@@ -58,14 +62,10 @@ namespace GUI
 			/**
 			 *	Keyboard event types
 			 */
-			enum type
-			{
-				KEYUP,   /**< Key released */
-				KEYDOWN  /**< Key pressed  */
-			};
-			
-			int code;    /**< Charcode */
-			SDLKey key;  /**< Keycode  */
+			Uint8 type; /**< Keydown or keyup, corresponding SDL_KEYUP, SDL_KEYDOWN */
+			int code;    /**< Charcode      */
+			SDLKey key;  /**< Keycode       */
+			SDLMod mod;  /**< Modifier hash */
 		};
 		
 		/**
@@ -76,7 +76,7 @@ namespace GUI
 			/**
 			 *	Window event types
 			 */
-			enum type
+			enum windowEventType
 			{
 				FOCUS,   /**< Window/Controll has recieved focus */
 				NOFOCUS, /**< Window/Controll has lost focus     */
@@ -84,32 +84,151 @@ namespace GUI
 				CLOSED   /**< Window has been closed             */
 			};
 			
-			float x;
-			float y;
-			float w;
-			float h;
+			windowEventType type;
+			
+			struct {
+				float x;
+				float y;
+				float w;
+				float h;
+			} bounds;
+		};
+		
+		/* Function pointer typedefs */
+		typedef bool(*eventKeyboard)(KeyboardEvent e);
+		typedef bool(*eventMouse)(MouseEvent e);
+		typedef void(*eventPaint)(float time_diff);
+		typedef void(*eventPreFrame)(float time_diff);
+		
+		enum EventType
+		{
+			MOUSE,
+			KEY,
+			PAINT,
+			PREFRAME,
+			UNKNOWN
 		};
 		
 		/**
 		 *	Handles the standard callback convention
 		 */
-		template <class T>
-		struct Listener
+		class Listener
 		{
-			T fptr;    /**< function to call   */
-			void* tag; /**< standard parameter */
+			public:
+				void* tag;  /**< standard parameter */
 			
-			Listener(T fptr, tag = NULL)
-			{
-				this->fptr = fptr;
-				this->tag  = tag;
-			}
+				Listener()
+				{
+					this->tag = NULL;
+				}
+				
+			virtual EventType getType() { return UNKNOWN; }
 		};
+		
+		class KeyListener : public Listener
+		{
+			public:
+				eventKeyboard fptr;
+			
+				KeyListener(eventKeyboard fptr)
+				{
+					this->fptr = fptr;
+				}
+				
+				bool call(KeyboardEvent e)
+				{
+					return fptr(e);
+				}
+				
+				virtual EventType getType() { return KEY; }
+		};
+		
+		class MouseListener : public Listener
+		{
+			public:
+				eventMouse fptr;
+				
+				MouseListener(eventMouse fptr)
+				{
+					this->fptr = fptr;
+				}
+				
+				bool call(MouseEvent e)
+				{
+					return fptr(e);
+				}
+				
+				virtual EventType getType() { return MOUSE; }
+		};
+		
+		class PaintListener : public Listener
+		{
+			public:
+				eventPaint fptr;
+				
+				PaintListener(eventPaint fptr)
+				{
+					this->fptr = fptr;
+				}
+				
+				void call(float time_diff)
+				{
+					fptr(time_diff);
+				}
+				
+				virtual EventType getType() { return PAINT; }
+		};
+		
+		class PreFrameListener : protected Listener
+		{
+			public:
+				eventPreFrame fptr;
+				
+				PreFrameListener(eventPreFrame fptr)
+				{
+					this->fptr = fptr;
+				}
+				
+				void call(float time_diff)
+				{
+					fptr(time_diff);
+				}
+						
+				virtual EventType getType() { return PREFRAME; }
+		};
+		
+		
+		struct KeyAttachment
+		{
+			SDLMod modifier;
+			KeyListener listener;
+			KeyAttachment* next;
+		};
+		
+		extern KeyAttachment*		keymaps[SDLK_LAST];
+		extern std::list<Listener*>	mouseListener;
+		extern std::list<Listener*>	keyListener;
+		extern std::list<Listener*>	paintListener;
+		extern std::list<Listener*>	preFrameListener;
+		
+		extern bool keyState[SDLK_LAST];
+		extern int mouseX;
+		extern int mouseY;
 		
 		/**
 		 * The main loop of the program, handles state execution, termination and SDL event-loop, also paint scheduling.
 		 */
 		void mainLoop();
+		
+		std::list<Listener*>::iterator addStdListener(Listener* listener);
+		
+		template<class T>
+		std::list<Listener*>::iterator addListener( T* listener)
+		{
+			return addStdListener(dynamic_cast<Listener*> (listener));
+		}
+		
+		void removeListener(std::list<Listener*>::iterator ptr);
 	}
 	
 	/**
@@ -143,184 +262,328 @@ namespace GUI
 	};
 	
 	/**
-	 * Handles scaling calculations and proponanlity corrections. [RETHINK]
+	 * Handles scaling calculations and proponanlity corrections. Handles all types of aspects and monitor resolution.
+	 * Equation: h_ref / sqrt( t * t / (a * a + 1) ) ) * 96, h_ref is the inch referens in height
 	 */
 	class Metrics
 	{
 		private:
 			float dpi;     /**< dpi factor */
 			float monitor; /**< Monitor inch size */
+			float monitoraspect;
 		protected:
-			float screenw;   /**< width of component */
-			float screenh;   /**< height of component */
-			float w;
-			float h;
-		
+			float dotsperwidth;  /**< dots per x-axis */
+			float dotsperheight; /**< dots per y-axis */
+			float percentscaling; /**< temporary scaling */
+			
 			/**
-			 * sets the size of the component
+			 * Coordinate-system calculation.
+			 * @param monitorsize	Holds the monitor inch size
+			 * @param monitoraspect Holds the monitor aspect, this to correct errors imposed by non-native incorrect aspect scaling, viewing 800x600 in 1280x768 screen.
 			 */
-			void setSize(float w, float h);
+			void calculateCoordinateSystem(float monitorsize, float monitoraspect);
+			
+			/**
+			 * Coordinate-system calculation.
+			 * @param dpi			Specific resolution
+			 * @param monitorsize	Holds the monitor inch size
+			 * @param monitoraspect Holds the monitor aspect, this to correct errors imposed by non-native incorrect aspect scaling, viewing 800x600 in 1280x768 screen.
+			 */
+			void calculateCoordinateSystem(float dpi, float monitorsize, float monitoraspect);
+			
+			/**
+			 * Coordinate-system calculation when application is in a window.
+			 * @param monitorsize		monitor inch size
+			 * @param monitor_px_width	monitor native pixel x-axis resolution
+			 * @param monitor_px_height monitor native pixel y-axis resolution
+			 */
+			void calculateCoordinateSystem(float monitorsize, int monitor_px_width, int monitor_px_height);
+			
+			/**
+			 * Coordinate-system calculation when application is in a window with specific resolution.
+			 * @param dpi				Specific resolution
+			 * @param monitorsize		monitor inch size
+			 * @param monitor_px_width	monitor native pixel x-axis resolution
+			 * @param monitor_px_height monitor native pixel y-axis resolution
+			 */
+			void calculateCoordinateSystem(float dpi, float monitorsize, int monitor_px_width, int monitor_px_height);
 			
 			/**
 			 *	from the given
 			 */
-			void calculateFullscreenSize();
 			void scaleCoordinateSystem();
 			void revertCoordinateSystem();
 		public:
-			void setDPI(float dpi);
 			float getDPI();
-			
-			void calculateDPI(float screenInch);
-			void calculateLines(int lines);
+			float setDPI(float dpi);
 		
-			float getPixelUnit();
-		
+			//Problems! Coordinate can be asymmetrical!
 			float translatePointToPixel(float pt);
 			float translatePixelToPoint(float px);
 			
 			void alignToPixel(float& x, float& y, float& w, float& h);
 			
+			void scale(float percent);
+			
 			void setMetrics(Metrics met);
 	};
 	
-	class Compositor : public Metrics, public Event
-	{
-		protected:
-			void event();
-			void paint();
-			Window* focused;
+	/*
+		Fundamental types of GUI objects:
+			Window, Dialog and Tooltips
 			
-		public:
-			
-			struct DialogButtons
-			{
-				enum
-				{
-					B_OK,
-					B_OKCANCEL,
-					B_YESNO
-				} type;
-				
-				DialogButtons()
-				{
-					names = NULL;
-					focused = -1;
-				}
-				
-				DialogButtons(int buttoncount)
-				{
-					names = new std::string[buttoncount];
-					namesLen = buttoncount;
-					focused = -1;
-				}
-				
-				DialogButtons(type standard)
-				{
-					switch(standard)
-					{
-						case B_OK:
-							names = new std::string[] {"OK"};
-							namesLen = 1;
-							focused = 0;
-							break;
-						case B_OKCANCEL:
-							names = new std::string[] {"OK", "Cancel"}
-							namesLen = 2;
-							focused = 1;
-							break;
-						case B_YESNO:
-							names = new std::string[] {"Yes", "No"}
-							namesLen = 2;
-							focused = 1;
-							break;
-					}
-				}
-				
-				std::string* names;
-				int namesLen;
-				int focused;
-			};
-			
-			struct DialogParameters
-			{
-				enum {
-					INFORMATION,
-					EXCLAMATION,
-					CRITICAL,
-					QUESTION
-				} type;
-				
-				Window* parent; //if this is NULL it is considered to be free, and will behave as a normal window.
-				bool critical; //if this is true, this window will be always on top and no other windows can be touched. only one at a time.
-				
-				DialogButtons button;
-			};
-			
-			struct TooltipParameters
-			{
-				Window* win;
-				float x;
-				float y;
-				float w;
-				float h;
-				
-				std::string text;
-			};
-		
-			bool add(Window* win, WindowParamaters params);
-			void createDialog(DialogParameters paramDiag, universalCallback callback);
-			void createTooltip(TooltipParameters paramTooltip);
-			void destroy(Window* win);
-			void manage();
-			void translate(int x, int y, float& xout, float& yout);
-	};
+		The windowsystem has three z-layers
+		Bottom (Gaming parts)
+		Normal (InGame chat dialogs)
+	*/
 	
 	class Component;
+
+	namespace Utilities
+	{
+		typedef enum {
+			INFORMATION,
+			EXCLAMATION,
+			CRITICAL,
+			QUESTION
+		} DialogType;  /**< Dialog types */
+		
+		typedef enum
+		{
+			B_OK,
+			B_OKCANCEL,
+			B_YESNO,
+			B_USERDEFINED  /**< Let's user decide labels */
+		} DialogStandardButton; 
+	
+		struct DialogButtons
+		{
+			DialogStandardButton type;
+			std::string* names;
+			int namesLen;
+			int focused;
+			
+			DialogButtons()
+			{
+				names = NULL;
+				focused = -1;
+				type = B_USERDEFINED;
+			}
+			
+			DialogButtons(int buttoncount)
+			{
+				names = new std::string[buttoncount];
+				namesLen = buttoncount;
+				focused = -1;
+				type = B_USERDEFINED;
+			}
+			
+			DialogButtons(DialogStandardButton standard)
+			{
+				switch(standard)
+				{
+					case B_OK:
+						names = new std::string[1];
+						names[0] = std::string("OK");
+						namesLen = 1;
+						focused = 0;
+						type = B_OK;
+						break;
+					case B_OKCANCEL:
+						names = new std::string[2];
+						names[0] = std::string("OK");
+						names[1] = std::string("Cancel");
+						namesLen = 2;
+						focused = 1;
+						type = B_OKCANCEL;
+						break;
+					case B_YESNO:
+						names = new std::string[2];
+						names[0] = std::string("Yes");
+						names[1] = std::string("No");
+						namesLen = 2;
+						focused = 1;
+						type = B_YESNO;
+						break;
+					default:
+						names = NULL;
+						focused = -1;
+						break;
+				}
+			}
+		};
+		
+		struct DialogParameters
+		{
+			DialogType diagtype;
+			
+			Window* parent; /**< if this is NULL it is considered to be free, and will behave as a normal window. */
+			bool critical;  /**< if this is true, this window will be always on top and no other windows can be touched. only one at a time. */
+			
+			std::string title;
+			std::string message;
+			
+			DialogButtons button;
+			
+			DialogParameters()
+			{
+				this->diagtype = QUESTION;
+				this->parent = NULL;
+				this->critical = false;
+			}
+			
+			DialogParameters(DialogType diagType, std::string message, std::string title)
+			{
+				this->parent = NULL;
+				this->critical = false;
+				this->diagtype = diagtype;
+				this->title = title;
+				this->message = message;
+			}
+			
+			DialogParameters(DialogType diagType, std::string message, std::string title, DialogButtons button)
+			{
+				this->parent = NULL;
+				this->critical = false;
+				this->diagtype = diagtype;
+				this->title = title;
+				this->message = message;
+				this->button = button;
+			}
+			
+			DialogParameters(Window* parent, DialogType diagType, std::string message, std::string title, DialogButtons button)
+			{
+				this->parent = parent;
+				this->critical = false;
+				this->diagtype = diagtype;
+				this->message = message;
+				this->title = title;
+				this->button = button;
+			}
+			
+		};
+	
+		int createTooltip(int id, std::string text, float x, float y);
+		int createTooltipEx(int id, Component comp, float x, float y);
+		void removeTooltip(int id);
+		void moveTooltip(int id, float x, float y);
+		
+		void createDialog(DialogParameters paramDiag, universalCallback callback);
+	}
+	
+	class Container;
+	class Layout;
+	
+	class Component : public Event, public Metrics
+	{
+	protected:
+		int id;
+		float x;
+		float y;
+		float w;
+		float h;
+		
+	public:
+		Component();
+		Component(float w, float h);
+		Component(float x, float y, float w, float h);
+		
+		bool isInsideArea(float x, float y);
+		
+		virtual void setParameter(void* param) {};
+		void setLayoutManager(Layout* layout);
+		
+		virtual void event(Core::MouseEvent evt, bool& handled);
+		virtual void event(Core::KeyboardEvent evt);
+		virtual void event(Core::WindowEvent evt);
+		
+		virtual void paint();
+		friend class Workspace;
+	};
+	
+	/* Window-Management */	
+	class Workspace : Metrics, Event
+	{
+		private:
+			struct Windows {
+				Windows* prev;
+				Windows* next;
+				Component object;
+			};
+			
+			Windows** win;
+		protected:
+			void paintWindows(int layer);
+			void paintTooltips();
+			void paintDialogs();
+		public:
+			void paint();
+			
+			void add(Component elem);
+			void remove(Component elem);
+			void positionate(Component elem, int z);
+	};
+	
+	struct Bounds
+	{
+		float x;
+		float y;
+		float w;
+		float h;
+		
+		Bounds()
+		{
+			this->x = 0.0f;
+			this->y = 0.0f;
+			this->w = 0.0f;
+			this->h = 0.0f;
+		}
+		
+		Bounds(float x, float y, float w, float h)
+		{
+			this->x = x;
+			this->y = y;
+			this->w = w;
+			this->h = h;
+		}  
+	};
+	
+	class LayoutConstraint
+	{
+		public:
+			void   setAbsolute(Bounds coordinates);
+			Bounds getAbsolute(void);
+	};
+	
+	class Layout
+	{
+		public:
+			LayoutConstraint getConstraint(int id);
+			void setConstraint(int id, LayoutConstraint constraint);
+	};
 	
 	class Container
 	{
 		protected:
-			vector<Component*> components;
+			std::vector<Component*> components;
 		public:
-			void add(Component* component, LayoutParameter* param);
+			void add(Component* component, void* param);
 			void remove(Component* component);
 			void clear();
 	};
 	
-	class Component : public Event, public Container
-	{
-		protected:
-			float x;
-			float y;
-			float w;
-			float h;
-		public:
-			Component();
-			Component(float w, float h);
-			Component(float x, float y, float w, float h);
-			
-			virtual void setParameter(void* param) {};
-			void setLayoutManager(Layout* layout);
-			
-			virtual void event(Core::MouseEvent evt, bool& handled);
-			virtual void event(Core::KeyboardEvent evt);
-			virtual void event(Core::WindowEvent evt);
-			
-			virtual void paint();
-		friend class Layer, Window;
-	};
-	
-	class Window : public Metrics, public Panel
+	class Window : public Component
 	{
 		public:
-			struct WindowParameters
+			typedef enum {
+				BOTTOM,
+				USERSPACE,
+				ALWAYSONTOP
+			} LayerIndex;
+		
+			struct WindowParameter
 			{
-				enum {
-					BOTTOM,
-					USERSPACE,
-					ALWAYSONTOP
-				} z;
+				LayerIndex layer;
 				
 				enum {
 					DEFAULT,
@@ -329,19 +592,28 @@ namespace GUI
 				} location;
 				
 				Window* parent;
+				
+			};
+			
+			struct WindowChild
+			{
+				Window* current;
+				WindowChild* prev;
+				WindowChild* next;
 			};
 		protected:
-			WindowParameters parameters;
+			WindowParameter parameters;
+			WindowChild* children;
 			
 		public:
 			Window(float x, float y, float w, float h, WindowParameter param);
 			Window(float w, float h, WindowParameter param);
+			Window(WindowParameter param);
 			
 			void setSize(float w, float h);
-			void setPosition(float w, float h);
-			
+			void setPosition(float x, float y);
 		
-		friend class Layer;
+		friend class Workspace;
 	};
 
 }
