@@ -148,7 +148,7 @@ namespace Game
 		void ScheduleUnitDeletion(Unit* unit);
 		void DeleteScheduledUnits();
 
-		Unit* CreateGhostUnit(const enc_ptr<UnitType>&);
+		Unit* CreateGhostUnit(const ref_ptr<UnitType>&);
 		void DeleteGhostUnit(Unit*&);
 		void AppendToActionDisplayQueueIfOK(Unit*);
 		
@@ -161,7 +161,7 @@ namespace Game
 		double GetDayLength();
 		double GetPower(const ref_ptr<Player>& player);
 		double GetMoney(const ref_ptr<Player>& player);
-		void SellPower(const enc_ptr<Player>& player, double amount);
+		void SellPower(const ref_ptr<Player>& player, double amount);
 		double GetPowerAtDawn(const ref_ptr<Player>& player);
 		double GetPowerAtDusk(const ref_ptr<Player>& player);
 		

@@ -272,7 +272,7 @@ namespace Game
 
 		string GetPower()
 		{
-			const enc_ptr<Game::Dimension::Player>& player = Game::Dimension::currentPlayerView;
+			ref_ptr<Game::Dimension::Player> player = Game::Dimension::currentPlayerView;
 			std::stringstream sstr, sstr2;
 			string change_str;
 
@@ -290,7 +290,7 @@ namespace Game
 
 		string GetMoney()
 		{
-			const enc_ptr<Game::Dimension::Player>& player = Game::Dimension::currentPlayerView;
+			ref_ptr<Game::Dimension::Player> player = Game::Dimension::currentPlayerView;
 			std::stringstream sstr, sstr2;
 			string change_str;
 
@@ -716,7 +716,7 @@ namespace Game
 						{
 							if (!pGame->input->GetKeyState(SDLK_q))
 							{
-								const enc_ptr<Game::Dimension::Player>& current_player = 
+								ref_ptr<Game::Dimension::Player> current_player = 
 									Game::Dimension::GetCurrentPlayer();
 									
 								if (current_player->vUnits.size())
@@ -1290,7 +1290,7 @@ namespace Game
 			{
 				if (pUnit->type->canBuild.size())
 				{
-					const enc_ptr<Game::Dimension::UnitType>& unitType = pUnit->type;
+					ref_ptr<Game::Dimension::UnitType> unitType = pUnit->type;
 					UnitBuild* unitBuilder = new UnitBuild(nopic, pGame);
 					Window::GUI::PanelWidget obj;
 					obj.pPanel = unitBuilder;
@@ -1510,7 +1510,7 @@ namespace Game
 			this->pUnit = pUnit;
 		}
 
-		void UnitBuild::SetUnitType(const enc_ptr<Dimension::UnitType>& pUnitType)
+		void UnitBuild::SetUnitType(const ref_ptr<Dimension::UnitType>& pUnitType)
 		{
 			this->pUnitType = pUnitType;
 			SetLayout();

@@ -65,7 +65,7 @@ namespace Utilities
 
 		extern ref_ptr<LuaVMState> globalVMState;
 		
-		const enc_ptr<Game::Dimension::Player>& GetPlayerByVMstate(lua_State *vmState);
+		const ref_ptr<Game::Dimension::Player>& GetPlayerByVMstate(lua_State *vmState);
 		LuaVMState *GetObjectByVMstate(lua_State *vmState);
 		void InitGlobalState();
 		bool IsGlobalLuaState(lua_State *vmState);

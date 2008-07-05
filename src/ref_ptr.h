@@ -358,7 +358,7 @@ class ref_ptr_from_this
 	public:
 		ref_ptr_from_this()
 		{
-			self = enc_ptr<T>((T*)this);
+			self = enc_ptr<T>(static_cast<T*>(this));
 		}
 
 		ref_ptr<T> GetRef()

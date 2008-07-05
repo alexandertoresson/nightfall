@@ -216,7 +216,7 @@ namespace UnitLuaInterface
 	int LGetUnitOwner(lua_State* pVM)
 	{
 		Unit* pUnit = _GetUnit(lua_touserdata(pVM, 1));
-		enc_ptr<Player> pPlayer;
+		ref_ptr<Player> pPlayer;
 		int result = 0;
 
 		if (pUnit != NULL && IsDisplayedUnitPointer(pUnit))
@@ -2925,12 +2925,12 @@ else \
 		lua_pop(pVM, 1);
 	}
 
-	ref_ptr<UnitType>& GetUnitTypeByID(const enc_ptr<Player>& owner, std::string str)
+	ref_ptr<UnitType>& GetUnitTypeByID(const ref_ptr<Player>& owner, std::string str)
 	{
 		return owner->unitTypeMap[str];
 	}
 
-	ref_ptr<Research>& GetResearchByID(const enc_ptr<Player>& owner, std::string str)
+	ref_ptr<Research>& GetResearchByID(const ref_ptr<Player>& owner, std::string str)
 	{
 		return owner->researchMap[str];
 	}
@@ -3493,8 +3493,8 @@ else \
 		for (std::vector<std::string>::iterator it_rch = unitType->canResearchIDs.begin(); it_rch != unitType->canResearchIDs.end(); it_rch++)
 		{
 			std::string id = *it_rch;
-			const enc_ptr<Research>& res1 = GetResearchByID(unitType->player, id);
-			const enc_ptr<Research>& res2 = GetResearchByID(unitType->player, "Research" + id);
+			const ref_ptr<Research>& res1 = GetResearchByID(unitType->player, id);
+			const ref_ptr<Research>& res2 = GetResearchByID(unitType->player, "Research" + id);
 			if (res1 || res2)
 			{
 				if (res1)

@@ -126,7 +126,7 @@ namespace Game
 			{
 				if ((*it)->isDisplayed)
 				{
-					enc_ptr<UnitType> unittype = (*it)->type;
+					ref_ptr<UnitType> unittype = (*it)->type;
 					income += unittype->powerIncrement;
 					income -= unittype->powerUsage + unittype->lightPowerUsage + (unittype->attackPowerUsage + unittype->movePowerUsage + unittype->buildPowerUsage) * 0.5;
 				}
@@ -141,7 +141,7 @@ namespace Game
 			{
 				if ((*it)->isDisplayed)
 				{
-					enc_ptr<UnitType> unittype = (*it)->type;
+					ref_ptr<UnitType> unittype = (*it)->type;
 					if (unittype->powerType == POWERTYPE_TWENTYFOURSEVEN)
 					{
 						income += unittype->powerIncrement;
@@ -174,7 +174,7 @@ namespace Game
 			return player->resources.money;
 		}
 
-		void SellPower(const enc_ptr<Player>& player, double amount)
+		void SellPower(const ref_ptr<Player>& player, double amount)
 		{
 			if (amount > player->resources.power)
 				amount = player->resources.power;
@@ -247,7 +247,7 @@ namespace Game
 		{
 			double build_cost;
 			double power_usage = unit->type->buildPowerUsage / AI::aiFps;
-			enc_ptr<UnitType> build_type = unit->pMovementData->action.args.unitType;
+			ref_ptr<UnitType> build_type = unit->pMovementData->action.args.unitType;
 
 			if (unit->owner->resources.power < power_usage)
 			{
@@ -2028,9 +2028,9 @@ namespace Game
 		}
 
 		vector<Unit*> unitsDisplayQueue;
-		Unit* CreateGhostUnit(const enc_ptr<UnitType>& type)
+		Unit* CreateGhostUnit(const ref_ptr<UnitType>& type)
 		{
-			const enc_ptr<Player>& owner = Game::Dimension::currentPlayer;
+			ref_ptr<Player> owner = Game::Dimension::currentPlayer;
 
 			if (!owner)
 				return NULL;

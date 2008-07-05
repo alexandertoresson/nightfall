@@ -66,7 +66,7 @@ namespace Game
 		void PreparePath(Dimension::Unit* unit, AI::Node* pStart, AI::Node* pGoal);
 		void PrepareCreation(const ref_ptr<Dimension::UnitType>& unittype, int x, int y, float rot);
 		void PrepareDamaging(Dimension::Unit* unit, float damage);
-		void PrepareSell(const enc_ptr<Dimension::Player>& owner, int amount);
+		void PrepareSell(const ref_ptr<Dimension::Player>& owner, int amount);
 
 		typedef Uint8 BUFFER;
 

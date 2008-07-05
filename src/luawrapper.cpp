@@ -282,7 +282,7 @@ namespace Utilities
 			UnitLuaInterface::PostProcessStrings();
 		}
 
-		const enc_ptr<Game::Dimension::Player>& GetPlayerByVMstate(lua_State *vmState)
+		const ref_ptr<Game::Dimension::Player>& GetPlayerByVMstate(lua_State *vmState)
 		{
 			return Game::Dimension::pWorld->luaStateToPlayer[vmState];
 		}

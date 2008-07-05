@@ -91,7 +91,7 @@ namespace Game
 		protected:
 			std::vector<BuildButton*> objects;
 
-			enc_ptr<Dimension::UnitType> pUnitType;
+			ref_ptr<Dimension::UnitType> pUnitType;
 			Dimension::Unit *pUnit;
 
 			void SetLayout();
@@ -110,7 +110,7 @@ namespace Game
 			void GetBuildPercentage(int id, float& value, std::string& lbl);
 		public:
 			UnitBuild(GLuint, GameWindow*);
-			void SetUnitType(const enc_ptr<Dimension::UnitType>&);
+			void SetUnitType(const ref_ptr<Dimension::UnitType>&);
 			void SetUnit(Dimension::Unit*);
 			~UnitBuild();
 			friend class BuildButton;

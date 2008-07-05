@@ -87,7 +87,7 @@ namespace Game
 			int             width;
 			int             height;
 		
-			std::map<lua_State*, enc_ptr<Player> > luaStateToPlayer;
+			std::map<lua_State*, ref_ptr<Player> > luaStateToPlayer;
 			std::map<lua_State*, Utilities::Scripting::LuaVMState*> luaStateToObject;
 
 			~World();

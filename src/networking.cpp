@@ -532,7 +532,7 @@ namespace Game
 
 		SDL_mutex* prepareSellMutex = SDL_CreateMutex();
 
-		void PrepareSell(const enc_ptr<Dimension::Player>& owner, int amount)
+		void PrepareSell(const ref_ptr<Dimension::Player>& owner, int amount)
 		{
 			NetSell* sell = new NetSell;
 			sell->owner_id = owner->GetIndependentHandle();
