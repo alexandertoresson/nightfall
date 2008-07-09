@@ -38,6 +38,7 @@ namespace Utilities
 		std::string name;
 		virtual void Set(GLint id) = 0;
 		virtual ~Uniform() {};
+		void shade() {};
 	};
 
 	struct Uniform4f : public Uniform
@@ -110,13 +111,17 @@ namespace Utilities
 		unsigned dimensions;
 		unsigned width, height, channels;
 		GLenum pixelFormat, channelFormat;
-		ref_ptr<SDL_Surface> image;
+		SDL_Surface *image;
 		GLuint buffer;
 
 		TextureImageData(std::string filename, std::string name);
 
 		void Lock();
 		void Unlock();
+
+		void shade()
+		{
+		}
 	};
 
 	struct Material
@@ -127,8 +132,8 @@ namespace Utilities
 		Colour specular;
 		Colour emission;
 		GLfloat shininess;
-		std::vector<ref_ptr<TextureImageData> > textures;
-		std::vector<ref_ptr<Uniform> > uniforms;
+		std::vector<gc_ptr<TextureImageData> > textures;
+		std::vector<gc_ptr<Uniform> > uniforms;
 		GLhandleARB program;
 		GLhandleARB vertShader;
 		GLhandleARB fragShader;
@@ -138,6 +143,11 @@ namespace Utilities
 			
 		}
 
+		void shade()
+		{
+			gc_shade_container(textures);
+			gc_shade_container(uniforms);
+		}
 	};
 }
 

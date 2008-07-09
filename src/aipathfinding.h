@@ -100,7 +100,7 @@ namespace Game
 			}
 
 			void Reset();
-			void Set(int start_x, int start_y, int end_x, int end_y, Dimension::Unit* goal, AI::UnitAction action, const Dimension::ActionArguments& args, float rotation);
+			void Set(int start_x, int start_y, int end_x, int end_y, const gc_ptr<Dimension::Unit>& goal, AI::UnitAction action, const Dimension::ActionArguments& args, float rotation);
 		};
 
 		struct MovementData
@@ -142,6 +142,15 @@ namespace Game
 #ifdef DEBUG_AI_PATHFINDING
 			unsigned int _cycles;
 #endif
+			void shade()
+			{
+				action.shade();
+				secondaryAction.shade();
+				_action.shade();
+				_newAction.shade();
+			}
+
+			~MovementData();
 		};
 
 		struct ThreadData;
@@ -149,7 +158,7 @@ namespace Game
 		//
 		// Prepare unit for pathfinding
 		//
-		void InitMovementData(Dimension::Unit* unit);
+		void InitMovementData(const gc_ptr<Dimension::Unit>& unit);
 
 		//
 		// Push the given unit into the pathfinding waiting queue.
@@ -172,7 +181,7 @@ namespace Game
 		//            target - target unit. default NULL
 		//            args   - unit action arguments. default NULL
 		//
-		IPResult CommandPathfinding(Dimension::Unit* pUnit, int start_x, int start_y, int goal_x, int goal_y, AI::UnitAction action = AI::ACTION_GOTO, Dimension::Unit* target = NULL, const Dimension::ActionArguments& args = Dimension::ActionArguments(), float rotation = 0.0f);
+		IPResult CommandPathfinding(const gc_ptr<Dimension::Unit>& pUnit, int start_x, int start_y, int goal_x, int goal_y, AI::UnitAction action = AI::ACTION_GOTO, const gc_ptr<Dimension::Unit>& target = NULL, const Dimension::ActionArguments& args = Dimension::ActionArguments(), float rotation = 0.0f);
 		
 		//
 		// Get the internal path state, PATHSTATE_*
@@ -181,13 +190,13 @@ namespace Game
 		// *) PATHSTATE_ERROR          - the calculation failed
 		// *) PATHSTATE_OK             - the path is being calculated
 		//
-		PathState GetInternalPathState(Dimension::Unit*);
+		PathState GetInternalPathState(const gc_ptr<Dimension::Unit>&);
 		
 		//
 		// Applies the internal node structure as the current path.
 		// Returns true if success, false on failure.
 		//
-		bool ApplyNewPath(Dimension::Unit*);
+		bool ApplyNewPath(const gc_ptr<Dimension::Unit>&);
 		
 		//
 		// Applies the internal node structure as the current path
@@ -199,9 +208,9 @@ namespace Game
 		// Quit current path and deallocaet it
 		// Returns true if success, false on failure
 		//
-		bool QuitCurrentPath(Dimension::Unit*);
+		bool QuitCurrentPath(const gc_ptr<Dimension::Unit>&);
 		
-		void CancelUndergoingProc(Dimension::Unit* unit);
+		void CancelUndergoingProc(const gc_ptr<Dimension::Unit>& unit);
 
 		//
 		// Internal function: do pathfinding work.
@@ -214,25 +223,25 @@ namespace Game
 		// DPN_FRONT represents the pStart -> pGoal node tree
 		// DPN_BACK represents the internal _start -> _goal node tree
 		//
-		void DeallocPathfindingNodes(Dimension::Unit*&, DPNArg = DPN_FRONT);
+		void DeallocPathfindingNodes(const gc_ptr<Dimension::Unit>&, DPNArg = DPN_FRONT);
 
 		//
 		// Returns wheather the unit is busy (its path is being calculated).
 		// Note: a unit in waiting queue is considered busy.
 		//
-		bool IsUndergoingPathCalc(Dimension::Unit*);
+		bool IsUndergoingPathCalc(const gc_ptr<Dimension::Unit>&);
 		
 		//
 		// Sets _reason and _popFromQueue flags in order to ensure
 		// immediate deletion of given unit.
 		//
-		void QuitUndergoingProc(Dimension::Unit*);
+		void QuitUndergoingProc(const gc_ptr<Dimension::Unit>&);
 
 		//
 		//
 		//
 		//
-		void DequeueNewPath(Dimension::Unit* unit);
+		void DequeueNewPath(const gc_ptr<Dimension::Unit>& unit);
 
 		//
 		// Prepare pathfinding thread
@@ -245,13 +254,13 @@ namespace Game
 		void QuitPathfindingThreading(void);
 		
 		void PausePathfinding();
-		int PausePathfinding(Dimension::Unit* unit);
+		int PausePathfinding(const gc_ptr<Dimension::Unit>& unit);
 		
 		void ResumePathfinding();
 		void ResumePathfinding(int thread);
 
-		void DeleteUnitFromAreaMap(Dimension::Unit* unit);
-		void AddUnitToAreaMap(Dimension::Unit* unit);
+		void DeleteUnitFromAreaMap(const gc_ptr<Dimension::Unit>& unit);
+		void AddUnitToAreaMap(const gc_ptr<Dimension::Unit>& unit);
 
 		const int STACK_ELEMENTS = 2048;
 		

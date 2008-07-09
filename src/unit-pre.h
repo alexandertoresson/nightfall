@@ -5,6 +5,8 @@
 #warning "unit.h-pre"
 #endif
 
+#include "sdlheader.h"
+
 namespace Game
 {
 	namespace Dimension
@@ -45,11 +47,10 @@ namespace Game
 		struct TransData;
 		struct Animation;
 		
-		Unit *GetUnitByID(unsigned id);
-		bool IsValidUnitPointer(Unit* unit); // May not be called from another thread
-		bool IsDisplayedUnitPointer(Unit* unit); // May be calle from synced threads
+		gc_ptr<Unit> GetUnitByID(unsigned id);
+		bool IsDisplayedUnitPointer(const gc_ptr<Unit>& unit); // May be calle from synced threads
 
-		bool MoveUnit(Unit* unit);
+		bool MoveUnit(const gc_ptr<Unit>& unit);
 		
 		extern int** numUnitsPerAreaMap;
 		extern int numSentCommands;

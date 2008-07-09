@@ -17,7 +17,7 @@ namespace Game
 		
 		struct UnitGoal
 		{
-			Unit* unit;
+			gc_ptr<Unit> unit;
 			IntPosition pos;
 
 			UnitGoal() : unit(NULL)
@@ -25,16 +25,21 @@ namespace Game
 				
 			}
 
-			UnitGoal(Unit* unit, int pos_x, int pos_y) : unit(unit), pos(pos_x, pos_y)
+			UnitGoal(const gc_ptr<Unit>& unit, int pos_x, int pos_y) : unit(unit), pos(pos_x, pos_y)
 			{
 				
+			}
+
+			void shade()
+			{
+				unit.shade();
 			}
 		};
 		
 		struct ActionArguments
 		{
-			ref_ptr<UnitType> unitType;
-			ref_ptr<Research> research;
+			gc_ptr<UnitType> unitType;
+			gc_ptr<Research> research;
 			int argHandle;
 
 			ActionArguments() : argHandle(-1)
@@ -42,30 +47,42 @@ namespace Game
 				
 			}
 			
-			ActionArguments(const ref_ptr<UnitType>& unitType) : unitType(unitType), argHandle(unitType->GetHandle())
+			ActionArguments(const gc_root_ptr<UnitType>& unitType) : unitType(unitType), argHandle(unitType->GetHandle())
 			{
 				
 			}
 			
-			ActionArguments(const ref_ptr<Research>& research) : research(research), argHandle(research->GetHandle())
+			ActionArguments(const gc_root_ptr<Research>& research) : research(research), argHandle(research->GetHandle())
 			{
 				
 			}
 			
-			ActionArguments(unsigned i) : argHandle(i)
+			ActionArguments(const gc_ptr<UnitType>& unitType) : unitType(unitType), argHandle(unitType->GetHandle())
 			{
 				
-				if (i >= 65536)
+			}
+			
+			ActionArguments(const gc_ptr<Research>& research) : research(research), argHandle(research->GetHandle())
+			{
+				
+			}
+			
+			ActionArguments(int i) : argHandle(i)
+			{
+				if (HandleManager<UnitType>::IsCorrectHandle(i))
 				{
-					if (i >= 131072)
-					{
-						research = GetResearchByID(i-131072);
-					}
-					else
-					{
-						unitType = GetUnitTypeByID(i-65536);
-					}
+					unitType = HandleManager<UnitType>::InterpretHandle(i);
 				}
+				else if (HandleManager<Research>::IsCorrectHandle(i))
+				{
+					research = HandleManager<Research>::InterpretHandle(i);
+				}
+			}
+
+			void shade()
+			{
+				research.shade();
+				unitType.shade();
 			}
 			
 		};
@@ -91,6 +108,13 @@ namespace Game
 			{
 				
 			}*/
+			
+			void shade()
+			{
+				goal.shade();
+				args.shade();
+			}
+			
 		};
 
 	}

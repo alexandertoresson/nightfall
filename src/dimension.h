@@ -28,15 +28,21 @@ namespace Game
 			std::string name;
 			std::string description;
 			bool isResearched;
-			Unit* researcher;
+			gc_ptr<Unit> researcher;
 			std::string luaEffectObj;
 			ObjectRequirements requirements;
 			GLuint icon;
-			enc_ptr<Player> player;
+			gc_ptr<Player> player;
 
 			Research()
 			{
 				researcher = NULL;
+			}
+
+			void shade()
+			{
+				researcher.shade();
+				player.shade();
 			}
 		};
 
@@ -44,11 +50,11 @@ namespace Game
 		{
 			std::string       name;
 			PlayerType        type;
-			std::vector<Unit*>       vUnits;
-			std::vector<Unit*>       vUnitsWithLuaAI;
-			std::vector<ref_ptr<UnitType> >   vUnitTypes;
+			std::vector<gc_ptr<Unit> >       vUnits;
+			std::vector<gc_ptr<Unit> >       vUnitsWithLuaAI;
+			std::vector<gc_ptr<UnitType> >   vUnitTypes;
 			std::vector<Projectile*> vProjectiles;
-			std::vector<ref_ptr<Research> >   vResearchs;
+			std::vector<gc_ptr<Research> >   vResearchs;
 			Uint16**          NumUnitsSeeingSquare;
 			PlayerState*      states;
 			Resources         resources;
@@ -59,8 +65,8 @@ namespace Game
 			int               index;
 			int               aiFrame;
 			bool              isRemote;
-			std::map<std::string, ref_ptr<UnitType> > unitTypeMap;
-			std::map<std::string, ref_ptr<Research> > researchMap;
+			std::map<std::string, gc_ptr<UnitType> > unitTypeMap;
+			std::map<std::string, gc_ptr<Research> > researchMap;
 			
 			std::string       raceScript;
 			std::string       aiScript;
@@ -71,6 +77,16 @@ namespace Game
 			Player(std::string name, PlayerType playertype, std::string raceScript, std::string aiScript, Utilities::Colour colour0, Utilities::Colour colour1, Utilities::Colour colour2);
 
 			~Player();
+
+			void shade()
+			{
+				gc_shade_container(vUnits);
+				gc_shade_container(vUnitsWithLuaAI);
+				gc_shade_container(vUnitTypes);
+				gc_shade_container(vResearchs);
+				gc_shade_map(unitTypeMap);
+				gc_shade_map(researchMap);
+			}
 		};
 		
 		struct World
@@ -79,18 +95,29 @@ namespace Game
 			Uint16**        ppSteepness;
 			float**         ppWater[3];
 			Uint16**        NumLightsOnSquare;
-			std::vector<Unit*>   vUnits;
-			std::vector<Unit*>   vUnitsWithAI;
-			std::vector<ref_ptr<UnitType> > vAllUnitTypes;
-			std::vector<ref_ptr<Player> > vPlayers;
-			std::vector<ref_ptr<Research> > vAllResearchs;
+			std::vector<gc_ptr<Unit> >   vUnits;
+			std::vector<gc_ptr<Unit> >   vUnitsWithAI;
+			std::vector<gc_ptr<UnitType> > vAllUnitTypes;
+			std::vector<gc_ptr<Player> > vPlayers;
+			std::vector<gc_ptr<Research> > vAllResearchs;
 			int             width;
 			int             height;
 		
-			std::map<lua_State*, ref_ptr<Player> > luaStateToPlayer;
+			std::map<lua_State*, gc_ptr<Player> > luaStateToPlayer;
 			std::map<lua_State*, Utilities::Scripting::LuaVMState*> luaStateToObject;
 
 			~World();
+
+			void shade()
+			{
+				gc_shade_container(vUnits);
+				gc_shade_container(vUnitsWithAI);
+				gc_shade_container(vAllUnitTypes);
+				gc_shade_container(vPlayers);
+				gc_shade_container(vAllResearchs);
+
+				gc_shade_map(luaStateToPlayer);
+			}
 		};
 		
 		class InputController
@@ -105,8 +132,8 @@ namespace Game
 				void SetKeyState(SDLKey key, bool value) { mKeys[key] = value; }
 		};
 		
-		extern   ref_ptr<World>           pWorld;
-		extern   Unit***                  pppElements;
+		extern   gc_root_ptr<World>           pWorld;
+		extern   gc_ptr<Unit>**                  pppElements;
 		
 		void GetApproximateMapPosOfClick(int clickx, int clicky, int &map_x, int &map_y);
 		bool GetTerrainPosClicked(int clickx, int clicky, int map_x, int map_y, int &ter_x, int &ter_y);
@@ -114,14 +141,15 @@ namespace Game
 		void InitPlayers(unsigned players_to_init);
 		void InitPlayers(std::vector<PlayerType> playertypes);
 		
-		const ref_ptr<Player>& GetCurrentPlayer();
-		void SetCurrentPlayer(const ref_ptr<Player>&);
-		void SetCurrentPlayerView(const ref_ptr<Player>&);
+		const gc_ptr<Player>& GetCurrentPlayer();
+		void SetCurrentPlayer(const gc_ptr<Player>&);
+		void SetCurrentPlayerView(const gc_ptr<Player>&);
 		
-		void UnloadUnitType(const ref_ptr<UnitType>& pUnitType);
+		void UnloadUnitType(const gc_ptr<UnitType>& pUnitType);
 
-		void RecheckAllRequirements(const ref_ptr<Player>& player);
+		void RecheckAllRequirements(const gc_ptr<Player>& player);
 
+		void PrintPlayerRefs();
 	}
 }
 

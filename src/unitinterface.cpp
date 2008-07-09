@@ -34,7 +34,7 @@ namespace UnitLuaInterface
 	using namespace std;
 	
 #define CHECK_UNIT_PTR(x) \
-	if ((x) == NULL) \
+	if (!(x)) \
 	{ \
 		lua_pushboolean(pVM, 0); \
 		std::cout << "[LUA SET] Failure:" << __FUNCTION__ << ": " << #x << " Invalid unit - null pointer" << std::endl; \
@@ -48,7 +48,7 @@ namespace UnitLuaInterface
 	} 
 
 #define CHECK_UNIT_PTR_NULL_VALID(x) \
-	if ((x) != NULL) \
+	if ((x)) \
 	{ \
 		if (!IsDisplayedUnitPointer(x)) \
 		{ \
@@ -58,25 +58,24 @@ namespace UnitLuaInterface
 		} \
 	} 
 
-	Unit* _GetUnit(void* ptr)
+	gc_ptr<Unit> _GetUnit(void* ptr)
 	{
-		Unit* unit = GetUnitByID((unsigned long)ptr);
-		return unit;
+		return GetUnitByID((unsigned long)ptr);
 	}
 
-	ref_ptr<UnitType> _GetUnitType(void* ptr)
+	gc_ptr<UnitType> _GetUnitType(void* ptr)
 	{
 		long ut_index = (long) ptr;
 		return HandleManager<UnitType>::InterpretHandle(ut_index);
 	}
 
-	ref_ptr<Research> _GetResearch(void* ptr)
+	gc_ptr<Research> _GetResearch(void* ptr)
 	{
 		long r_index = (long) ptr;
 		return HandleManager<Research>::InterpretHandle(r_index);
 	}
 
-	ref_ptr<Player> _GetPlayer(void* ptr)
+	gc_ptr<Player> _GetPlayer(void* ptr)
 	{
 		long p_index = (long) ptr;
 		return HandleManager<Player>::InterpretHandle(p_index);
@@ -99,11 +98,11 @@ namespace UnitLuaInterface
 	int LGetUnitHealth(lua_State* pVM)
 	{
 		float health = -1.0f;
-		Unit* pUnit = _GetUnit(lua_touserdata(pVM, 1));
+		const gc_ptr<Unit>& pUnit = _GetUnit(lua_touserdata(pVM, 1));
 
 		CHECK_UNIT_PTR(pUnit);
 
-		if (pUnit != NULL && IsDisplayedUnitPointer(pUnit))
+		if (IsDisplayedUnitPointer(pUnit))
 			health = pUnit->health;
 
 		lua_pushnumber(pVM, health);
@@ -113,9 +112,9 @@ namespace UnitLuaInterface
 	int LGetUnitMaxHealth(lua_State* pVM)
 	{
 		int health = -1;
-		Unit* pUnit = _GetUnit(lua_touserdata(pVM, 1));
+		const gc_ptr<Unit>& pUnit = _GetUnit(lua_touserdata(pVM, 1));
 
-		if (pUnit != NULL && IsDisplayedUnitPointer(pUnit))
+		if (IsDisplayedUnitPointer(pUnit))
 			health = pUnit->type->maxHealth;
 
 		lua_pushnumber(pVM, health);
@@ -125,9 +124,9 @@ namespace UnitLuaInterface
 	int LGetUnitPower(lua_State* pVM)
 	{
 		float power = -1.0f;
-		Unit* pUnit = _GetUnit(lua_touserdata(pVM, 1));
+		const gc_ptr<Unit>& pUnit = _GetUnit(lua_touserdata(pVM, 1));
 
-		if (pUnit != NULL && IsDisplayedUnitPointer(pUnit))
+		if (IsDisplayedUnitPointer(pUnit))
 			power = pUnit->power;
 
 		lua_pushnumber(pVM, power);
@@ -137,9 +136,9 @@ namespace UnitLuaInterface
 	int LGetUnitMaxPower(lua_State* pVM)
 	{
 		int power = -1;
-		Unit* pUnit = _GetUnit(lua_touserdata(pVM, 1));
+		const gc_ptr<Unit>& pUnit = _GetUnit(lua_touserdata(pVM, 1));
 
-		if (pUnit != NULL && IsDisplayedUnitPointer(pUnit))
+		if (IsDisplayedUnitPointer(pUnit))
 			power = pUnit->type->maxPower;
 
 		lua_pushinteger(pVM, power);
@@ -149,9 +148,9 @@ namespace UnitLuaInterface
 	int LGetUnitAction(lua_State* pVM)
 	{
 		UnitAction action = ACTION_NONE;
-		Unit* pUnit = _GetUnit(lua_touserdata(pVM, 1));
+		const gc_ptr<Unit>& pUnit = _GetUnit(lua_touserdata(pVM, 1));
 
-		if (pUnit != NULL && IsDisplayedUnitPointer(pUnit))
+		if (IsDisplayedUnitPointer(pUnit))
 			action = pUnit->pMovementData->action.action;
 
 		lua_pushinteger(pVM, action);
@@ -161,9 +160,9 @@ namespace UnitLuaInterface
 	int LGetUnitActionArg(lua_State* pVM)
 	{
 		void* arg = NULL;
-		Unit* pUnit = _GetUnit(lua_touserdata(pVM, 1));
+		const gc_ptr<Unit>& pUnit = _GetUnit(lua_touserdata(pVM, 1));
 
-		if (pUnit != NULL && IsDisplayedUnitPointer(pUnit))
+		if (IsDisplayedUnitPointer(pUnit))
 			arg = (void*) pUnit->pMovementData->action.args.argHandle;
 
 		lua_pushlightuserdata(pVM, arg);
@@ -173,9 +172,9 @@ namespace UnitLuaInterface
 	int LGetUnitPosition(lua_State* pVM)
 	{
 		float position[2] = { 0, 0 };
-		Unit* pUnit = _GetUnit(lua_touserdata(pVM, 1));
+		const gc_ptr<Unit>& pUnit = _GetUnit(lua_touserdata(pVM, 1));
 
-		if (pUnit != NULL && IsDisplayedUnitPointer(pUnit))
+		if (IsDisplayedUnitPointer(pUnit))
 		{
 			position[0] = pUnit->pos.x;
 			position[1] = pUnit->pos.y;
@@ -189,9 +188,9 @@ namespace UnitLuaInterface
 	int LGetUnitRotation(lua_State* pVM)
 	{
 		float rotation = 0;
-		Unit* pUnit = _GetUnit(lua_touserdata(pVM, 1));
+		const gc_ptr<Unit>& pUnit = _GetUnit(lua_touserdata(pVM, 1));
 
-		if (pUnit != NULL && IsDisplayedUnitPointer(pUnit))
+		if (IsDisplayedUnitPointer(pUnit))
 			rotation = pUnit->rotation;
 
 		lua_pushnumber(pVM, rotation);
@@ -200,10 +199,10 @@ namespace UnitLuaInterface
 
 	int LGetUnitType(lua_State* pVM)
 	{
-		Unit* pUnit = _GetUnit(lua_touserdata(pVM, 1));
+		const gc_ptr<Unit>& pUnit = _GetUnit(lua_touserdata(pVM, 1));
 		int ut = -1;
 
-		if (pUnit != NULL && IsDisplayedUnitPointer(pUnit))
+		if (IsDisplayedUnitPointer(pUnit))
 		{
 			if (pUnit->type)
 				ut = pUnit->type->GetHandle();
@@ -215,11 +214,11 @@ namespace UnitLuaInterface
 
 	int LGetUnitOwner(lua_State* pVM)
 	{
-		Unit* pUnit = _GetUnit(lua_touserdata(pVM, 1));
-		ref_ptr<Player> pPlayer;
+		const gc_ptr<Unit>& pUnit = _GetUnit(lua_touserdata(pVM, 1));
+		gc_ptr<Player> pPlayer;
 		int result = 0;
 
-		if (pUnit != NULL && IsDisplayedUnitPointer(pUnit))
+		if (IsDisplayedUnitPointer(pUnit))
 		{
 			result = 1;
 			pPlayer = pUnit->owner;
@@ -232,10 +231,10 @@ namespace UnitLuaInterface
 
 	int LGetUnitIsMobile(lua_State* pVM)
 	{
-		Unit* pUnit = _GetUnit(lua_touserdata(pVM, 1));
+		const gc_ptr<Unit>& pUnit = _GetUnit(lua_touserdata(pVM, 1));
 		bool isMobile = false;
 
-		if (pUnit != NULL && IsDisplayedUnitPointer(pUnit))
+		if (IsDisplayedUnitPointer(pUnit))
 			isMobile = pUnit->type->isMobile;
 
 		lua_pushboolean(pVM, isMobile);
@@ -246,7 +245,7 @@ namespace UnitLuaInterface
 	{
 		bool isMobile = false;
 
-		ref_ptr<UnitType> ptr = _GetUnitType(lua_touserdata(pVM, 1));
+		gc_ptr<UnitType> ptr = _GetUnitType(lua_touserdata(pVM, 1));
 
 		if (ptr)
 			isMobile = ptr->isMobile;
@@ -257,10 +256,10 @@ namespace UnitLuaInterface
 
 	int LGetUnitLightAmount(lua_State* pVM)
 	{
-		Unit* pUnit = _GetUnit(lua_touserdata(pVM, 1));
+		const gc_ptr<Unit>& pUnit = _GetUnit(lua_touserdata(pVM, 1));
 		float lightAmount = 0.0;
 
-		if (pUnit != NULL && IsDisplayedUnitPointer(pUnit))
+		if (IsDisplayedUnitPointer(pUnit))
 			lightAmount = GetLightAmountOnUnit(pUnit);
 
 		lua_pushnumber(pVM, lightAmount);
@@ -269,10 +268,10 @@ namespace UnitLuaInterface
 
 	int LGetUnitCanAttack(lua_State* pVM)
 	{
-		Unit* pUnit = _GetUnit(lua_touserdata(pVM, 1));
+		const gc_ptr<Unit>& pUnit = _GetUnit(lua_touserdata(pVM, 1));
 		bool canAttack = false;
 
-		if (pUnit != NULL && IsDisplayedUnitPointer(pUnit))
+		if (IsDisplayedUnitPointer(pUnit))
 			canAttack = pUnit->type->canAttack;
 
 		lua_pushboolean(pVM, canAttack);
@@ -281,10 +280,10 @@ namespace UnitLuaInterface
 
 	int LGetUnitCanBuild(lua_State* pVM)
 	{
-		Unit* pUnit = _GetUnit(lua_touserdata(pVM, 1));
+		const gc_ptr<Unit>& pUnit = _GetUnit(lua_touserdata(pVM, 1));
 		bool canBuild = false;
 
-		if (pUnit != NULL && IsDisplayedUnitPointer(pUnit))
+		if (IsDisplayedUnitPointer(pUnit))
 			canBuild = pUnit->type->canBuild.size() > 0;
 
 		lua_pushboolean(pVM, canBuild);
@@ -293,10 +292,10 @@ namespace UnitLuaInterface
 
 	int LGetUnitLastAttack(lua_State* pVM)
 	{
-		Unit* pUnit = _GetUnit(lua_touserdata(pVM, 1));
+		const gc_ptr<Unit>& pUnit = _GetUnit(lua_touserdata(pVM, 1));
 		Uint32 time = 0;
 
-		if (pUnit != NULL && IsDisplayedUnitPointer(pUnit))
+		if (IsDisplayedUnitPointer(pUnit))
 			time = pUnit->lastAttack;
 		
 		lua_pushnumber(pVM, time);
@@ -305,10 +304,10 @@ namespace UnitLuaInterface
 
 	int LGetUnitLastAttacked(lua_State* pVM)
 	{
-		Unit* pUnit = _GetUnit(lua_touserdata(pVM, 1));
+		const gc_ptr<Unit>& pUnit = _GetUnit(lua_touserdata(pVM, 1));
 		Uint32 time = 0;
 
-		if (pUnit != NULL && IsDisplayedUnitPointer(pUnit))
+		if (IsDisplayedUnitPointer(pUnit))
 			time = pUnit->lastAttacked;
 		
 		lua_pushnumber(pVM, time);
@@ -317,27 +316,27 @@ namespace UnitLuaInterface
 
 	int LGetUnitTargetUnit(lua_State* pVM)
 	{
-		Unit* pUnit = _GetUnit(lua_touserdata(pVM, 1));
-		Unit* target = NULL;
+		const gc_ptr<Unit>& pUnit = _GetUnit(lua_touserdata(pVM, 1));
+		gc_ptr<Unit> target = NULL;
 
-		if (pUnit != NULL && IsDisplayedUnitPointer(pUnit))
-			if (pUnit->pMovementData != NULL)
+		if (IsDisplayedUnitPointer(pUnit))
+			if (pUnit->pMovementData)
 				target = pUnit->pMovementData->action.goal.unit;
 		
-		lua_pushlightuserdata(pVM, (void*) target);
+		lua_pushlightuserdata(pVM, (void*) target->id);
 		return 1;
 	}
 
 	int LGetUnitTargetPos(lua_State* pVM)
 	{
-		Unit* pUnit = _GetUnit(lua_touserdata(pVM, 1));
+		const gc_ptr<Unit>& pUnit = _GetUnit(lua_touserdata(pVM, 1));
 		IntPosition target;
 
 		target.x = 0;
 		target.y = 0;
 
-		if (pUnit != NULL && IsDisplayedUnitPointer(pUnit))
-			if (pUnit->pMovementData != NULL)
+		if (IsDisplayedUnitPointer(pUnit))
+			if (pUnit->pMovementData)
 				target = pUnit->pMovementData->action.goal.pos;
 		
 		lua_pushnumber(pVM, target.x);
@@ -347,13 +346,13 @@ namespace UnitLuaInterface
 
 	int LGetNearestUnitInRange(lua_State* pVM)
 	{
-		Unit* pUnit = _GetUnit(lua_touserdata(pVM, 1));
+		const gc_ptr<Unit>& pUnit = _GetUnit(lua_touserdata(pVM, 1));
 		RangeType rangeType = (RangeType) lua_tointeger(pVM, 2);
 		PlayerState PSBitmask = lua_tointeger(pVM, 3);
 
-		Unit* retUnit = NULL;
+		gc_ptr<Unit> retUnit = NULL;
 
-		if (pUnit != NULL && IsDisplayedUnitPointer(pUnit))
+		if (IsDisplayedUnitPointer(pUnit))
 		{
 			retUnit = GetNearestUnitInRange(pUnit, rangeType, PSBitmask);
 		}
@@ -371,7 +370,7 @@ namespace UnitLuaInterface
 
 	int LGetNearestSuitableAndLightedPosition(lua_State* pVM)
 	{
-		ref_ptr<UnitType> pUnitType = _GetUnitType(lua_touserdata(pVM, 1));
+		gc_ptr<UnitType> pUnitType = _GetUnitType(lua_touserdata(pVM, 1));
 		int  x       = lua_tointeger(pVM, 2);
 		int  y       = lua_tointeger(pVM, 3);
 		bool ret     = false;
@@ -387,7 +386,7 @@ namespace UnitLuaInterface
 
 	int LGetSuitablePositionForLightTower(lua_State* pVM)
 	{
-		ref_ptr<UnitType> pUnitType = _GetUnitType(lua_touserdata(pVM, 1));
+		gc_ptr<UnitType> pUnitType = _GetUnitType(lua_touserdata(pVM, 1));
 		int  x           = lua_tointeger(pVM, 2), y = lua_tointeger(pVM, 3);
 		bool needLighted = lua_toboolean(pVM, 4);
 		bool ret         = false;
@@ -422,7 +421,7 @@ namespace UnitLuaInterface
 
 	int LGetPower(lua_State* pVM)
 	{
-		const ref_ptr<Player>& player = GetPlayerByVMstate(pVM);
+		const gc_ptr<Player>& player = GetPlayerByVMstate(pVM);
 		float power = 0;
 
 		if (player)
@@ -434,7 +433,7 @@ namespace UnitLuaInterface
 
 	int LGetMoney(lua_State* pVM)
 	{
-		const ref_ptr<Player> &player = GetPlayerByVMstate(pVM);
+		const gc_ptr<Player> &player = GetPlayerByVMstate(pVM);
 		float money = 0;
 
 		if (player)
@@ -446,7 +445,7 @@ namespace UnitLuaInterface
 
 	int LGetIncomeAtNoon(lua_State* pVM)
 	{
-		const ref_ptr<Player>& player = GetPlayerByVMstate(pVM);
+		const gc_ptr<Player>& player = GetPlayerByVMstate(pVM);
 		float income = 0;
 
 		if (player)
@@ -458,7 +457,7 @@ namespace UnitLuaInterface
 	
 	int LGetIncomeAtNight(lua_State* pVM)
 	{
-		const ref_ptr<Player>& player = GetPlayerByVMstate(pVM);
+		const gc_ptr<Player>& player = GetPlayerByVMstate(pVM);
 		float income = 0;
 
 		if (player)
@@ -470,7 +469,7 @@ namespace UnitLuaInterface
 
 	int LGetUnitTypeIncomeAtNoon(lua_State* pVM)
 	{
-		ref_ptr<UnitType> pUnitType = _GetUnitType(lua_touserdata(pVM, 1));
+		gc_ptr<UnitType> pUnitType = _GetUnitType(lua_touserdata(pVM, 1));
 		float income = 0;
 		
 		if (pUnitType)
@@ -485,7 +484,7 @@ namespace UnitLuaInterface
 
 	int LGetUnitTypeIncomeAtNight(lua_State* pVM)
 	{
-		ref_ptr<UnitType> pUnitType = _GetUnitType(lua_touserdata(pVM, 1));
+		gc_ptr<UnitType> pUnitType = _GetUnitType(lua_touserdata(pVM, 1));
 		float income = 0;
 		
 		if (pUnitType)
@@ -503,7 +502,7 @@ namespace UnitLuaInterface
 
 	int LGetPowerAtDawn(lua_State* pVM)
 	{
-		const ref_ptr<Player>& player = GetPlayerByVMstate(pVM);
+		const gc_ptr<Player>& player = GetPlayerByVMstate(pVM);
 		float power = 0;
 
 		if (player)
@@ -515,7 +514,7 @@ namespace UnitLuaInterface
 
 	int LGetPowerAtDusk(lua_State* pVM)
 	{
-		const ref_ptr<Player>& player = GetPlayerByVMstate(pVM);
+		const gc_ptr<Player>& player = GetPlayerByVMstate(pVM);
 		float power = 0;
 
 		if (player)
@@ -527,7 +526,7 @@ namespace UnitLuaInterface
 
 	int LSellPower(lua_State* pVM)
 	{
-		const ref_ptr<Player>& player = GetPlayerByVMstate(pVM);
+		const gc_ptr<Player>& player = GetPlayerByVMstate(pVM);
 		int power = lua_tointeger(pVM, 1);
 
 		if (player)
@@ -585,7 +584,7 @@ namespace UnitLuaInterface
 
 	int LSetUnitHealth(lua_State* pVM)
 	{
-		Unit* pUnit = _GetUnit(lua_touserdata(pVM, 1));
+		const gc_ptr<Unit>& pUnit = _GetUnit(lua_touserdata(pVM, 1));
 
 		CHECK_UNIT_PTR(pUnit)
 
@@ -603,7 +602,7 @@ namespace UnitLuaInterface
 
 	int LSetUnitPower(lua_State* pVM)
 	{
-		Unit* pUnit = _GetUnit(lua_touserdata(pVM, 1));
+		const gc_ptr<Unit>& pUnit = _GetUnit(lua_touserdata(pVM, 1));
 
 		CHECK_UNIT_PTR(pUnit)
 
@@ -621,7 +620,7 @@ namespace UnitLuaInterface
 
 	int LSetUnitRotation(lua_State* pVM)
 	{
-		Unit* pUnit = _GetUnit(lua_touserdata(pVM, 1));
+		const gc_ptr<Unit>& pUnit = _GetUnit(lua_touserdata(pVM, 1));
 
 		CHECK_UNIT_PTR(pUnit)
 
@@ -640,7 +639,7 @@ namespace UnitLuaInterface
 
 	int LGetUnitTypeBuildCost(lua_State* pVM)
 	{
-		ref_ptr<UnitType> pUnitType = _GetUnitType(lua_touserdata(pVM, 1));
+		gc_ptr<UnitType> pUnitType = _GetUnitType(lua_touserdata(pVM, 1));
 		int cost = 0;
 		
 		if (pUnitType)
@@ -652,7 +651,7 @@ namespace UnitLuaInterface
 	
 	int LGetResearchCost(lua_State* pVM)
 	{
-		const ref_ptr<Research>& pResearch = _GetResearch(lua_touserdata(pVM, 1));
+		const gc_ptr<Research>& pResearch = _GetResearch(lua_touserdata(pVM, 1));
 		int cost = 0;
 
 		if (pResearch)
@@ -664,7 +663,7 @@ namespace UnitLuaInterface
 	
 	int LIsResearched(lua_State* pVM)
 	{
-		ref_ptr<UnitType> pUnitType = _GetUnitType(lua_touserdata(pVM, 1));
+		gc_ptr<UnitType> pUnitType = _GetUnitType(lua_touserdata(pVM, 1));
 		bool ret = false;
 
 		if (pUnitType)
@@ -771,7 +770,7 @@ namespace UnitLuaInterface
 
 	int LGetUnitTypeRequirements(lua_State* pVM)
 	{
-		ref_ptr<UnitType> pUnitType = _GetUnitType(lua_touserdata(pVM, 1));
+		gc_ptr<UnitType> pUnitType = _GetUnitType(lua_touserdata(pVM, 1));
 
 		if (pUnitType)
 			return GetObjReqs(pVM, pUnitType->requirements);
@@ -782,7 +781,7 @@ namespace UnitLuaInterface
 	
 	int LGetResearchRequirements(lua_State* pVM)
 	{
-		const ref_ptr<Research>& pResearch = _GetResearch(lua_touserdata(pVM, 1));
+		const gc_ptr<Research>& pResearch = _GetResearch(lua_touserdata(pVM, 1));
 		if (!pResearch)
 		{
 			lua_pushboolean(pVM, false);
@@ -793,15 +792,15 @@ namespace UnitLuaInterface
 	
 	int LGetBuilder(lua_State* pVM)
 	{
-		ref_ptr<UnitType> pUnitType = _GetUnitType(lua_touserdata(pVM, 1));
+		gc_ptr<UnitType> pUnitType = _GetUnitType(lua_touserdata(pVM, 1));
 
 		if (pUnitType)
 		{
 			
-			const ref_ptr<Player>& player = GetPlayerByVMstate(pVM);
-			for (vector<ref_ptr<UnitType> >::iterator it = player->vUnitTypes.begin(); it != player->vUnitTypes.end(); it++)
+			const gc_ptr<Player>& player = GetPlayerByVMstate(pVM);
+			for (vector<gc_ptr<UnitType> >::iterator it = player->vUnitTypes.begin(); it != player->vUnitTypes.end(); it++)
 			{
-				for (vector<enc_ptr<UnitType> >::iterator it2 = (*it)->canBuild.begin(); it2 != (*it)->canBuild.end(); it2++)
+				for (vector<gc_ptr<UnitType> >::iterator it2 = (*it)->canBuild.begin(); it2 != (*it)->canBuild.end(); it2++)
 				{
 					if (*it2 == pUnitType)
 					{
@@ -819,11 +818,11 @@ namespace UnitLuaInterface
 	
 	int LGetResearcher(lua_State* pVM)
 	{
-		const ref_ptr<Research>& pResearch = _GetResearch(lua_touserdata(pVM, 1));
-		const ref_ptr<Player>& player = GetPlayerByVMstate(pVM);
-		for (vector<ref_ptr<UnitType> >::iterator it = player->vUnitTypes.begin(); it != player->vUnitTypes.end(); it++)
+		const gc_ptr<Research>& pResearch = _GetResearch(lua_touserdata(pVM, 1));
+		const gc_ptr<Player>& player = GetPlayerByVMstate(pVM);
+		for (vector<gc_ptr<UnitType> >::iterator it = player->vUnitTypes.begin(); it != player->vUnitTypes.end(); it++)
 		{
-			for (vector<enc_ptr<Research> >::iterator it2 = (*it)->canResearch.begin(); it2 != (*it)->canResearch.end(); it2++)
+			for (vector<gc_ptr<Research> >::iterator it2 = (*it)->canResearch.begin(); it2 != (*it)->canResearch.end(); it2++)
 			{
 				if (*it2 == pResearch)
 				{
@@ -838,7 +837,7 @@ namespace UnitLuaInterface
 	
 	int LSquaresAreLightedAround(lua_State* pVM)
 	{
-		ref_ptr<UnitType> pUnitType = _GetUnitType(lua_touserdata(pVM, 1));
+		gc_ptr<UnitType> pUnitType = _GetUnitType(lua_touserdata(pVM, 1));
 		int lighted = false;
 		
 		if (pUnitType)
@@ -850,7 +849,7 @@ namespace UnitLuaInterface
 	
 	int LSquaresAreLighted(lua_State* pVM)
 	{
-		ref_ptr<UnitType> pUnitType = _GetUnitType(lua_touserdata(pVM, 1));
+		gc_ptr<UnitType> pUnitType = _GetUnitType(lua_touserdata(pVM, 1));
 		int lighted = false;
 		
 		if (pUnitType)
@@ -862,7 +861,7 @@ namespace UnitLuaInterface
 	
 	int LIsWithinRangeForBuilding(lua_State* pVM)
 	{
-		Unit* pUnit = _GetUnit(lua_touserdata(pVM, 1));
+		const gc_ptr<Unit>& pUnit = _GetUnit(lua_touserdata(pVM, 1));
 
 		CHECK_UNIT_PTR(pUnit)
 
@@ -872,7 +871,7 @@ namespace UnitLuaInterface
 
 	struct ScheduledDamaging
 	{
-		Unit* unit;
+		gc_ptr<Unit> unit;
 		float damage;
 	};
 
@@ -884,7 +883,7 @@ namespace UnitLuaInterface
 		for (vector<ScheduledDamaging*>::iterator it = scheduledDamagings.begin(); it != scheduledDamagings.end(); it++)
 		{
 			ScheduledDamaging *damaging = *it;
-			if (IsValidUnitPointer(damaging->unit))
+			if (damaging->unit)
 			{
 				Attack(damaging->unit, damaging->damage);
 			}
@@ -895,7 +894,7 @@ namespace UnitLuaInterface
 
 	int LAttack(lua_State* pVM)
 	{
-		Unit* pUnit = _GetUnit(lua_touserdata(pVM, 1));
+		const gc_ptr<Unit>& pUnit = _GetUnit(lua_touserdata(pVM, 1));
 
 		CHECK_UNIT_PTR(pUnit)
 
@@ -917,8 +916,8 @@ namespace UnitLuaInterface
 
 	int LCanReach(lua_State* pVM)
 	{
-		Unit* pUnit01 = _GetUnit(lua_touserdata(pVM, 1));
-		Unit* pUnit02 = _GetUnit(lua_touserdata(pVM, 2));
+		const gc_ptr<Unit>& pUnit01 = _GetUnit(lua_touserdata(pVM, 1));
+		const gc_ptr<Unit>& pUnit02 = _GetUnit(lua_touserdata(pVM, 2));
 
 		CHECK_UNIT_PTR(pUnit01)
 		CHECK_UNIT_PTR(pUnit02)
@@ -929,8 +928,8 @@ namespace UnitLuaInterface
 
 	struct ScheduledAction : public BaseActionData
 	{
-		Unit *unit;
-		ScheduledAction(Unit* unit, int end_x, int end_y, Unit* goal, UnitAction action, const ActionArguments& args, float rotation) : unit(unit)
+		gc_ptr<Unit> unit;
+		ScheduledAction(const gc_ptr<Unit>& unit, int end_x, int end_y, const gc_ptr<Unit>& goal, UnitAction action, const ActionArguments& args, float rotation) : unit(unit)
 		{
 			this->goal.pos.x = end_x;
 			this->goal.pos.y = end_y;
@@ -949,14 +948,8 @@ namespace UnitLuaInterface
 		for (vector<ScheduledAction*>::iterator it = scheduledActions.begin(); it != scheduledActions.end(); it++)
 		{
 			ScheduledAction *action = *it;
-			if (IsValidUnitPointer(action->unit))
+			if (action->unit)
 			{
-				if (action->goal.unit && !IsValidUnitPointer(action->goal.unit))
-				{
-					action->action = ACTION_GOTO;
-					action->goal.unit = NULL;
-				}
-
 				ApplyAction(action->unit, action->action, action->goal.pos.x, action->goal.pos.y, action->goal.unit, action->args, action->rotation);
 				Game::Dimension::ChangePath(action->unit, action->goal.pos.x, action->goal.pos.y, action->action, action->goal.unit, action->args, action->rotation);
 			}
@@ -965,7 +958,7 @@ namespace UnitLuaInterface
 		scheduledActions.clear();
 	}
 
-	void CommandUnit(Unit* unit, Unit* target, int x, int y, UnitAction action, const ActionArguments& args = ActionArguments(), float rotation = 0.0f)
+	void CommandUnit(const gc_ptr<Unit>& unit, const gc_ptr<Unit>& target, int x, int y, UnitAction action, const ActionArguments& args = ActionArguments(), float rotation = 0.0f)
 	{
 		if (action == ACTION_NONE)
 			return;
@@ -994,8 +987,8 @@ namespace UnitLuaInterface
 
 	int LCommandUnit(lua_State* pVM)
 	{
-		Unit* pUnit01 = _GetUnit(lua_touserdata(pVM, 1));
-		Unit* pUnit02 = _GetUnit(lua_touserdata(pVM, 2));
+		const gc_ptr<Unit>& pUnit01 = _GetUnit(lua_touserdata(pVM, 1));
+		const gc_ptr<Unit>& pUnit02 = _GetUnit(lua_touserdata(pVM, 2));
 
 		CHECK_UNIT_PTR(pUnit01)
 		CHECK_UNIT_PTR_NULL_VALID(pUnit02)
@@ -1009,7 +1002,7 @@ namespace UnitLuaInterface
 
 	int LCommandGoto(lua_State* pVM)
 	{
-		Unit* pUnit = _GetUnit(lua_touserdata(pVM, 1));
+		const gc_ptr<Unit>& pUnit = _GetUnit(lua_touserdata(pVM, 1));
 
 		CHECK_UNIT_PTR(pUnit)
 
@@ -1022,7 +1015,7 @@ namespace UnitLuaInterface
 
 	int LCommandMoveAttack(lua_State* pVM)
 	{
-		Unit* pUnit = _GetUnit(lua_touserdata(pVM, 1));
+		const gc_ptr<Unit>& pUnit = _GetUnit(lua_touserdata(pVM, 1));
 
 		CHECK_UNIT_PTR(pUnit)
 
@@ -1035,14 +1028,14 @@ namespace UnitLuaInterface
 
 	int LCommandBuild(lua_State* pVM)
 	{
-		Unit* pUnit = _GetUnit(lua_touserdata(pVM, 1));
+		const gc_ptr<Unit>& pUnit = _GetUnit(lua_touserdata(pVM, 1));
 
 		CHECK_UNIT_PTR(pUnit)
 
 		int position[2] = { lua_tointeger(pVM, 2), 
 		                    lua_tointeger(pVM, 3) };
 
-		ref_ptr<UnitType> pUnitType = _GetUnitType(lua_touserdata(pVM, 4));
+		gc_ptr<UnitType> pUnitType = _GetUnitType(lua_touserdata(pVM, 4));
 			
 		if (pUnitType)
 			CommandUnit(pUnit, NULL, position[0], position[1], ACTION_BUILD, pUnitType, lua_isnumber(pVM, 5) ? lua_tonumber(pVM, 5) : Utilities::RandomDegree());
@@ -1052,7 +1045,7 @@ namespace UnitLuaInterface
 
 	int LCommandResearch(lua_State* pVM)
 	{
-		Unit* pUnit = _GetUnit(lua_touserdata(pVM, 1));
+		const gc_ptr<Unit>& pUnit = _GetUnit(lua_touserdata(pVM, 1));
 
 		CHECK_UNIT_PTR(pUnit)
 
@@ -1069,8 +1062,8 @@ namespace UnitLuaInterface
 
 	int LCommandFollow(lua_State* pVM)
 	{
-		Unit* pUnit01 = _GetUnit(lua_touserdata(pVM, 1));
-		Unit* pUnit02 = _GetUnit(lua_touserdata(pVM, 2));
+		const gc_ptr<Unit>& pUnit01 = _GetUnit(lua_touserdata(pVM, 1));
+		const gc_ptr<Unit>& pUnit02 = _GetUnit(lua_touserdata(pVM, 2));
 
 		CHECK_UNIT_PTR(pUnit01)
 		CHECK_UNIT_PTR(pUnit02)
@@ -1081,8 +1074,8 @@ namespace UnitLuaInterface
 
 	int LCommandAttack(lua_State* pVM)
 	{
-		Unit* pUnit01 = _GetUnit(lua_touserdata(pVM, 1));
-		Unit* pUnit02 = _GetUnit(lua_touserdata(pVM, 2));
+		const gc_ptr<Unit>& pUnit01 = _GetUnit(lua_touserdata(pVM, 1));
+		const gc_ptr<Unit>& pUnit02 = _GetUnit(lua_touserdata(pVM, 2));
 		
 		CHECK_UNIT_PTR(pUnit01)
 		CHECK_UNIT_PTR(pUnit02)
@@ -1093,8 +1086,8 @@ namespace UnitLuaInterface
 
 	int LCommandCollect(lua_State* pVM)
 	{
-		Unit* pUnit01 = _GetUnit(lua_touserdata(pVM, 1));
-		Unit* pUnit02 = _GetUnit(lua_touserdata(pVM, 2));
+		const gc_ptr<Unit>& pUnit01 = _GetUnit(lua_touserdata(pVM, 1));
+		const gc_ptr<Unit>& pUnit02 = _GetUnit(lua_touserdata(pVM, 2));
 
 		CHECK_UNIT_PTR(pUnit01)
 		CHECK_UNIT_PTR(pUnit02)
@@ -1105,8 +1098,8 @@ namespace UnitLuaInterface
 
 	int LCommandRepair(lua_State* pVM)
 	{
-		Unit* pUnit01 = _GetUnit(lua_touserdata(pVM, 1));
-		Unit* pUnit02 = _GetUnit(lua_touserdata(pVM, 2));
+		const gc_ptr<Unit>& pUnit01 = _GetUnit(lua_touserdata(pVM, 1));
+		const gc_ptr<Unit>& pUnit02 = _GetUnit(lua_touserdata(pVM, 2));
 
 		CHECK_UNIT_PTR(pUnit01)
 		CHECK_UNIT_PTR(pUnit02)
@@ -1117,8 +1110,8 @@ namespace UnitLuaInterface
 
 	int LCommandMoveAttackUnit(lua_State* pVM)
 	{
-		Unit* pUnit01 = _GetUnit(lua_touserdata(pVM, 1));
-		Unit* pUnit02 = _GetUnit(lua_touserdata(pVM, 2));
+		const gc_ptr<Unit>& pUnit01 = _GetUnit(lua_touserdata(pVM, 1));
+		const gc_ptr<Unit>& pUnit02 = _GetUnit(lua_touserdata(pVM, 2));
 
 		CHECK_UNIT_PTR(pUnit01)
 		CHECK_UNIT_PTR(pUnit02)
@@ -1137,7 +1130,7 @@ namespace UnitLuaInterface
 		void* context = lua_touserdata(pVM, 1);
 		EventType eventtype = (EventType) lua_tointeger(pVM, 2);
 		const char* handler = lua_tostring(pVM, 3);
-		const ref_ptr<Player>& player = GetPlayerByVMstate(pVM);
+		const gc_ptr<Player>& player = GetPlayerByVMstate(pVM);
 
 		if (!handler)
 		{
@@ -1153,7 +1146,7 @@ namespace UnitLuaInterface
 
 		if (1 /*IsValidUnitTypePointer(_GetUnitType(context))*/)
 		{
-			ref_ptr<UnitType> unittype = _GetUnitType(context);
+			gc_ptr<UnitType> unittype = _GetUnitType(context);
 			if (1 /*IsValidPlayerPointer(player) && unittype*/)
 			{
 				switch (eventtype)
@@ -1193,7 +1186,7 @@ namespace UnitLuaInterface
 		}
 		else if (IsDisplayedUnitPointer(_GetUnit(context)))
 		{
-			Unit* unit = _GetUnit(context);
+			const gc_ptr<Unit>& unit = _GetUnit(context);
 			switch (eventtype)
 			{
 				case EVENTTYPE_COMMANDCOMPLETED:
@@ -1273,7 +1266,7 @@ namespace UnitLuaInterface
 		void* context = lua_touserdata(pVM, 1);
 		EventType eventtype = (EventType) lua_tointeger(pVM, 2);
 		int delay = lua_tointeger(pVM, 3);
-		const ref_ptr<Player>& player = GetPlayerByVMstate(pVM);
+		const gc_ptr<Player>& player = GetPlayerByVMstate(pVM);
 
 		if (!context)
 		{
@@ -1282,7 +1275,7 @@ namespace UnitLuaInterface
 		
 		if (1/*IsValidUnitTypePointer(_GetUnitType(context))*/)
 		{
-			ref_ptr<UnitType> unittype = _GetUnitType(context);
+			gc_ptr<UnitType> unittype = _GetUnitType(context);
 			if (1 /*IsValidPlayerPointer(player)*/ && unittype)
 			{
 				if (eventtype == EVENTTYPE_PERFORMUNITAI)
@@ -1301,7 +1294,7 @@ namespace UnitLuaInterface
 		}
 		else if (IsDisplayedUnitPointer(_GetUnit(context)))
 		{
-			Unit* unit = _GetUnit(context);
+			const gc_ptr<Unit>& unit = _GetUnit(context);
 			if (eventtype == EVENTTYPE_PERFORMUNITAI)
 			{
 				unit->unitAIFuncs.performUnitAI.delay = delay;
@@ -1340,11 +1333,11 @@ namespace UnitLuaInterface
 		int contextType = lua_tointeger(pVM, 4);
 		EventType eventtype = (EventType) lua_tointeger(pVM, 2);
 		bool enabled = lua_toboolean(pVM, 3);
-		const ref_ptr<Player>& player = GetPlayerByVMstate(pVM);
+		const gc_ptr<Player>& player = GetPlayerByVMstate(pVM);
 		
 		if (contextType == AI_CONTEXT_UNITTYPE)
 		{
-			ref_ptr<UnitType> unittype = _GetUnitType(context);
+			gc_ptr<UnitType> unittype = _GetUnitType(context);
 			
 			if (!unittype)
 				LUA_FAILURE("Null pointer context received")
@@ -1372,7 +1365,7 @@ namespace UnitLuaInterface
 
 			if (IsDisplayedUnitPointer(_GetUnit(context)))
 			{
-				Unit* unit = _GetUnit(context);
+				const gc_ptr<Unit>& unit = _GetUnit(context);
 				if (eventtype == EVENTTYPE_PERFORMUNITAI)
 				{	
 					unit->unitAIFuncs.performUnitAI.enabled = enabled;
@@ -1419,12 +1412,12 @@ namespace UnitLuaInterface
 
 	int LCreateUnit(lua_State* pVM)
 	{
-		ref_ptr<UnitType> pUnitType = _GetUnitType(lua_touserdata(pVM, 1));
+		gc_ptr<UnitType> pUnitType = _GetUnitType(lua_touserdata(pVM, 1));
 		
 		if (!pUnitType)
 			LUA_FAILURE("Invalid unit type - null pointer")
 
-		ref_ptr<Player> pOwner = GetPlayerByVMstate(pVM);
+		gc_ptr<Player> pOwner = GetPlayerByVMstate(pVM);
 		if (!pOwner)
 		{
 			if (IsGlobalLuaState(pVM))
@@ -1468,7 +1461,7 @@ namespace UnitLuaInterface
 		}
 		else
 		{
-			Unit* pUnit = CreateUnit(pUnitType, position[0], position[1]);
+			const gc_ptr<Unit>& pUnit = CreateUnit(pUnitType, position[0], position[1]);
 			if (pUnit)
 				pUnit->rotation = (float) rotation;
 		}
@@ -1478,12 +1471,12 @@ namespace UnitLuaInterface
 
 	int LCanCreateUnitAt(lua_State* pVM)
 	{
-		ref_ptr<UnitType> pUnitType = _GetUnitType(lua_touserdata(pVM, 1));
+		gc_ptr<UnitType> pUnitType = _GetUnitType(lua_touserdata(pVM, 1));
 		
 		if (!pUnitType)
 			LUA_FAIL
 
-		const ref_ptr<Player>& pOwner = GetPlayerByVMstate(pVM);
+		const gc_ptr<Player>& pOwner = GetPlayerByVMstate(pVM);
 		if (!pOwner)
 			LUA_FAIL
 
@@ -1499,7 +1492,7 @@ namespace UnitLuaInterface
 
 	int LGetUnitTypeFromString(lua_State* pVM)
 	{
-		ref_ptr<Player> player = GetPlayerByVMstate(pVM);
+		gc_ptr<Player> player = GetPlayerByVMstate(pVM);
 		const char *sz_name = lua_tostring(pVM, 1);
 		const string name = sz_name;
 		if (!player)
@@ -1511,7 +1504,7 @@ namespace UnitLuaInterface
 		
 		if (player)
 		{
-			ref_ptr<UnitType>& ptr = player->unitTypeMap[name];
+			gc_ptr<UnitType>& ptr = player->unitTypeMap[name];
 			
 			if (ptr)
 				ut = ptr->GetHandle();
@@ -1539,8 +1532,8 @@ namespace UnitLuaInterface
 		if (sizeof(name)/sizeof(char) <= 0)
 			LUA_FAILURE("Player name too short")
 
-		std::vector<ref_ptr<Player> >::const_iterator it;
-		ref_ptr<Player> pPlayer = NULL;
+		std::vector<gc_ptr<Player> >::const_iterator it;
+		gc_ptr<Player> pPlayer = NULL;
 		for (it = pWorld->vPlayers.begin(); it != pWorld->vPlayers.end(); it++)
 		{
 			if (strcmp((*it)->name.c_str(), name) == 0)
@@ -1606,8 +1599,8 @@ namespace UnitLuaInterface
 
 	int LIsValidUnit(lua_State* pVM)
 	{
-		Unit* pUnit = _GetUnit(lua_touserdata(pVM, 1));
-		if (pUnit != NULL && IsDisplayedUnitPointer(pUnit) && pUnit->isDisplayed)
+		const gc_ptr<Unit>& pUnit = _GetUnit(lua_touserdata(pVM, 1));
+		if (IsDisplayedUnitPointer(pUnit) && pUnit->isDisplayed)
 		{
 			LUA_SUCCESS
 		}
@@ -1619,7 +1612,7 @@ namespace UnitLuaInterface
 
 	int LGetUnitTypeName(lua_State* pVM)
 	{
-		ref_ptr<UnitType> pUnitType = _GetUnitType(lua_touserdata(pVM, 1));
+		gc_ptr<UnitType> pUnitType = _GetUnitType(lua_touserdata(pVM, 1));
 		const char* name = "";
 			
 		if (pUnitType)
@@ -2553,9 +2546,9 @@ namespace UnitLuaInterface
 			LUA_FAILURE("First argument no unit pointer")
 		}
 
-		Game::Dimension::Unit* unit = (Game::Dimension::Unit*)lua_touserdata(pVM, 1);
+		const gc_ptr<Unit>& unit = _GetUnit(lua_touserdata(pVM, 1));
 
-		if (unit == NULL)
+		if (!unit)
 		{
 			LUA_FAILURE("Null pointer")
 		}
@@ -2925,25 +2918,25 @@ else \
 		lua_pop(pVM, 1);
 	}
 
-	ref_ptr<UnitType>& GetUnitTypeByID(const ref_ptr<Player>& owner, std::string str)
+	gc_ptr<UnitType>& GetUnitTypeByID(const gc_ptr<Player>& owner, std::string str)
 	{
 		return owner->unitTypeMap[str];
 	}
 
-	ref_ptr<Research>& GetResearchByID(const ref_ptr<Player>& owner, std::string str)
+	gc_ptr<Research>& GetResearchByID(const gc_ptr<Player>& owner, std::string str)
 	{
 		return owner->researchMap[str];
 	}
 
 	int LCreateUnitType(lua_State* pVM)
 	{
-		ref_ptr<UnitType> pUnitType;
-		const ref_ptr<Player>& player = GetPlayerByVMstate(pVM);
+		gc_ptr<UnitType> pUnitType;
+		const gc_ptr<Player>& player = GetPlayerByVMstate(pVM);
 
 		if (!lua_istable(pVM, 1))
 			LUA_FAILURE("Invalid argument, must be a table")
 
-		pUnitType = new UnitType;
+		pUnitType = UnitType::New();
 
 		pUnitType->player = player;
 		pUnitType->numBuilt = 0;
@@ -3038,7 +3031,7 @@ else \
 
 		if (!isResearched)
 		{
-			ref_ptr<Research> research = new Research;
+			gc_ptr<Research> research = Research::New();
 			ResearchRequirement res_req;
 
 			research->id = "Research" + std::string(pUnitType->id);
@@ -3172,13 +3165,13 @@ else \
 
 	int LCreateResearch(lua_State* pVM)
 	{
-		ref_ptr<Research> pResearch;
-		const ref_ptr<Player>& player = GetPlayerByVMstate(pVM);
+		gc_ptr<Research> pResearch;
+		const gc_ptr<Player>& player = GetPlayerByVMstate(pVM);
 
 		if (!lua_istable(pVM, 1))
 			LUA_FAILURE("Invalid argument, must be a table")
 
-		pResearch = new Research;
+		pResearch = Research::New();
 
 		pResearch->player = player;
 
@@ -3238,7 +3231,7 @@ else \
 		}
 	}
 
-	void InterpretRequirementsString(const ref_ptr<Player>& player, const char *reqstring, ConjunctiveRequirements &reqs)
+	void InterpretRequirementsString(const gc_ptr<Player>& player, const char *reqstring, ConjunctiveRequirements &reqs)
 	{
 		if (!reqstring || *reqstring == 0)
 		{
@@ -3255,8 +3248,8 @@ else \
 				reqstring++;
 			}
 			std::string symbol = GetReqStringSymbol(reqstring);
-			const ref_ptr<UnitType>& unitType = GetUnitTypeByID(player, symbol);
-			const ref_ptr<Research>& research = GetResearchByID(player, symbol);
+			const gc_ptr<UnitType>& unitType = GetUnitTypeByID(player, symbol);
+			const gc_ptr<Research>& research = GetResearchByID(player, symbol);
 			UnitRequirement unit_req;
 			ResearchRequirement res_req;
 
@@ -3470,13 +3463,13 @@ else \
 		}
 	}
 
-	void PostProcessReqStrings(const ref_ptr<Player>& player, ObjectRequirements &requirements)
+	void PostProcessReqStrings(const gc_ptr<Player>& player, ObjectRequirements &requirements)
 	{
 		InterpretRequirementsString(player, requirements.creation.cReqString.c_str(), requirements.creation);
 		InterpretRequirementsString(player, requirements.existance.cReqString.c_str(), requirements.existance);
 	}
 
-	void PostProcessBuildResearch(const ref_ptr<UnitType>& unitType)
+	void PostProcessBuildResearch(const gc_ptr<UnitType>& unitType)
 	{
 		for (std::vector<std::string>::iterator it_bld = unitType->canBuildIDs.begin(); it_bld != unitType->canBuildIDs.end(); it_bld++)
 		{
@@ -3493,8 +3486,8 @@ else \
 		for (std::vector<std::string>::iterator it_rch = unitType->canResearchIDs.begin(); it_rch != unitType->canResearchIDs.end(); it_rch++)
 		{
 			std::string id = *it_rch;
-			const ref_ptr<Research>& res1 = GetResearchByID(unitType->player, id);
-			const ref_ptr<Research>& res2 = GetResearchByID(unitType->player, "Research" + id);
+			const gc_ptr<Research>& res1 = GetResearchByID(unitType->player, id);
+			const gc_ptr<Research>& res2 = GetResearchByID(unitType->player, "Research" + id);
 			if (res1 || res2)
 			{
 				if (res1)
@@ -3515,17 +3508,17 @@ else \
 
 	void PostProcessStrings()
 	{
-		for (std::vector<ref_ptr<Player> >::iterator it = pWorld->vPlayers.begin(); it != pWorld->vPlayers.end(); it++)
+		for (std::vector<gc_ptr<Player> >::iterator it = pWorld->vPlayers.begin(); it != pWorld->vPlayers.end(); it++)
 		{
-			const ref_ptr<Player>& player = *it;
-			for (std::vector<ref_ptr<Research> >::iterator it_res = player->vResearchs.begin(); it_res != player->vResearchs.end(); it_res++)
+			const gc_ptr<Player>& player = *it;
+			for (std::vector<gc_ptr<Research> >::iterator it_res = player->vResearchs.begin(); it_res != player->vResearchs.end(); it_res++)
 			{
-				const ref_ptr<Research>& research = *it_res;
+				const gc_ptr<Research>& research = *it_res;
 				PostProcessReqStrings(player, research->requirements);
 			}
-			for (std::vector<ref_ptr<UnitType> >::iterator it_unt = player->vUnitTypes.begin(); it_unt != player->vUnitTypes.end(); it_unt++)
+			for (std::vector<gc_ptr<UnitType> >::iterator it_unt = player->vUnitTypes.begin(); it_unt != player->vUnitTypes.end(); it_unt++)
 			{
-				const ref_ptr<UnitType>& unitType = *it_unt;
+				const gc_ptr<UnitType>& unitType = *it_unt;
 				PostProcessReqStrings(player, unitType->requirements);
 				PostProcessBuildResearch(unitType);
 			}

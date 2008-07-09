@@ -51,7 +51,7 @@ namespace Game
 				bool particleRunning;
 				bool gameRunning;
 				
-				Dimension::Unit* buildingUnit;
+				gc_ptr<Dimension::Unit> buildingUnit;
 
 				//Animation variables
 				int frames;
@@ -66,7 +66,7 @@ namespace Game
 				float goto_x, goto_y;
 				int build_x, build_y;
 		
-				ref_ptr<Dimension::UnitType> build_type;
+				gc_ptr<Dimension::UnitType> build_type;
 				Uint32 goto_time;
 				int pause;
 				

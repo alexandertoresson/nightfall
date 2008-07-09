@@ -473,16 +473,16 @@ namespace Game
 			
 			////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 			
-			Scene::Graph::rootNode.AddChild(ref_ptr<Scene::Graph::Node>(&Dimension::Camera::instance, null_deleter));
-			Dimension::Camera::instance.AddChild(ref_ptr<Scene::Graph::Node>(&Dimension::Environment::EnvironmentNode::instance, null_deleter));
-			Dimension::Camera::instance.AddChild(ref_ptr<Scene::Graph::Node>(&Dimension::Environment::SkyboxNode::instance, null_deleter));
-			Dimension::Camera::instance.AddChild(ref_ptr<Scene::Graph::Node>(&Dimension::TerrainNode::instance, null_deleter));
-			Dimension::Camera::instance.AddChild(ref_ptr<Scene::Graph::Node>(&Dimension::UnitMainNode::instance, null_deleter));
+			Scene::Graph::rootNode->AddChild(gc_ptr<Scene::Graph::Node>(&Dimension::Camera::instance, null_deleter));
+			Dimension::Camera::instance.AddChild(gc_ptr<Scene::Graph::Node>(&Dimension::Environment::EnvironmentNode::instance, null_deleter));
+			Dimension::Camera::instance.AddChild(gc_ptr<Scene::Graph::Node>(&Dimension::Environment::SkyboxNode::instance, null_deleter));
+			Dimension::Camera::instance.AddChild(gc_ptr<Scene::Graph::Node>(&Dimension::TerrainNode::instance, null_deleter));
+			Dimension::Camera::instance.AddChild(gc_ptr<Scene::Graph::Node>(&Dimension::UnitMainNode::instance, null_deleter));
 			// cleanup node, for resetting stuff for fixed function stuff...
 			Dimension::Camera::instance.AddChild(new Scene::Render::GLStateNode(new Scene::Render::GLStateNode::GLState()));
-			Dimension::Camera::instance.AddChild(ref_ptr<Scene::Graph::Node>(&Dimension::BuildOutlineNode::instance, null_deleter));
-			Dimension::Camera::instance.AddChild(ref_ptr<Scene::Graph::Node>(&FX::ParticleNode::instance, null_deleter));
-			Scene::Graph::rootNode.AddChild(ref_ptr<Scene::Graph::Node>(&GUINode::instance, null_deleter));
+			Dimension::Camera::instance.AddChild(gc_ptr<Scene::Graph::Node>(&Dimension::BuildOutlineNode::instance, null_deleter));
+			Dimension::Camera::instance.AddChild(gc_ptr<Scene::Graph::Node>(&FX::ParticleNode::instance, null_deleter));
+			Scene::Graph::rootNode->AddChild(gc_ptr<Scene::Graph::Node>(&GUINode::instance, null_deleter));
 
 			/*
 
@@ -669,7 +669,7 @@ namespace Game
 
 			GUINode::instance.SetParams(pMainPanel, w, h);
 
-			Scene::Graph::rootNode.Traverse();
+			Scene::Graph::rootNode->Traverse();
 
 			SDL_GL_SwapBuffers();
 			return true;
@@ -743,7 +743,7 @@ namespace Game
 			//Empty current UnitBuild and execute building
 			if(Dimension::GetSelectedUnits().size() == 0)
 			{
-				if(buildingUnit != NULL)
+				if(!buildingUnit)
 				{
 					buildingUnit = NULL;
 					//buildingGUI = NULL;
@@ -755,7 +755,8 @@ namespace Game
 			}
 			else
 			{
-				Dimension::Unit* unit = Dimension::GetSelectedUnits()[0];
+				const std::vector<gc_ptr<Dimension::Unit> >& v = Dimension::GetSelectedUnits();
+				const gc_ptr<Dimension::Unit>& unit = v.front();
 				pPlayBar->pSelected->Update();
 				pPlayBar->pActions->Update();
 

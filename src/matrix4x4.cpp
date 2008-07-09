@@ -9,6 +9,7 @@ namespace Utilities
 	Matrix4x4::Matrix4x4()
 	{
 		Identity();
+		nothingelsehasthisname = 1;
 	}
 	
 	Matrix4x4::Matrix4x4(float matrix[4][4])
@@ -20,6 +21,7 @@ namespace Utilities
 				this->matrix[i][j] = matrix[i][j];
 			}
 		}
+		nothingelsehasthisname = 1;
 	}
 	
 	Matrix4x4::~Matrix4x4()
@@ -55,9 +57,9 @@ namespace Utilities
 		}
 	}
 	
-	void Matrix4x4::Set(const float matrix[4][4])
+	void Matrix4x4::Set(const float a[4][4])
 	{
-		memcpy(this->matrix, matrix, sizeof(this->matrix));
+		memcpy(this->matrix, a, sizeof(this->matrix));
 	}
 
 	void Matrix4x4::MulBy(const Matrix4x4& a)

@@ -16,14 +16,14 @@ namespace Game
 
 		struct UnitRequirement
 		{
-			ref_ptr<UnitType> type;
+			gc_ptr<UnitType> type;
 			int minExisting, maxExisting;
 			int minBuilt, maxBuilt;
 		};
 
 		struct ResearchRequirement
 		{
-			ref_ptr<Research> research;
+			gc_ptr<Research> research;
 			bool desiredState;
 		};
 

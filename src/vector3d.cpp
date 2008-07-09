@@ -1,5 +1,6 @@
 #include "vector3d.h"
 #include "terrain.h"
+#include "unit.h"
 #include <cmath>
 
 namespace Utilities

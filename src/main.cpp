@@ -330,8 +330,7 @@ void KillAll(void)
 	{
 		if (Game::Dimension::pWorld)
 		{
-			while(Game::Dimension::pWorld->vUnits.size() > 0)
-				Game::Dimension::DeleteUnit(Game::Dimension::pWorld->vUnits.at(0));
+			Game::Dimension::pWorld->vUnits.clear();
 		}
 	}
 

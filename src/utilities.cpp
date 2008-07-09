@@ -10,6 +10,7 @@
 #include "game.h"
 #include "console.h"
 #include "window.h"
+#include "unit.h"
 #include <cmath>
 #include <cassert>
 #include <iostream>

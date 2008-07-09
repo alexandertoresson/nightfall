@@ -12,10 +12,10 @@
 
 namespace Utilities
 {
-	static ref_ptr<OgreMesh> mesh = NULL;
-	static ref_ptr<OgreSubMesh> submesh = NULL;
-	static ref_ptr<OgreVertexBuffer> vb = NULL;
-	static std::vector<ref_ptr<OgreVertexBuffer> > vbs;
+	static gc_ptr<OgreMesh> mesh = NULL;
+	static gc_ptr<OgreSubMesh> submesh = NULL;
+	static gc_ptr<OgreVertexBuffer> vb = NULL;
+	static std::vector<gc_ptr<OgreVertexBuffer> > vbs;
 	static unsigned numVertices;
 	static unsigned face_index, vertex_index, texcoord_index;
 
@@ -326,9 +326,9 @@ namespace Utilities
 		elem->Iterate("transforms", ParseModTransforms);
 	}
 
-	static std::map<std::string, ref_ptr<OgreMesh> > filenameToMesh;
+	static std::map<std::string, gc_ptr<OgreMesh> > filenameToMesh;
 
-	ref_ptr<OgreMesh> LoadSpecificOgreXMLModel(std::string name)
+	gc_ptr<OgreMesh> LoadSpecificOgreXMLModel(std::string name)
 	{
 		Utilities::XMLReader xmlReader;
 		
@@ -367,7 +367,7 @@ namespace Utilities
 
 	bool OgreSubMesh::CheckRayIntersect(const Vector3D& near_plane, const Vector3D& far_plane, float& distance)
 	{
-		const ref_ptr<OgreVertexBuffer>& vb = vbs[0];
+		const gc_ptr<OgreVertexBuffer>& vb = vbs[0];
 		Utilities::Vector3D tp1, tp2, tp3, hit_pos;
 		int index_v;
 
@@ -390,7 +390,7 @@ namespace Utilities
 
 	bool OgreMesh::CheckRayIntersect(const Vector3D& near_plane, const Vector3D& far_plane, float& distance)
 	{
-		for (std::vector<ref_ptr<OgreSubMesh> >::iterator it = submeshes.begin(); it != submeshes.end(); it++)
+		for (std::vector<gc_ptr<OgreSubMesh> >::iterator it = submeshes.begin(); it != submeshes.end(); it++)
 		{
 			if ((*it)->CheckRayIntersect(near_plane, far_plane, distance))
 				return true;

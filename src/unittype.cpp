@@ -8,9 +8,35 @@ namespace Game
 {
 	namespace Dimension
 	{
-		ref_ptr<RangeScanlines> GenerateRangeScanlines(float maxrange)
+
+		RangeArray::~RangeArray()
 		{
-			ref_ptr<RangeScanlines> ret = new RangeScanlines;
+			if (array != NULL)
+			{
+				for (int i = 0; i < size; i++)
+				{
+					delete[] array[i];
+				}
+				delete[] array;
+			}
+		}
+
+		void UnitType::shade()
+		{
+			attackRangeArray.shade();
+			sightRangeArray.shade();
+			sightRangeScanlines.shade();
+			lightRangeArray.shade();
+			lightRangeScanlines.shade();
+			mesh.shade();
+			gc_shade_container(canBuild);
+			gc_shade_container(canResearch);
+			player.shade();
+		}
+
+		gc_ptr<RangeScanlines> GenerateRangeScanlines(float maxrange)
+		{
+			gc_ptr<RangeScanlines> ret = new RangeScanlines;
 			int height = ((int)floor(maxrange) << 1) + 1;
 			int y_offset = (int)floor(maxrange);
 			int x_min = -y_offset;
@@ -41,9 +67,9 @@ namespace Game
 			return ret;
 		}
 
-		ref_ptr<RangeArray> GenerateRangeArray(float maxrange, float minrange)
+		gc_ptr<RangeArray> GenerateRangeArray(float maxrange, float minrange)
 		{
-			ref_ptr<RangeArray> ret = new RangeArray;
+			gc_ptr<RangeArray> ret = new RangeArray;
 			int size = ((int)floor(maxrange) << 1) + 1;
 			int offset = (int)floor(maxrange);
 			ret->size = size;
@@ -80,13 +106,13 @@ namespace Game
 			this->isHoming = false;
 		}
 
-		ref_ptr<UnitType> GetUnitTypeByID(unsigned i)
+		gc_ptr<UnitType> GetUnitTypeByID(unsigned i)
 		{
 			if (i < pWorld->vAllUnitTypes.size())
 			{
 				return pWorld->vAllUnitTypes[i];
 			}
-			return ref_ptr<UnitType>();
+			return gc_ptr<UnitType>();
 		}
 
 	}

@@ -38,11 +38,11 @@ namespace Game
 		class HandleManager
 		{
 			private:
-				static ref_ptr<T> handles[HandleTraits<T>::num];
+				static gc_ptr<T> handles[HandleTraits<T>::num];
 				static unsigned nextIndex;
 
 			public:
-				static void AssignHandle(ref_ptr<T> pnt, int& handle, int& independentHandle)
+				static void AssignHandle(gc_ptr<T> pnt, int& handle, int& independentHandle)
 				{
 					if (handle != -1)
 					{
@@ -89,7 +89,7 @@ namespace Game
 						std::cout << "Tried to revoke invalid handle " << index << " of type " << typeid(T).name() << "!" << std::endl;
 						return;
 					}
-					handles[index] = ref_ptr<T>();
+					handles[index] = gc_ptr<T>();
 				}
 
 				static bool IsCorrectHandle(int handle)
@@ -98,18 +98,18 @@ namespace Game
 					return index >= 0 && index < HandleTraits<T>::num;
 				}
 
-				static ref_ptr<T> InterpretHandle(int handle)
+				static gc_ptr<T> InterpretHandle(int handle)
 				{
 					int index = handle - HandleTraits<T>::base;
 					if (index < 0 || index >= HandleTraits<T>::num)
 					{
 						std::cout << "Tried to interpret invalid handle " << index << " of type " << typeid(T).name() << "!" << std::endl;
-						return ref_ptr<T>();
+						return gc_ptr<T>();
 					}
 					return handles[index];
 				}
 				
-				static ref_ptr<T> InterpretIndependentHandle(int independentHandle)
+				static gc_ptr<T> InterpretIndependentHandle(int independentHandle)
 				{
 					return InterpretHandle(independentHandle + HandleTraits<T>::base);
 				}
@@ -119,10 +119,10 @@ namespace Game
 		unsigned HandleManager<T>::nextIndex = 0;
 
 		template <typename T>
-		ref_ptr<T> HandleManager<T>::handles[HandleTraits<T>::num];
+		gc_ptr<T> HandleManager<T>::handles[HandleTraits<T>::num];
 
 		template <typename T>
-		class HasHandle : public ref_ptr_from_this<T>
+		class HasHandle : public gc_ptr_from_this<T>
 		{
 			private:
 				int handle;
@@ -131,7 +131,7 @@ namespace Game
 			public:
 				HasHandle() : handle(-1)
 				{
-					HandleManager<T>::AssignHandle(ref_ptr_from_this<T>::GetRef(), handle, independentHandle);
+					HandleManager<T>::AssignHandle(gc_ptr_from_this<T>::GetWeak(), handle, independentHandle);
 				}
 
 				~HasHandle()

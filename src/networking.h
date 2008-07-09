@@ -62,11 +62,11 @@ namespace Game
 			Uint32 valid_at_frame;
 		};
 		
-		void PrepareAction(Dimension::Unit* unit, Dimension::Unit* target, int x, int y, AI::UnitAction action, const Dimension::ActionArguments& args, float rotation);
-		void PreparePath(Dimension::Unit* unit, AI::Node* pStart, AI::Node* pGoal);
-		void PrepareCreation(const ref_ptr<Dimension::UnitType>& unittype, int x, int y, float rot);
-		void PrepareDamaging(Dimension::Unit* unit, float damage);
-		void PrepareSell(const ref_ptr<Dimension::Player>& owner, int amount);
+		void PrepareAction(const gc_ptr<Dimension::Unit>& unit, const gc_ptr<Dimension::Unit>& target, int x, int y, AI::UnitAction action, const Dimension::ActionArguments& args, float rotation);
+		void PreparePath(const gc_ptr<Dimension::Unit>& unit, AI::Node* pStart, AI::Node* pGoal);
+		void PrepareCreation(const gc_ptr<Dimension::UnitType>& unittype, int x, int y, float rot);
+		void PrepareDamaging(const gc_ptr<Dimension::Unit>& unit, float damage);
+		void PrepareSell(const gc_ptr<Dimension::Player>& owner, int amount);
 
 		typedef Uint8 BUFFER;
 

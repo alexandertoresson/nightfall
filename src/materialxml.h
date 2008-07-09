@@ -10,7 +10,7 @@
 
 namespace Utilities
 {
-	ref_ptr<Material> LoadMaterialXML(std::string name);
+	gc_ptr<Material> LoadMaterialXML(std::string name);
 }
 
 #ifdef DEBUG_DEP

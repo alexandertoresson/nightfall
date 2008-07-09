@@ -5,7 +5,7 @@
 #warning "dimension.h-pre"
 #endif
 
-#include "ref_ptr.h"
+#include "sdlheader.h"
 
 namespace Game
 {
@@ -18,8 +18,8 @@ namespace Game
 		struct ObjectRequirements;
 		struct Research;
 		
-		extern ref_ptr<Player> currentPlayerView;
-		extern ref_ptr<Player> currentPlayer;
+		extern gc_ptr<Player> currentPlayerView;
+		extern gc_ptr<Player> currentPlayer;
 		
 		class InputController;
 		
@@ -83,7 +83,7 @@ namespace Game
 		
 		// Stänger ned världen
 		void UnloadWorld(void);
-		ref_ptr<Research> GetResearchByID(unsigned i);
+		gc_ptr<Research> GetResearchByID(unsigned i);
 	}
 }
 

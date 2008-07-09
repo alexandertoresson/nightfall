@@ -969,10 +969,10 @@ namespace Game
 		
 			InitLight();
 
-			pppElements = new Unit**[pWorld->height];
+			pppElements = new gc_ptr<Unit>*[pWorld->height];
 			for (int y = 0; y < pWorld->height; y++)
 			{
-				pppElements[y] = new Unit*[pWorld->width];
+				pppElements[y] = new gc_ptr<Unit>[pWorld->width];
 				for (int x = 0; x < pWorld->width; x++)
 				{
 					pppElements[y][x] = 0;

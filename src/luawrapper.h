@@ -51,7 +51,7 @@ namespace Utilities
 
 				SDL_mutex *CallErrMutex;
 
-				LuaVMState(const ref_ptr<Game::Dimension::Player>& player);
+				LuaVMState(const gc_ptr<Game::Dimension::Player>& player);
 				~LuaVMState(void);
 
 				void RegisterFunction(std::string alias, int (*fptr)(lua_State*));
@@ -61,11 +61,16 @@ namespace Utilities
 				void SetCurFunction(std::string);
 				int CallFunction(unsigned int arguments, unsigned int rets = 0);
 				lua_State* GetState(void) const;
+
+				void shade()
+				{
+					
+				}
 		};
 
-		extern ref_ptr<LuaVMState> globalVMState;
+		extern gc_ptr<LuaVMState> globalVMState;
 		
-		const ref_ptr<Game::Dimension::Player>& GetPlayerByVMstate(lua_State *vmState);
+		const gc_ptr<Game::Dimension::Player>& GetPlayerByVMstate(lua_State *vmState);
 		LuaVMState *GetObjectByVMstate(lua_State *vmState);
 		void InitGlobalState();
 		bool IsGlobalLuaState(lua_State *vmState);

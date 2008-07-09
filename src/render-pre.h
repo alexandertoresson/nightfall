@@ -46,6 +46,11 @@ namespace Scene
 			void Lock();
 			void Unlock();
 
+			void shade()
+			{
+				
+			}
+
 		};
 
 		class MeshTransformation;

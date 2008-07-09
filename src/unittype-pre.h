@@ -15,7 +15,7 @@ namespace Game
 		struct RangeScanlines;
 		struct RangeArray;
 
-		ref_ptr<RangeArray> GenerateRangeArray(float maxrange, float minrange);
+		gc_ptr<RangeArray> GenerateRangeArray(float maxrange, float minrange);
 
 		struct UnitType;
 
@@ -26,7 +26,7 @@ namespace Game
 		struct TransformData;
 		struct Animation;
 		
-		ref_ptr<UnitType> GetUnitTypeByID(unsigned i);
+		gc_ptr<UnitType> GetUnitTypeByID(unsigned i);
 	}
 }
 

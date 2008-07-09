@@ -444,7 +444,7 @@ namespace Game
 
 		SDL_mutex* prepareActionMutex = SDL_CreateMutex();
 
-		void PrepareAction(Dimension::Unit* unit, Dimension::Unit* target, int x, int y, AI::UnitAction action, const Dimension::ActionArguments& args, float rotation)
+		void PrepareAction(const gc_ptr<Dimension::Unit>& unit, const gc_ptr<Dimension::Unit>& target, int x, int y, AI::UnitAction action, const Dimension::ActionArguments& args, float rotation)
 		{
 			NetActionData* actiondata = new NetActionData;
 			actiondata->unit_id = unit->id;
@@ -471,7 +471,7 @@ namespace Game
 			SDL_UnlockMutex(prepareActionMutex);
 		}
 
-		void PreparePath(Dimension::Unit* unit, AI::Node* pStart, AI::Node* pGoal)
+		void PreparePath(const gc_ptr<Dimension::Unit>& unit, AI::Node* pStart, AI::Node* pGoal)
 		{
 			NetPath* path = new NetPath;
 			ClonePath(pStart, pGoal);
@@ -491,7 +491,7 @@ namespace Game
 
 		SDL_mutex* prepareCreationMutex = SDL_CreateMutex();
 
-		void PrepareCreation(const ref_ptr<Dimension::UnitType>& unittype, int x, int y, float rot)
+		void PrepareCreation(const gc_ptr<Dimension::UnitType>& unittype, int x, int y, float rot)
 		{
 			NetCreate* create = new NetCreate;
 			create->unittype_id = unittype->GetIndependentHandle();
@@ -513,7 +513,7 @@ namespace Game
 
 		SDL_mutex* prepareDamagingMutex = SDL_CreateMutex();
 
-		void PrepareDamaging(Dimension::Unit* unit, float damage)
+		void PrepareDamaging(const gc_ptr<Dimension::Unit>& unit, float damage)
 		{
 			NetDamage* dmg = new NetDamage;
 			dmg->unit_id = unit->id;
@@ -532,7 +532,7 @@ namespace Game
 
 		SDL_mutex* prepareSellMutex = SDL_CreateMutex();
 
-		void PrepareSell(const ref_ptr<Dimension::Player>& owner, int amount)
+		void PrepareSell(const gc_ptr<Dimension::Player>& owner, int amount)
 		{
 			NetSell* sell = new NetSell;
 			sell->owner_id = owner->GetIndependentHandle();
@@ -549,7 +549,7 @@ namespace Game
 			SDL_UnlockMutex(prepareSellMutex);
 		}
 
-		Dimension::Unit* DecodeUnitID(Uint16 id)
+		gc_ptr<Dimension::Unit> DecodeUnitID(Uint16 id)
 		{
 			if (id == 0xFFFF || !Dimension::unitByID[id])
 			{
@@ -1131,8 +1131,8 @@ namespace Game
 							cout << "Packet late by " << AI::currentFrame - actiondata->valid_at_frame << " frames" << endl;
 						}
 #endif
-						Dimension::Unit* unit = DecodeUnitID(actiondata->unit_id);
-						Dimension::Unit* target = DecodeUnitID(actiondata->goalunit_id);
+						const gc_ptr<Dimension::Unit>& unit = DecodeUnitID(actiondata->unit_id);
+						const gc_ptr<Dimension::Unit>& target = DecodeUnitID(actiondata->goalunit_id);
 						waitingActions.erase(waitingActions.begin() + i--);
 						
 						if (unit && (actiondata->goalunit_id == 0xFFFF || target))
@@ -1158,7 +1158,7 @@ namespace Game
 					NetPath* path = waitingPaths.at(i);
 					if (path->valid_at_frame <= AI::currentFrame)
 					{
-						Dimension::Unit* unit = DecodeUnitID(path->unit_id);
+						const gc_ptr<Dimension::Unit>& unit = DecodeUnitID(path->unit_id);
 						waitingPaths.erase(waitingPaths.begin() + i--);
 						
 						if (unit)
@@ -1182,10 +1182,10 @@ namespace Game
 					if (create->valid_at_frame <= AI::currentFrame)
 					{
 						waitingCreations.erase(waitingCreations.begin() + i--);
-						const ref_ptr<Dimension::Player>& owner = Dimension::HandleManager<Dimension::Player>::InterpretIndependentHandle(create->owner_id);
+						const gc_ptr<Dimension::Player>& owner = Dimension::HandleManager<Dimension::Player>::InterpretIndependentHandle(create->owner_id);
 						if (owner)
 						{
-							Dimension::Unit* unit = Dimension::CreateUnit(create->unittype_id, owner, create->x, create->y);
+							const gc_ptr<Dimension::Unit>& unit = Dimension::CreateUnit(create->unittype_id, owner, create->x, create->y);
 							if (unit)
 							{
 								unit->rotation = ByteToRotation(create->rot);
@@ -1204,7 +1204,7 @@ namespace Game
 					NetDamage* damage = waitingDamagings.at(i);
 					if (damage->valid_at_frame <= AI::currentFrame)
 					{
-						Dimension::Unit* unit = DecodeUnitID(damage->unit_id);
+						gc_ptr<Dimension::Unit> unit = DecodeUnitID(damage->unit_id);
 						waitingDamagings.erase(waitingDamagings.begin() + i--);
 						
 						if (unit)
@@ -1226,7 +1226,7 @@ namespace Game
 					{
 						waitingSells.erase(waitingSells.begin() + i--);
 						
-						const ref_ptr<Dimension::Player>& owner = Dimension::HandleManager<Dimension::Player>::InterpretIndependentHandle(sell->owner_id);
+						const gc_ptr<Dimension::Player>& owner = Dimension::HandleManager<Dimension::Player>::InterpretIndependentHandle(sell->owner_id);
 						if (owner)
 						{
 							Dimension::SellPower(Dimension::pWorld->vPlayers.at(sell->owner_id), sell->amount);
@@ -1804,9 +1804,9 @@ namespace Game
 			
 			if (Dimension::currentPlayer->vUnits.size() > 0)
 			{
-				Dimension::Unit* unit = Dimension::currentPlayer->vUnits.at(0);
+				const gc_ptr<Dimension::Unit>& unit = Dimension::currentPlayer->vUnits.at(0);
 				
-				if (unit != NULL)
+				if (unit)
 				{
 					Dimension::Camera* camera = &Game::Dimension::Camera::instance;
 					camera->SetCamera(unit, camera->GetZoom(), camera->GetRotation());
@@ -2605,7 +2605,7 @@ namespace Game
 			actiondata->action = (AI::UnitAction) READ8BIT(data);
 			actiondata->rot = READ8BIT(data);
 
-			Dimension::Unit* unit = Dimension::GetUnitByID(actiondata->unit_id);
+			const gc_ptr<Dimension::Unit>& unit = Dimension::GetUnitByID(actiondata->unit_id);
 
 			if (!unit)
 			{
@@ -2828,9 +2828,9 @@ namespace Game
 			std::stringstream sstr;
 			int index = 0;
 
-			for (vector<Dimension::Unit*>::iterator it = Dimension::pWorld->vUnits.begin(); it != Dimension::pWorld->vUnits.end(); it++)
+			for (vector<gc_ptr<Dimension::Unit> >::iterator it = Dimension::pWorld->vUnits.begin(); it != Dimension::pWorld->vUnits.end(); it++)
 			{
-				Dimension::Unit* unit = *it;
+				const gc_ptr<Dimension::Unit>& unit = *it;
 				checksum ^= index | unit->id << (index % 15); // To get a number that is different for different index/id combos.
 #ifdef CHECKSUM_DEBUG
 				sstr << index << " ";
@@ -2877,9 +2877,9 @@ namespace Game
 			}
 
 			int bits = 0;
-			for (vector<ref_ptr<Dimension::Player> >::iterator it = Dimension::pWorld->vPlayers.begin(); it != Dimension::pWorld->vPlayers.end(); it++)
+			for (vector<gc_ptr<Dimension::Player> >::iterator it = Dimension::pWorld->vPlayers.begin(); it != Dimension::pWorld->vPlayers.end(); it++)
 			{
-				const ref_ptr<Dimension::Player>& player = *it;
+				const gc_ptr<Dimension::Player>& player = *it;
 				checksum ^= ((Uint32) floor(player->resources.power))<<bits;
 #ifdef CHECKSUM_DEBUG
 				sstr << (Uint32) floor(player->resources.power) << " ";

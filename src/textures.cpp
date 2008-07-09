@@ -3,6 +3,7 @@
 #include "networking.h"
 #include "paths.h"
 #include "game.h"
+#include "unit.h"
 
 namespace Utilities
 {	

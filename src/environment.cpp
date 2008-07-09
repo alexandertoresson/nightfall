@@ -15,6 +15,7 @@
 #include "paths.h"
 #include "filesystem.h"
 #include "utilities.h"
+#include "unit.h"
 #include <cmath>
 
 namespace Game

@@ -65,7 +65,7 @@ namespace Audio
 		int times;
 		int channel;
 
-		Game::Dimension::Unit* pSpeaker;
+		gc_ptr<Game::Dimension::Unit> pSpeaker;
 
 		SoundNode(Sound* p, float newX, float newY, float newDx, float newDy, float newStrength, int numPlay) :
 			pSound(p), x(newX), y(newY), dx(newDx), dy(newDy), strength(newStrength), times(numPlay),
@@ -136,7 +136,7 @@ namespace Audio
 	void       RemoveSoundNode(SoundListNode*);
 	void       PlaceSoundNodes(const Utilities::Vector3D& observer);
 	Uint8      CalculateVolume(const Utilities::Vector3D& vObserver, float x, float y, float strength);
-	void       SetSpeakerUnit(SoundNode* pSoundNode, Game::Dimension::Unit* p);
+	void       SetSpeakerUnit(SoundNode* pSoundNode, const gc_ptr<Game::Dimension::Unit>& p);
 }
 
 #ifdef DEBUG_DEP

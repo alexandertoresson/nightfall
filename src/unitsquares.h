@@ -16,7 +16,7 @@ namespace Game
 {
 	namespace Dimension
 	{
-		extern std::vector<Unit*>*** unitsInBigSquares;
+		extern std::vector<gc_ptr<Unit> >*** unitsInBigSquares;
 		extern int PositionSearch_NumStepsTaken;
 		extern GLfloat unitBuildingMaximumAltitude;
 		extern int bigSquareHeight, bigSquareWidth;
@@ -35,70 +35,70 @@ namespace Game
 		          SIW_CONSIDER_PUSHED = 8,
 		          SIW_IGNORE_OWN_MOBILE_UNITS = 16;
 
-		bool IsWithinRangeForBuilding(Unit* unit);
+		bool IsWithinRangeForBuilding(const gc_ptr<Unit>& unit);
 		
-		void GetTypeUpperLeftCorner(const ref_ptr<UnitType>& type, int mx, int my, int& lx, int& uy);
-		void GetUnitUpperLeftCorner(Unit* unit, int& lx, int& uy);
-		void GetUnitUpperLeftCorner(Unit* unit, float mx, float my, int& lx, int& uy);
-		void GetUnitUpperLeftCorner(Unit* unit, int mx, int my, int& lx, int& uy);
-		bool DoesNotBlock(Unit* unit, const ref_ptr<UnitType>& build_type, int build_x, int build_y, int x, int y);
+		void GetTypeUpperLeftCorner(const gc_ptr<UnitType>& type, int mx, int my, int& lx, int& uy);
+		void GetUnitUpperLeftCorner(const gc_ptr<Unit>& unit, int& lx, int& uy);
+		void GetUnitUpperLeftCorner(const gc_ptr<Unit>& unit, float mx, float my, int& lx, int& uy);
+		void GetUnitUpperLeftCorner(const gc_ptr<Unit>& unit, int mx, int my, int& lx, int& uy);
+		bool DoesNotBlock(const gc_ptr<Unit>& unit, const gc_ptr<UnitType>& build_type, int build_x, int build_y, int x, int y);
 
-		void NearestSquareFromBuildingPlace(Unit* unit, const ref_ptr<UnitType>& build_type, int build_x, int build_y, int &x, int &y);
-		void GetNearestUnoccupiedPosition(const ref_ptr<UnitType>& type, int& x, int& y);
-		bool IsSuitableForBuilding(const ref_ptr<UnitType>& type, int build_x, int build_y);
+		void NearestSquareFromBuildingPlace(const gc_ptr<Unit>& unit, const gc_ptr<UnitType>& build_type, int build_x, int build_y, int &x, int &y);
+		void GetNearestUnoccupiedPosition(const gc_ptr<UnitType>& type, int& x, int& y);
+		bool IsSuitableForBuilding(const gc_ptr<UnitType>& type, int build_x, int build_y);
 
-		void Complete(Unit* unit);
-		void Incomplete(Unit* unit);
+		void Complete(const gc_ptr<Unit>& unit);
+		void Incomplete(const gc_ptr<Unit>& unit);
 
 		bool MovementTypeCanWalkOnSquare(MovementType mType, int x, int y);
 		inline bool MovementTypeCanWalkOnSquare_UnGuarded(MovementType mType, int x, int y);
 		bool MovementTypeCanWalkOnSquare_Pathfinding(MovementType mType, int size, int pos_x, int pos_y);
 
-		bool SquareIsWalkable(const ref_ptr<UnitType>& type, int x, int y, int flags);
-		bool SquaresAreWalkable(const ref_ptr<UnitType>& type, int x, int y, int flags);
-		inline bool SquareIsWalkable(const ref_ptr<UnitType>& type, int x, int y);
-		bool SquaresAreWalkable(const ref_ptr<UnitType>& type, int x, int y);
+		bool SquareIsWalkable(const gc_ptr<UnitType>& type, int x, int y, int flags);
+		bool SquaresAreWalkable(const gc_ptr<UnitType>& type, int x, int y, int flags);
+		inline bool SquareIsWalkable(const gc_ptr<UnitType>& type, int x, int y);
+		bool SquaresAreWalkable(const gc_ptr<UnitType>& type, int x, int y);
 
-		bool SquareIsLighted(const ref_ptr<Player>& player, int x, int y);
-		bool SquareIsVisible(const ref_ptr<Player>& player, int x, int y);
-		inline bool SquareIsVisible_UnGuarded(const ref_ptr<Player>& player, int x, int y);
-		bool SquaresAreLighted(const ref_ptr<UnitType>& type, int x, int y);
-		bool SquaresAreLightedAround(const ref_ptr<UnitType>& type, int x, int y);
+		bool SquareIsLighted(const gc_ptr<Player>& player, int x, int y);
+		bool SquareIsVisible(const gc_ptr<Player>& player, int x, int y);
+		inline bool SquareIsVisible_UnGuarded(const gc_ptr<Player>& player, int x, int y);
+		bool SquaresAreLighted(const gc_ptr<UnitType>& type, int x, int y);
+		bool SquaresAreLightedAround(const gc_ptr<UnitType>& type, int x, int y);
 		
-		bool GetNearestSuitableAndLightedPosition(const ref_ptr<UnitType>& type, int& x, int& y);
-		bool GetSuitablePositionForLightTower(const ref_ptr<UnitType>& type, int& x, int& y, bool needLighted);
+		bool GetNearestSuitableAndLightedPosition(const gc_ptr<UnitType>& type, int& x, int& y);
+		bool GetSuitablePositionForLightTower(const gc_ptr<UnitType>& type, int& x, int& y, bool needLighted);
 		
-		Unit* GetNearestUnitInRange(Unit* unit, RangeType rangeType, PlayerState state);
-		bool UnitIsVisible(Unit *unit, const ref_ptr<Player>& player);
+		gc_ptr<Unit> GetNearestUnitInRange(const gc_ptr<Unit>& unit, RangeType rangeType, PlayerState state);
+		bool UnitIsVisible(const gc_ptr<Unit>& unit, const gc_ptr<Player>& player);
 		
-		bool UpdateAssociatedSquares(Unit* unit, int new_x, int new_y, int old_x, int old_y);
-		bool SetAssociatedSquares(Unit* unit, int new_x, int new_y);
-		void DeleteAssociatedSquares(Unit* unit, int old_x, int old_y);
+		bool UpdateAssociatedSquares(const gc_ptr<Unit>& unit, int new_x, int new_y, int old_x, int old_y);
+		bool SetAssociatedSquares(const gc_ptr<Unit>& unit, int new_x, int new_y);
+		void DeleteAssociatedSquares(const gc_ptr<Unit>& unit, int old_x, int old_y);
 		
-		float GetLightAmountOnUnit(Unit* unit);
-		void UpdateLightedSquares(Unit* unit, int x, int y, int operation);
-		void SetLightState(Unit* unit, LightState lightState);
+		float GetLightAmountOnUnit(const gc_ptr<Unit>& unit);
+		void UpdateLightedSquares(const gc_ptr<Unit>& unit, int x, int y, int operation);
+		void SetLightState(const gc_ptr<Unit>& unit, LightState lightState);
 		
-		bool CanSee(Unit* attacker, Unit* target);
+		bool CanSee(const gc_ptr<Unit>& attacker, const gc_ptr<Unit>& target);
 
-		bool UnitIsRendered(Unit *unit, const ref_ptr<Player>& player);
+		bool UnitIsRendered(const gc_ptr<Unit>& unit, const gc_ptr<Player>& player);
 
-		void CheckPrecomputedArrays(const ref_ptr<UnitType>& type);
+		void CheckPrecomputedArrays(const gc_ptr<UnitType>& type);
 
 		void InitUnitSquares();
 		
-		int GetTraversalTime(Unit *unit, int x, int y, int dx, int dy);
-		int GetTraversalTimeAdjusted(Unit *unit, int x, int y, int dx, int dy);
+		int GetTraversalTime(const gc_ptr<Unit>& unit, int x, int y, int dx, int dy);
+		int GetTraversalTimeAdjusted(const gc_ptr<Unit>& unit, int x, int y, int dx, int dy);
 		
-		bool SquareIsGoal(Unit *unit, int x, int y, bool use_internal = false);
+		bool SquareIsGoal(const gc_ptr<Unit>& unit, int x, int y, bool use_internal = false);
 		
-		bool SquareIsWalkable(Unit *unit, int x, int y, int flags);
-		bool SquaresAreWalkable(Unit *unit, int x, int y, int flags);
-		inline bool SquareIsWalkable(Unit *unit, int x, int y);
-		bool SquaresAreWalkable(Unit *unit, int x, int y);
-		bool SquaresAreWalkable(const ref_ptr<UnitType>& type, int x, int y, int flags);
+		bool SquareIsWalkable(const gc_ptr<Unit>& unit, int x, int y, int flags);
+		bool SquaresAreWalkable(const gc_ptr<Unit>& unit, int x, int y, int flags);
+		inline bool SquareIsWalkable(const gc_ptr<Unit>& unit, int x, int y);
+		bool SquaresAreWalkable(const gc_ptr<Unit>& unit, int x, int y);
+		bool SquaresAreWalkable(const gc_ptr<UnitType>& type, int x, int y, int flags);
 
-		void RemoveUnitFromBigSquare(Unit* unit);
+		void RemoveUnitFromBigSquare(const gc_ptr<Unit>& unit);
 	}
 }
 

@@ -41,7 +41,7 @@ namespace Game
 				virtual void PostRender();
 			public:
 				void SetCamera(Utilities::Vector3D, GLfloat, GLfloat);
-				void SetCamera(Unit* unit, GLfloat zoom, GLfloat rotation);
+				void SetCamera(const gc_ptr<Unit>& unit, GLfloat zoom, GLfloat rotation);
 				void SetFocus(float terrain_x, float terrain_y);
 				void CheckPosition();
 				void Fly(GLfloat);

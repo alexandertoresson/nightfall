@@ -13,6 +13,7 @@ namespace Utilities
 	{
 		public:
 			float matrix[4][4];
+			float nothingelsehasthisname;
 
 			//! Creates a new 4x4 matrix and loads it with the identity matrix
 			Matrix4x4();
@@ -29,7 +30,7 @@ namespace Utilities
 			void Zero();
 
 			//! Sets the matrix to an arbitrary matrix
-			void Set(const float matrix[4][4]);
+			void Set(const float a[4][4]);
 
 			static Matrix4x4 TranslationMatrix(float x, float y, float z);
 

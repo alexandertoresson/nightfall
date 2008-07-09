@@ -21,10 +21,10 @@ namespace Game
 {
 	namespace Dimension
 	{	
-		ref_ptr<World> pWorld        = NULL;
-		Unit***    pppElements       = NULL;
-		ref_ptr<Player> currentPlayerView;
-		ref_ptr<Player> currentPlayer;
+		gc_root_ptr<World> pWorld        = NULL;
+		gc_ptr<Unit>**    pppElements       = NULL;
+		gc_ptr<Player> currentPlayerView;
+		gc_ptr<Player> currentPlayer;
 
 		InputController::InputController(void)
 		{
@@ -241,7 +241,7 @@ namespace Game
 			}
 		}
 
-		void UnloadUnitType(const ref_ptr<Player>& player, const ref_ptr<UnitType>& pUnitType)
+		void UnloadUnitType(const gc_ptr<Player>& player, const gc_ptr<UnitType>& pUnitType)
 		{
 			// TODO
 /*			int index = pUnitType->index;
@@ -260,28 +260,28 @@ namespace Game
 			unitTypeMap.clear();*/
 		}
 
-		const ref_ptr<Player>& GetCurrentPlayer()
+		const gc_ptr<Player>& GetCurrentPlayer()
 		{
 			return currentPlayer;
 		}
 		
-		void SetCurrentPlayer(const ref_ptr<Player>& p)
+		void SetCurrentPlayer(const gc_ptr<Player>& p)
 		{
 			currentPlayer = p;
 		}
 		
-		void SetCurrentPlayerView(const ref_ptr<Player>& p)
+		void SetCurrentPlayerView(const gc_ptr<Player>& p)
 		{
 			currentPlayerView = p;
 		}
 
 		static struct
 		{
-			std::set<ref_ptr<UnitType> > sUnitTypes;
-			std::set<ref_ptr<Research> > sResearchs;
+			std::set<gc_ptr<UnitType> > sUnitTypes;
+			std::set<gc_ptr<Research> > sResearchs;
 		} notMeetingExistanceReqs;
 
-		void CheckRequirements(const ref_ptr<Player>& player, ConjunctiveRequirements &reqs)
+		void CheckRequirements(const gc_ptr<Player>& player, ConjunctiveRequirements &reqs)
 		{
 			bool isSatisfied = true;
 			for (std::vector<ResearchRequirement>::iterator it = reqs.researchs.begin(); it != reqs.researchs.end(); it++)
@@ -297,7 +297,7 @@ namespace Game
 			{
 				for (std::vector<UnitRequirement>::iterator it = reqs.units.begin(); it != reqs.units.end(); it++)
 				{
-					const ref_ptr<UnitType>& unitType = it->type;
+					const gc_ptr<UnitType>& unitType = it->type;
 					if (unitType->numBuilt > it->maxBuilt || unitType->numBuilt < it->minBuilt ||
 					    unitType->numExisting > it->maxExisting || unitType->numExisting < it->minExisting)
 					{
@@ -309,17 +309,17 @@ namespace Game
 			reqs.isSatisfied = isSatisfied;
 		}
 
-		void CheckObjectRequirements(const ref_ptr<Player>& player, ObjectRequirements &requirements)
+		void CheckObjectRequirements(const gc_ptr<Player>& player, ObjectRequirements &requirements)
 		{
 			CheckRequirements(player, requirements.creation);
 			CheckRequirements(player, requirements.existance);
 		}
 
-		void RecheckAllRequirements(const ref_ptr<Player>& player)
+		void RecheckAllRequirements(const gc_ptr<Player>& player)
 		{
-			for (std::vector<ref_ptr<Research> >::iterator it = player->vResearchs.begin(); it != player->vResearchs.end(); it++)
+			for (std::vector<gc_ptr<Research> >::iterator it = player->vResearchs.begin(); it != player->vResearchs.end(); it++)
 			{
-				const ref_ptr<Research>& research = *it;
+				const gc_ptr<Research>& research = *it;
 				CheckObjectRequirements(player, research->requirements);
 				if (!research->requirements.existance.isSatisfied && research->isResearched)
 				{
@@ -327,9 +327,9 @@ namespace Game
 				}
 			}
 
-			for (std::vector<ref_ptr<UnitType> >::iterator it = player->vUnitTypes.begin(); it != player->vUnitTypes.end(); it++)
+			for (std::vector<gc_ptr<UnitType> >::iterator it = player->vUnitTypes.begin(); it != player->vUnitTypes.end(); it++)
 			{
-				const ref_ptr<UnitType>& unitType = *it;
+				const gc_ptr<UnitType>& unitType = *it;
 				CheckObjectRequirements(player, unitType->requirements);
 				if (!unitType->requirements.existance.isSatisfied && unitType->numExisting)
 				{
@@ -344,11 +344,11 @@ namespace Game
 			int n = 0;
 			while ((notMeetingExistanceReqs.sResearchs.size() || notMeetingExistanceReqs.sUnitTypes.size()) && n < 5)
 			{
-				std::set<ref_ptr<Research> > &researchs = notMeetingExistanceReqs.sResearchs;
-				std::set<ref_ptr<UnitType> > &unitTypes = notMeetingExistanceReqs.sUnitTypes;
-				for (std::set<ref_ptr<Research> >::iterator it = researchs.begin(); it != researchs.end(); it++)
+				std::set<gc_ptr<Research> > &researchs = notMeetingExistanceReqs.sResearchs;
+				std::set<gc_ptr<UnitType> > &unitTypes = notMeetingExistanceReqs.sUnitTypes;
+				for (std::set<gc_ptr<Research> >::iterator it = researchs.begin(); it != researchs.end(); it++)
 				{
-					const ref_ptr<Research>& research = *it;
+					const gc_ptr<Research>& research = *it;
 					research->isResearched = false;
 
  					if (research->luaEffectObj.length())
@@ -366,11 +366,11 @@ namespace Game
  					}
 				}
 				researchs.clear();
-				for (std::set<ref_ptr<UnitType> >::iterator it = unitTypes.begin(); it != unitTypes.end(); it++)
+				for (std::set<gc_ptr<UnitType> >::iterator it = unitTypes.begin(); it != unitTypes.end(); it++)
 				{
 					for (unsigned i = 0; i < pWorld->vUnits.size(); )
 					{
-						Unit* unit = pWorld->vUnits[i];
+						const gc_ptr<Unit>& unit = pWorld->vUnits[i];
 						if (unit->type == *it && unit->isDisplayed)
 						{
 							KillUnit(unit);
@@ -382,7 +382,7 @@ namespace Game
 					}
 				}
 				unitTypes.clear();
-				for (std::vector<ref_ptr<Player> >::iterator it = pWorld->vPlayers.begin(); it != pWorld->vPlayers.end(); it++)
+				for (std::vector<gc_ptr<Player> >::iterator it = pWorld->vPlayers.begin(); it != pWorld->vPlayers.end(); it++)
 				{
 					RecheckAllRequirements(*it);
 				}
@@ -396,11 +396,7 @@ namespace Game
 				return;
 			
 			//Deallocate Units
-			while(pWorld->vUnits.size() > 0)
-			{
-				RemoveUnitFromLists(pWorld->vUnits[0]);
-				DeleteUnit(pWorld->vUnits[0]);
-			}
+			pWorld->vUnits.clear();
 
 			pWorld->vPlayers.clear();
 
@@ -411,13 +407,28 @@ namespace Game
 			pWorld.reset();
 		}
 		
-		ref_ptr<Research> GetResearchByID(unsigned i)
+		gc_ptr<Research> GetResearchByID(unsigned i)
 		{
 			if (i < pWorld->vAllResearchs.size())
 			{
 				return pWorld->vAllResearchs[i];
 			}
-			return ref_ptr<Research>();
+			return gc_ptr<Research>();
+		}
+
+		void PrintPlayerRefs()
+		{
+/*			for (std::vector<gc_ptr<Player> >::iterator it = pWorld->vPlayers.begin(); it != pWorld->vPlayers.end(); it++)
+			{
+				std::cout << (*it).c->numrefs << " ";
+			}
+			std::cout << std::endl;
+			for (std::vector<gc_ptr<UnitType> >::iterator it = pWorld->vAllUnitTypes.begin(); it != pWorld->vAllUnitTypes.end(); it++)
+			{
+				if ((*it).c->numrefs < 3)
+					std::cout << (*it).ref->name << ", " << (*it).ref->player->index << ": " << (*it).c->numrefs << " ";
+			}
+			std::cout << std::endl;*/
 		}
 
 	}

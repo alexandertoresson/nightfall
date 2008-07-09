@@ -272,7 +272,7 @@ namespace Game
 
 		string GetPower()
 		{
-			ref_ptr<Game::Dimension::Player> player = Game::Dimension::currentPlayerView;
+			gc_ptr<Game::Dimension::Player> player = Game::Dimension::currentPlayerView;
 			std::stringstream sstr, sstr2;
 			string change_str;
 
@@ -290,7 +290,7 @@ namespace Game
 
 		string GetMoney()
 		{
-			ref_ptr<Game::Dimension::Player> player = Game::Dimension::currentPlayerView;
+			gc_ptr<Game::Dimension::Player> player = Game::Dimension::currentPlayerView;
 			std::stringstream sstr, sstr2;
 			string change_str;
 
@@ -342,7 +342,7 @@ namespace Game
 				return;
 			}
 
-			const std::vector<Dimension::Unit*> unitsSelected = Dimension::GetSelectedUnits();
+			const std::vector<gc_ptr<Dimension::Unit> > unitsSelected = Dimension::GetSelectedUnits();
 			if (unitsSelected.size())
 			{
 				int map_x = 0, map_y = 0;
@@ -354,7 +354,7 @@ namespace Game
 
 				Dimension::ActionArguments args;
 				AI::UnitAction action = AI::ACTION_NONE;
-				Dimension::Unit* unit = NULL;
+				gc_ptr<Dimension::Unit> unit = NULL;
 				
 				Dimension::GetApproximateMapPosOfClick((*event).button.x, (*event).button.y, map_x, map_y);
 				unit = Dimension::GetUnitClicked((*event).button.x, (*event).button.y, map_x, map_y);
@@ -472,7 +472,7 @@ namespace Game
 			console << "(" << map_x << ", " << map_y << ")" << Console::nl;
 		}
 
-		void GameInput::AddSelectedUnit(Dimension::Unit* unit)
+		void GameInput::AddSelectedUnit(const gc_ptr<Dimension::Unit>& unit)
 		{
 			Dimension::SelectUnit(unit);
 		}
@@ -489,7 +489,6 @@ namespace Game
 			int map_x, map_y;
 			int ter_x, ter_y;
 			int tmp;
-			Dimension::Unit *unit;
 			pGame->is_pressing_lmb = false;
 
 			if (pGame->build_type)
@@ -499,7 +498,7 @@ namespace Game
 				{
 					if (Dimension::SquaresAreWalkable(pGame->build_type, ter_x, ter_y, Dimension::SIW_IGNORE_OWN_MOBILE_UNITS))
 					{
-						const std::vector<Dimension::Unit*> unitsSelected = Dimension::GetSelectedUnits();
+						const std::vector<gc_ptr<Dimension::Unit> > unitsSelected = Dimension::GetSelectedUnits();
 						if (unitsSelected.size() == 1)
 						{
 							AI::CommandUnit(unitsSelected.at(0), ter_x, ter_y, AI::ACTION_BUILD, Dimension::ActionArguments(pGame->build_type), true, false);
@@ -536,7 +535,7 @@ namespace Game
 					}
 
 					Utilities::Vector3D win_coord;
-					for (vector<Dimension::Unit*>::iterator it = Dimension::pWorld->vUnits.begin(); it != Dimension::pWorld->vUnits.end(); it++)
+					for (vector<gc_ptr<Dimension::Unit> >::iterator it = Dimension::pWorld->vUnits.begin(); it != Dimension::pWorld->vUnits.end(); it++)
 					{
 						win_coord = Dimension::GetUnitWindowPos(*it);
 						if (win_coord.x >= pGame->start_drag_x && win_coord.x <= pGame->end_drag_x && win_coord.y >= pGame->start_drag_y && win_coord.y <= pGame->end_drag_y && Dimension::UnitIsVisible(*it, Dimension::currentPlayerView))
@@ -552,17 +551,17 @@ namespace Game
 					{
 						Dimension::DeselectAllUnits();
 					}
-					unit = Dimension::GetUnitClicked((*event).button.x, (*event).button.y, map_x, map_y);
+					const gc_ptr<Dimension::Unit>& unit = Dimension::GetUnitClicked((*event).button.x, (*event).button.y, map_x, map_y);
 					if (unit)
 					{
-						static Dimension::Unit* last_unit_clicked = NULL;
+						static gc_ptr<Dimension::Unit> last_unit_clicked = NULL;
 						static Uint32 time_of_last_click = 0;
 
 						if (unit == last_unit_clicked && (SDL_GetTicks() - time_of_last_click) / 1000.0 < 0.33)
 						{
 							Utilities::Vector3D win_coord;
-							vector<Dimension::Unit*>& units = Game::Dimension::currentPlayerView->vUnits;
-							for (vector<Dimension::Unit*>::iterator it = units.begin(); it != units.end(); it++)
+							vector<gc_ptr<Dimension::Unit> >& units = Game::Dimension::currentPlayerView->vUnits;
+							for (vector<gc_ptr<Dimension::Unit> >::iterator it = units.begin(); it != units.end(); it++)
 							{
 								win_coord = Dimension::GetUnitWindowPos(*it);
 								if (((win_coord.x >= 0 && win_coord.x <= Window::windowWidth && win_coord.y >= 0 && win_coord.y <= Window::windowHeight) || pGame->input->GetKeyState(SDLK_LSHIFT)) && (*it)->type == unit->type)
@@ -591,10 +590,10 @@ namespace Game
 
 		void GameInput::SetTypeToBuild(unsigned int num)
 		{
-			const std::vector<Dimension::Unit*> unitsSelected = Dimension::GetSelectedUnits();
+			const std::vector<gc_ptr<Dimension::Unit> > unitsSelected = Dimension::GetSelectedUnits();
 			if (unitsSelected.size())
 			{
-				Dimension::Unit* unit = unitsSelected[0];
+				const gc_ptr<Dimension::Unit>& unit = unitsSelected[0];
 				if (unit->type->canBuild.size() >= num)
 				{
 					pGame->build_type = unit->type->canBuild.at(num-1);
@@ -627,7 +626,7 @@ namespace Game
 
 		void GameInput::AddGroup(unsigned int num)
 		{
-			for (vector<Dimension::Unit*>::iterator it = Dimension::unitGroups[num].begin(); it != Dimension::unitGroups[num].end(); it++)
+			for (vector<gc_ptr<Dimension::Unit> >::iterator it = Dimension::unitGroups[num].begin(); it != Dimension::unitGroups[num].end(); it++)
 			{
 				AddSelectedUnit(*it);
 			}
@@ -695,10 +694,10 @@ namespace Game
 						{
 							if(Dimension::GetCurrentPlayer()->vUnits.size() > 0)
 							{
-								const std::vector<Dimension::Unit*> unitsSelected = Dimension::GetSelectedUnits();
+								const std::vector<gc_ptr<Dimension::Unit> > unitsSelected = Dimension::GetSelectedUnits();
 								for (unsigned i = 0; i < unitsSelected.size(); i++)
 								{
-									Dimension::Unit* p = unitsSelected[i];
+									const gc_ptr<Dimension::Unit>& p = unitsSelected[i];
 
 									if (p->owner == Dimension::currentPlayer)
 									{
@@ -716,12 +715,12 @@ namespace Game
 						{
 							if (!pGame->input->GetKeyState(SDLK_q))
 							{
-								ref_ptr<Game::Dimension::Player> current_player = 
+								gc_ptr<Game::Dimension::Player> current_player = 
 									Game::Dimension::GetCurrentPlayer();
 									
 								if (current_player->vUnits.size())
 								{
-									vector<Game::Dimension::Unit*>::iterator it = 
+									vector<gc_ptr<Game::Dimension::Unit> >::iterator it = 
 										current_player->vUnits.begin();
 
 									while (it != current_player->vUnits.end())
@@ -1251,10 +1250,10 @@ namespace Game
 			glDisable(GL_TEXTURE_2D);
 		}
 
-		void GamePlayBar::SwitchSelected(Dimension::Unit* selected)
+		void GamePlayBar::SwitchSelected(const gc_ptr<Dimension::Unit>& selected)
 		{
 			this->pUnit = selected;
-			if(selected == NULL)
+			if(!selected)
 			{
 				Window::GUI::PanelWidget obj;
 				obj.pWidget = pSelected;
@@ -1290,7 +1289,7 @@ namespace Game
 			{
 				if (pUnit->type->canBuild.size())
 				{
-					ref_ptr<Game::Dimension::UnitType> unitType = pUnit->type;
+					gc_ptr<Game::Dimension::UnitType> unitType = pUnit->type;
 					UnitBuild* unitBuilder = new UnitBuild(nopic, pGame);
 					Window::GUI::PanelWidget obj;
 					obj.pPanel = unitBuilder;
@@ -1337,9 +1336,9 @@ namespace Game
 
 			pActions->InitLayout();
 
-			for(vector<ref_ptr<Game::Dimension::UnitType> >::iterator iter = Dimension::currentPlayerView->vUnitTypes.begin(); iter != Dimension::currentPlayerView->vUnitTypes.end(); iter++)
+			for(vector<gc_ptr<Game::Dimension::UnitType> >::iterator iter = Dimension::currentPlayerView->vUnitTypes.begin(); iter != Dimension::currentPlayerView->vUnitTypes.end(); iter++)
 			{
-				const ref_ptr<Game::Dimension::UnitType>& unitTyp = (*iter);
+				const gc_ptr<Game::Dimension::UnitType>& unitTyp = (*iter);
 				if (unitTyp->canBuild.size() || unitTyp->canResearch.size())
 				{
 					UnitBuild* unitBuilder = new UnitBuild(nopic, pGame);
@@ -1432,10 +1431,10 @@ namespace Game
 			}
 		}
 
-		void UnitActions::SetSelected(Dimension::Unit* pUnit)
+		void UnitActions::SetSelected(const gc_ptr<Dimension::Unit>& pUnit)
 		{
 			this->pUnit = pUnit;
-			if(pUnit == NULL)
+			if(!pUnit)
 			{
 				UnitPic->SetPicture(nopic);
 				SetVisible(idBuild, false);
@@ -1493,7 +1492,7 @@ namespace Game
 
 		void UnitActions::Update()
 		{
-			if(pUnit != NULL)
+			if(pUnit)
 			{
 				Health->SetValue(pUnit->health);
 			}
@@ -1505,12 +1504,12 @@ namespace Game
 			this->pGame = pRef;
 		}
 
-		void UnitBuild::SetUnit(Dimension::Unit *pUnit)
+		void UnitBuild::SetUnit(const gc_ptr<Dimension::Unit>& pUnit)
 		{
 			this->pUnit = pUnit;
 		}
 
-		void UnitBuild::SetUnitType(const ref_ptr<Dimension::UnitType>& pUnitType)
+		void UnitBuild::SetUnitType(const gc_ptr<Dimension::UnitType>& pUnitType)
 		{
 			this->pUnitType = pUnitType;
 			SetLayout();
@@ -1522,10 +1521,10 @@ namespace Game
 			{
 				UnitBuild::InternalHandler* obj = (UnitBuild::InternalHandler*)pTag;
 				cout << "Build ID: " << obj->buildID << endl;
-				const std::vector<Dimension::Unit*> unitsSelected = Dimension::GetSelectedUnits();
+				const std::vector<gc_ptr<Dimension::Unit> > unitsSelected = Dimension::GetSelectedUnits();
 				if (obj->parent->pUnit->type->canBuild.size() <= (unsigned) obj->buildID)
 				{
-					const ref_ptr<Game::Dimension::Research>& research = obj->parent->pUnit->type->canResearch.at(obj->buildID - obj->parent->pUnit->type->canBuild.size());
+					const gc_ptr<Game::Dimension::Research>& research = obj->parent->pUnit->type->canResearch.at(obj->buildID - obj->parent->pUnit->type->canBuild.size());
 					if (unitsSelected.size() == 1)
 					{
 						AI::CommandUnit(obj->parent->pGame->buildingUnit, 0, 0, AI::ACTION_RESEARCH, Dimension::ActionArguments(research), true, false);
@@ -1666,8 +1665,8 @@ namespace Game
 			int i = 0;
 
 			glEnable(GL_TEXTURE_2D);
-			const std::vector<Dimension::Unit*> unitsSelected = Dimension::GetSelectedUnits();
-			vector<Dimension::Unit*>::const_iterator iter =  unitsSelected.begin();
+			const std::vector<gc_ptr<Dimension::Unit> > unitsSelected = Dimension::GetSelectedUnits();
+			vector<gc_ptr<Dimension::Unit> >::const_iterator iter =  unitsSelected.begin();
 			while(iter != unitsSelected.end())
 			{
 				if(colc == this->colCount)
@@ -1677,7 +1676,7 @@ namespace Game
 					cx = 0;
 				}
 				//Draw
-				Dimension::Unit* pCurUnit = (*iter);
+				const gc_ptr<Dimension::Unit>& pCurUnit = (*iter);
 
 				if(pCurUnit->type->Symbol == 0)
 					glBindTexture(GL_TEXTURE_2D, nopic);
@@ -1793,9 +1792,9 @@ namespace Game
 		{
 			if (pUnit->pMovementData->action.action == AI::ACTION_BUILD)
 			{
-				if (pUnit->pMovementData->action.goal.unit != NULL)
+				if (pUnit->pMovementData->action.goal.unit)
 				{
-					Dimension::Unit* target = pUnit->pMovementData->action.goal.unit;
+					const gc_ptr<Dimension::Unit>& target = pUnit->pMovementData->action.goal.unit;
 					if((unsigned) id < pUnit->type->canBuild.size() && pUnit->type->canBuild.at(id) == target->type)
 					{
 						if (!target->isCompleted)
@@ -1818,7 +1817,7 @@ namespace Game
 			}
 			else if (pUnit->pMovementData->action.action == AI::ACTION_RESEARCH)
 			{
-				const ref_ptr<Dimension::Research>& research = pUnit->pMovementData->action.args.research;
+				const gc_ptr<Dimension::Research>& research = pUnit->pMovementData->action.args.research;
 				if((unsigned) id >= pUnit->type->canBuild.size() && pUnit->type->canResearch.at(id - pUnit->type->canBuild.size()) == research)
 				{
 					stringstream status;
@@ -1873,7 +1872,7 @@ namespace Game
 			float cx = 0.0f;
 			float cy = 0.0f;
 			int c = 0;
-			for(vector<enc_ptr<Dimension::UnitType> >::iterator iter = this->pUnitType->canBuild.begin(); iter != this->pUnitType->canBuild.end(); iter++, cx += ow, c++)
+			for(vector<gc_ptr<Dimension::UnitType> >::iterator iter = this->pUnitType->canBuild.begin(); iter != this->pUnitType->canBuild.end(); iter++, cx += ow, c++)
 			{
 				if(c == nxt)
 				{
@@ -1897,7 +1896,7 @@ namespace Game
 				picbtn->SetTooltip((*iter)->name);
 				objects.push_back(picbtn);
 			}
-			for(vector<enc_ptr<Dimension::Research> >::iterator iter = this->pUnitType->canResearch.begin(); iter != this->pUnitType->canResearch.end(); iter++, cx += ow, c++)
+			for(vector<gc_ptr<Dimension::Research> >::iterator iter = this->pUnitType->canResearch.begin(); iter != this->pUnitType->canResearch.end(); iter++, cx += ow, c++)
 			{
 				if(c == nxt)
 				{
@@ -2092,11 +2091,11 @@ namespace Game
 			glEnd();
 
 			glDisable(GL_TEXTURE_2D);
-			for(vector<Dimension::Unit*>::iterator iter = Dimension::pWorld->vUnits.begin(); iter != Dimension::pWorld->vUnits.end(); iter++)
+			for(vector<gc_ptr<Dimension::Unit> >::iterator iter = Dimension::pWorld->vUnits.begin(); iter != Dimension::pWorld->vUnits.end(); iter++)
 			{
 				if(UnitIsVisible(*iter, Dimension::currentPlayerView))
 				{
-					Dimension::Unit* pUnit = (*iter);
+					const gc_ptr<Dimension::Unit>& pUnit = (*iter);
 					int lx = 0;
 					int ly = 0;
 					GetUnitUpperLeftCorner(pUnit, lx, ly);

@@ -23,8 +23,10 @@ namespace Game
 {
 	namespace Dimension
 	{
-		bool DoesHitUnit(Unit* unit, int clickx, int clicky, float& distance);
-		Utilities::Vector3D GetUnitWindowPos(Unit* unit);
+		gc_ptr<Unit> GetUnitClicked(int clickx, int clicky, int map_x, int map_y);
+
+		bool DoesHitUnit(const gc_ptr<Unit>& unit, int clickx, int clicky, float& distance);
+		Utilities::Vector3D GetUnitWindowPos(const gc_ptr<Unit>& unit);
 
 		class UnitMainNode : public Scene::Graph::Node
 		{
@@ -36,65 +38,91 @@ namespace Game
 				}
 
 				SDL_mutex* listsMutex;
-				std::map<Unit*, ref_ptr<UnitNode> > unitToUnitNode;
-				std::map<Unit*, ref_ptr<UnitSelectionNode> > unitToSelectNode;
-				std::map<Projectile*, ref_ptr<ProjectileNode> > projToProjNode;
+				std::map<gc_root_ptr<Unit>, gc_ptr<UnitNode> > unitToUnitNode;
+				std::map<gc_ptr<Unit>, gc_ptr<UnitSelectionNode> > unitToSelectNode;
+				std::map<Projectile*, gc_ptr<ProjectileNode> > projToProjNode;
 
-				std::set<Unit*> unitScheduledForAddition;
-				std::vector<Unit*> unitScheduledForDeletion;
+				std::set<gc_root_ptr<Unit> > unitScheduledForAddition;
+				std::vector<gc_root_ptr<Unit> > unitScheduledForDeletion;
 
-				std::set<Unit*> unitScheduledForSelection;
-				std::vector<Unit*> unitScheduledForDeselection;
+				std::set<gc_ptr<Unit> > unitScheduledForSelection;
+				std::vector<gc_ptr<Unit> > unitScheduledForDeselection;
 				
 				std::set<Projectile*> projScheduledForAddition;
 				std::vector<Projectile*> projScheduledForDeletion;
 
-				ref_ptr<UnitType> buildOutlineType;
+				gc_ptr<UnitType> buildOutlineType;
 				IntPosition buildOutlinePosition;
 			protected:
 				virtual void PreRender();
 			public:
-				void ScheduleUnitNodeAddition(Unit* unit);
-				void ScheduleUnitNodeDeletion(Unit* unit);
+				void ScheduleUnitNodeAddition(const gc_root_ptr<Unit>& unit);
+				void ScheduleUnitNodeDeletion(const gc_root_ptr<Unit>& unit);
 
-				void ScheduleSelection(Unit* unit);
-				void ScheduleDeselection(Unit* unit);
+				void ScheduleSelection(const gc_ptr<Unit>& unit);
+				void ScheduleDeselection(const gc_ptr<Unit>& unit);
 
 				void ScheduleProjectileAddition(Projectile* proj);
 				void ScheduleProjectileDeletion(Projectile* proj);
 
-				void ScheduleBuildOutlineAddition(const ref_ptr<UnitType>& type, int x, int y);
+				void ScheduleBuildOutlineAddition(const gc_ptr<UnitType>& type, int x, int y);
 				void ScheduleBuildOutlineDeletion();
 
-				const ref_ptr<UnitNode>& GetUnitNode(Unit* unit);
+				const gc_ptr<UnitNode>& GetUnitNode(const gc_ptr<Unit>& unit);
 
 				static UnitMainNode instance;
+
+				virtual void shade()
+				{
+					Scene::Graph::Node::shade();
+					gc_shade_map_key_value(unitToUnitNode);
+					gc_shade_map_key_value(unitToSelectNode);
+					gc_shade_map(projToProjNode);
+					gc_shade_container(unitScheduledForAddition);
+					gc_shade_container(unitScheduledForDeletion);
+					gc_shade_container(unitScheduledForSelection);
+					gc_shade_container(unitScheduledForDeselection);
+					gc_shade_container(unitScheduledForDeselection);
+					buildOutlineType.shade();
+				}
 		};
 
 		class UnitSubMeshRenderNode : public Scene::Render::OgreSubMeshNode
 		{
 			private:
-				GLfloat CalculateMaterialModifier(Unit* unit, GLfloat (&mod)[2][2]);
+				GLfloat CalculateMaterialModifier(const gc_ptr<Unit>& unit, GLfloat (&mod)[2][2]);
 				std::vector<Utilities::Uniform*> uniforms;
 			protected:
-				Unit* unit;
+				gc_root_ptr<Unit> unit;
 				virtual void PreRender();
 				virtual void Render();
 			public:
-				UnitSubMeshRenderNode(Unit* unit, const ref_ptr<Utilities::OgreSubMesh>& submesh);
+				UnitSubMeshRenderNode(const gc_root_ptr<Unit>& unit, const gc_ptr<Utilities::OgreSubMesh>& submesh);
 				~UnitSubMeshRenderNode();
 				int i;
+
+				virtual void shade()
+				{
+					Scene::Render::OgreSubMeshNode::shade();
+					unit.shade();
+				}
 		};
 
 		class UnitNode : public Scene::Graph::Node
 		{
 			protected:
-				Unit* unit;
+				gc_root_ptr<Unit> unit;
 				virtual void ApplyMatrix();
 				virtual void PostRender();
 				virtual void Traverse();
 			public:
-				UnitNode(Unit* unit);
+				UnitNode(const gc_root_ptr<Unit>& unit);
+				
+				virtual void shade()
+				{
+					Scene::Graph::Node::shade();
+					unit.shade();
+				}
 		};
 
 		class UnitSelectionNode : public Scene::Graph::Node
@@ -104,9 +132,15 @@ namespace Game
 				virtual void Render();
 				virtual void PostRender();
 				virtual void Traverse();
-				Unit* unit;
+				gc_root_ptr<Unit> unit;
 			public:
-				UnitSelectionNode(Unit* unit);
+				UnitSelectionNode(const gc_root_ptr<Unit>& unit);
+				
+				virtual void shade()
+				{
+					Scene::Graph::Node::shade();
+					unit.shade();
+				}
 		};
 
 		class ProjectileNode : public Scene::Render::OgreMeshNode
@@ -124,7 +158,7 @@ namespace Game
 		{
 			protected:
 				virtual void Render();
-				ref_ptr<UnitType> type;
+				gc_ptr<UnitType> type;
 				IntPosition pos;
 
 				BuildOutlineNode()
@@ -132,8 +166,14 @@ namespace Game
 					
 				}
 			public:
-				void Set(const ref_ptr<UnitType>& type, IntPosition pos);
+				void Set(const gc_ptr<UnitType>& type, IntPosition pos);
 				static BuildOutlineNode instance;
+				
+				virtual void shade()
+				{
+					Scene::Graph::Node::shade();
+					type.shade();
+				}
 		};
 
 	}

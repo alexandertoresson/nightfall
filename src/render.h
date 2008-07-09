@@ -9,7 +9,7 @@
 #include "scenegraph.h"
 #include "render-pre.h"
 #include "materialxml-pre.h"
-#include "ref_ptr.h"
+#include "sdlheader.h"
 
 namespace Scene
 {
@@ -32,11 +32,16 @@ namespace Scene
 					};
 
 					std::map<GLStateBool, bool> stateBools;
-					ref_ptr<Utilities::Material> material;
+					gc_ptr<Utilities::Material> material;
 
 					GLState() : material(NULL)
 					{
 						
+					}
+
+					void shade()
+					{
+						material.shade();
 					}
 				};
 
@@ -52,12 +57,18 @@ namespace Scene
 
 			private:
 				static StateBoolState curStateBools[GLState::GLSTATE_NUM];
-				static ref_ptr<GLState> curSetState;
+				static gc_ptr<GLState> curSetState;
 			protected:
-				ref_ptr<GLState> myGLState;
+				gc_ptr<GLState> myGLState;
 				void SetState(GLState::GLStateBool state, bool b);
 			public:
-				GLStateNode(ref_ptr<GLState> state);
+				GLStateNode(gc_ptr<GLState> state);
+
+				virtual void shade()
+				{
+					Graph::Node::shade();
+					myGLState.shade();
+				}
 		};
 
 		class GeometryNode : public GLStateNode
@@ -72,15 +83,15 @@ namespace Scene
 					struct AttribArray
 					{
 						std::string name;
-						ref_ptr<VBO> array;
+						gc_ptr<VBO> array;
 						GLenum type;
 					};
 
-					ref_ptr<VBO> vertexArray;
-					ref_ptr<VBO> normalArray;
-					ref_ptr<VBO> indicesArray;
+					gc_ptr<VBO> vertexArray;
+					gc_ptr<VBO> normalArray;
+					gc_ptr<VBO> indicesArray;
 					bool indicesAre32Bit;
-					std::vector<ref_ptr<VBO> > texCoordArrays;
+					std::vector<gc_ptr<VBO> > texCoordArrays;
 					std::vector<AttribArray> attribArrays;
 					GLenum primitive;
 					unsigned numElems;
@@ -89,15 +100,29 @@ namespace Scene
 					{
 						
 					}
+
+					void shade()
+					{
+						vertexArray.shade();
+						normalArray.shade();
+						indicesArray.shade();
+						gc_shade_container(texCoordArrays);
+					}
 				};
 
 			private:
 				static unsigned curNumAttribArrays;
-				static ref_ptr<GeomState> curSetState;
+				static gc_ptr<GeomState> curSetState;
 			protected:
-				ref_ptr<GeomState> myGeomState;
+				gc_ptr<GeomState> myGeomState;
 			public:
-				GeometryNode(ref_ptr<GeomState> geomState, ref_ptr<GLState> glState);
+				GeometryNode(gc_ptr<GeomState> geomState, gc_ptr<GLState> glState);
+
+				virtual void shade()
+				{
+					GLStateNode::shade();
+					myGeomState.shade();
+				}
 		};
 
 		class OgreSubMeshNode : public GeometryNode
@@ -105,19 +130,25 @@ namespace Scene
 			protected:
 				virtual void Render();
 			public:
-				OgreSubMeshNode(const ref_ptr<Utilities::OgreSubMesh>& mesh);
+				OgreSubMeshNode(const gc_ptr<Utilities::OgreSubMesh>& mesh);
 				virtual ~OgreSubMeshNode();
 		};
 		
-		class OgreMeshNode : public Scene::Graph::Node
+		class OgreMeshNode : public Graph::Node
 		{
 			private:
-				ref_ptr<Utilities::OgreMesh> mesh;
+				gc_ptr<Utilities::OgreMesh> mesh;
 			protected:
 				virtual void ApplyMatrix();
 				virtual void PostRender();
 			public:
-				OgreMeshNode(const ref_ptr<Utilities::OgreMesh> mesh);
+				OgreMeshNode(const gc_ptr<Utilities::OgreMesh> mesh);
+
+				virtual void shade()
+				{
+					Graph::Node::shade();
+					mesh.shade();
+				}
 		};
 
 
@@ -127,6 +158,7 @@ namespace Scene
 			public:
 				virtual void Apply(Utilities::Matrix4x4& matrix) = 0;
 				virtual ~MeshTransformation() {};
+				void shade() {};
 		};
 
 		class MeshTranslation : public MeshTransformation

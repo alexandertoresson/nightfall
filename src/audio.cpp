@@ -968,7 +968,7 @@ namespace Audio
 				pCurObj   = pCurNode->value;
 				pNextNode = pCurNode->pNext;
 				
-				if (pCurObj->pSpeaker != NULL)
+				if (!pCurObj->pSpeaker)
 				{
 					pCurObj->x = pCurObj->pSpeaker->pos.x;
 					pCurObj->y = pCurObj->pSpeaker->pos.y;
@@ -1031,7 +1031,7 @@ namespace Audio
 		return val;
 	}
 
-	void SetSpeakerUnit(SoundNode* pSoundNode, Game::Dimension::Unit* p)
+	void SetSpeakerUnit(SoundNode* pSoundNode, const gc_ptr<Game::Dimension::Unit>& p)
 	{
 		if (soundIsEnabled)
 		{

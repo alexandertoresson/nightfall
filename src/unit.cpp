@@ -24,21 +24,16 @@ namespace Game
 {
 	namespace Dimension
 	{
-		static vector<Unit*> unitsSelected;
-		vector<Unit*> unitGroups[10];
-		Unit**        unitByID;
+		static vector<gc_ptr<Unit> > unitsSelected;
+		vector<gc_ptr<Unit> > unitGroups[10];
+		gc_ptr<Unit>          unitByID[65536];
 		unsigned short         nextID;
-		map<Unit*, bool> validUnitPointers;
-		hashmap<Unit, bool> displayedUnitPointers;
+		hashmap<gc_ptr<Unit>, bool> displayedUnitPointers;
 		int**         numUnitsPerAreaMap;
 		int           nextPushID = 1;
 		
 		ActionQueueItem::~ActionQueueItem()
 		{
-			if (this->ghost)
-			{
-				DeleteGhostUnit(this->ghost);
-			}
 		}
 		
 		void ActionQueueItem::CreateVisualRepresentation()
@@ -54,9 +49,9 @@ namespace Game
 			}
 		}
 
-		void PlayActionSound(Unit* unit, Audio::SoundNodeAction action)
+		void PlayActionSound(const gc_ptr<Unit>& unit, Audio::SoundNodeAction action)
 		{
-			if (unit == NULL)
+			if (!unit)
 				return;
 
 			if (action > Audio::SFX_ACT_COUNT)
@@ -72,7 +67,7 @@ namespace Game
 				fx->strength);
 		}
 		
-		void PlayRepeatingActionSound(Unit* unit, Audio::SoundNodeAction action)
+		void PlayRepeatingActionSound(const gc_ptr<Unit>& unit, Audio::SoundNodeAction action)
 		{				
 			if (unit->soundNodes[action] != NULL)
 				return;
@@ -86,9 +81,9 @@ namespace Game
 			Audio::SetSpeakerUnit(unit->soundNodes[action]->value, unit);
 		}
 		
-		void StopRepeatingActionSound(Unit* unit, Audio::SoundNodeAction action)
+		void StopRepeatingActionSound(const gc_ptr<Unit>& unit, Audio::SoundNodeAction action)
 		{
-			if (unit == NULL)
+			if (!unit)
 				return;
 				
 			if (unit->soundNodes[action] == NULL)
@@ -99,18 +94,12 @@ namespace Game
 			unit->soundNodes[action] = NULL;
 		}
 		
-		// May _ONLY_ be called from the main thread
-		bool IsValidUnitPointer(Unit* unit)
-		{
-			return validUnitPointers[unit];
-		}
-
-		bool IsDisplayedUnitPointer(Unit* unit)
+		bool IsDisplayedUnitPointer(const gc_ptr<Unit>& unit)
 		{
 			return displayedUnitPointers.get(unit);
 		}
 
-		Unit *GetUnitByID(unsigned id)
+		gc_ptr<Unit> GetUnitByID(unsigned id)
 		{
 			if (id < 65536)
 			{
@@ -119,14 +108,14 @@ namespace Game
 			return NULL;
 		}
 
-		double GetIncomeAtNoon(const ref_ptr<Player>& player)
+		double GetIncomeAtNoon(const gc_ptr<Player>& player)
 		{
 			double income = 0;
-			for (vector<Unit*>::iterator it = player->vUnits.begin(); it != player->vUnits.end(); it++)
+			for (vector<gc_ptr<Unit> >::iterator it = player->vUnits.begin(); it != player->vUnits.end(); it++)
 			{
 				if ((*it)->isDisplayed)
 				{
-					ref_ptr<UnitType> unittype = (*it)->type;
+					gc_ptr<UnitType> unittype = (*it)->type;
 					income += unittype->powerIncrement;
 					income -= unittype->powerUsage + unittype->lightPowerUsage + (unittype->attackPowerUsage + unittype->movePowerUsage + unittype->buildPowerUsage) * 0.5;
 				}
@@ -134,14 +123,14 @@ namespace Game
 			return income;
 		}
 
-		double GetIncomeAtNight(const ref_ptr<Player>& player)
+		double GetIncomeAtNight(const gc_ptr<Player>& player)
 		{
 			double income = 0;
-			for (vector<Unit*>::iterator it = player->vUnits.begin(); it != player->vUnits.end(); it++)
+			for (vector<gc_ptr<Unit> >::iterator it = player->vUnits.begin(); it != player->vUnits.end(); it++)
 			{
 				if ((*it)->isDisplayed)
 				{
-					ref_ptr<UnitType> unittype = (*it)->type;
+					gc_ptr<UnitType> unittype = (*it)->type;
 					if (unittype->powerType == POWERTYPE_TWENTYFOURSEVEN)
 					{
 						income += unittype->powerIncrement;
@@ -164,17 +153,17 @@ namespace Game
 			return 12 * pDimension->GetHourLength();
 		}
 
-		double GetPower(const ref_ptr<Player>& player)
+		double GetPower(const gc_ptr<Player>& player)
 		{
 			return player->resources.power;
 		}
 
-		double GetMoney(const ref_ptr<Player>& player)
+		double GetMoney(const gc_ptr<Player>& player)
 		{
 			return player->resources.money;
 		}
 
-		void SellPower(const ref_ptr<Player>& player, double amount)
+		void SellPower(const gc_ptr<Player>& player, double amount)
 		{
 			if (amount > player->resources.power)
 				amount = player->resources.power;
@@ -184,7 +173,7 @@ namespace Game
 			player->oldResources.power -= amount;
 		}
 
-		double GetPowerAtDawn(const ref_ptr<Player>& player)
+		double GetPowerAtDawn(const gc_ptr<Player>& player)
 		{
 			Dimension::Environment::FourthDimension* pDimension = Dimension::Environment::FourthDimension::Instance();
 			double curPower = player->resources.power;
@@ -208,7 +197,7 @@ namespace Game
 			return curPower;
 		}
 
-		double GetPowerAtDusk(const ref_ptr<Player>& player)
+		double GetPowerAtDusk(const gc_ptr<Player>& player)
 		{
 			Dimension::Environment::FourthDimension* pDimension = Dimension::Environment::FourthDimension::Instance();
 			double curPower = player->resources.power;
@@ -228,7 +217,7 @@ namespace Game
 			return curPower;
 		}
 
-		void FacePos(Unit* unit, Position pos)
+		void FacePos(gc_ptr<Unit>& unit, Position pos)
 		{
 			Utilities::Vector3D direction, zero_rot;
 			direction.set(pos.x - unit->pos.x, 0.0, pos.y - unit->pos.y);
@@ -238,16 +227,16 @@ namespace Game
 			if (direction.z < 0) unit->rotation = 180 - unit->rotation + 180;
 		}
 
-		void FaceUnit(Unit* unit, Unit* targetUnit)
+		void FaceUnit(gc_ptr<Unit>& unit, const gc_ptr<Unit>& targetUnit)
 		{
 			FacePos(unit, targetUnit->pos);
 		}
 
-		void PerformBuild(Unit* unit)
+		void PerformBuild(gc_ptr<Unit>& unit)
 		{
 			double build_cost;
 			double power_usage = unit->type->buildPowerUsage / AI::aiFps;
-			ref_ptr<UnitType> build_type = unit->pMovementData->action.args.unitType;
+			gc_ptr<UnitType> build_type = unit->pMovementData->action.args.unitType;
 
 			if (unit->owner->resources.power < power_usage)
 			{
@@ -274,7 +263,7 @@ namespace Game
 				}
 				else
 				{
-					Unit* pUnit = CreateUnit(build_type, unit->pMovementData->action.goal.pos.x, unit->pMovementData->action.goal.pos.y, -1, false);
+					gc_ptr<Unit> pUnit = CreateUnit(build_type, unit->pMovementData->action.goal.pos.x, unit->pMovementData->action.goal.pos.y, -1, false);
 					if (pUnit)
 						pUnit->rotation = unit->pMovementData->action.rotation;
 					
@@ -282,7 +271,7 @@ namespace Game
 				}
 				if (!unit->pMovementData->action.goal.unit)
 				{
-					Unit* cur_unit = pppElements[unit->pMovementData->action.goal.pos.y][unit->pMovementData->action.goal.pos.x];
+					const gc_ptr<Unit>& cur_unit = pppElements[unit->pMovementData->action.goal.pos.y][unit->pMovementData->action.goal.pos.x];
 
 					if (cur_unit && cur_unit->type == build_type)
 					{
@@ -327,7 +316,7 @@ namespace Game
 				}
 			}
 
-			Unit* newUnit = unit->pMovementData->action.goal.unit;
+			gc_ptr<Unit>& newUnit = unit->pMovementData->action.goal.unit;
 			ObjectRequirements &requirements = newUnit->type->requirements;
 
 			if (newUnit->pMovementData->action.action == AI::ACTION_DIE)
@@ -409,10 +398,10 @@ namespace Game
 
 		}
 		
-		void PerformResearch(Unit* unit)
+		void PerformResearch(gc_ptr<Unit>& unit)
 		{
 			double research_cost;
-			const ref_ptr<Research>& research = unit->pMovementData->action.args.research;
+			const gc_ptr<Research>& research = unit->pMovementData->action.args.research;
 			double power_usage = (unit->type->buildPowerUsage + research->requirements.power / research->requirements.time) / AI::aiFps;
 
 			
@@ -497,23 +486,23 @@ namespace Game
 			
 		}
 		
-		void CancelBuild(Dimension::Unit* pUnit)
+		void CancelBuild(const gc_ptr<Dimension::Unit>& pUnit)
 		{	
-			if (pUnit == NULL)
+			if (!pUnit)
 				return;
 
-			if (pUnit->pMovementData == NULL)
+			if (!pUnit->pMovementData)
 				return;
 
 			if (!pUnit->pMovementData->action.args.unitType)
 				return;
 
 			int cost;
-			ref_ptr<UnitType> build_type = pUnit->pMovementData->action.args.unitType;
+			gc_ptr<UnitType> build_type = pUnit->pMovementData->action.args.unitType;
 
 			if (pUnit->pMovementData->action.goal.unit && pUnit->pMovementData->action.goal.unit->pMovementData->action.action != AI::ACTION_DIE)
 			{
-				Unit* target = pUnit->pMovementData->action.goal.unit;
+				const gc_ptr<Unit>& target = pUnit->pMovementData->action.goal.unit;
 				if (!pUnit->pMovementData->action.goal.unit->isDisplayed)
 				{
 					int new_x = pUnit->curAssociatedSquare.x, new_y = pUnit->curAssociatedSquare.y;
@@ -537,16 +526,16 @@ namespace Game
 			}
 		}
 
-		void CancelResearch(Dimension::Unit* pUnit)
+		void CancelResearch(const gc_ptr<Dimension::Unit>& pUnit)
 		{
 			int cost;
-			ref_ptr<Research> research = pUnit->pMovementData->action.args.research;
+			gc_ptr<Research> research = pUnit->pMovementData->action.args.research;
 			cost = research->requirements.money;
 			pUnit->owner->resources.money += (float)cost * pUnit->action_completeness / 200;
 		}
 
 		// returns true when the unit can attack at the current time
-		bool CanAttack(Unit* attacker)
+		bool CanAttack(const gc_ptr<Unit>& attacker)
 		{
 			if (AI::currentFrame - attacker->lastAttack >= ((float)AI::aiFps / attacker->type->attackSpeed))
 			{
@@ -556,7 +545,7 @@ namespace Game
 		}
 
 		// perform an attack at target, returning true if the target has been eliminated
-		bool Attack(Unit* target, float damage)
+		bool Attack(gc_ptr<Unit>& target, float damage)
 		{
 #ifdef CHECKSUM_DEBUG_HIGH
 			Networking::checksum_output << "DAMAGE " << AI::currentFrame << ": " << target->id << " " << damage << "\n";
@@ -566,15 +555,16 @@ namespace Game
 				target->lastAttacked = AI::currentFrame; // only update time of last attack if the unit is not already dead
 			}
 			target->health -= damage;
+			if (target->pMovementData->action.action == AI::ACTION_DIE)
+			{
+				return true;
+			}
 			if (target->health <= 1e-3 && target->pMovementData->action.action != AI::ACTION_DIE)
 			{
 #ifdef CHECKSUM_DEBUG_HIGH
 				Networking::checksum_output << "DIE" << "\n";
 #endif
 				KillUnit(target);
-			}
-			if (target->pMovementData->action.action == AI::ACTION_DIE)
-			{
 				return true;
 			}
 			return false;
@@ -588,12 +578,12 @@ namespace Game
 		}
 
 		// calculate how much damage a unit does
-		float CalcUnitDamage(Unit* target, Unit* attacker)
+		float CalcUnitDamage(const gc_ptr<Unit>& target, const gc_ptr<Unit>& attacker)
 		{
 			return ((float) attacker->type->minAttack + float(attacker->type->maxAttack - attacker->type->minAttack) * attack_rand()) / target->type->armor * 100.0;
 		}
 
-		void InitiateAttack(Unit* attacker, Unit* target)
+		void InitiateAttack(gc_ptr<Unit>& attacker, gc_ptr<Unit>& target)
 		{
 			Position goto_pos;
 			Utilities::Vector3D goal_pos;	
@@ -647,17 +637,17 @@ namespace Game
 			}
 		}
 
-		bool UnitBinPred(const Unit* unit01, const Unit* unit02)
+		bool UnitBinPred(const gc_ptr<Unit>& unit01, const gc_ptr<Unit>& unit02)
 		{
 			return unit01->id < unit02->id;
 		}
 
-		void HandleProjectiles(Unit* pUnit)
+		void HandleProjectiles(const gc_ptr<Unit>& pUnit)
 		{
 			Projectile *proj = NULL;
 			float max_radius = 0;
-			vector<Unit*>::iterator it;
-			list<Unit*> units_hit;
+			vector<gc_ptr<Unit> >::iterator it;
+			list<gc_ptr<Unit> > units_hit;
 
 			for (unsigned index = 0; index < pUnit->projectiles.size(); )
 			{
@@ -706,7 +696,7 @@ namespace Game
 						{
 							for (it = unitsInBigSquares[y][x]->begin(); it != unitsInBigSquares[y][x]->end(); it++)
 							{
-								Unit* target = *it;
+								const gc_ptr<Unit>& target = *it;
 								if (target == pUnit)
 									continue;
 
@@ -721,9 +711,9 @@ namespace Game
 
 					units_hit.sort(UnitBinPred);
 
-					for (list<Unit*>::iterator it = units_hit.begin(); it != units_hit.end(); it++)
+					for (list<gc_ptr<Unit> >::iterator it = units_hit.begin(); it != units_hit.end(); it++)
 					{
-						Unit* target = *it;
+						gc_ptr<Unit>& target = *it;
 
 #ifdef CHECKSUM_DEBUG_HIGH
 						Networking::checksum_output << "HIT " << target->id << "\n";
@@ -736,7 +726,7 @@ namespace Game
 						}
 						if (Attack(target, CalcUnitDamage(target, pUnit)))
 						{
-							if (target == proj->goalUnit || proj->goalUnit == NULL)
+							if (target == proj->goalUnit || proj->goalUnit)
 								AI::CompleteAction(pUnit);
 						}
 					}
@@ -761,7 +751,7 @@ namespace Game
 			}
 		}
 		
-		void NotEnoughPowerForLight(Unit* unit)
+		void NotEnoughPowerForLight(const gc_ptr<Unit>& unit)
 		{
 			if (unit->type->lightRange < 1e-3)
 			{
@@ -774,7 +764,7 @@ namespace Game
 			}
 		}
 
-		void EnoughPowerForLight(Unit* unit)
+		void EnoughPowerForLight(const gc_ptr<Unit>& unit)
 		{
 			if (unit->type->lightRange < 1e-3)
 			{
@@ -787,7 +777,7 @@ namespace Game
 			}
 		}
 
-		void ChangePath(Unit* pUnit, int goal_x, int goal_y, AI::UnitAction action, Unit* target, const ActionArguments& args, float rotation)
+		void ChangePath(const gc_ptr<Unit>& pUnit, int goal_x, int goal_y, AI::UnitAction action, const gc_ptr<Unit>& target, const ActionArguments& args, float rotation)
 		{
 			if (pUnit->type->isMobile)
 			{
@@ -795,7 +785,7 @@ namespace Game
 			}
 		}
 
-		bool CheckPath(Unit* pUnit)
+		bool CheckPath(const gc_ptr<Unit>& pUnit)
 		{
 			AI::Node *curnode = pUnit->pMovementData->pStart, *parent;
 			bool invalid_path = false;
@@ -834,7 +824,7 @@ namespace Game
 
 		int numSentCommands = 0;
 
-		bool PushUnits(Unit* pUnit)
+/*		bool PushUnits(Unit* pUnit)
 		{
 			int start_x_new, start_y_new;
 			int start_x, start_y;
@@ -1097,9 +1087,9 @@ namespace Game
 				cout << "Non-found!" << endl;
 			}
 			return noloop;
-		}
+		}*/
 
-		void NewGoalNode(Unit* pUnit)
+		void NewGoalNode(const gc_ptr<Unit>& pUnit)
 		{
 			float distance, distance_per_frame;
 			Position goto_pos;
@@ -1127,7 +1117,7 @@ namespace Game
 			pUnit->faceTarget = FACETARGET_NONE;
 		}
 
-		bool MoveUnit(Unit* pUnit)
+		bool MoveUnit(const gc_ptr<Unit>& pUnit)
 		{
 			float distance, distance_per_frame;
 			Position goto_pos;
@@ -1318,8 +1308,8 @@ namespace Game
 					{
 						should_move = false;
 						pUnit->isMoving = false;
-						pUnit->pushID = 0;
-						pUnit->pusher = NULL;
+/*						pUnit->pushID = 0;
+						pUnit->pusher = NULL;*/
 						if (!SquaresAreWalkable(pUnit, pUnit->pMovementData->pCurGoalNode->x, pUnit->pMovementData->pCurGoalNode->y, SIW_IGNORE_MOVING | SIW_ALLKNOWING))
 						{
 							bool recalc = true;
@@ -1411,8 +1401,8 @@ namespace Game
 						{
 							pUnit->isWaiting = false;
 							pUnit->isPushed = false;
-							pUnit->pushID = 0;
-							pUnit->pusher = NULL;
+/*							pUnit->pushID = 0;
+							pUnit->pusher = NULL;*/
 #ifdef CHECKSUM_DEBUG_HIGH
 							Networking::checksum_output << "REACH " << AI::currentFrame << ": " << pUnit->id << " " << pUnit->pMovementData->pGoal->x << " " << pUnit->pMovementData->pGoal->y << "\n";
 #endif
@@ -1480,9 +1470,9 @@ namespace Game
 			return true;
 		}
 
-		void DeselectUnit(Unit* unit)
+		void DeselectUnit(const gc_ptr<Unit>& unit)
 		{
-			for (vector<Dimension::Unit*>::iterator it = unitsSelected.begin(); it != unitsSelected.end(); it++)
+			for (vector<gc_ptr<Unit> >::iterator it = unitsSelected.begin(); it != unitsSelected.end(); it++)
 			{
 				if (unit == *it)
 				{
@@ -1501,7 +1491,7 @@ namespace Game
 			}
 		}
 
-		void SelectUnit(Unit* unit)
+		void SelectUnit(const gc_ptr<Unit>& unit)
 		{
 			if (unit->owner == currentPlayerView)
 			{
@@ -1521,7 +1511,7 @@ namespace Game
 			}
 			else
 			{
-				for (vector<Dimension::Unit*>::iterator it = unitsSelected.begin(); it != unitsSelected.end(); it++)
+				for (vector<gc_ptr<Unit> >::iterator it = unitsSelected.begin(); it != unitsSelected.end(); it++)
 				{
 					if (unit == *it || (*it)->owner == currentPlayerView)
 					{
@@ -1533,7 +1523,7 @@ namespace Game
 			UnitMainNode::instance.ScheduleSelection(unit);
 		}
 
-		const std::vector<Unit*> GetSelectedUnits()
+		const std::vector<gc_ptr<Unit> >& GetSelectedUnits()
 		{
 			return unitsSelected;
 		}
@@ -1545,7 +1535,7 @@ namespace Game
 			return ((float)r_seed / 65535.0f);
 		}
 
-		void PrepareUnitEssentials(Unit* const unit, const ref_ptr<UnitType>& type)
+		void PrepareUnitEssentials(gc_ptr<Unit>& unit, const gc_ptr<UnitType>& type)
 		{
 			if (!unit || !type)
 				return ;
@@ -1565,8 +1555,8 @@ namespace Game
 			unit->isPushed = false;
 			unit->hasSeen = false;
 			unit->usedInAreaMaps = false;
-			unit->pushID = 0;
-			unit->pusher = NULL;
+/*			unit->pushID = 0;
+			unit->pusher = NULL;*/
 			unit->faceTarget = FACETARGET_NONE;
 			unit->action_completeness = 0.0f;
 			unit->hasPower = false;
@@ -1576,18 +1566,19 @@ namespace Game
 			unit->curAssociatedBigSquare.y = -1;
 			unit->rallypoint = NULL;
 			unit->aiFrame = 0;
+			unit->lastSeenPositions = NULL;
 
 			unit->pMovementData = new AI::MovementData;
 			AI::InitMovementData(unit);
 		}
 
-		set<Unit*> unitsScheduledForDeletion;
-		list<Unit*> unitsScheduledForDisplay;
+		set<gc_ptr<Unit> > unitsScheduledForDeletion;
+		list<gc_ptr<Unit> > unitsScheduledForDisplay;
 
 		SDL_mutex* unitCreationMutex = SDL_CreateMutex();
 
 		// create a unit, but don't display it
-		Unit* CreateUnitNoDisplay(const ref_ptr<UnitType>& type, int id, bool complete)
+		gc_ptr<Unit> CreateUnitNoDisplay(const gc_ptr<UnitType>& type, int id, bool complete)
 		{
 			SDL_LockMutex(unitCreationMutex);
 			if (pWorld->vUnits.size() >= 0xFFFF)
@@ -1595,7 +1586,7 @@ namespace Game
 				return NULL;
 			}
 
-			Unit* unit = new Unit;
+			gc_ptr<Unit> unit = Unit::New();
 
 			PrepareUnitEssentials(unit, type);
 //			PrepareAnimationData(unit);
@@ -1653,8 +1644,6 @@ namespace Game
 				unit->lastSeenPositions[i].y = -1000;
 			}
 
- 			validUnitPointers[unit] = true;
-
 			CheckPrecomputedArrays(type);
 			
 			SDL_UnlockMutex(unitCreationMutex);
@@ -1664,7 +1653,7 @@ namespace Game
 			return unit;
 		}
 		
-		Unit* CreateUnitNoDisplay(unsigned type, const ref_ptr<Player>& owner, int id, bool complete)
+		gc_ptr<Unit> CreateUnitNoDisplay(unsigned type, const gc_ptr<Player>& owner, int id, bool complete)
 		{
 			if (type < owner->vUnitTypes.size())
 			{
@@ -1675,9 +1664,9 @@ namespace Game
 
 		SDL_mutex* unitsScheduledForDisplayMutex = SDL_CreateMutex();
 
-		bool ScheduleDisplayUnit(Unit* unit, int x, int y)
+		bool ScheduleDisplayUnit(const gc_ptr<Unit>& unit, int x, int y)
 		{
-			if (!SquaresAreWalkable(unit->type, x, y, SIW_ALLKNOWING))
+			if (!SquaresAreWalkable(gc_ptr<UnitType>(unit->type), x, y, SIW_ALLKNOWING))
 			{
 				return false;
 			}
@@ -1700,9 +1689,9 @@ namespace Game
 			return true;
 		}
 
-		bool DisplayUnit(Unit* unit)
+		bool DisplayUnit(const gc_ptr<Unit>& unit)
 		{
-			if (!SquaresAreWalkable(unit->type, unit->curAssociatedSquare.x, unit->curAssociatedSquare.y, SIW_ALLKNOWING))
+			if (!SquaresAreWalkable(gc_ptr<UnitType>(unit->type), unit->curAssociatedSquare.x, unit->curAssociatedSquare.y, SIW_ALLKNOWING))
 			{
 				return false;
 			}
@@ -1746,19 +1735,19 @@ namespace Game
 		}
 
 		// create a unit
-		Unit* CreateUnit(const ref_ptr<UnitType>& type, int x, int y, int id, bool complete)
+		gc_ptr<Unit> CreateUnit(const gc_ptr<UnitType>& type, int x, int y, int id, bool complete)
 		{
 			if (!SquaresAreWalkable(type, x, y, SIW_ALLKNOWING))
 			{
 //				cout << "buildfail" << endl;
 				return NULL;
 			}
-			Unit* unit = CreateUnitNoDisplay(type, id, complete);
+			gc_ptr<Unit> unit = CreateUnitNoDisplay(type, id, complete);
 			ScheduleDisplayUnit(unit, x, y);
 			return unit;
 		}
 		
-		Unit* CreateUnit(unsigned type, const ref_ptr<Player>& owner, int x, int y, int id, bool complete)
+		gc_ptr<Unit> CreateUnit(unsigned type, const gc_ptr<Player>& owner, int x, int y, int id, bool complete)
 		{
 			if (type < owner->vUnitTypes.size())
 			{
@@ -1770,17 +1759,16 @@ namespace Game
 		void DisplayScheduledUnits()
 		{
 			unitsScheduledForDisplay.sort(UnitBinPred);
-			for (list<Unit*>::iterator it = unitsScheduledForDisplay.begin(); it != unitsScheduledForDisplay.end(); it++)
+			for (list<gc_ptr<Unit> >::iterator it = unitsScheduledForDisplay.begin(); it != unitsScheduledForDisplay.end(); it++)
 			{
 				DisplayUnit(*it);
 			}
 			unitsScheduledForDisplay.clear();
 		}
 
-		void KillUnit(Unit* unit)
+		void KillUnit(gc_ptr<Unit> unit)
 		{
 			unsigned int i;
-			Unit* curUnit;
 			
 //			std::cout << "Kill " << unit->id << std::endl;
 
@@ -1806,7 +1794,7 @@ namespace Game
 
 			for (i = 0; i < pWorld->vUnits.size(); i++)
 			{
-				curUnit = pWorld->vUnits.at(i);
+				const gc_ptr<Unit>& curUnit = pWorld->vUnits.at(i);
 				while (curUnit->pMovementData->action.goal.unit == unit)
 				{
 					AI::CancelAction(curUnit);
@@ -1839,16 +1827,10 @@ namespace Game
 
 		}
 
-		void RemoveUnitFromLists(Unit* unit)
+		void RemoveUnitFromLists(gc_ptr<Unit> unit)
 		{
-			Unit* curUnit;
 			unsigned int i, j;
 			
-			if (!IsValidUnitPointer(unit))
-			{
-				return;
-			}
-
 //			std::cout << "remove " << unit->id << " (" << unit << ")" << std::endl;
 
 			if (unit->isCompleted)
@@ -1857,14 +1839,13 @@ namespace Game
  				RecheckAllRequirements(unit->owner);
 			}
 
- 			validUnitPointers.erase(unit);
  			displayedUnitPointers.remove(unit);
 
 //			std::cout << "Delete " << unit->id << std::endl;
 
 			unitByID[unit->id] = NULL;
 
-			for (vector<Unit*>::iterator it = pWorld->vUnits.begin(); it != pWorld->vUnits.end(); it++)
+			for (vector<gc_ptr<Unit> >::iterator it = pWorld->vUnits.begin(); it != pWorld->vUnits.end(); it++)
 			{
 				if (*it == unit)
 				{
@@ -1875,7 +1856,7 @@ namespace Game
 
 			if (unit->type->hasAI)
 			{
-				for (vector<Unit*>::iterator it = pWorld->vUnitsWithAI.begin(); it != pWorld->vUnitsWithAI.end(); it++)
+				for (vector<gc_ptr<Unit> >::iterator it = pWorld->vUnitsWithAI.begin(); it != pWorld->vUnitsWithAI.end(); it++)
 				{
 					if (*it == unit)
 					{
@@ -1887,7 +1868,7 @@ namespace Game
 			
 			if (unit->owner == GetCurrentPlayer())
 			{
-				vector<Unit*>::iterator it = unitsDisplayQueue.begin();
+				vector<gc_ptr<Unit> >::iterator it = unitsDisplayQueue.begin();
 				while (it != unitsDisplayQueue.end())
 				{
 					if (*it == unit)
@@ -1899,7 +1880,7 @@ namespace Game
 				}
 			}
 
-			for (vector<Unit*>::iterator it = unit->owner->vUnits.begin(); it != unit->owner->vUnits.end(); it++)
+			for (vector<gc_ptr<Unit> >::iterator it = unit->owner->vUnits.begin(); it != unit->owner->vUnits.end(); it++)
 			{
 				if (*it == unit)
 				{
@@ -1909,7 +1890,7 @@ namespace Game
 			}
 			if (unit->type->hasLuaAI)
 			{
-				for (vector<Unit*>::iterator it = unit->owner->vUnitsWithLuaAI.begin(); it != unit->owner->vUnitsWithLuaAI.end(); it++)
+				for (vector<gc_ptr<Unit> >::iterator it = unit->owner->vUnitsWithLuaAI.begin(); it != unit->owner->vUnitsWithLuaAI.end(); it++)
 				{
 					if (*it == unit)
 					{
@@ -1960,7 +1941,7 @@ namespace Game
 
 			for (i = 0; i < pWorld->vUnits.size(); i++)
 			{
-				curUnit = pWorld->vUnits.at(i);
+				const gc_ptr<Unit>& curUnit = pWorld->vUnits.at(i);
 				while (curUnit->pMovementData->action.goal.unit == unit)
 				{
 					AI::CancelAction(curUnit);
@@ -2002,40 +1983,26 @@ namespace Game
 
 		}
 
-		void DeleteUnit(Unit* unit)
+		Unit::~Unit()
 		{
 
-			if (unit->rallypoint != NULL)
-				delete unit->rallypoint;
+			if (this->rallypoint != NULL)
+				delete this->rallypoint;
 			
-			delete[] unit->lastSeenPositions;
-			
-			if (unit->pMovementData->pStart != NULL)
-				AI::DeallocPathfindingNodes(unit);
-
-			if (unit->pMovementData->_start != NULL)
-				AI::DeallocPathfindingNodes(unit, AI::DPN_BACK);
-			
-			while (unit->actionQueue.size())
-			{
-				delete unit->actionQueue.front();
-				unit->actionQueue.pop_front();
-			}
-		
-			delete unit->pMovementData;
-
-			delete unit;
+			if (this->lastSeenPositions)
+				delete[] this->lastSeenPositions;
+	
 		}
 
-		vector<Unit*> unitsDisplayQueue;
-		Unit* CreateGhostUnit(const ref_ptr<UnitType>& type)
+		vector<gc_ptr<Unit> > unitsDisplayQueue;
+		gc_ptr<Unit> CreateGhostUnit(const gc_ptr<UnitType>& type)
 		{
-			ref_ptr<Player> owner = Game::Dimension::currentPlayer;
+			gc_ptr<Player> owner = Game::Dimension::currentPlayer;
 
 			if (!owner)
 				return NULL;
 
-			Unit* unit = new Unit;
+			gc_ptr<Unit> unit = Unit::New();
 
 			unit->completeness = 100.0;
 			unit->isCompleted = true;
@@ -2047,15 +2014,7 @@ namespace Game
 			return unit;
 		}
 
-		void DeleteGhostUnit(Unit*& unit)
-		{
-			delete unit->pMovementData;
-
-			delete unit;
-			unit = NULL;
-		}
-		
-		void AppendToActionDisplayQueueIfOK(Unit* unit)
+		void AppendToActionDisplayQueueIfOK(const gc_ptr<Unit>& unit)
 		{
 			if (!unit->actionQueue.size())
 				return;
@@ -2063,7 +2022,7 @@ namespace Game
 			unitsDisplayQueue.push_back(unit);
 		}
 
-		void ScheduleUnitDeletion(Unit* unit)
+		void ScheduleUnitDeletion(const gc_ptr<Unit>& unit)
 		{
 			if (unit->pMovementData->action.action != AI::ACTION_DIE)
 			{
@@ -2083,7 +2042,7 @@ namespace Game
 		}
 
 		// create a projectile
-		Projectile* CreateProjectile(ProjectileType* type, Utilities::Vector3D start, Unit* goal)
+		Projectile* CreateProjectile(ProjectileType* type, Utilities::Vector3D start, const gc_ptr<Unit>& goal)
 		{
 			Projectile* proj = new Projectile;
 			proj->type = type;
@@ -2106,11 +2065,11 @@ namespace Game
 		void InitUnits()
 		{
 
-			unitByID = new Unit*[65535];
+/*			unitByID = new gc_ptr<Unit>[65535];
 			for (int i = 0; i < 65535; i++)
 			{
-				unitByID[i] = NULL;
-			}
+				unitByID[i] = new gc_ptr<Unit>;
+			}*/
 			nextID = 1;
 
 			numUnitsPerAreaMap = new int*[4];

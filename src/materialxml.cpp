@@ -72,9 +72,9 @@ namespace Utilities
 	{
 	}
 
-	static ref_ptr<Material> material = NULL;
+	static gc_ptr<Material> material = NULL;
 	static Colour *colour = NULL;
-	static std::map<std::string, ref_ptr<Material> > filenameToMaterial;
+	static std::map<std::string, gc_ptr<Material> > filenameToMaterial;
 	static std::string vertFilename, fragFilename;
 
 	void ParseColour(Utilities::XMLElement *elem)
@@ -255,7 +255,7 @@ namespace Utilities
 	void ParseInheritMaterial(Utilities::XMLElement *elem)
 	{
 		std::string filename = elem->GetAttribute("filename");
-		ref_ptr<Material> inherited = LoadMaterialXML(filename);
+		gc_ptr<Material> inherited = LoadMaterialXML(filename);
 		*material = *inherited;
 	}
 
@@ -298,7 +298,7 @@ namespace Utilities
 		elem->Iterate(tfmap, NULL);
 	}
 
-	ref_ptr<Material> LoadMaterialXML(std::string name)
+	gc_ptr<Material> LoadMaterialXML(std::string name)
 	{
 		XMLReader xmlReader;
 		std::string filename = Utilities::GetDataFile(name);

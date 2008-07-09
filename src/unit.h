@@ -24,13 +24,13 @@ namespace Game
 	namespace Dimension
 	{
 		
-		extern Unit** unitByID;
+		extern gc_ptr<Unit> unitByID[65536];
 		
 		struct ActionQueueItem : public BaseActionData
 		{
-			Unit* ghost;
+			gc_ptr<Unit> ghost;
 
-			ActionQueueItem(int end_x, int end_y, Unit* goal, AI::UnitAction action, const ActionArguments& args, float rotation, bool visrep) : BaseActionData(UnitGoal(goal, end_x, end_y), action, rotation, args), ghost(NULL)
+			ActionQueueItem(int end_x, int end_y, const gc_ptr<Unit>& goal, AI::UnitAction action, const ActionArguments& args, float rotation, bool visrep) : BaseActionData(UnitGoal(goal, end_x, end_y), action, rotation, args), ghost(NULL)
 			{
 				this->action = action;
 				this->rotation = rotation;
@@ -55,7 +55,7 @@ namespace Game
 			Utilities::Vector3D pos;
 			Utilities::Vector3D direction;
 			Utilities::Vector3D goalPos;
-			Unit*               goalUnit;
+			gc_ptr<Unit>       goalUnit;
 		};
 
 		enum FaceTarget
@@ -65,19 +65,19 @@ namespace Game
 			FACETARGET_TARGET
 		};
 
-		struct Unit
+		struct Unit : HasHandle<Unit>
 		{
 			float               health;
 			float               power;
-			enc_ptr<UnitType>   type;
-			enc_ptr<Player>     owner;
+			gc_ptr<UnitType>   type;
+			gc_ptr<Player>     owner;
 			Position            pos;
 			IntPosition*        lastSeenPositions;
 			IntPosition         curAssociatedSquare;
 			IntPosition         curAssociatedBigSquare;
 			float               rotation;  // how rotated the model is
-			std::deque<ActionQueueItem*>  actionQueue;
-			AI::MovementData*   pMovementData;
+			std::deque<ActionQueueItem>  actionQueue;
+			gc_ptr<AI::MovementData> pMovementData;
 			std::vector<Projectile*> projectiles;
 			Uint32              lastAttack;    // frame of the last attack done by the unit
 			Uint32              lastAttacked;    // frame of the last attack done at the unit
@@ -99,73 +99,78 @@ namespace Game
 			int                 aiFrame;
 			Audio::SoundListNode* soundNodes[Audio::SFX_ACT_COUNT];
 			int                 usedInAreaMaps;
-			Uint32              pushID;
-			Unit*               pusher;
+/*			Uint32              pushID;
+			Unit*               pusher;*/
 			FaceTarget          faceTarget;
+
+			~Unit();
+
+			void shade()
+			{
+				type.shade();
+				owner.shade();
+				pMovementData.shade();
+			}
 		};
 
-		extern std::vector<Unit*> **unitBigSquares;
+		extern std::vector<gc_ptr<Unit> > **unitBigSquares;
 
-		extern std::vector<Unit*> unitsDisplayQueue;
-		extern std::vector<Unit*> unitGroups[10];
+		extern std::vector<gc_ptr<Unit> > unitsDisplayQueue;
+		extern std::vector<gc_ptr<Unit> > unitGroups[10];
 
-		void PlayActionSound(Unit* unit, Audio::SoundNodeAction action);
-		void PlayRepeatingActionSound(Unit* unit, Audio::SoundNodeAction action);
-		void StopRepeatingActionSound(Unit* unit, Audio::SoundNodeAction action);
+		void PlayActionSound(const gc_ptr<Unit>& unit, Audio::SoundNodeAction action);
+		void PlayRepeatingActionSound(const gc_ptr<Unit>& unit, Audio::SoundNodeAction action);
+		void StopRepeatingActionSound(const gc_ptr<Unit>& unit, Audio::SoundNodeAction action);
 
 		float Distance2D(float x, float y);
 		float Distance2D(int x, int y);
 
-		void PerformBuild(Unit* unit);
-		void PerformResearch(Unit* unit);
-		void CancelBuild(Dimension::Unit* pUnit);
-		void CancelResearch(Dimension::Unit* pUnit);
-		float CalcUnitDamage(Unit* target, Unit* attacker);
-		bool CanAttack(Unit* attacker);
-		bool Attack(Unit* target, float damage);
-		void InitiateAttack(Unit* attacker, Unit* target);
-		void HandleProjectiles(Unit* pUnit);
-		bool CanReach(Unit* attacker, Unit* target);
-		void ChangePath(Unit* pUnit, int goal_x, int goal_y, AI::UnitAction action, Unit* target, const ActionArguments& args, float rotation);
+		void PerformBuild(gc_ptr<Unit>& unit);
+		void PerformResearch(gc_ptr<Unit>& unit);
+		void CancelBuild(const gc_ptr<Unit>& pUnit);
+		void CancelResearch(const gc_ptr<Unit>& pUnit);
+		float CalcUnitDamage(const gc_ptr<Unit>& target, const gc_ptr<Unit>& attacker);
+		bool CanAttack(const gc_ptr<Unit>& attacker);
+		bool Attack(gc_ptr<Unit>& target, float damage);
+		void InitiateAttack(gc_ptr<Unit>& attacker, gc_ptr<Unit>& target);
+		void HandleProjectiles(const gc_ptr<Unit>& pUnit);
+		bool CanReach(const gc_ptr<Unit>& attacker, const gc_ptr<Unit>& target);
+		void ChangePath(const gc_ptr<Unit>& pUnit, int goal_x, int goal_y, AI::UnitAction action, const gc_ptr<Unit>& target, const ActionArguments& args, float rotation);
 
-		void SelectUnit(Unit* unit);
-		void DeselectUnit(Unit* unit);
+		void SelectUnit(const gc_ptr<Unit>& unit);
+		void DeselectUnit(const gc_ptr<Unit>& unit);
 		void DeselectAllUnits();
-		const std::vector<Unit*> GetSelectedUnits();
+		const std::vector<gc_ptr<Unit> >& GetSelectedUnits();
 		
-		Unit* GetUnitClicked(int clickx, int clicky, int map_x, int map_y);
-
-		void PrepareUnitEssentials(Unit* const unit, const ref_ptr<UnitType>& type);
-		Unit* CreateUnitNoDisplay(const ref_ptr<UnitType>& type, int id = -1, bool complete = true);
-		Unit* CreateUnitNoDisplay(unsigned type, const ref_ptr<Player>& owner, int id = -1, bool complete = true);
-		Unit* CreateUnit(const ref_ptr<UnitType>& type, int x, int y, int id = -1, bool complete = true);
-		Unit* CreateUnit(unsigned type, const ref_ptr<Player>& owner, int x, int y, int id = -1, bool complete = true);
-		bool ScheduleDisplayUnit(Unit* unit, int x, int y);
+		void PrepareUnitEssentials(gc_ptr<Unit>& unit, const gc_ptr<UnitType>& type);
+		gc_ptr<Unit> CreateUnitNoDisplay(const gc_ptr<UnitType>& type, int id = -1, bool complete = true);
+		gc_ptr<Unit> CreateUnitNoDisplay(unsigned type, const gc_ptr<Player>& owner, int id = -1, bool complete = true);
+		gc_ptr<Unit> CreateUnit(const gc_ptr<UnitType>& type, int x, int y, int id = -1, bool complete = true);
+		gc_ptr<Unit> CreateUnit(unsigned type, const gc_ptr<Player>& owner, int x, int y, int id = -1, bool complete = true);
+		bool ScheduleDisplayUnit(const gc_ptr<Unit>& unit, int x, int y);
 		void DisplayScheduledUnits();
-		void RemoveUnitFromLists(Unit* unit);
-		void DeleteUnit(Unit* unit);
-		void KillUnit(Unit* unit);
-		void ScheduleUnitDeletion(Unit* unit);
+		void RemoveUnitFromLists(gc_ptr<Unit> unit);
+		void KillUnit(gc_ptr<Unit> unit);
+		void ScheduleUnitDeletion(const gc_ptr<Unit>& unit);
 		void DeleteScheduledUnits();
 
-		Unit* CreateGhostUnit(const ref_ptr<UnitType>&);
-		void DeleteGhostUnit(Unit*&);
-		void AppendToActionDisplayQueueIfOK(Unit*);
+		gc_ptr<Unit> CreateGhostUnit(const gc_ptr<UnitType>&);
+		void AppendToActionDisplayQueueIfOK(const gc_ptr<Unit>&);
 		
-		void NotEnoughPowerForLight(Unit* unit);
-		void EnoughPowerForLight(Unit* unit);
+		void NotEnoughPowerForLight(const gc_ptr<Unit>& unit);
+		void EnoughPowerForLight(const gc_ptr<Unit>& unit);
 		
-		double GetIncomeAtNoon(const ref_ptr<Player>& player);
-		double GetIncomeAtNight(const ref_ptr<Player>& player);
+		double GetIncomeAtNoon(const gc_ptr<Player>& player);
+		double GetIncomeAtNight(const gc_ptr<Player>& player);
 		double GetNightLength();
 		double GetDayLength();
-		double GetPower(const ref_ptr<Player>& player);
-		double GetMoney(const ref_ptr<Player>& player);
-		void SellPower(const ref_ptr<Player>& player, double amount);
-		double GetPowerAtDawn(const ref_ptr<Player>& player);
-		double GetPowerAtDusk(const ref_ptr<Player>& player);
+		double GetPower(const gc_ptr<Player>& player);
+		double GetMoney(const gc_ptr<Player>& player);
+		void SellPower(const gc_ptr<Player>& player, double amount);
+		double GetPowerAtDawn(const gc_ptr<Player>& player);
+		double GetPowerAtDusk(const gc_ptr<Player>& player);
 		
-		Projectile* CreateProjectile(ProjectileType* type, Utilities::Vector3D start, Unit* goal);
+		Projectile* CreateProjectile(ProjectileType* type, Utilities::Vector3D start, const gc_ptr<Unit>& goal);
 		
 		Projectile* CreateProjectile(ProjectileType* type, Utilities::Vector3D start, Utilities::Vector3D goal);
 

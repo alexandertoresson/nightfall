@@ -60,14 +60,14 @@ namespace Game
 {
 	namespace AI
 	{
-		std::queue< Dimension::Unit* > gCalcQueue;
+		std::queue<gc_ptr<Dimension::Unit> > gCalcQueue;
 		SDL_mutex* gpmxQueue;
 		SDL_mutex* gpmxCommand;
 		SDL_mutex* gpmxDone;
 		SDL_mutex* gpmxThreadState;
 		SDL_mutex* gpmxAreaMap;
 		SDL_mutex* gpmxHConst;
-		set<Dimension::Unit*> doneUnits;
+		set<gc_ptr<Dimension::Unit> > doneUnits;
 
 		int numPathfindingThreads = 2;
 
@@ -106,7 +106,7 @@ namespace Game
 			SDL_mutex*  pMutex;
 			bool        threadRuntime;
 			
-			Dimension::Unit*  pUnit;
+			gc_ptr<Dimension::Unit>  pUnit;
 
 			Dimension::IntPosition oldGoal;
 
@@ -264,7 +264,7 @@ namespace Game
 			rotation = 0.0;
 		}
 
-		void ActionData::Set(int start_x, int start_y, int end_x, int end_y, Dimension::Unit* goal, AI::UnitAction action, const Dimension::ActionArguments& args, float rotation)
+		void ActionData::Set(int start_x, int start_y, int end_x, int end_y, const gc_ptr<Dimension::Unit>& goal, AI::UnitAction action, const Dimension::ActionArguments& args, float rotation)
 		{
 			this->startPos.x = start_x;
 			this->startPos.y = start_y;
@@ -276,6 +276,20 @@ namespace Game
 			this->args = args;
 			this->action = action;
 			this->rotation = rotation;
+		}
+
+		MovementData::~MovementData()
+		{
+			if (pGoal != NULL)
+			{
+				delete[] pGoal;
+			}
+			
+			if (_goal != NULL)
+			{
+				delete[] _goal;
+			}
+
 		}
 
 #define FLOODFILL_FLAG_CALCULATE_NEAREST 1
@@ -356,7 +370,7 @@ namespace Game
 			}
 		}
 
-		void DeleteUnitFromAreaMap(Dimension::Unit* pUnit)
+		void DeleteUnitFromAreaMap(const gc_ptr<Dimension::Unit>& pUnit)
 		{
 			int start_x, start_y, end_x, end_y;
 			GetUnitUpperLeftCorner(pUnit, start_x, start_y);
@@ -441,7 +455,7 @@ namespace Game
 			SDL_UnlockMutex(gpmxAreaMap);
 		}
 
-		void AddUnitToAreaMap(Dimension::Unit* unit)
+		void AddUnitToAreaMap(const gc_ptr<Dimension::Unit>& unit)
 		{
 			for (int j = 0; j < 4; j++)
 			{
@@ -586,7 +600,7 @@ namespace Game
 			}
 		}
 		
-		int PausePathfinding(Dimension::Unit* unit)
+		int PausePathfinding(const gc_ptr<Dimension::Unit>& unit)
 		{
 			SDL_LockMutex(gpmxCommand);
 			SDL_LockMutex(gpmxQueue);
@@ -627,11 +641,11 @@ namespace Game
 			return SUCCESS;
 		}
 		
-		void InitMovementData(Dimension::Unit* unit)
+		void InitMovementData(const gc_ptr<Dimension::Unit>& unit)
 		{
-			assert (unit->pMovementData != NULL);
+			assert (unit->pMovementData);
 
-			MovementData* md = unit->pMovementData;
+			const gc_ptr<MovementData>& md = unit->pMovementData;
 
 			md->pStart = NULL;
 			md->pGoal = NULL;
@@ -652,9 +666,9 @@ namespace Game
 #endif
 		}
 
-		IPResult CommandPathfinding(Dimension::Unit* pUnit, int start_x, int start_y, int goal_x, int goal_y, AI::UnitAction action, Dimension::Unit* target, const Dimension::ActionArguments& args, float rotation)
+		IPResult CommandPathfinding(const gc_ptr<Dimension::Unit>& pUnit, int start_x, int start_y, int goal_x, int goal_y, AI::UnitAction action, const gc_ptr<Dimension::Unit>& target, const Dimension::ActionArguments& args, float rotation)
 		{
-			assert(pUnit != NULL);
+			assert(pUnit);
 
 			if (!pUnit->type->isMobile)
 				return IPR_IS_IMMOBILE;
@@ -675,7 +689,7 @@ namespace Game
 
 			if (action == ACTION_ATTACK || action == ACTION_FOLLOW || action == ACTION_MOVE_ATTACK_UNIT)
 			{
-				if (!Dimension::IsValidUnitPointer(target))
+				if (!target)
 				{
 					cout << "Invalid unit target, fixing up action" << std::endl;
 					action = ACTION_GOTO;
@@ -713,7 +727,7 @@ namespace Game
 #endif
 
 			IPResult res;
-			MovementData* md = pUnit->pMovementData;
+			const gc_ptr<MovementData>& md = pUnit->pMovementData;
 
 //			cout << "Command " << pUnit << " " << start_x << ", " << start_y << " " << goal_x << ", " << goal_y << " " << action <<  " " << target << " " << args << " " << currentFrame << endl;
 		
@@ -807,12 +821,12 @@ namespace Game
 			return res;
 		}
 		
-		PathState GetInternalPathState(Dimension::Unit* unit)
+		PathState GetInternalPathState(const gc_ptr<Dimension::Unit>& unit)
 		{
-			if (unit == NULL)
+			if (!unit)
 				return PATHSTATE_DOES_NOT_EXIST;
 				
-			if (unit->pMovementData == NULL)
+			if (!unit->pMovementData)
 				return PATHSTATE_DOES_NOT_EXIST;
 				
 			if (unit->pMovementData->_start == NULL)
@@ -827,12 +841,12 @@ namespace Game
 			return PATHSTATE_OK;
 		}
 		
-		bool ApplyNewPath(Dimension::Unit* unit)
+		bool ApplyNewPath(const gc_ptr<Dimension::Unit>& unit)
 		{
-			if (unit == NULL)
+			if (!unit)
 				return false;
 				
-			if (unit->pMovementData == NULL)
+			if (!unit->pMovementData)
 				return false;
 
 			if (GetInternalPathState(unit) != PATHSTATE_GOAL)
@@ -840,7 +854,7 @@ namespace Game
 
 
 				
-			MovementData* md = unit->pMovementData;
+			const gc_ptr<MovementData>& md = unit->pMovementData;
 			
 			if (md->pStart != NULL)
 				DeallocPathfindingNodes(unit, DPN_FRONT);
@@ -861,7 +875,7 @@ namespace Game
 
 			if (md->_action.action == ACTION_ATTACK || md->_action.action == ACTION_FOLLOW || md->_action.action == ACTION_MOVE_ATTACK_UNIT)
 			{
-				if (!Dimension::IsValidUnitPointer(md->_action.goal.unit))
+				if (!md->_action.goal.unit)
 				{
 					std::cout << "Invalid action, needs target. Fixing up action." << std::endl;
 					md->_action.action = ACTION_GOTO;
@@ -910,9 +924,9 @@ namespace Game
 			return true;
 		}
 
-		void ApplyUnappliedCommandIfAny(Dimension::Unit* unit)
+		void ApplyUnappliedCommandIfAny(const gc_ptr<Dimension::Unit>& unit)
 		{
-			MovementData* md = unit->pMovementData;
+			const gc_ptr<MovementData>& md = unit->pMovementData;
 			
 			SDL_LockMutex(gpmxCommand);
 			
@@ -951,10 +965,10 @@ namespace Game
 		{
 			SDL_LockMutex(gpmxDone);
 
-			for (set<Dimension::Unit*>::iterator it = doneUnits.begin(); it != doneUnits.end(); it++)
+			for (set<gc_ptr<Dimension::Unit> >::iterator it = doneUnits.begin(); it != doneUnits.end(); it++)
 			{
-				Dimension::Unit* pUnit = *it;
-				if (!Dimension::IsValidUnitPointer(pUnit) || pUnit->pMovementData->action.action == ACTION_DIE)
+				const gc_ptr<Dimension::Unit>& pUnit = *it;
+				if (!pUnit || pUnit->pMovementData->action.action == ACTION_DIE)
 				{
 					continue;
 				}
@@ -994,12 +1008,12 @@ namespace Game
 
 		}
 		
-		bool QuitCurrentPath(Dimension::Unit* unit)
+		bool QuitCurrentPath(const gc_ptr<Dimension::Unit>& unit)
 		{
-			if (unit == NULL)
+			if (!unit)
 				return false;
 			
-			if (unit->pMovementData == NULL)
+			if (!unit->pMovementData)
 				return false;
 				
 			if (unit->pMovementData->pStart == NULL)
@@ -1010,12 +1024,12 @@ namespace Game
 			return true;
 		}
 
-		bool IsUndergoingPathCalc(Dimension::Unit* unit)
+		bool IsUndergoingPathCalc(const gc_ptr<Dimension::Unit>& unit)
 		{
-			if (unit == NULL)
+			if (!unit)
 				return false;
 
-			if (unit->pMovementData == NULL)
+			if (!unit->pMovementData)
 				return false;
 
 			if (unit->pMovementData->_currentState == INTTHRSTATE_NONE)
@@ -1024,24 +1038,24 @@ namespace Game
 			return true;
 		}
 
-		void QuitUndergoingProc(Dimension::Unit* unit)
+		void QuitUndergoingProc(const gc_ptr<Dimension::Unit>& unit)
 		{
-			if (unit == NULL)
+			if (!unit)
 				return;
 
-			if (unit->pMovementData == NULL)
+			if (!unit->pMovementData)
 				return;
 
 			unit->pMovementData->_popFromQueue = true;
 			unit->pMovementData->_reason = POP_DELETED;
 		}
 
-		void CancelUndergoingProc(Dimension::Unit* unit)
+		void CancelUndergoingProc(const gc_ptr<Dimension::Unit>& unit)
 		{
-			if (unit == NULL)
+			if (!unit)
 				return;
 
-			if (unit->pMovementData == NULL)
+			if (!unit->pMovementData)
 				return;
 
 			SDL_LockMutex(gpmxCommand);
@@ -1051,12 +1065,12 @@ namespace Game
 
 		}
 
-		void DequeueNewPath(Dimension::Unit* unit)
+		void DequeueNewPath(const gc_ptr<Dimension::Unit>& unit)
 		{
-			if (unit == NULL)
+			if (!unit)
 				return;
 
-			if (unit->pMovementData == NULL)
+			if (!unit->pMovementData)
 				return;
 
 			SDL_LockMutex(gpmxCommand);
@@ -1075,10 +1089,10 @@ namespace Game
 
 		void DeallocPathfinding(ThreadData*& tdata)
 		{
-			assert(tdata->pUnit != NULL);
-			assert(tdata->pUnit->pMovementData != NULL);
+			assert(tdata->pUnit);
+			assert(tdata->pUnit->pMovementData);
 			
-			MovementData* data = tdata->pUnit->pMovementData;
+			const gc_ptr<MovementData>& data = tdata->pUnit->pMovementData;
 			
 			if (data->_start != NULL)
 			{
@@ -1091,12 +1105,12 @@ namespace Game
 			data->changedGoal = false;
 		}
 
-		void DeallocPathfindingNodes(Dimension::Unit*& unit, DPNArg target)
+		void DeallocPathfindingNodes(const gc_ptr<Dimension::Unit>& unit, DPNArg target)
 		{
-			assert (unit != NULL);
-			assert (unit->pMovementData != NULL);
+			assert (unit);
+			assert (unit->pMovementData);
 
-			MovementData* md = unit->pMovementData;
+			const gc_ptr<MovementData>& md = unit->pMovementData;
 			
 			Node** goal = NULL;
 			Node** start = NULL;
@@ -1126,7 +1140,7 @@ namespace Game
 			*goal  = NULL;	
 		}
 		
-		inline bool IsWalkable(Dimension::Unit* unit, int x, int y)
+		inline bool IsWalkable(const gc_ptr<Dimension::Unit>& unit, int x, int y)
 		{
 			return Dimension::SquaresAreWalkable(unit, x, y, Dimension::SIW_IGNORE_MOVING);
 		}
@@ -1457,8 +1471,8 @@ namespace Game
 			bool calculateNearestReachable = tdata->calculateNearestReachable;
 			unsigned char SQUARE_TYPE_CLOSED = tdata->SQUARE_TYPE_CLOSED,
 			              SQUARE_TYPE_BLOCKED = tdata->SQUARE_TYPE_BLOCKED;
-			Dimension::Unit *unit = tdata->pUnit;
-			MovementData *md = unit->pMovementData;
+			const gc_ptr<Dimension::Unit>& unit = tdata->pUnit;
+			const gc_ptr<MovementData>& md = unit->pMovementData;
 			Uint16 areaCode = tdata->areaCode; 
 
 			while (1)
@@ -1733,8 +1747,8 @@ namespace Game
 
 		PathState InitPathfinding(ThreadData*& tdata)
 		{
-			Dimension::Unit* unit  = tdata->pUnit;
-			MovementData* md       = unit->pMovementData;
+			const gc_ptr<Dimension::Unit>& unit  = tdata->pUnit;
+			const gc_ptr<MovementData>& md       = unit->pMovementData;
 
 			int start_x = md->_action.startPos.x, start_y = md->_action.startPos.y;
 			int target_x = md->_action.changedGoalPos.x, target_y = md->_action.changedGoalPos.y;
@@ -1797,8 +1811,8 @@ namespace Game
 
 		PathState PathfindingStep(ThreadData*& tdata)
 		{
-			Dimension::Unit* unit  = tdata->pUnit;
-			MovementData* md       = unit->pMovementData;
+			const gc_ptr<Dimension::Unit>& unit  = tdata->pUnit;
+			const gc_ptr<MovementData>& md       = unit->pMovementData;
 			int target_x = md->_action.changedGoalPos.x, target_y = md->_action.changedGoalPos.y;
 			int unitSize = tdata->unitSize, areaMapIndex = tdata->areaMapIndex;
 			struct node *nodes = tdata->nodes;
@@ -1962,8 +1976,8 @@ namespace Game
 
 		void BuildNodeLinkedList(ThreadData*& tdata)
 		{
-			Dimension::Unit* unit  = tdata->pUnit;
-			MovementData* md       = unit->pMovementData;
+			const gc_ptr<Dimension::Unit>& unit  = tdata->pUnit;
+			const gc_ptr<MovementData>& md       = unit->pMovementData;
 			int hConstXTarget = tdata->nodes[tdata->nearestNode].x>>xShift;
 			int hConstYTarget = tdata->nodes[tdata->nearestNode].y>>yShift;
 			Node *prev_node = NULL, *first_node = NULL, *new_node = NULL;
@@ -2027,7 +2041,7 @@ namespace Game
 			tdata->nearestNode = -1;
 		}
 		
-		inline void ParsePopQueueReason(ThreadData*& tdata, MovementData* md)
+		inline void ParsePopQueueReason(ThreadData*& tdata, gc_ptr<MovementData>& md)
 		{
 			cCount += calcCount;
 			tCount += tsteps;
@@ -2073,9 +2087,6 @@ namespace Game
 //					printf("deleted\n");
 					DeallocPathfinding(tdata);
 					
-					delete md;
-					delete tdata->pUnit;
-
 					md = NULL;
 					break;
 
@@ -2093,7 +2104,7 @@ namespace Game
 			tdata->pUnit = NULL;
 		}
 
-		bool CheckPop(ThreadData* tdata, MovementData* md)
+		bool CheckPop(ThreadData* tdata, gc_ptr<MovementData>& md)
 		{
 			SDL_LockMutex(gpmxCommand);
 			if (md->_popFromQueue)
@@ -2113,10 +2124,10 @@ namespace Game
 		{
 			SDL_LockMutex(tdata->pMutex);
 
-			Dimension::Unit* unit = NULL;
-			MovementData* md = NULL;
+			gc_ptr<Dimension::Unit> unit = NULL;
+			gc_ptr<MovementData> md;
 
-			if (tdata->pUnit == NULL)
+			if (!tdata->pUnit)
 			{
 				SDL_UnlockMutex(tdata->pMutex);
 				SDL_LockMutex(gpmxQueue);

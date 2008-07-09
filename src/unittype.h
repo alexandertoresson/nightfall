@@ -46,6 +46,10 @@ namespace Game
 				}
 			}
 		
+			void shade()
+			{
+				
+			}
 		};
 
 		struct RangeArray
@@ -59,23 +63,16 @@ namespace Game
 				
 			}
 
-			~RangeArray()
+			~RangeArray();
+
+			void shade()
 			{
-				if (array != NULL)
-				{
-					for (int i = 0; i < size; i++)
-					{
-						delete[] array[i];
-					}
-					delete[] array;
-				}
 			}
-			
 		};
 		
 		struct ProjectileType
 		{
-			ref_ptr<Utilities::OgreMesh> mesh;
+			gc_ptr<Utilities::OgreMesh> mesh;
 			float               size;
 			float               areaOfEffect;
 			Utilities::Vector3D startPos;
@@ -93,7 +90,7 @@ namespace Game
 		{
 			std::string name;
 			std::string id;
-			ref_ptr<Utilities::OgreMesh> mesh;
+			gc_ptr<Utilities::OgreMesh> mesh;
 			float       armor;
 			int         maxHealth;
 			float       regenHealth;
@@ -111,11 +108,11 @@ namespace Game
 			float       attackMaxRange;  // the maximum range of the unit's attack
 			float       sightRange;      // how far the unit can see
 			float       lightRange;      // how far the unit spreads light
-			ref_ptr<RangeArray> attackRangeArray;
-			ref_ptr<RangeArray> sightRangeArray;
-			ref_ptr<RangeScanlines> sightRangeScanlines;
-			ref_ptr<RangeArray> lightRangeArray;
-			ref_ptr<RangeScanlines> lightRangeScanlines;
+			gc_ptr<RangeArray> attackRangeArray;
+			gc_ptr<RangeArray> sightRangeArray;
+			gc_ptr<RangeScanlines> sightRangeScanlines;
+			gc_ptr<RangeArray> lightRangeArray;
+			gc_ptr<RangeScanlines> lightRangeScanlines;
 			bool        isMobile;        // whether the unit is moveable
 			PowerType   powerType;       // defines how long the unit generates light.
 			double      powerIncrement;  // the power generation quantity per second per unit.
@@ -126,8 +123,8 @@ namespace Game
 			double      movePowerUsage;  // the power moving uses per second
 			float       movementSpeed;   // in squares per second
 			float       attackSpeed;     // in times per second
-			std::vector<enc_ptr<UnitType> > canBuild;  // vector of what the unit can build, if anything at all
-			std::vector<enc_ptr<Research> > canResearch;// vector of what the unit can research, if anything at all
+			std::vector<gc_ptr<UnitType> > canBuild;  // vector of what the unit can build, if anything at all
+			std::vector<gc_ptr<Research> > canResearch;// vector of what the unit can research, if anything at all
 			std::vector<std::string> canBuildIDs; // IDs of builds as string; this is used before loading is finished
 			std::vector<std::string> canResearchIDs; // IDs of researches as string; this is used before loading is finished
 			bool        hasAI;           // whether the unit has an AI
@@ -148,7 +145,7 @@ namespace Game
 			AI::PlayerAIFuncs playerAIFuncs; // PlayerAIFuncs
 			Audio::AudioFXInfo* actionSounds[Audio::SFX_ACT_COUNT];
 
-			enc_ptr<Player> player;              // The player the unittype belongs so
+			gc_ptr<Player> player;              // The player the unittype belongs so
 			int numBuilt;
 			int numExisting;
 
@@ -157,7 +154,13 @@ namespace Game
 				
 			}
 
+			~UnitType()
+			{
+			}
+
 			void GenerateRanges();
+
+			void shade();
 
 		};
 

@@ -4,15 +4,16 @@
 #include <cstdlib>
 #include <iostream>
 #include <typeinfo>
+#include <cassert>
 
 template <typename T>
 class enc_ptr;
 
 class ref_counter_base
 {
-	private:
-		unsigned numrefs;
-		unsigned weakrefs;
+	public:
+		int numrefs;
+		int weakrefs;
 
 		virtual void dispose() = 0;
 
@@ -23,6 +24,7 @@ class ref_counter_base
 			if (numrefs == 0)
 			{
 				dispose();
+				numrefs = -1;
 				if (weakrefs == 0)
 				{
 					delete this;
@@ -32,6 +34,7 @@ class ref_counter_base
 
 		void increfs()
 		{
+			assert(numrefs >= 0);
 			numrefs++;
 		}
 
@@ -59,6 +62,10 @@ class ref_counter_base
 			
 		}
 		
+		virtual ~ref_counter_base()
+		{
+		}
+
 		template <typename T2>
 		friend class enc_ptr;
 };
@@ -96,12 +103,16 @@ class ref_counter : public ref_counter_base
 		{
 		}
 		
+		virtual ~ref_counter()
+		{
+		}
+		
 };
 
 template <typename T>
 class ref_ptr
 {
-	private:
+	public:
 		T* ref;
 		ref_counter_base* c;
 
@@ -157,6 +168,11 @@ class ref_ptr
 			return *this;
 		}
 
+		bool operator < (const ref_ptr<T>& a) const
+		{
+			return ref < a.ref;
+		}
+
 		bool operator == (const ref_ptr<T>& a) const
 		{
 			return ref == a.ref;
@@ -175,6 +191,12 @@ class ref_ptr
 		bool operator != (const T*& a) const
 		{
 			return ref != a;
+		}
+
+		template <typename T2>
+		bool operator < (const ref_ptr<T2>& a) const
+		{
+			return ref < a.ref;
 		}
 
 		template <typename T2>
@@ -223,7 +245,6 @@ class ref_ptr
 
 		void reset()
 		{
-			c->decrefs();
 			*this = ref_ptr();
 		}
 
@@ -237,7 +258,7 @@ class ref_ptr
 template <typename T>
 class enc_ptr
 {
-	private:
+	public:
 		T* ref;
 		ref_counter_base* c;
 	public:
@@ -365,6 +386,17 @@ class ref_ptr_from_this
 		{
 			return self;
 		}
+		
+		enc_ptr<T> GetWeak()
+		{
+			return self;
+		}
+		
+		static ref_ptr<T> New()
+		{
+			return (new T)->GetRef();
+		}
+
 };
 
 #endif

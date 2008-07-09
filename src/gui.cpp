@@ -7,6 +7,7 @@
 #include "networking.h"
 #include "game.h"
 #include "utilities.h"
+#include "unit.h"
 #include <cmath>
 #include <iostream>
 

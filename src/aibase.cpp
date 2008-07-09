@@ -84,9 +84,9 @@ namespace Game
 
 		struct ScheduledCommand : public Dimension::BaseActionData
 		{
-			Dimension::Unit* unit;
+			gc_ptr<Dimension::Unit> unit;
 
-			ScheduledCommand(Dimension::Unit* unit, const Dimension::ActionQueueItem& a) : BaseActionData(a.goal, a.action, a.rotation, a.args), unit(unit)
+			ScheduledCommand(gc_ptr<Dimension::Unit> unit, const Dimension::ActionQueueItem& a) : BaseActionData(a.goal, a.action, a.rotation, a.args), unit(unit)
 			{
 				
 			}
@@ -112,7 +112,7 @@ namespace Game
 
 		std::vector<ScheduledCommand> scheduledCommands;
 
-		void ScheduleCommandUnit(Dimension::Unit* unit, const Dimension::ActionQueueItem& actiondata)
+		void ScheduleCommandUnit(const gc_ptr<Dimension::Unit>& unit, const Dimension::ActionQueueItem& actiondata)
 		{
 			unit->lastCommand = SDL_GetTicks();
 			scheduledCommands.push_back(ScheduledCommand(unit, actiondata));
@@ -138,14 +138,14 @@ namespace Game
 		struct UnitEvent : public Dimension::BaseActionData
 		{
 			UnitEventType eventType;
-			Dimension::Unit* unit;
+			gc_ptr<Dimension::Unit> unit;
 			std::string func;
 
-			UnitEvent(Dimension::Unit* pUnit, EventAIFunc *aiEvent, UnitEventType eventType) : BaseActionData(pUnit->pMovementData->action), eventType(eventType), unit(pUnit), func(aiEvent->func)
+			UnitEvent(const gc_ptr<Dimension::Unit>& pUnit, EventAIFunc *aiEvent, UnitEventType eventType) : BaseActionData(pUnit->pMovementData->action), eventType(eventType), unit(pUnit), func(aiEvent->func)
 			{
 			}
 			
-			UnitEvent(Dimension::Unit* pUnit, Dimension::Unit* target, EventAIFunc *aiEvent) : BaseActionData(pUnit->pMovementData->action), eventType(eventType), unit(pUnit), func(aiEvent->func)
+			UnitEvent(const gc_ptr<Dimension::Unit>& pUnit, const gc_ptr<Dimension::Unit>& target, EventAIFunc *aiEvent) : BaseActionData(pUnit->pMovementData->action), eventType(UNITEVENTTYPE_ATTACK), unit(pUnit), func(aiEvent->func)
 			{
 				goal.unit = target;
 			}
@@ -172,6 +172,7 @@ namespace Game
 						pVM.CallFunction(6);
 						break;
 					case UNITEVENTTYPE_SIMPLE:
+//						std::cout << "consume " << event.func << std::endl;
 //						std::cout << *event->func << " " << event->unitID << std::endl;
 						lua_pushlightuserdata(pVM.GetState(), (void*) event.unit->id);
 						pVM.CallFunction(1);
@@ -188,7 +189,7 @@ namespace Game
 
 		SDL_mutex *scheduleUnitEventMutex = SDL_CreateMutex();
 
-		void ScheduleActionUnitEvent(Dimension::Unit* pUnit, EventAIFunc *aiEvent)
+		void ScheduleActionUnitEvent(const gc_ptr<Dimension::Unit>& pUnit, EventAIFunc *aiEvent)
 		{
 
 			if (pUnit->owner->isRemote)
@@ -202,7 +203,7 @@ namespace Game
 
 		}
 
-		void ScheduleSimpleUnitEvent(Dimension::Unit* pUnit, EventAIFunc *aiEvent)
+		void ScheduleSimpleUnitEvent(const gc_ptr<Dimension::Unit>& pUnit, EventAIFunc *aiEvent)
 		{
 
 			if (pUnit->owner->isRemote)
@@ -211,41 +212,42 @@ namespace Game
 			UnitEvent event(pUnit, aiEvent, UNITEVENTTYPE_SIMPLE);
 
 			SDL_LockMutex(scheduleUnitEventMutex);
+//			std::cout << "produce " << aiEvent->func << std::endl;
 			scheduledUnitEvents.push_back(event);
 			SDL_UnlockMutex(scheduleUnitEventMutex);
 		}
 
-		void SendUnitEventToLua_CommandCompleted(Dimension::Unit* pUnit)
+		void SendUnitEventToLua_CommandCompleted(const gc_ptr<Dimension::Unit>& pUnit)
 		{
 			ScheduleActionUnitEvent(pUnit, &pUnit->unitAIFuncs.commandCompleted);
 		}
 
-		void SendUnitEventToLua_CommandCancelled(Dimension::Unit* pUnit)
+		void SendUnitEventToLua_CommandCancelled(const gc_ptr<Dimension::Unit>& pUnit)
 		{
 			ScheduleActionUnitEvent(pUnit, &pUnit->unitAIFuncs.commandCancelled);
 		}
 
-		void SendUnitEventToLua_NewCommand(Dimension::Unit* pUnit)
+		void SendUnitEventToLua_NewCommand(const gc_ptr<Dimension::Unit>& pUnit)
 		{
 			ScheduleActionUnitEvent(pUnit, &pUnit->unitAIFuncs.newCommand);
 		}
 
-		void SendUnitEventToLua_BecomeIdle(Dimension::Unit* pUnit)
+		void SendUnitEventToLua_BecomeIdle(const gc_ptr<Dimension::Unit>& pUnit)
 		{
 			ScheduleSimpleUnitEvent(pUnit, &pUnit->unitAIFuncs.becomeIdle);
 		}
 
-		void SendUnitEventToLua_UnitCreation(Dimension::Unit* pUnit)
+		void SendUnitEventToLua_UnitCreation(const gc_ptr<Dimension::Unit>& pUnit)
 		{
 			ScheduleSimpleUnitEvent(pUnit, &pUnit->type->playerAIFuncs.unitCreation);
 		}
 
-		void SendUnitEventToLua_UnitKilled(Dimension::Unit* pUnit)
+		void SendUnitEventToLua_UnitKilled(const gc_ptr<Dimension::Unit>& pUnit)
 		{
 			ScheduleSimpleUnitEvent(pUnit, &pUnit->unitAIFuncs.unitKilled);
 		}
 
-		void SendUnitEventToLua_IsAttacked(Dimension::Unit* pUnit, Dimension::Unit* attacker)
+		void SendUnitEventToLua_IsAttacked(const gc_ptr<Dimension::Unit>& pUnit, const gc_ptr<Dimension::Unit>& attacker)
 		{
 			
 			if (pUnit->owner->isRemote)
@@ -267,10 +269,10 @@ namespace Game
 		void HandleUnitPower()
 		{
 			double power_usage;
-			vector<Dimension::Unit*>::iterator it_end = Dimension::pWorld->vUnits.end();
-			for (vector<Dimension::Unit*>::iterator it = Dimension::pWorld->vUnits.begin(); it != it_end; it++)
+			vector<gc_ptr<Dimension::Unit> >::iterator it_end = Dimension::pWorld->vUnits.end();
+			for (vector<gc_ptr<Dimension::Unit> >::iterator it = Dimension::pWorld->vUnits.begin(); it != it_end; it++)
 			{
-				Dimension::Unit* pUnit = *it;
+				const gc_ptr<Dimension::Unit>& pUnit = *it;
 				pUnit->hasPower = true;
 				if (pUnit->isCompleted && pUnit->isDisplayed && pUnit->pMovementData->action.action != ACTION_DIE)
 				{
@@ -314,7 +316,7 @@ namespace Game
 			
 		}
 
-		void PerformSimpleAI(Dimension::Unit* pUnit)
+		void PerformSimpleAI(gc_ptr<Dimension::Unit>& pUnit)
 		{
 			UnitAction action;
 			int should_move;
@@ -337,7 +339,7 @@ namespace Game
 
 					if (action == ACTION_ATTACK)
 					{
-						Dimension::Unit* targetUnit = pUnit->pMovementData->action.goal.unit;
+						gc_ptr<Dimension::Unit>& targetUnit = pUnit->pMovementData->action.goal.unit;
 						if (pUnit->owner == targetUnit->owner)
 						{
 							AI::CancelAction(pUnit);
@@ -414,7 +416,7 @@ namespace Game
 			}
 		}
 
-		void PerformVerySimpleAI(Dimension::Unit* pUnit)
+		void PerformVerySimpleAI(const gc_ptr<Dimension::Unit>& pUnit)
 		{
 			double power_usage;
 			if (pUnit->isCompleted && pUnit->isDisplayed && pUnit->pMovementData->action.action != ACTION_DIE)
@@ -470,7 +472,7 @@ namespace Game
 			
 		}
 
-		void PerformLuaUnitAI(Dimension::Unit* pUnit)
+		void PerformLuaUnitAI(const gc_ptr<Dimension::Unit>& pUnit)
 		{
 			if (pUnit->hasPower)
 			{
@@ -495,7 +497,7 @@ namespace Game
 			
 		}
 
-		void PerformLuaPlayerAI(const ref_ptr<Dimension::Player>& player)
+		void PerformLuaPlayerAI(const gc_ptr<Dimension::Player>& player)
 		{
 			player->aiFrame++;
 			if (player->aiFrame >= player->playerAIFuncs.performPlayerAI.delay && !player->isRemote)
@@ -529,7 +531,7 @@ namespace Game
 		volatile bool simpleAIThreadRunning = false;
 		volatile bool *luaAIThreadsRunning;
 
-		vector<ref_ptr<Dimension::Player> > *playersHandledPerLuaThread;
+		vector<gc_ptr<Dimension::Player> > *playersHandledPerLuaThread;
 		int* numUnitsPerLuaThread;
 		volatile int aiThreadsDone;
 		volatile bool aiIsFired;
@@ -550,9 +552,9 @@ namespace Game
 					SDL_CondWait(fireAIConds[0], simpleAIWaitMutex);
 				} while (!aiIsFired);
 				
-				for (vector<Dimension::Unit*>::iterator it = Dimension::pWorld->vUnits.begin(); it != Dimension::pWorld->vUnits.end(); it++)
+				for (vector<gc_ptr<Dimension::Unit> >::iterator it = Dimension::pWorld->vUnits.begin(); it != Dimension::pWorld->vUnits.end(); it++)
 				{
-					Dimension::Unit* pUnit = *it;
+					const gc_ptr<Dimension::Unit>& pUnit = *it;
 					PerformVerySimpleAI(pUnit);
 					if (pUnit->pMovementData->action.action == ACTION_DIE && currentFrame - pUnit->lastAttacked > (unsigned) aiFps)
 					{
@@ -560,7 +562,7 @@ namespace Game
 					}
 				}
 
-				for (vector<Dimension::Unit*>::iterator it = Dimension::pWorld->vUnitsWithAI.begin(); it != Dimension::pWorld->vUnitsWithAI.end(); it++)
+				for (vector<gc_ptr<Dimension::Unit> >::iterator it = Dimension::pWorld->vUnitsWithAI.begin(); it != Dimension::pWorld->vUnitsWithAI.end(); it++)
 				{
 					PerformSimpleAI(*it);
 				}
@@ -590,12 +592,12 @@ namespace Game
 					SDL_CondWait(fireAIConds[i+1], luaAIWaitMutexes[i]);
 				} while (!aiIsFired);
 				
-				for (vector<ref_ptr<Dimension::Player> >::iterator it = playersHandledPerLuaThread[i].begin(); it != playersHandledPerLuaThread[i].end(); it++)
+				for (vector<gc_ptr<Dimension::Player> >::iterator it = playersHandledPerLuaThread[i].begin(); it != playersHandledPerLuaThread[i].end(); it++)
 				{
-					const ref_ptr<Dimension::Player>& player = *it;
+					const gc_ptr<Dimension::Player>& player = *it;
 					PerformLuaPlayerAI(player);
 
-					for (vector<Dimension::Unit*>::iterator it2 = player->vUnitsWithLuaAI.begin(); it2 != player->vUnitsWithLuaAI.end(); it2++)
+					for (vector<gc_ptr<Dimension::Unit> >::iterator it2 = player->vUnitsWithLuaAI.begin(); it2 != player->vUnitsWithLuaAI.end(); it2++)
 					{
 						PerformLuaUnitAI(*it2);
 					}
@@ -622,7 +624,7 @@ namespace Game
 				luaAIdoneConds = new SDL_cond*[numLuaAIThreads];
 				luaAIWaitMutexes = new SDL_mutex*[numLuaAIThreads];
 				luaAIThreadsRunning = new bool[numLuaAIThreads];
-				playersHandledPerLuaThread = new vector<ref_ptr<Dimension::Player> >[numLuaAIThreads];
+				playersHandledPerLuaThread = new vector<gc_ptr<Dimension::Player> >[numLuaAIThreads];
 				numUnitsPerLuaThread = new int[numLuaAIThreads];
 				for (int i = 0; i < numLuaAIThreads; i++)
 				{
@@ -716,6 +718,8 @@ namespace Game
 
 		void PerformAIFrame()
 		{
+			Dimension::PrintPlayerRefs();
+
 			static bool may_run_ai = true;
 			if (may_run_ai)
 			{
@@ -727,9 +731,9 @@ namespace Game
 
 				ApplyAllNewPaths();
 
-				for (vector<ref_ptr<Dimension::Player> >::iterator it = Dimension::pWorld->vPlayers.begin(); it != Dimension::pWorld->vPlayers.end(); it++)
+				for (vector<gc_ptr<Dimension::Player> >::iterator it = Dimension::pWorld->vPlayers.begin(); it != Dimension::pWorld->vPlayers.end(); it++)
 				{
-					const ref_ptr<Dimension::Player>& player = *it;
+					const gc_ptr<Dimension::Player>& player = *it;
 					player->oldResources = player->resources;
 				}
 
@@ -802,19 +806,19 @@ namespace Game
 					///////////////////////////////////////////////////////////////////////////
 					// No threads? Do lua ai and simple ai the non-threaded way.
 					
-					for (vector<ref_ptr<Dimension::Player> >::iterator it = Dimension::pWorld->vPlayers.begin(); it != Dimension::pWorld->vPlayers.end(); it++)
+					for (vector<gc_ptr<Dimension::Player> >::iterator it = Dimension::pWorld->vPlayers.begin(); it != Dimension::pWorld->vPlayers.end(); it++)
 					{
-						const ref_ptr<Dimension::Player>& player = *it;
+						const gc_ptr<Dimension::Player>& player = *it;
 						PerformLuaPlayerAI(player);
-						for (vector<Dimension::Unit*>::iterator it2 = player->vUnitsWithLuaAI.begin(); it2 != player->vUnitsWithLuaAI.end(); it2++)
+						for (vector<gc_ptr<Dimension::Unit> >::iterator it2 = player->vUnitsWithLuaAI.begin(); it2 != player->vUnitsWithLuaAI.end(); it2++)
 						{
 							PerformLuaUnitAI(*it2);
 						}
 					}
 
-					for (vector<Dimension::Unit*>::iterator it = Dimension::pWorld->vUnits.begin(); it != Dimension::pWorld->vUnits.end(); it++)
+					for (vector<gc_ptr<Dimension::Unit> >::iterator it = Dimension::pWorld->vUnits.begin(); it != Dimension::pWorld->vUnits.end(); it++)
 					{
-						Dimension::Unit* pUnit = *it;
+						const gc_ptr<Dimension::Unit>& pUnit = *it;
 						PerformVerySimpleAI(pUnit);
 						if (pUnit->pMovementData->action.action == ACTION_DIE && currentFrame - pUnit->lastAttacked > (unsigned) aiFps)
 						{
@@ -822,7 +826,7 @@ namespace Game
 						}
 					}
 
-					for (vector<Dimension::Unit*>::iterator it = Dimension::pWorld->vUnitsWithAI.begin(); it != Dimension::pWorld->vUnitsWithAI.end(); it++)
+					for (vector<gc_ptr<Dimension::Unit> >::iterator it = Dimension::pWorld->vUnitsWithAI.begin(); it != Dimension::pWorld->vUnitsWithAI.end(); it++)
 					{
 						PerformSimpleAI(*it);
 					}
@@ -858,6 +862,13 @@ namespace Game
 				// last thing before deleting units, to avoid that events survive onto the next frame.
 				SendScheduledUnitEvents();
 
+				static int i = 0;
+				if (i % 100 == 0)
+				{
+					gc_marker_base::sweep();
+				}
+				i++;
+
 			}
 			else
 			{
@@ -871,7 +882,7 @@ namespace Game
 #endif				
 		}
 
-		bool ImmobilityCheck(Dimension::Unit* pUnit, UnitAction action, int x, int y)
+		bool ImmobilityCheck(const gc_ptr<Dimension::Unit>& pUnit, UnitAction action, int x, int y)
 		{
 			if (action == AI::ACTION_MOVE_ATTACK ||
 				action == AI::ACTION_MOVE_ATTACK_UNIT ||
@@ -894,7 +905,7 @@ namespace Game
 			return false;
 		}
 
-		void CommandUnit(Dimension::Unit* pUnit, int x, int y, UnitAction action, const Dimension::ActionArguments& args, bool queue, bool insert)
+		void CommandUnit(const gc_ptr<Dimension::Unit>& pUnit, int x, int y, UnitAction action, const Dimension::ActionArguments& args, bool queue, bool insert)
 		{
 			if (ImmobilityCheck(pUnit, action, x, y))
 				return;
@@ -907,22 +918,14 @@ namespace Game
 
 			if (pUnit->isCompleted && pUnit->pMovementData->action.action != ACTION_DIE)
 			{
-				Dimension::ActionQueueItem* actiondata = NULL;
 				float rotation = Utilities::RandomDegree();
+				Dimension::ActionQueueItem actiondata(x, y, NULL, action, args, rotation, true);
 
 				if (!queue)
 				{
-					while (pUnit->actionQueue.size())
-					{
-						actiondata = pUnit->actionQueue.front();
-
-						delete actiondata;
-						pUnit->actionQueue.pop_front();
-					}
+					pUnit->actionQueue.clear();
 				}
 
-				actiondata = new Dimension::ActionQueueItem(x, y, NULL, action, args, rotation, true);
-				
 				if (insert)
 				{
 					pUnit->actionQueue.push_front(actiondata);
@@ -934,13 +937,13 @@ namespace Game
 
 				if (pUnit->actionQueue.size() == 1 || insert)
 				{
-					ScheduleCommandUnit(pUnit, *actiondata);
+					ScheduleCommandUnit(pUnit, actiondata);
 				}
 
 			}
 		}
 
-		void CommandUnit(Dimension::Unit* pUnit, Dimension::Unit* destination, UnitAction action, const Dimension::ActionArguments& args, bool queue, bool insert)
+		void CommandUnit(const gc_ptr<Dimension::Unit>& pUnit, const gc_ptr<Dimension::Unit>& destination, UnitAction action, const Dimension::ActionArguments& args, bool queue, bool insert)
 		{
 			if (ImmobilityCheck(pUnit, action, destination->curAssociatedSquare.x, destination->curAssociatedSquare.y))
 				return;
@@ -950,20 +953,12 @@ namespace Game
 
 			if (pUnit->isCompleted && pUnit->pMovementData->action.action != ACTION_DIE)
 			{
-				Dimension::ActionQueueItem* actiondata = NULL;
 				float rotation = Utilities::RandomDegree();
+				Dimension::ActionQueueItem actiondata(0, 0, destination, action, args, rotation, true);
 				if (!queue)
 				{
-					while (pUnit->actionQueue.size())
-					{
-						actiondata = pUnit->actionQueue.front();
-
-						delete actiondata;
-						pUnit->actionQueue.pop_front();
-					}
+					pUnit->actionQueue.clear();
 				}
-
-				actiondata = new Dimension::ActionQueueItem(0, 0, destination, action, args, rotation, true);
 
 				if (insert)
 				{
@@ -976,29 +971,29 @@ namespace Game
 				
 				if (pUnit->actionQueue.size() == 1 || insert)
 				{
-					ScheduleCommandUnit(pUnit, *actiondata);
+					ScheduleCommandUnit(pUnit, actiondata);
 				}
 
 			}
 		}
 
-		void CommandUnits(const vector<Dimension::Unit*>& pUnits, int x, int y, UnitAction action, const Dimension::ActionArguments& args, bool queue, bool insert)
+		void CommandUnits(const vector<gc_ptr<Dimension::Unit> >& pUnits, int x, int y, UnitAction action, const Dimension::ActionArguments& args, bool queue, bool insert)
 		{
-			for (vector<Dimension::Unit*>::const_iterator it = pUnits.begin(); it != pUnits.end(); it++)
+			for (vector<gc_ptr<Dimension::Unit> >::const_iterator it = pUnits.begin(); it != pUnits.end(); it++)
 			{
 				CommandUnit(*it, x, y, action, args, queue, insert);
 			}
 		}
 
-		void CommandUnits(const vector<Dimension::Unit*>& pUnits, Dimension::Unit* destination, UnitAction action, const Dimension::ActionArguments& args, bool queue, bool insert)
+		void CommandUnits(const vector<gc_ptr<Dimension::Unit> >& pUnits, const gc_ptr<Dimension::Unit>& destination, UnitAction action, const Dimension::ActionArguments& args, bool queue, bool insert)
 		{
-			for (vector<Dimension::Unit*>::const_iterator it = pUnits.begin(); it != pUnits.end(); it++)
+			for (vector<gc_ptr<Dimension::Unit> >::const_iterator it = pUnits.begin(); it != pUnits.end(); it++)
 			{
 				CommandUnit(*it, destination, action, args, queue, insert);
 			}
 		}
 
-		void CancelAction(Dimension::Unit* pUnit, unsigned int num)
+		void CancelAction(const gc_ptr<Dimension::Unit>& pUnit, unsigned int num)
 		{
 			// TODO: Fix.
 			if (num < pUnit->actionQueue.size())
@@ -1014,7 +1009,7 @@ namespace Game
 			}
 		}
 		
-		void IssueNextAction(Dimension::Unit* pUnit)
+		void IssueNextAction(const gc_ptr<Dimension::Unit>& pUnit)
 		{
 			if (pUnit->pMovementData->action.action == AI::ACTION_DIE)
 			{
@@ -1028,23 +1023,24 @@ namespace Game
 
 			while (pUnit->actionQueue.size())
 			{
-				delete pUnit->actionQueue.front();
 				pUnit->actionQueue.pop_front();
 				if (pUnit->actionQueue.size())
 				{
-					if (pUnit->actionQueue.front()->goal.unit)
+//					std::cout << "next" << std::endl;
+
+					if (pUnit->actionQueue.front().goal.unit)
 					{
-						Dimension::ActionQueueItem* actiondata = pUnit->actionQueue.front();
-						if (Dimension::IsDisplayedUnitPointer(actiondata->goal.unit))
+						const Dimension::ActionQueueItem& actiondata = pUnit->actionQueue.front();
+						if (Dimension::IsDisplayedUnitPointer(actiondata.goal.unit))
 						{
-							ScheduleCommandUnit(pUnit, *actiondata);
+							ScheduleCommandUnit(pUnit, actiondata);
 							return;
 						}
 					}
 					else
 					{
-						Dimension::ActionQueueItem* actiondata = pUnit->actionQueue.front();
-						ScheduleCommandUnit(pUnit, *actiondata);
+						const Dimension::ActionQueueItem& actiondata = pUnit->actionQueue.front();
+						ScheduleCommandUnit(pUnit, actiondata);
 						return;
 					}
 				}
@@ -1052,7 +1048,7 @@ namespace Game
 			AI::SendUnitEventToLua_BecomeIdle(pUnit);
 		}
 
-		void CancelAction(Dimension::Unit* pUnit)
+		void CancelAction(const gc_ptr<Dimension::Unit>& pUnit)
 		{
 			if (pUnit->pMovementData->action.action == AI::ACTION_DIE)
 			{
@@ -1068,11 +1064,18 @@ namespace Game
 				Game::Dimension::CancelResearch(pUnit);
 			}
 
+			pUnit->pMovementData->action.action = ACTION_NONE;
+			pUnit->pMovementData->action.goal.unit = NULL;
+			DeallocPathfindingNodes(pUnit);
+			pUnit->pMovementData->pCurGoalNode = NULL;
+
+//			std::cout << "cancel" << std::endl;
+
 			AI::SendUnitEventToLua_CommandCancelled(pUnit);
 			IssueNextAction(pUnit);
 		}
 		
-		void CancelAllActions(Dimension::Unit* pUnit)
+		void CancelAllActions(const gc_ptr<Dimension::Unit>& pUnit)
 		{
 			if (pUnit->pMovementData->action.action == AI::ACTION_DIE)
 			{
@@ -1095,7 +1098,7 @@ namespace Game
 			pUnit->actionQueue.clear();
 		}
 		
-		void CompleteAction(Dimension::Unit* pUnit)
+		void CompleteAction(const gc_ptr<Dimension::Unit>& pUnit)
 		{
 			if (pUnit->pMovementData->action.action == AI::ACTION_DIE)
 			{
@@ -1106,7 +1109,7 @@ namespace Game
 			IssueNextAction(pUnit);
 		}
 		
-		void ApplyAction(Dimension::Unit* pUnit, UnitAction action, int goal_x, int goal_y, Dimension::Unit* target, const Dimension::ActionArguments& args, float rotation)
+		void ApplyAction(const gc_ptr<Dimension::Unit>& pUnit, UnitAction action, int goal_x, int goal_y, const gc_ptr<Dimension::Unit>& target, const Dimension::ActionArguments& args, float rotation)
 		{
 			if (pUnit->pMovementData->action.action == AI::ACTION_DIE)
 			{
@@ -1175,7 +1178,7 @@ namespace Game
 				// you will notice that if you give a command to a unit, it will cancel the
 				// last command even if you gave it a 'queueing' command. This fixes it,
 				// by ensuring that the AI's commands will be in the command queue too.
-				Dimension::ActionQueueItem* actiondata = new Dimension::ActionQueueItem(goal_x, goal_y, target, action, args, rotation, false);
+				Dimension::ActionQueueItem actiondata(goal_x, goal_y, target, action, args, rotation, false);
 
 				pUnit->actionQueue.push_back(actiondata);
 			}

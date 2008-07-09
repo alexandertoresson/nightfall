@@ -81,7 +81,7 @@ namespace Game
 			return mRotation;
 		}
 
-		void Camera::SetCamera(Unit* unit, GLfloat zoom, GLfloat rotation)
+		void Camera::SetCamera(const gc_ptr<Unit>& unit, GLfloat zoom, GLfloat rotation)
 		{
 			mFocus = GetTerrainCoord(unit->pos.x, unit->pos.y);
 			mZoom = zoom;

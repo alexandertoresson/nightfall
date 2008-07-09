@@ -129,7 +129,7 @@ namespace Game
 					
 					OutputIntPosition(xmlfile, "pos", actionData->goal.pos);
 					
-					if (IsValidUnitPointer(actionData->goal.unit))
+					if (actionData->goal.unit)
 					{
 						OutputInt(xmlfile, "unit", actionData->goal.unit->id);
 					}
@@ -166,7 +166,7 @@ namespace Game
 			xmlfile.EndTag();
 		}
 
-		void OutputMovementData(Utilities::XMLWriter &xmlfile, Unit* unit)
+		void OutputMovementData(Utilities::XMLWriter &xmlfile, const gc_ptr<Unit>& unit)
 		{
 			xmlfile.BeginTag("movementData");
 				OutputActionData(xmlfile, "actionData", &unit->pMovementData->action);
@@ -192,7 +192,7 @@ namespace Game
 			xmlfile.EndTag();
 		}
 
-		void OutputUnit(Utilities::XMLWriter &xmlfile, Unit* unit)
+		void OutputUnit(Utilities::XMLWriter &xmlfile, const gc_ptr<Unit>& unit)
 		{
 			xmlfile.BeginTag("unit");
 
@@ -249,7 +249,7 @@ namespace Game
 			xmlfile.EndTag();
 		}
 
-		void OutputPlayer(Utilities::XMLWriter &xmlfile, const ref_ptr<Player>& player)
+		void OutputPlayer(Utilities::XMLWriter &xmlfile, const gc_ptr<Player>& player)
 		{
 			xmlfile.BeginTag("player");
 				
@@ -268,7 +268,7 @@ namespace Game
 			xmlfile.EndTag();
 		}
 
-		void OutputProjectile(Utilities::XMLWriter &xmlfile, Unit* unit, Projectile *proj)
+		void OutputProjectile(Utilities::XMLWriter &xmlfile, const gc_ptr<Unit>& unit, Projectile *proj)
 		{
 			xmlfile.BeginTag("projectile");
 				
@@ -322,25 +322,25 @@ namespace Game
 
 				OutputCamera(xmlfile);
 
-				for (vector<ref_ptr<Player> >::iterator it = pWorld->vPlayers.begin(); it != pWorld->vPlayers.end(); it++)
+				for (vector<gc_ptr<Player> >::iterator it = pWorld->vPlayers.begin(); it != pWorld->vPlayers.end(); it++)
 				{
-					const ref_ptr<Player>& player = *it;
+					const gc_ptr<Player>& player = *it;
 
 					OutputPlayer(xmlfile, player);
 					
 				}
 
-				for (vector<Unit*>::iterator it = pWorld->vUnits.begin(); it != pWorld->vUnits.end(); it++)
+				for (vector<gc_ptr<Unit> >::iterator it = pWorld->vUnits.begin(); it != pWorld->vUnits.end(); it++)
 				{
-					Unit* unit = *it;
+					const gc_ptr<Unit>& unit = *it;
 
 					OutputUnit(xmlfile, unit);
 					
 				}
 				
-				for (vector<Unit*>::iterator it = pWorld->vUnits.begin(); it != pWorld->vUnits.end(); it++)
+				for (vector<gc_ptr<Unit> >::iterator it = pWorld->vUnits.begin(); it != pWorld->vUnits.end(); it++)
 				{
-					Unit* unit = *it;
+					const gc_ptr<Unit>& unit = *it;
 
 					for (vector<Projectile*>::iterator it2 = unit->projectiles.begin(); it2 != unit->projectiles.end(); it2++)
 					{
@@ -463,7 +463,7 @@ namespace Game
 			vec.z = f;
 		}
 
-		ref_ptr<Player> player = NULL;
+		gc_ptr<Player> player = NULL;
 
 		unsigned sindex, pindex;
 
@@ -509,7 +509,7 @@ namespace Game
 			elem->Iterate("stance", ParseStances);
 		}
 
-		Unit* unit;
+		gc_ptr<Unit> unit;
 
 		void ParseLastSeenPosition(Utilities::XMLElement *elem)
 		{
@@ -531,8 +531,8 @@ namespace Game
 		{
 			bool isDisplayed, isCompleted;
 			int id;
-			ref_ptr<Player> owner;
-			ref_ptr<Dimension::UnitType> type;
+			gc_ptr<Player> owner;
+			gc_ptr<Dimension::UnitType> type;
 
 			unit = NULL;
 
@@ -824,11 +824,10 @@ namespace Game
 
 		void ParseProjectile(Utilities::XMLElement *elem)
 		{
-			Unit *owner, *goalUnit;
 			Projectile *proj;
 			Utilities::Vector3D pos, direction, goalPos;
 			elem->Iterate("owner", ParseIntBlock);
-			owner = GetUnitByID(i);
+			const gc_ptr<Unit>& owner = GetUnitByID(i);
 
 			if (!owner)
 			{
@@ -837,7 +836,7 @@ namespace Game
 			}
 
 			elem->Iterate("goalUnit", ParseIntBlock);
-			goalUnit = GetUnitByID(i);
+			const gc_ptr<Unit>& goalUnit = GetUnitByID(i);
 			
 			elem->Iterate("pos", ParseVector3D);
 			pos = vec;

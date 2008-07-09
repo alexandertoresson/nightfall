@@ -54,7 +54,7 @@ namespace Game
 		class UnitActions : public Window::GUI::Panel
 		{
 		protected:
-			Dimension::Unit *pUnit;
+			gc_ptr<Dimension::Unit> pUnit;
 			Window::GUI::PicButton* MoveAttack;
 			Window::GUI::PicButton* Stop;
 			Window::GUI::PicButton* Build;
@@ -80,7 +80,7 @@ namespace Game
 		public:
 			UnitActions(GLuint nopic, GameWindow *ref);
 			void InitLayout();
-			void SetSelected(Dimension::Unit*);
+			void SetSelected(const gc_ptr<Dimension::Unit>&);
 			void Update();
 			~UnitActions();
 
@@ -91,8 +91,8 @@ namespace Game
 		protected:
 			std::vector<BuildButton*> objects;
 
-			ref_ptr<Dimension::UnitType> pUnitType;
-			Dimension::Unit *pUnit;
+			gc_ptr<Dimension::UnitType> pUnitType;
+			gc_ptr<Dimension::Unit> pUnit;
 
 			void SetLayout();
 
@@ -110,8 +110,8 @@ namespace Game
 			void GetBuildPercentage(int id, float& value, std::string& lbl);
 		public:
 			UnitBuild(GLuint, GameWindow*);
-			void SetUnitType(const ref_ptr<Dimension::UnitType>&);
-			void SetUnit(Dimension::Unit*);
+			void SetUnitType(const gc_ptr<Dimension::UnitType>&);
+			void SetUnit(const gc_ptr<Dimension::Unit>&);
 			~UnitBuild();
 			friend class BuildButton;
 		};
@@ -167,9 +167,9 @@ namespace Game
 			Window::GUI::Picture* pPicture;
 			GameMap* pMap;
 
-			Dimension::Unit* pUnit;
+			gc_ptr<Dimension::Unit> pUnit;
 
-			std::map<ref_ptr<Dimension::UnitType>, UnitBuild*> GUI_Build;
+			std::map<gc_ptr<Dimension::UnitType>, UnitBuild*> GUI_Build;
 			GameWindow* pGame;
 			GLuint tmap;
 
@@ -188,7 +188,7 @@ namespace Game
 			GamePlayBar(GameWindow* ref,SDL_Surface *map);
 			void init();
 			void SetUnit();
-			void SwitchSelected(Dimension::Unit*);
+			void SwitchSelected(const gc_ptr<Dimension::Unit>&);
 			void SwitchBuild();
 			GameMap* GetMap();
 			~GamePlayBar();
@@ -210,7 +210,7 @@ namespace Game
 			void MouseUpLeft(SDL_Event*,Window::GUI::TranslatedMouse*);
 			void MouseUpRight(SDL_Event*,Window::GUI::TranslatedMouse*);
 			void SetTypeToBuild(unsigned int num);
-			void AddSelectedUnit(Dimension::Unit* unit); 
+			void AddSelectedUnit(const gc_ptr<Dimension::Unit>& unit); 
 			void SetGroup(unsigned int num);
 			void RecallGroup(unsigned int num);
 			void AddGroup(unsigned int num);

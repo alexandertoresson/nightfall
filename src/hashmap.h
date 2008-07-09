@@ -8,11 +8,11 @@ class hash
 
 	struct entry
 	{
-		_Key* key;
+		_Key key;
 		_Tp value;
 		entry *next;
 
-		entry(_Key* key, _Tp value)
+		entry(_Key key, _Tp value)
 		{
 			this->key = key;
 			this->value = value;
@@ -63,12 +63,12 @@ class hash
 		delete[] entries;
 	}
 
-	int hash_func(_Key* key)
+	int hash_func(_Key key)
 	{
 		return (unsigned long) key % num_entries;
 	}
 
-	void set(_Key* key, _Tp value)
+	void set(_Key key, _Tp value)
 	{
 		int hashval = hash_func(key);
 		entry *cur_entry = entries[hashval], *last_entry = NULL;
@@ -94,7 +94,7 @@ class hash
 		}
 	}
 
-	_Tp get(_Key* key)
+	_Tp get(_Key key)
 	{
 		int hashval = hash_func(key);
 		entry *cur_entry = entries[hashval], *last_entry = NULL;
@@ -110,7 +110,7 @@ class hash
 		return (_Tp) 0;
 	}
 	
-	void remove(_Key* key)
+	void remove(_Key key)
 	{
 		int hashval = hash_func(key);
 		entry *cur_entry = entries[hashval], *last_entry = NULL;
@@ -173,7 +173,7 @@ class hashmap
 		cur_hash = new hash<_Key, _Tp>();
 	}
 
-	void set(_Key* key, _Tp value)
+	void set(_Key key, _Tp value)
 	{
 		cur_hash->set(key, value);
 		if (cur_hash->get_load() > cur_hash->get_numentries() * 0.75)
@@ -185,12 +185,12 @@ class hashmap
 		}
 	}
 	
-	_Tp get(_Key* key)
+	_Tp get(_Key key)
 	{
 		return cur_hash->get(key);
 	}
 	
-	void remove(_Key* key)
+	void remove(_Key key)
 	{
 		cur_hash->remove(key);
 	}

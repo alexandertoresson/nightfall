@@ -14,25 +14,36 @@ namespace Utilities
 	struct OgreVertexBuffer
 	{
 		unsigned numVertices;
-		ref_ptr<Scene::Render::VBO> positions;
-		ref_ptr<Scene::Render::VBO> normals;
-		ref_ptr<Scene::Render::VBO> tangents;
-		ref_ptr<Scene::Render::VBO> binormals;
-		ref_ptr<Scene::Render::VBO> colorDiffuse;
-		ref_ptr<Scene::Render::VBO> colorSpecular;
+		gc_ptr<Scene::Render::VBO> positions;
+		gc_ptr<Scene::Render::VBO> normals;
+		gc_ptr<Scene::Render::VBO> tangents;
+		gc_ptr<Scene::Render::VBO> binormals;
+		gc_ptr<Scene::Render::VBO> colorDiffuse;
+		gc_ptr<Scene::Render::VBO> colorSpecular;
 		unsigned tangentDims;
-		std::vector<ref_ptr<Scene::Render::VBO> > texCoords;
+		std::vector<gc_ptr<Scene::Render::VBO> > texCoords;
 		std::vector<unsigned> texCoordDims;
 		
 		OgreVertexBuffer() : positions(NULL), normals(NULL), tangents(NULL), binormals(NULL), colorDiffuse(NULL), colorSpecular(NULL), tangentDims(0)
 		{
 			
 		}
+
+		void shade()
+		{
+			positions.shade();
+			normals.shade();
+			tangents.shade();
+			binormals.shade();
+			colorDiffuse.shade();
+			colorSpecular.shade();
+			gc_shade_container(texCoords);
+		}
 	};
 
 	struct OgreSubMesh
 	{
-		ref_ptr<Scene::Render::VBO> faces;
+		gc_ptr<Scene::Render::VBO> faces;
 
 		enum 
 		{
@@ -41,23 +52,37 @@ namespace Utilities
 			PRIMITIVETYPE_TRIANGLEFAN
 		} primitiveType;
 
-		std::vector<ref_ptr<OgreVertexBuffer> > vbs;
+		std::vector<gc_ptr<OgreVertexBuffer> > vbs;
 		unsigned numElems;
-		ref_ptr<Material> material;
+		gc_ptr<Material> material;
 		
 		bool CheckRayIntersect(const Vector3D& near, const Vector3D& far, float& distance);
+
+		void shade()
+		{
+			faces.shade();
+			gc_shade_container(vbs);
+			material.shade();
+		}
 
 	};
 
 	struct OgreMesh
 	{
-		std::vector<ref_ptr<OgreSubMesh> > submeshes;
-		std::vector<ref_ptr<OgreVertexBuffer> > shared;
-		std::vector<ref_ptr<Scene::Render::MeshTransformation> > transforms;
+		std::vector<gc_ptr<OgreSubMesh> > submeshes;
+		std::vector<gc_ptr<OgreVertexBuffer> > shared;
+		std::vector<gc_ptr<Scene::Render::MeshTransformation> > transforms;
 		bool CheckRayIntersect(const Vector3D& near_plane, const Vector3D& far_plane, float& distance);
+
+		void shade()
+		{
+			gc_shade_container(submeshes);
+			gc_shade_container(shared);
+			gc_shade_container(transforms);
+		}
 	};
 
-	ref_ptr<OgreMesh> LoadSpecificOgreXMLModel(std::string filename);
+	gc_ptr<OgreMesh> LoadSpecificOgreXMLModel(std::string filename);
 }
 
 #ifdef DEBUG_DEP
