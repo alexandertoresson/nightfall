@@ -53,7 +53,7 @@ namespace Game
 			std::vector<gc_ptr<Unit> >       vUnits;
 			std::vector<gc_ptr<Unit> >       vUnitsWithLuaAI;
 			std::vector<gc_ptr<UnitType> >   vUnitTypes;
-			std::vector<Projectile*> vProjectiles;
+			std::vector<gc_ptr<Projectile> > vProjectiles;
 			std::vector<gc_ptr<Research> >   vResearchs;
 			Uint16**          NumUnitsSeeingSquare;
 			PlayerState*      states;

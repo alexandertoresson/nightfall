@@ -323,7 +323,7 @@ namespace UnitLuaInterface
 			if (pUnit->pMovementData)
 				target = pUnit->pMovementData->action.goal.unit;
 		
-		lua_pushlightuserdata(pVM, (void*) target->id);
+		lua_pushlightuserdata(pVM, (void*) target->GetHandle());
 		return 1;
 	}
 
@@ -359,7 +359,7 @@ namespace UnitLuaInterface
 		
 		if (retUnit)
 		{
-			lua_pushlightuserdata(pVM, (void*) retUnit->id);
+			lua_pushlightuserdata(pVM, (void*) retUnit->GetHandle());
 		}
 		else
 		{

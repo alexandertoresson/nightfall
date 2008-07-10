@@ -100,8 +100,8 @@ namespace Game
 
 			pVM.SetFunction(command.unit->owner->playerAIFuncs.commandUnit.func);
 
-			lua_pushlightuserdata(pVM.GetState(), (void*) command.unit->id);
-			lua_pushlightuserdata(pVM.GetState(), (void*) (command.goal.unit ? command.goal.unit->id : -1));
+			lua_pushlightuserdata(pVM.GetState(), (void*) command.unit->GetHandle());
+			lua_pushlightuserdata(pVM.GetState(), (void*) (command.goal.unit ? command.goal.unit->GetHandle() : -1));
 			lua_pushnumber(pVM.GetState(), command.goal.pos.x);
 			lua_pushnumber(pVM.GetState(), command.goal.pos.y);
 			lua_pushnumber(pVM.GetState(), command.action);
@@ -163,23 +163,23 @@ namespace Game
 				switch (event.eventType)
 				{
 					case UNITEVENTTYPE_ACTION:
-						lua_pushlightuserdata(pVM.GetState(), (void*) event.unit->id);
+						lua_pushlightuserdata(pVM.GetState(), (void*) event.unit->GetHandle());
 						lua_pushinteger(pVM.GetState(), event.action);
 						lua_pushnumber(pVM.GetState(), event.goal.pos.x);
 						lua_pushnumber(pVM.GetState(), event.goal.pos.y);
-						lua_pushlightuserdata(pVM.GetState(), (void*) (event.goal.unit ? event.goal.unit->id : -1));
+						lua_pushlightuserdata(pVM.GetState(), (void*) (event.goal.unit ? event.goal.unit->GetHandle() : -1));
 						lua_pushlightuserdata(pVM.GetState(), (void*) event.args.argHandle);
 						pVM.CallFunction(6);
 						break;
 					case UNITEVENTTYPE_SIMPLE:
 //						std::cout << "consume " << event.func << std::endl;
 //						std::cout << *event->func << " " << event->unitID << std::endl;
-						lua_pushlightuserdata(pVM.GetState(), (void*) event.unit->id);
+						lua_pushlightuserdata(pVM.GetState(), (void*) event.unit->GetHandle());
 						pVM.CallFunction(1);
 						break;
 					case UNITEVENTTYPE_ATTACK:
-						lua_pushlightuserdata(pVM.GetState(), (void*) event.unit->id);
-						lua_pushlightuserdata(pVM.GetState(), (void*) event.goal.unit->id);
+						lua_pushlightuserdata(pVM.GetState(), (void*) event.unit->GetHandle());
+						lua_pushlightuserdata(pVM.GetState(), (void*) event.goal.unit->GetHandle());
 						pVM.CallFunction(2);
 						break;
 				}
@@ -256,9 +256,9 @@ namespace Game
 			UnitEvent event(pUnit, attacker, &pUnit->type->unitAIFuncs.isAttacked);
 
 /*			event->eventType = UNITEVENTTYPE_ATTACK;
-			event->unitID = pUnit->id;
+			event->unitID = pUnit->GetHandle();
 			event->playerIndex = pUnit->owner->index;
-			event->targetID = attacker->id;
+			event->targetID = attacker->GetHandle();
 			event->func = pUnit->type->unitAIFuncs.isAttacked.func;*/
 
 			SDL_LockMutex(scheduleUnitEventMutex);
@@ -487,7 +487,7 @@ namespace Game
 					{
 						pVM.SetFunction(pUnit->unitAIFuncs.performUnitAI.func);
 
-						lua_pushlightuserdata(pVM.GetState(), (void*) pUnit->id);
+						lua_pushlightuserdata(pVM.GetState(), (void*) pUnit->GetHandle());
 						lua_pushinteger(pVM.GetState(), pUnit->pMovementData->action.action);
 						pVM.CallFunction(2);
 					}

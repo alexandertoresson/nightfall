@@ -447,13 +447,13 @@ namespace Game
 		void PrepareAction(const gc_ptr<Dimension::Unit>& unit, const gc_ptr<Dimension::Unit>& target, int x, int y, AI::UnitAction action, const Dimension::ActionArguments& args, float rotation)
 		{
 			NetActionData* actiondata = new NetActionData;
-			actiondata->unit_id = unit->id;
+			actiondata->unit_id = unit->GetIndependentHandle();
 			actiondata->action = action;
 			actiondata->x = x;
 			actiondata->y = y;
 			actiondata->rot = RotationToByte(rotation);
 			if (target)
-				actiondata->goalunit_id = target->id;
+				actiondata->goalunit_id = target->GetIndependentHandle();
 			else
 				actiondata->goalunit_id = 0xFFFF;
 			actiondata->arg = args.argHandle;
@@ -475,7 +475,7 @@ namespace Game
 		{
 			NetPath* path = new NetPath;
 			ClonePath(pStart, pGoal);
-			path->unit_id = unit->id;
+			path->unit_id = unit->GetIndependentHandle();
 			path->pStart = pStart;
 			path->pGoal = pGoal;
 			path->valid_at_frame = AI::currentFrame + netDelay;
@@ -516,7 +516,7 @@ namespace Game
 		void PrepareDamaging(const gc_ptr<Dimension::Unit>& unit, float damage)
 		{
 			NetDamage* dmg = new NetDamage;
-			dmg->unit_id = unit->id;
+			dmg->unit_id = unit->GetIndependentHandle();
 			dmg->damage = (int) (damage * 100);
 			dmg->valid_at_frame = AI::currentFrame + netDelay;
 			SDL_LockMutex(prepareDamagingMutex);
@@ -551,14 +551,7 @@ namespace Game
 
 		gc_ptr<Dimension::Unit> DecodeUnitID(Uint16 id)
 		{
-			if (id == 0xFFFF || !Dimension::unitByID[id])
-			{
-				return NULL;
-			}
-			else
-			{
-				return Dimension::unitByID[id];
-			}
+			return Dimension::HandleManager<Dimension::Unit>::InterpretIndependentHandle(id);
 		}
 
 		Packet* ClonePacket(Packet* packet);
@@ -2831,13 +2824,13 @@ namespace Game
 			for (vector<gc_ptr<Dimension::Unit> >::iterator it = Dimension::pWorld->vUnits.begin(); it != Dimension::pWorld->vUnits.end(); it++)
 			{
 				const gc_ptr<Dimension::Unit>& unit = *it;
-				checksum ^= index | unit->id << (index % 15); // To get a number that is different for different index/id combos.
+				checksum ^= index | unit->GetHandle() << (index % 15); // To get a number that is different for different index/id combos.
 #ifdef CHECKSUM_DEBUG
 				sstr << index << " ";
 #endif
-				checksum ^= unit->id;
+				checksum ^= unit->GetHandle();
 #ifdef CHECKSUM_DEBUG
-				sstr << unit->id << " ";
+				sstr << unit->GetHandle() << " ";
 #endif
 				checksum ^= (Uint32) floor((float)unit->curAssociatedSquare.x);
 #ifdef CHECKSUM_DEBUG

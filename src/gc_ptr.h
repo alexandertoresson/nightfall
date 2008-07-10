@@ -10,6 +10,23 @@
 #include <cassert>
 #include <string>
 
+template <typename T>
+struct gc_default_shader
+{
+	static void shade(T* ref)
+	{
+		ref->shade();
+	}
+};
+
+template <typename T>
+struct gc_null_shader
+{
+	static void shade(T* ref)
+	{
+	}
+};
+
 class gc_marker_base
 {
 	public:
@@ -59,14 +76,14 @@ class gc_marker_base
 
 		static void sweep();
 
-	template <typename T>
+	template <typename T, typename _Shader>
 	friend class gc_marker;
-	template <typename T>
+	template <typename T, typename _Shader>
 	friend class gc_ptr;
 
 };
 
-template <typename T>
+template <typename T, typename _Shader = gc_default_shader<T> >
 class gc_marker : public gc_marker_base
 {
 	private:
@@ -88,7 +105,9 @@ class gc_marker : public gc_marker_base
 		void blacken()
 		{
 			if (ref)
-				ref->shade();
+			{
+				_Shader::shade(ref);
+			}
 		}
 
 		int size()
@@ -112,10 +131,10 @@ class gc_marker : public gc_marker_base
 		
 };
 
-template <typename T>
+template <typename T, typename _Shader>
 class gc_root_ptr;
 
-template <typename T>
+template <typename T, typename _Shader = gc_default_shader<T> >
 class gc_ptr
 {
 	protected:
@@ -127,8 +146,8 @@ class gc_ptr
 		{
 		}
 
-		template <typename T2>
-		gc_ptr(const gc_ptr<T2>& a) : ref(a.ref), m(a.m)
+		template <typename T2, typename _Shader2>
+		gc_ptr(const gc_ptr<T2, _Shader2>& a) : ref(a.ref), m(a.m)
 		{
 		}
 
@@ -136,12 +155,12 @@ class gc_ptr
 		{
 		}
 
-		template <typename T2>
-		gc_ptr(T2* a, void(*func)(T2*) = NULL, gc_marker_base::Mark mark = gc_marker_base::MARK_WHITE, int refs = 0) : ref(a), m(a ? new gc_marker<T2>(a, func, mark, refs) : NULL)
+		template <typename T2, typename _Shader2>
+		gc_ptr(T2* a, void(*func)(T2*) = NULL, gc_marker_base::Mark mark = gc_marker_base::MARK_WHITE, int refs = 0) : ref(a), m(a ? new gc_marker<T2, _Shader2>(a, func, mark, refs) : NULL)
 		{
 		}
 
-		gc_ptr(T* a, void(*func)(T*) = NULL, gc_marker_base::Mark mark = gc_marker_base::MARK_WHITE, int refs = 0) : ref(a), m(a ? new gc_marker<T>(a, func, mark, refs) : NULL)
+		gc_ptr(T* a, void(*func)(T*) = NULL, gc_marker_base::Mark mark = gc_marker_base::MARK_WHITE, int refs = 0) : ref(a), m(a ? new gc_marker<T, _Shader>(a, func, mark, refs) : NULL)
 		{
 		}
 
@@ -156,17 +175,17 @@ class gc_ptr
 			return *this;
 		}
 
-		bool operator < (const gc_ptr<T>& a) const
+		bool operator < (const gc_ptr& a) const
 		{
 			return ref < a.ref;
 		}
 
-		bool operator == (const gc_ptr<T>& a) const
+		bool operator == (const gc_ptr& a) const
 		{
 			return ref == a.ref;
 		}
 
-		bool operator != (const gc_ptr<T>& a) const
+		bool operator != (const gc_ptr& a) const
 		{
 			return ref != a.ref;
 		}
@@ -203,52 +222,53 @@ class gc_ptr
 		}
 
 	
-	template <typename T2>
+	template <typename T2, typename _Shader2>
 	friend class gc_ptr;
-	template <typename T2>
+	template <typename T2, typename _Shader2>
 	friend class gc_root_ptr;
 };
 
-template <typename T>
-class gc_root_ptr : public gc_ptr<T>
+template <typename T, typename _Shader = gc_default_shader<T> >
+class gc_root_ptr : public gc_ptr<T, _Shader>
 {
+		typedef gc_ptr<T, _Shader> Base;
 	public:
-		gc_root_ptr() : gc_ptr<T>::gc_ptr(NULL, NULL, gc_marker_base::MARK_GRAY, 1)
+		gc_root_ptr() : Base::gc_ptr(NULL, NULL, gc_marker_base::MARK_GRAY, 1)
 		{
 		}
 
-		template <typename T2>
-		gc_root_ptr(const gc_ptr<T2>& a) : gc_ptr<T>::gc_ptr(a)
+		template <typename T2, typename _Shader2>
+		gc_root_ptr(const gc_ptr<T2, _Shader2>& a) : gc_ptr<T2, _Shader2>::gc_ptr(a)
 		{
-			if (gc_ptr<T>::m)
-				gc_ptr<T>::m->increfs();
+			if (Base::m)
+				Base::m->increfs();
 		}
 
-		gc_root_ptr(const gc_ptr<T>& a) : gc_ptr<T>::gc_ptr(a)
+		gc_root_ptr(const Base& a) : Base::gc_ptr(a)
 		{
-			if (gc_ptr<T>::m)
-				gc_ptr<T>::m->increfs();
+			if (Base::m)
+				Base::m->increfs();
 		}
 
-		gc_root_ptr(const gc_root_ptr& a) : gc_ptr<T>::gc_ptr(a)
+		gc_root_ptr(const gc_root_ptr& a) : Base::gc_ptr(a)
 		{
-			if (gc_ptr<T>::m)
-				gc_ptr<T>::m->increfs();
+			if (Base::m)
+				Base::m->increfs();
 		}
 
-		template <typename T2>
-		gc_root_ptr(T2* a, void(*func)(T2*) = NULL, gc_marker_base::Mark mark = gc_marker_base::MARK_GRAY) : gc_ptr<T>::gc_ptr(a, func, mark, 1)
+		template <typename T2, typename _Shader2>
+		gc_root_ptr(T2* a, void(*func)(T2*) = NULL, gc_marker_base::Mark mark = gc_marker_base::MARK_GRAY) : Base::gc_ptr(a, func, mark, 1)
 		{
 		}
 
-		gc_root_ptr(T* a, void(*func)(T*) = NULL, gc_marker_base::Mark mark = gc_marker_base::MARK_GRAY) : gc_ptr<T>::gc_ptr(a, func, mark, 1)
+		gc_root_ptr(T* a, void(*func)(T*) = NULL, gc_marker_base::Mark mark = gc_marker_base::MARK_GRAY) : Base::gc_ptr(a, func, mark, 1)
 		{
 		}
 
 		~gc_root_ptr()
 		{
-			if (gc_ptr<T>::m)
-				gc_ptr<T>::m->decrefs();
+			if (Base::m)
+				Base::m->decrefs();
 		}
 
 		gc_root_ptr& operator = (const gc_root_ptr& a)
@@ -256,11 +276,11 @@ class gc_root_ptr : public gc_ptr<T>
 			if (a.m)
 				a.m->increfs();
 
-			if (gc_ptr<T>::m)
-				gc_ptr<T>::m->decrefs();
+			if (Base::m)
+				Base::m->decrefs();
 
-			gc_ptr<T>::ref = a.ref;
-			gc_ptr<T>::m = a.m;
+			Base::ref = a.ref;
+			Base::m = a.m;
 			return *this;
 		}
 
@@ -269,9 +289,9 @@ class gc_root_ptr : public gc_ptr<T>
 			*this = gc_root_ptr();
 		}
 
-	template <typename T2>
+	template <typename T2, typename _Shader2>
 	friend class gc_ptr;
-	template <typename T2>
+	template <typename T2, typename _Shader2>
 	friend class gc_root_ptr;
 };
 

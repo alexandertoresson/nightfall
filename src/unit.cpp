@@ -26,12 +26,15 @@ namespace Game
 	{
 		static vector<gc_ptr<Unit> > unitsSelected;
 		vector<gc_ptr<Unit> > unitGroups[10];
-		gc_ptr<Unit>          unitByID[65536];
-		unsigned short         nextID;
 		hashmap<gc_ptr<Unit>, bool> displayedUnitPointers;
 		int**         numUnitsPerAreaMap;
 		int           nextPushID = 1;
-		
+
+		Unit::Unit(int id) : HasHandle<Unit>(id)
+		{
+			
+		}
+
 		ActionQueueItem::~ActionQueueItem()
 		{
 		}
@@ -99,13 +102,9 @@ namespace Game
 			return displayedUnitPointers.get(unit);
 		}
 
-		gc_ptr<Unit> GetUnitByID(unsigned id)
+		gc_ptr<Unit> GetUnitByID(int id)
 		{
-			if (id < 65536)
-			{
-				return unitByID[id];
-			}
-			return NULL;
+			return HandleManager<Unit>::InterpretHandle(id);
 		}
 
 		double GetIncomeAtNoon(const gc_ptr<Player>& player)
@@ -241,7 +240,7 @@ namespace Game
 			if (unit->owner->resources.power < power_usage)
 			{
 #ifdef CHECKSUM_DEBUG_HIGH
-				Networking::checksum_output << "BUILD WAIT NOPOWER " << AI::currentFrame << ": " << unit->id << " " << power_usage << " " << unit->owner->resources.power << "\n";
+				Networking::checksum_output << "BUILD WAIT NOPOWER " << AI::currentFrame << ": " << unit->GetHandle() << " " << power_usage << " " << unit->owner->resources.power << "\n";
 #endif
 				return;
 			}
@@ -251,7 +250,7 @@ namespace Game
 				if (!build_type->requirements.creation.isSatisfied || !build_type->requirements.existance.isSatisfied)
 				{
 #ifdef CHECKSUM_DEBUG_HIGH
-					Networking::checksum_output << "BUILD CANCEL NORESEARCH " << AI::currentFrame << ": " << unit->id << "\n";
+					Networking::checksum_output << "BUILD CANCEL NORESEARCH " << AI::currentFrame << ": " << unit->GetHandle() << "\n";
 #endif
 					AI::CancelAction(unit);
 					return;
@@ -297,7 +296,7 @@ namespace Game
 											{
 												int goto_x, goto_y;
 												NearestSquareFromBuildingPlace(pppElements[y][x], build_type, unit->pMovementData->action.goal.pos.x, unit->pMovementData->action.goal.pos.y, goto_x, goto_y);
-		//										cout << "command " << pppElements[y][x]->type->id << endl;
+		//										cout << "command " << pppElements[y][x]->type->GetHandle() << endl;
 												CommandUnit(pppElements[y][x], goto_x, goto_y, AI::ACTION_GOTO, unit->pMovementData->action.args, true, true);
 											}
 										}
@@ -322,7 +321,7 @@ namespace Game
 			if (newUnit->pMovementData->action.action == AI::ACTION_DIE)
 			{
 #ifdef CHECKSUM_DEBUG_HIGH
-				Networking::checksum_output << "BUILD CANCEL TARGETDYING " << AI::currentFrame << ": " << unit->id << "\n";
+				Networking::checksum_output << "BUILD CANCEL TARGETDYING " << AI::currentFrame << ": " << unit->GetHandle() << "\n";
 #endif
 				AI::CancelAction(unit);
 				return;
@@ -339,13 +338,13 @@ namespace Game
 			if (unit->owner->resources.money < build_cost)
 			{
 #ifdef CHECKSUM_DEBUG_HIGH
-				Networking::checksum_output << "BUILD WAIT NOMONEY " << AI::currentFrame << ": " << unit->id << " " << build_cost << " " << unit->owner->resources.power << "\n";
+				Networking::checksum_output << "BUILD WAIT NOMONEY " << AI::currentFrame << ": " << unit->GetHandle() << " " << build_cost << " " << unit->owner->resources.power << "\n";
 #endif
 				return;
 			}
 
 #ifdef CHECKSUM_DEBUG_HIGH
-			Networking::checksum_output << "BUILD " << AI::currentFrame << ": " << unit->id << " " << newUnit->id << " " << build_cost << " " << power_usage << "\n";
+			Networking::checksum_output << "BUILD " << AI::currentFrame << ": " << unit->GetHandle() << " " << newUnit->GetHandle() << " " << build_cost << " " << power_usage << "\n";
 #endif
 
 			unit->owner->resources.power -= power_usage;
@@ -366,7 +365,7 @@ namespace Game
 				if (newUnit->isCompleted == false)
 				{
 #ifdef CHECKSUM_DEBUG_HIGH
-					Networking::checksum_output << "BUILD DONE " << AI::currentFrame << ": " << unit->id << " " << newUnit->id << "\n";
+					Networking::checksum_output << "BUILD DONE " << AI::currentFrame << ": " << unit->GetHandle() << " " << newUnit->GetHandle() << "\n";
 #endif
 					newUnit->isCompleted = true;
 
@@ -408,7 +407,7 @@ namespace Game
 			if (!research->requirements.creation.isSatisfied || !research->requirements.existance.isSatisfied)
 			{
 #ifdef CHECKSUM_DEBUG_HIGH
-				Networking::checksum_output << "RESEARCH CANCEL NORESEARCH " << AI::currentFrame << ": " << unit->id << "\n";
+				Networking::checksum_output << "RESEARCH CANCEL NORESEARCH " << AI::currentFrame << ": " << unit->GetHandle() << "\n";
 #endif
 				AI::CancelAction(unit);
 				return;
@@ -419,11 +418,11 @@ namespace Game
 #ifdef CHECKSUM_DEBUG_HIGH
 				if (research->researcher && research->researcher != unit)
 				{
-					Networking::checksum_output << "RESEARCH CANCEL ISBEINGRESEARCHEDBY " << AI::currentFrame << ": " << unit->id << " " << research->researcher << "\n";
+					Networking::checksum_output << "RESEARCH CANCEL ISBEINGRESEARCHEDBY " << AI::currentFrame << ": " << unit->GetHandle() << " " << research->researcher << "\n";
 				}
 				else
 				{
-					Networking::checksum_output << "RESEARCH CANCEL ISRESEARCHED " << AI::currentFrame << ": " << unit->id << "\n";
+					Networking::checksum_output << "RESEARCH CANCEL ISRESEARCHED " << AI::currentFrame << ": " << unit->GetHandle() << "\n";
 				}
 #endif
 				AI::CancelAction(unit);
@@ -435,7 +434,7 @@ namespace Game
 			if (unit->owner->resources.power < power_usage)
 			{
 #ifdef CHECKSUM_DEBUG_HIGH
-				Networking::checksum_output << "RESEARCH WAIT NOPOWER " << AI::currentFrame << ": " << unit->id << " " << power_usage << " " << unit->owner->resources.power << "\n";
+				Networking::checksum_output << "RESEARCH WAIT NOPOWER " << AI::currentFrame << ": " << unit->GetHandle() << " " << power_usage << " " << unit->owner->resources.power << "\n";
 #endif
 				return;
 			}
@@ -445,13 +444,13 @@ namespace Game
 			if (unit->owner->resources.money < research_cost)
 			{
 #ifdef CHECKSUM_DEBUG_HIGH
-				Networking::checksum_output << "RESEARCH WAIT NOMONEY " << AI::currentFrame << ": " << unit->id << " " << research_cost << " " << unit->owner->resources.money << "\n";
+				Networking::checksum_output << "RESEARCH WAIT NOMONEY " << AI::currentFrame << ": " << unit->GetHandle() << " " << research_cost << " " << unit->owner->resources.money << "\n";
 #endif
 				return;
 			}
 
 #ifdef CHECKSUM_DEBUG_HIGH
-			Networking::checksum_output << "RESEARCH " << AI::currentFrame << ": " << unit->id << " " << research_cost << " " << power_usage << "\n";
+			Networking::checksum_output << "RESEARCH " << AI::currentFrame << ": " << unit->GetHandle() << " " << research_cost << " " << power_usage << "\n";
 #endif
 
 			unit->owner->resources.power -= power_usage;
@@ -479,7 +478,7 @@ namespace Game
  					lua_getfield(pVM, -1, "apply");
  					lua_pushlightuserdata(pVM, (void*) unit->owner->GetHandle());
  					lua_pushlightuserdata(pVM, (void*) unit->type->GetHandle());
- 					lua_pushlightuserdata(pVM, (void*) unit->id);
+ 					lua_pushlightuserdata(pVM, (void*) unit->GetHandle());
  					unit->owner->aiState.CallFunction(3);
  				}
 			}
@@ -548,7 +547,7 @@ namespace Game
 		bool Attack(gc_ptr<Unit>& target, float damage)
 		{
 #ifdef CHECKSUM_DEBUG_HIGH
-			Networking::checksum_output << "DAMAGE " << AI::currentFrame << ": " << target->id << " " << damage << "\n";
+			Networking::checksum_output << "DAMAGE " << AI::currentFrame << ": " << target->GetHandle() << " " << damage << "\n";
 #endif
 			if (target->health > 1e-3)
 			{
@@ -599,7 +598,7 @@ namespace Game
 			attacker->owner->resources.power -= power_usage;
 
 #ifdef CHECKSUM_DEBUG_HIGH
-			Networking::checksum_output << "ATTACK " << AI::currentFrame << ": " << attacker->id << " " << target->id << " " << power_usage << "\n";
+			Networking::checksum_output << "ATTACK " << AI::currentFrame << ": " << attacker->GetHandle() << " " << target->GetHandle() << " " << power_usage << "\n";
 #endif
 
 			if (attacker->type->isMobile)
@@ -629,7 +628,7 @@ namespace Game
 				goto_pos = target->pos;
 				goal_pos = Utilities::Vector3D(goto_pos.x, goto_pos.y, Dimension::GetTerrainHeightHighestLevel(goto_pos.x, goto_pos.y));
 				goal_pos.z += target->type->height * 0.25f * 0.0625f;
-				Projectile *proj = CreateProjectile(attacker->type->projectileType, Utilities::Vector3D(attacker->pos.x, attacker->pos.y, GetTerrainHeightHighestLevel(attacker->pos.x, attacker->pos.y)), goal_pos);
+				gc_root_ptr<Projectile> proj = CreateProjectile(attacker->type->projectileType, Utilities::Vector3D(attacker->pos.x, attacker->pos.y, GetTerrainHeightHighestLevel(attacker->pos.x, attacker->pos.y)), goal_pos);
 				proj->goalUnit = target;
 				attacker->projectiles.push_back(proj);
 				UnitMainNode::instance.ScheduleProjectileAddition(proj);
@@ -639,12 +638,12 @@ namespace Game
 
 		bool UnitBinPred(const gc_ptr<Unit>& unit01, const gc_ptr<Unit>& unit02)
 		{
-			return unit01->id < unit02->id;
+			return unit01->GetHandle() < unit02->GetHandle();
 		}
 
 		void HandleProjectiles(const gc_ptr<Unit>& pUnit)
 		{
-			Projectile *proj = NULL;
+			gc_ptr<Projectile> proj = NULL;
 			float max_radius = 0;
 			vector<gc_ptr<Unit> >::iterator it;
 			list<gc_ptr<Unit> > units_hit;
@@ -716,7 +715,7 @@ namespace Game
 						gc_ptr<Unit>& target = *it;
 
 #ifdef CHECKSUM_DEBUG_HIGH
-						Networking::checksum_output << "HIT " << target->id << "\n";
+						Networking::checksum_output << "HIT " << target->GetHandle() << "\n";
 #endif
 						pUnit->lastSeenPositions[target->owner->index] = pUnit->curAssociatedSquare;
 						if (target->owner != pUnit->owner)
@@ -1163,7 +1162,7 @@ namespace Game
 							    curnode->y == pUnit->curAssociatedSquare.y)
 							{
 #ifdef CHECKSUM_DEBUG_HIGH
-								Networking::checksum_output << "START PATH GOAL " << AI::currentFrame << ": " << pUnit->id << " " << curnode->x << " " << curnode->y << "\n";
+								Networking::checksum_output << "START PATH GOAL " << AI::currentFrame << ": " << pUnit->GetHandle() << " " << curnode->x << " " << curnode->y << "\n";
 #endif
 								break;
 							}
@@ -1186,7 +1185,7 @@ namespace Game
 						if (!pUnit->owner->isRemote)
 						{
 #ifdef CHECKSUM_DEBUG_HIGH
-							Networking::checksum_output << "INIT RECALC " << AI::currentFrame << ": " << pUnit->id << "\n";
+							Networking::checksum_output << "INIT RECALC " << AI::currentFrame << ": " << pUnit->GetHandle() << "\n";
 #endif
 							// unit positions has changed enough since the path was calculated, making it needed to
 							// recalculate it. another possibility is that the path was invalidated by CheckPath()...
@@ -1214,14 +1213,14 @@ namespace Game
 						if (!pUnit->pMovementData->pCurGoalNode || !pUnit->pMovementData->pCurGoalNode->pParent)
 						{
 #ifdef CHECKSUM_DEBUG_HIGH
-							Networking::checksum_output << "ONE NODE PATH " << AI::currentFrame << ": " << pUnit->id << "\n";
+							Networking::checksum_output << "ONE NODE PATH " << AI::currentFrame << ": " << pUnit->GetHandle() << "\n";
 #endif
 							if (pUnit->pMovementData->action.goal.unit)
 							{
 								if (!CanReach(pUnit, pUnit->pMovementData->action.goal.unit))
 								{
 #ifdef CHECKSUM_DEBUG_HIGH
-									Networking::checksum_output << "CANCEL CANNOTREACH " << AI::currentFrame << ": " << pUnit->id << "\n";
+									Networking::checksum_output << "CANCEL CANNOTREACH " << AI::currentFrame << ": " << pUnit->GetHandle() << "\n";
 #endif
 									AI::CancelAction(pUnit);
 								}
@@ -1231,7 +1230,7 @@ namespace Game
 								if (pUnit->pMovementData->action.action != AI::ACTION_BUILD)
 								{
 #ifdef CHECKSUM_DEBUG_HIGH
-									Networking::checksum_output << "COMPLETE " << AI::currentFrame << ": " << pUnit->id << "\n";
+									Networking::checksum_output << "COMPLETE " << AI::currentFrame << ": " << pUnit->GetHandle() << "\n";
 #endif
 									AI::CompleteAction(pUnit);
 								}
@@ -1240,7 +1239,7 @@ namespace Game
 									if (!IsWithinRangeForBuilding(pUnit))
 									{
 #ifdef CHECKSUM_DEBUG_HIGH
-										Networking::checksum_output << "CANCEL CANNOTBUILD " << AI::currentFrame << ": " << pUnit->id << "\n";
+										Networking::checksum_output << "CANCEL CANNOTBUILD " << AI::currentFrame << ": " << pUnit->GetHandle() << "\n";
 #endif
 										AI::CancelAction(pUnit);
 									}
@@ -1267,7 +1266,7 @@ namespace Game
 			else
 			{
 #ifdef CHECKSUM_DEBUG_HIGH
-				Networking::checksum_output << "PATHWAIT " << AI::currentFrame << ": " << pUnit->id << "\n";
+				Networking::checksum_output << "PATHWAIT " << AI::currentFrame << ": " << pUnit->GetHandle() << "\n";
 #endif
 				should_move = false;
 				pUnit->isMoving = false;
@@ -1284,7 +1283,7 @@ namespace Game
 				distance = pUnit->pMovementData->distanceLeft;
 				
 #ifdef CHECKSUM_DEBUG_HIGH
-				Networking::checksum_output << "MOVE " << AI::currentFrame << ": " << pUnit->id << " " << pUnit->pos.x << " " << pUnit->pos.y << " " << move.x << " " << move.y << " " << pUnit->type->movementSpeed << " " << AI::aiFps << " " << GetTraversalTime(pUnit, pUnit->pMovementData->pCurGoalNode->pParent->x, pUnit->pMovementData->pCurGoalNode->pParent->y, pUnit->pMovementData->pCurGoalNode->x - pUnit->pMovementData->pCurGoalNode->pParent->x, pUnit->pMovementData->pCurGoalNode->y - pUnit->pMovementData->pCurGoalNode->pParent->y) << " " << distance_per_frame << " " << distance << " " << power_usage << "\n";
+				Networking::checksum_output << "MOVE " << AI::currentFrame << ": " << pUnit->GetHandle() << " " << pUnit->pos.x << " " << pUnit->pos.y << " " << move.x << " " << move.y << " " << pUnit->type->movementSpeed << " " << AI::aiFps << " " << GetTraversalTime(pUnit, pUnit->pMovementData->pCurGoalNode->pParent->x, pUnit->pMovementData->pCurGoalNode->pParent->y, pUnit->pMovementData->pCurGoalNode->x - pUnit->pMovementData->pCurGoalNode->pParent->x, pUnit->pMovementData->pCurGoalNode->y - pUnit->pMovementData->pCurGoalNode->pParent->y) << " " << distance_per_frame << " " << distance << " " << power_usage << "\n";
 #endif
 				
 				if (distance < distance_per_frame)
@@ -1299,7 +1298,7 @@ namespace Game
 					       pUnit->pos.y + move.y - (float) pUnit->pMovementData->pCurGoalNode->y - 0.5f))
 				{
 #ifdef CHECKSUM_DEBUG_HIGH
-					Networking::checksum_output << "ATTEMPT " << AI::currentFrame << ": " << pUnit->id << " " << pUnit->pMovementData->pCurGoalNode->x << " " << pUnit->pMovementData->pCurGoalNode->y << "\n";
+					Networking::checksum_output << "ATTEMPT " << AI::currentFrame << ": " << pUnit->GetHandle() << " " << pUnit->pMovementData->pCurGoalNode->x << " " << pUnit->pMovementData->pCurGoalNode->y << "\n";
 #endif
 					if (!UpdateAssociatedSquares(pUnit, pUnit->pMovementData->pCurGoalNode->x,
 								            pUnit->pMovementData->pCurGoalNode->y,
@@ -1331,7 +1330,7 @@ namespace Game
 							if (recalc)
 							{
 #ifdef CHECKSUM_DEBUG_HIGH
-								Networking::checksum_output << "RECALC " << AI::currentFrame << ": " << pUnit->id << "\n";
+								Networking::checksum_output << "RECALC " << AI::currentFrame << ": " << pUnit->GetHandle() << "\n";
 #endif
 								if (!pUnit->owner->isRemote && !AI::IsUndergoingPathCalc(pUnit))
 								{
@@ -1360,7 +1359,7 @@ namespace Game
 						{
 							pUnit->isWaiting = true;
 #ifdef CHECKSUM_DEBUG_HIGH
-							Networking::checksum_output << "STOP " << AI::currentFrame << ": " << pUnit->id << "\n";
+							Networking::checksum_output << "STOP " << AI::currentFrame << ": " << pUnit->GetHandle() << "\n";
 #endif
 						}
 					}
@@ -1376,7 +1375,7 @@ namespace Game
 				if (should_move)
 				{
 #ifdef CHECKSUM_DEBUG_HIGH
-					Networking::checksum_output << "REALLYMOVE " << AI::currentFrame << ": " << pUnit->id << "\n";
+					Networking::checksum_output << "REALLYMOVE " << AI::currentFrame << ": " << pUnit->GetHandle() << "\n";
 #endif
 					pUnit->owner->resources.power -= power_usage;
 			
@@ -1404,14 +1403,14 @@ namespace Game
 /*							pUnit->pushID = 0;
 							pUnit->pusher = NULL;*/
 #ifdef CHECKSUM_DEBUG_HIGH
-							Networking::checksum_output << "REACH " << AI::currentFrame << ": " << pUnit->id << " " << pUnit->pMovementData->pGoal->x << " " << pUnit->pMovementData->pGoal->y << "\n";
+							Networking::checksum_output << "REACH " << AI::currentFrame << ": " << pUnit->GetHandle() << " " << pUnit->pMovementData->pGoal->x << " " << pUnit->pMovementData->pGoal->y << "\n";
 #endif
 							if (pUnit->pMovementData->action.goal.unit)
 							{
 								if (!CanSee(pUnit, pUnit->pMovementData->action.goal.unit))
 								{
 #ifdef CHECKSUM_DEBUG_HIGH
-									Networking::checksum_output << "CANCEL CANNOTSEE " << AI::currentFrame << ": " << pUnit->id << "\n";
+									Networking::checksum_output << "CANCEL CANNOTSEE " << AI::currentFrame << ": " << pUnit->GetHandle() << "\n";
 #endif
 									AI::CancelAction(pUnit);
 								}
@@ -1421,7 +1420,7 @@ namespace Game
 								if (pUnit->pMovementData->action.action != AI::ACTION_BUILD)
 								{
 #ifdef CHECKSUM_DEBUG_HIGH
-									Networking::checksum_output << "COMPLETE " << AI::currentFrame << ": " << pUnit->id << "\n";
+									Networking::checksum_output << "COMPLETE " << AI::currentFrame << ": " << pUnit->GetHandle() << "\n";
 #endif
 									AI::CompleteAction(pUnit);
 								}
@@ -1430,7 +1429,7 @@ namespace Game
 									if (!IsWithinRangeForBuilding(pUnit))
 									{
 #ifdef CHECKSUM_DEBUG_HIGH
-										Networking::checksum_output << "CANCEL CANNOTBUILD " << AI::currentFrame << ": " << pUnit->id << "\n";
+										Networking::checksum_output << "CANCEL CANNOTBUILD " << AI::currentFrame << ": " << pUnit->GetHandle() << "\n";
 #endif
 										AI::CancelAction(pUnit);
 									}
@@ -1454,7 +1453,7 @@ namespace Game
 //								PushUnits(pUnit);
 							}
 #ifdef CHECKSUM_DEBUG_HIGH
-							Networking::checksum_output << "NEXT GOAL " << AI::currentFrame << ": " << pUnit->id << " " << pUnit->pMovementData->pCurGoalNode->x << " " << pUnit->pMovementData->pCurGoalNode->y << "\n";
+							Networking::checksum_output << "NEXT GOAL " << AI::currentFrame << ": " << pUnit->GetHandle() << " " << pUnit->pMovementData->pCurGoalNode->x << " " << pUnit->pMovementData->pCurGoalNode->y << "\n";
 #endif
 							pUnit->pMovementData->switchedSquare = false;
 						}
@@ -1586,7 +1585,7 @@ namespace Game
 				return NULL;
 			}
 
-			gc_ptr<Unit> unit = Unit::New();
+			gc_ptr<Unit> unit = Unit::New(id);
 
 			PrepareUnitEssentials(unit, type);
 //			PrepareAnimationData(unit);
@@ -1607,33 +1606,9 @@ namespace Game
 				unit->health = (float) type->maxHealth;
 			}
 			
-			int tries = 0;
-
-			if (id != -1)
-			{
-				nextID = id;
-			}
-
-			while (unitByID[nextID])
-			{
-				nextID++;
-				if (nextID == 0)
-				{
-					nextID = 0;
-				}
-				if (tries++ == 0xFFFF)
-				{
-					return false;
-				}
-			}
-
 #ifdef CHECKSUM_DEBUG_HIGH
-			Networking::checksum_output << "CREATEUNIT " << type->id << " " << nextID << "\n";
+			Networking::checksum_output << "CREATEUNIT " << type->id << "\n";
 #endif
-			
-			unit->id = nextID;
-
-			unitByID[unit->id] = unit;
 			
 			for (int i = 0; i < Audio::SFX_ACT_COUNT; i++)
 				unit->soundNodes[i] = NULL;
@@ -1648,7 +1623,7 @@ namespace Game
 			
 			SDL_UnlockMutex(unitCreationMutex);
 
-//			std::cout << "Create " << unit->id << std::endl;
+//			std::cout << "Create " << unit->GetHandle() << std::endl;
 
 			return unit;
 		}
@@ -1696,7 +1671,7 @@ namespace Game
 				return false;
 			}
 		
-//			std::cout << "display " << unit->id << " (" << unit << ")" << std::endl;
+//			std::cout << "display " << unit->GetHandle() << " (" << unit << ")" << std::endl;
 
 			pWorld->vUnits.push_back(unit);
 			if (unit->type->hasAI)
@@ -1770,7 +1745,7 @@ namespace Game
 		{
 			unsigned int i;
 			
-//			std::cout << "Kill " << unit->id << std::endl;
+//			std::cout << "Kill " << unit->GetHandle() << std::endl;
 
 			AI::CancelAllActions(unit);
 
@@ -1808,7 +1783,7 @@ namespace Game
 					AI::DequeueNewPath(curUnit);
 				}
 
-				for (vector<Projectile*>::iterator it = curUnit->projectiles.begin(); it != curUnit->projectiles.end(); it++)
+				for (vector<gc_ptr<Projectile> >::iterator it = curUnit->projectiles.begin(); it != curUnit->projectiles.end(); it++)
 				{
 					if ((*it)->goalUnit == unit)
 					{
@@ -1831,7 +1806,7 @@ namespace Game
 		{
 			unsigned int i, j;
 			
-//			std::cout << "remove " << unit->id << " (" << unit << ")" << std::endl;
+//			std::cout << "remove " << unit->GetHandle() << " (" << unit << ")" << std::endl;
 
 			if (unit->isCompleted)
 			{
@@ -1841,9 +1816,7 @@ namespace Game
 
  			displayedUnitPointers.remove(unit);
 
-//			std::cout << "Delete " << unit->id << std::endl;
-
-			unitByID[unit->id] = NULL;
+//			std::cout << "Delete " << unit->GetHandle() << std::endl;
 
 			for (vector<gc_ptr<Unit> >::iterator it = pWorld->vUnits.begin(); it != pWorld->vUnits.end(); it++)
 			{
@@ -1955,7 +1928,7 @@ namespace Game
 					AI::DequeueNewPath(curUnit);
 				}
 
-				for (vector<Projectile*>::iterator it = curUnit->projectiles.begin(); it != curUnit->projectiles.end(); it++)
+				for (vector<gc_ptr<Projectile> >::iterator it = curUnit->projectiles.begin(); it != curUnit->projectiles.end(); it++)
 				{
 					if ((*it)->goalUnit == unit)
 					{
@@ -2042,18 +2015,18 @@ namespace Game
 		}
 
 		// create a projectile
-		Projectile* CreateProjectile(ProjectileType* type, Utilities::Vector3D start, const gc_ptr<Unit>& goal)
+		gc_root_ptr<Projectile> CreateProjectile(const gc_ptr<ProjectileType>& type, Utilities::Vector3D start, const gc_ptr<Unit>& goal)
 		{
-			Projectile* proj = new Projectile;
+			gc_root_ptr<Projectile> proj = new Projectile;
 			proj->type = type;
 			proj->pos = type->startPos;
 			proj->goalUnit = goal;
 			return proj;
 		}
 
-		Projectile* CreateProjectile(ProjectileType* type, Utilities::Vector3D start, Utilities::Vector3D goal)
+		gc_root_ptr<Projectile> CreateProjectile(const gc_ptr<ProjectileType>& type, Utilities::Vector3D start, Utilities::Vector3D goal)
 		{
-			Projectile* proj = new Projectile;
+			gc_root_ptr<Projectile> proj = new Projectile;
 			proj->type = type;
 			proj->pos = start;
 			proj->goalPos = goal;
@@ -2064,13 +2037,6 @@ namespace Game
 
 		void InitUnits()
 		{
-
-/*			unitByID = new gc_ptr<Unit>[65535];
-			for (int i = 0; i < 65535; i++)
-			{
-				unitByID[i] = new gc_ptr<Unit>;
-			}*/
-			nextID = 1;
 
 			numUnitsPerAreaMap = new int*[4];
 

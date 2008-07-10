@@ -47,7 +47,7 @@ namespace Game
 		struct TransData;
 		struct Animation;
 		
-		gc_ptr<Unit> GetUnitByID(unsigned id);
+		gc_ptr<Unit> GetUnitByID(int id);
 		bool IsDisplayedUnitPointer(const gc_ptr<Unit>& unit); // May be calle from synced threads
 
 		bool MoveUnit(const gc_ptr<Unit>& unit);

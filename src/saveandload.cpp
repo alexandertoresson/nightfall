@@ -131,7 +131,7 @@ namespace Game
 					
 					if (actionData->goal.unit)
 					{
-						OutputInt(xmlfile, "unit", actionData->goal.unit->id);
+						OutputInt(xmlfile, "unit", actionData->goal.unit->GetHandle());
 					}
 					
 				xmlfile.EndTag();
@@ -196,7 +196,7 @@ namespace Game
 		{
 			xmlfile.BeginTag("unit");
 
-				OutputInt(xmlfile, "id", unit->id);
+				OutputInt(xmlfile, "id", unit->GetHandle());
 				OutputInt(xmlfile, "owner", unit->owner->GetHandle());
 
 				OutputString(xmlfile, "type", unit->type->id);
@@ -268,18 +268,18 @@ namespace Game
 			xmlfile.EndTag();
 		}
 
-		void OutputProjectile(Utilities::XMLWriter &xmlfile, const gc_ptr<Unit>& unit, Projectile *proj)
+		void OutputProjectile(Utilities::XMLWriter &xmlfile, const gc_ptr<Unit>& unit, const gc_ptr<Projectile>& proj)
 		{
 			xmlfile.BeginTag("projectile");
 				
 				if (unit)
 				{
-					OutputInt(xmlfile, "owner", unit->id);
+					OutputInt(xmlfile, "owner", unit->GetHandle());
 				}
 
 				if (proj->goalUnit)
 				{
-					OutputInt(xmlfile, "goalUnit", proj->goalUnit->id);
+					OutputInt(xmlfile, "goalUnit", proj->goalUnit->GetHandle());
 				}
 
 				OutputVector3D(xmlfile, "pos", proj->pos);
@@ -342,7 +342,7 @@ namespace Game
 				{
 					const gc_ptr<Unit>& unit = *it;
 
-					for (vector<Projectile*>::iterator it2 = unit->projectiles.begin(); it2 != unit->projectiles.end(); it2++)
+					for (vector<gc_ptr<Projectile> >::iterator it2 = unit->projectiles.begin(); it2 != unit->projectiles.end(); it2++)
 					{
 						OutputProjectile(xmlfile, unit, *it2);
 					}
@@ -824,7 +824,7 @@ namespace Game
 
 		void ParseProjectile(Utilities::XMLElement *elem)
 		{
-			Projectile *proj;
+			gc_ptr<Projectile> proj;
 			Utilities::Vector3D pos, direction, goalPos;
 			elem->Iterate("owner", ParseIntBlock);
 			const gc_ptr<Unit>& owner = GetUnitByID(i);

@@ -84,6 +84,11 @@ namespace Game
 				
 			}
 			ProjectileType(char* model, float aoe, Utilities::Vector3D start_pos, float speed, float size);
+
+			void shade()
+			{
+				mesh.shade();
+			}
 		};
 
 		struct UnitType : public HasHandle<UnitType>
@@ -137,7 +142,7 @@ namespace Game
 			                             // and thus where the health meter should be placed
 			ObjectRequirements requirements;
 
-			ProjectileType*     projectileType; // set to NULL to make the unit have normal, non-ranged attacks.
+			gc_ptr<ProjectileType> projectileType; // set to NULL to make the unit have normal, non-ranged attacks.
 			MovementType movementType;   // Type of movement the unit has
 			
 			GLuint	    Symbol;	     // Build symbol or Unit Symbol

@@ -31,6 +31,7 @@ namespace Game
 			mesh.shade();
 			gc_shade_container(canBuild);
 			gc_shade_container(canResearch);
+			projectileType.shade();
 			player.shade();
 		}
 

@@ -159,12 +159,15 @@ class ref_ptr
 
 		ref_ptr& operator = (const ref_ptr& a)
 		{
-			a.c->increfs();
-			
-			c->decrefs();
+			if (ref != a.ref)
+			{
+				a.c->increfs();
+				
+				c->decrefs();
 
-			ref = a.ref;
-			c = a.c;
+				ref = a.ref;
+				c = a.c;
+			}
 			return *this;
 		}
 
@@ -360,7 +363,7 @@ class enc_ptr
 		friend class enc_ptr;
 };
 
-template <typename T>
+/*template <typename T>
 void array_deleter(T* a)
 {
 	delete[] a;
@@ -369,7 +372,7 @@ void array_deleter(T* a)
 template <typename T>
 void null_deleter(T* a)
 {
-}
+}*/
 
 template <typename T>
 class ref_ptr_from_this

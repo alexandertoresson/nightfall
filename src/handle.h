@@ -129,7 +129,7 @@ namespace Game
 				int independentHandle;
 
 			public:
-				HasHandle() : handle(-1)
+				HasHandle(int id = -1) : handle(id)
 				{
 					HandleManager<T>::AssignHandle(gc_ptr_from_this<T>::GetWeak(), handle, independentHandle);
 				}
@@ -147,6 +147,16 @@ namespace Game
 				int GetIndependentHandle()
 				{
 					return independentHandle;
+				}
+		
+				static gc_ptr<T> New()
+				{
+					return (new T)->GetRef();
+				}
+
+				static gc_ptr<T> New(int id)
+				{
+					return (new T(id))->GetRef();
 				}
 		};
 	}

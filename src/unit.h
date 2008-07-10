@@ -24,8 +24,6 @@ namespace Game
 	namespace Dimension
 	{
 		
-		extern gc_ptr<Unit> unitByID[65536];
-		
 		struct ActionQueueItem : public BaseActionData
 		{
 			gc_ptr<Unit> ghost;
@@ -51,11 +49,17 @@ namespace Game
 
 		struct Projectile
 		{
-			ProjectileType*     type;
+			gc_ptr<ProjectileType> type;
 			Utilities::Vector3D pos;
 			Utilities::Vector3D direction;
 			Utilities::Vector3D goalPos;
 			gc_ptr<Unit>       goalUnit;
+
+			void shade()
+			{
+				type.shade();
+				goalUnit.shade();
+			}
 		};
 
 		enum FaceTarget
@@ -78,7 +82,7 @@ namespace Game
 			float               rotation;  // how rotated the model is
 			std::deque<ActionQueueItem>  actionQueue;
 			gc_ptr<AI::MovementData> pMovementData;
-			std::vector<Projectile*> projectiles;
+			std::vector<gc_ptr<Projectile> > projectiles;
 			Uint32              lastAttack;    // frame of the last attack done by the unit
 			Uint32              lastAttacked;    // frame of the last attack done at the unit
 			Uint32              lastCommand;
@@ -94,7 +98,6 @@ namespace Game
 			bool                hasPower;
 			LightState          lightState;
 			IntPosition*        rallypoint;
-			Uint16              id;
 			AI::UnitAIFuncs     unitAIFuncs;
 			int                 aiFrame;
 			Audio::SoundListNode* soundNodes[Audio::SFX_ACT_COUNT];
@@ -102,6 +105,8 @@ namespace Game
 /*			Uint32              pushID;
 			Unit*               pusher;*/
 			FaceTarget          faceTarget;
+
+			Unit(int id = -1);
 
 			~Unit();
 
@@ -170,9 +175,9 @@ namespace Game
 		double GetPowerAtDawn(const gc_ptr<Player>& player);
 		double GetPowerAtDusk(const gc_ptr<Player>& player);
 		
-		Projectile* CreateProjectile(ProjectileType* type, Utilities::Vector3D start, const gc_ptr<Unit>& goal);
+		gc_root_ptr<Projectile> CreateProjectile(const gc_ptr<ProjectileType>& type, Utilities::Vector3D start, const gc_ptr<Unit>& goal);
 		
-		Projectile* CreateProjectile(ProjectileType* type, Utilities::Vector3D start, Utilities::Vector3D goal);
+		gc_root_ptr<Projectile> CreateProjectile(const gc_ptr<ProjectileType>& type, Utilities::Vector3D start, Utilities::Vector3D goal);
 
 		void InitUnits(void);
 	}

@@ -40,7 +40,7 @@ namespace Game
 				SDL_mutex* listsMutex;
 				std::map<gc_root_ptr<Unit>, gc_ptr<UnitNode> > unitToUnitNode;
 				std::map<gc_ptr<Unit>, gc_ptr<UnitSelectionNode> > unitToSelectNode;
-				std::map<Projectile*, gc_ptr<ProjectileNode> > projToProjNode;
+				std::map<gc_root_ptr<Projectile>, gc_ptr<ProjectileNode> > projToProjNode;
 
 				std::set<gc_root_ptr<Unit> > unitScheduledForAddition;
 				std::vector<gc_root_ptr<Unit> > unitScheduledForDeletion;
@@ -48,8 +48,8 @@ namespace Game
 				std::set<gc_ptr<Unit> > unitScheduledForSelection;
 				std::vector<gc_ptr<Unit> > unitScheduledForDeselection;
 				
-				std::set<Projectile*> projScheduledForAddition;
-				std::vector<Projectile*> projScheduledForDeletion;
+				std::set<gc_root_ptr<Projectile> > projScheduledForAddition;
+				std::vector<gc_ptr<Projectile> > projScheduledForDeletion;
 
 				gc_ptr<UnitType> buildOutlineType;
 				IntPosition buildOutlinePosition;
@@ -62,8 +62,8 @@ namespace Game
 				void ScheduleSelection(const gc_ptr<Unit>& unit);
 				void ScheduleDeselection(const gc_ptr<Unit>& unit);
 
-				void ScheduleProjectileAddition(Projectile* proj);
-				void ScheduleProjectileDeletion(Projectile* proj);
+				void ScheduleProjectileAddition(const gc_root_ptr<Projectile>& proj);
+				void ScheduleProjectileDeletion(const gc_ptr<Projectile>& proj);
 
 				void ScheduleBuildOutlineAddition(const gc_ptr<UnitType>& type, int x, int y);
 				void ScheduleBuildOutlineDeletion();
@@ -149,9 +149,9 @@ namespace Game
 				virtual void ApplyMatrix();
 				virtual void PostRender();
 				virtual void Traverse();
-				Projectile* proj;
+				gc_ptr<Projectile> proj;
 			public:
-				ProjectileNode(Projectile* proj);
+				ProjectileNode(const gc_ptr<Projectile>& proj);
 		};
 
 		class BuildOutlineNode : public Scene::Graph::Node

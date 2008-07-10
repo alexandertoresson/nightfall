@@ -200,17 +200,17 @@ namespace Game
 			SDL_UnlockMutex(listsMutex);
 		}
 
-		void UnitMainNode::ScheduleProjectileAddition(Projectile* proj)
+		void UnitMainNode::ScheduleProjectileAddition(const gc_root_ptr<Projectile>& proj)
 		{
 			SDL_LockMutex(listsMutex);
 			projScheduledForAddition.insert(proj);
 			SDL_UnlockMutex(listsMutex);
 		}
 
-		void UnitMainNode::ScheduleProjectileDeletion(Projectile* proj)
+		void UnitMainNode::ScheduleProjectileDeletion(const gc_ptr<Projectile>& proj)
 		{
 			SDL_LockMutex(listsMutex);
-			std::set<Projectile*>::iterator it = projScheduledForAddition.find(proj);
+			std::set<gc_root_ptr<Projectile> >::iterator it = projScheduledForAddition.find(proj);
 			if (it != projScheduledForAddition.end())
 			{
 				projScheduledForAddition.erase(it);
@@ -261,7 +261,7 @@ namespace Game
 			{
 				const gc_ptr<Unit>& unit = *it;
 				const gc_ptr<UnitNode>& unitNode = unitToUnitNode[unit];
-//				std::cout << "delete " << unit->id << " (" << unit << ")" << std::endl;
+//				std::cout << "delete " << unit->GetHandle() << " (" << unit << ")" << std::endl;
 				if (unitNode)
 				{
 					unitNode->DeleteTree();
@@ -270,15 +270,14 @@ namespace Game
 			}
 			unitScheduledForDeletion.clear();
 			
-			for (std::vector<Projectile*>::iterator it = projScheduledForDeletion.begin(); it != projScheduledForDeletion.end(); it++)
+			for (std::vector<gc_ptr<Projectile> >::iterator it = projScheduledForDeletion.begin(); it != projScheduledForDeletion.end(); it++)
 			{
-				Projectile* proj = *it;
+				const gc_ptr<Projectile>& proj = *it;
 				gc_ptr<ProjectileNode>& projNode = projToProjNode[proj];
 				if (projNode)
 				{
 					projNode->DeleteTree();
 					projToProjNode.erase(proj);
-					delete proj;
 				}
 			}
 			projScheduledForDeletion.clear();
@@ -289,8 +288,8 @@ namespace Game
 			for (std::set<gc_root_ptr<Unit> >::iterator it = unitScheduledForAddition.begin(); it != unitScheduledForAddition.end(); it++)
 			{
 				const gc_ptr<Unit>& unit = *it;
-				const gc_ptr<UnitNode> unitNode = new UnitNode(unit);
-//				std::cout << "add " << unit->id << " (" << unit << ")" << std::endl;
+				const gc_root_ptr<UnitNode> unitNode = new UnitNode(unit);
+//				std::cout << "add " << unit->GetHandle() << " (" << unit << ")" << std::endl;
 				AddChild(unitNode);
 				unitToUnitNode[unit] = unitNode;
 			}
@@ -302,17 +301,17 @@ namespace Game
 				gc_ptr<UnitNode>& unitNode = unitToUnitNode[unit];
 				if (!unitToSelectNode[unit])
 				{
-					gc_ptr<UnitSelectionNode> selectNode = new UnitSelectionNode(unit);
+					gc_root_ptr<UnitSelectionNode> selectNode = new UnitSelectionNode(unit);
 					unitNode->AddChild(selectNode);
 					unitToSelectNode[unit] = selectNode;
 				}
 			}
 			unitScheduledForSelection.clear();
 
-			for (std::set<Projectile*>::iterator it = projScheduledForAddition.begin(); it != projScheduledForAddition.end(); it++)
+			for (std::set<gc_root_ptr<Projectile> >::iterator it = projScheduledForAddition.begin(); it != projScheduledForAddition.end(); it++)
 			{
-				Projectile* proj = *it;
-				gc_ptr<ProjectileNode> projNode = new ProjectileNode(proj);
+				const gc_ptr<Projectile>& proj = *it;
+				gc_root_ptr<ProjectileNode> projNode = new ProjectileNode(proj);
 				AddChild(projNode);
 				projToProjNode[proj] = projNode;
 			}
@@ -652,14 +651,14 @@ namespace Game
 
 		}
 
-		ProjectileNode::ProjectileNode(Projectile* proj) : OgreMeshNode(proj->type->mesh)
+		ProjectileNode::ProjectileNode(const gc_ptr<Projectile>& proj) : OgreMeshNode(proj->type->mesh)
 		{
 			this->proj = proj;
 		}
 
 		void ProjectileNode::ApplyMatrix()
 		{
-			ProjectileType* type = proj->type;
+			const gc_ptr<ProjectileType>& type = proj->type;
 			float radians_to_rotate;
 			Utilities::Vector3D up_vector, rotate_axis;
 			
