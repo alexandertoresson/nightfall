@@ -21,7 +21,7 @@ namespace Game
 {
 	namespace Dimension
 	{	
-		gc_root_ptr<World> pWorld        = NULL;
+		gc_root_ptr<World>::type pWorld     = NULL;
 		gc_ptr<Unit>**    pppElements       = NULL;
 		gc_ptr<Player> currentPlayerView;
 		gc_ptr<Player> currentPlayer;

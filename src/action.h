@@ -47,12 +47,12 @@ namespace Game
 				
 			}
 			
-			ActionArguments(const gc_root_ptr<UnitType>& unitType) : unitType(unitType), argHandle(unitType->GetHandle())
+			ActionArguments(const gc_root_ptr<UnitType>::type& unitType) : unitType(unitType), argHandle(unitType->GetHandle())
 			{
 				
 			}
 			
-			ActionArguments(const gc_root_ptr<Research>& research) : research(research), argHandle(research->GetHandle())
+			ActionArguments(const gc_root_ptr<Research>::type& research) : research(research), argHandle(research->GetHandle())
 			{
 				
 			}

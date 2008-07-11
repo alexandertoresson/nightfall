@@ -132,7 +132,7 @@ namespace Game
 				void SetKeyState(SDLKey key, bool value) { mKeys[key] = value; }
 		};
 		
-		extern   gc_root_ptr<World>           pWorld;
+		extern   gc_root_ptr<World>::type        pWorld;
 		extern   gc_ptr<Unit>**                  pppElements;
 		
 		void GetApproximateMapPosOfClick(int clickx, int clicky, int &map_x, int &map_y);

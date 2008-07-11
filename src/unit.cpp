@@ -501,7 +501,7 @@ namespace Game
 
 			if (pUnit->pMovementData->action.goal.unit && pUnit->pMovementData->action.goal.unit->pMovementData->action.action != AI::ACTION_DIE)
 			{
-				const gc_ptr<Unit>& target = pUnit->pMovementData->action.goal.unit;
+				gc_ptr<Unit> target = pUnit->pMovementData->action.goal.unit;
 				if (!pUnit->pMovementData->action.goal.unit->isDisplayed)
 				{
 					int new_x = pUnit->curAssociatedSquare.x, new_y = pUnit->curAssociatedSquare.y;
@@ -628,7 +628,7 @@ namespace Game
 				goto_pos = target->pos;
 				goal_pos = Utilities::Vector3D(goto_pos.x, goto_pos.y, Dimension::GetTerrainHeightHighestLevel(goto_pos.x, goto_pos.y));
 				goal_pos.z += target->type->height * 0.25f * 0.0625f;
-				gc_root_ptr<Projectile> proj = CreateProjectile(attacker->type->projectileType, Utilities::Vector3D(attacker->pos.x, attacker->pos.y, GetTerrainHeightHighestLevel(attacker->pos.x, attacker->pos.y)), goal_pos);
+				gc_root_ptr<Projectile>::type proj = CreateProjectile(attacker->type->projectileType, Utilities::Vector3D(attacker->pos.x, attacker->pos.y, GetTerrainHeightHighestLevel(attacker->pos.x, attacker->pos.y)), goal_pos);
 				proj->goalUnit = target;
 				attacker->projectiles.push_back(proj);
 				UnitMainNode::instance.ScheduleProjectileAddition(proj);
@@ -1536,8 +1536,8 @@ namespace Game
 
 		void PrepareUnitEssentials(gc_ptr<Unit>& unit, const gc_ptr<UnitType>& type)
 		{
-			if (!unit || !type)
-				return ;
+			assert(unit);
+			assert(type);
 
 			unit->type = type;
 			unit->power = (float) type->maxPower;
@@ -2015,18 +2015,18 @@ namespace Game
 		}
 
 		// create a projectile
-		gc_root_ptr<Projectile> CreateProjectile(const gc_ptr<ProjectileType>& type, Utilities::Vector3D start, const gc_ptr<Unit>& goal)
+		gc_root_ptr<Projectile>::type CreateProjectile(const gc_ptr<ProjectileType>& type, Utilities::Vector3D start, const gc_ptr<Unit>& goal)
 		{
-			gc_root_ptr<Projectile> proj = new Projectile;
+			gc_root_ptr<Projectile>::type proj = new Projectile;
 			proj->type = type;
 			proj->pos = type->startPos;
 			proj->goalUnit = goal;
 			return proj;
 		}
 
-		gc_root_ptr<Projectile> CreateProjectile(const gc_ptr<ProjectileType>& type, Utilities::Vector3D start, Utilities::Vector3D goal)
+		gc_root_ptr<Projectile>::type CreateProjectile(const gc_ptr<ProjectileType>& type, Utilities::Vector3D start, Utilities::Vector3D goal)
 		{
-			gc_root_ptr<Projectile> proj = new Projectile;
+			gc_root_ptr<Projectile>::type proj = new Projectile;
 			proj->type = type;
 			proj->pos = start;
 			proj->goalPos = goal;

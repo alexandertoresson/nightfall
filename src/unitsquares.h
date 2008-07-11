@@ -31,8 +31,8 @@ namespace Game
 		const int SIW_DEFAULT = 0,
 		          SIW_ALLKNOWING = 1,
 		          SIW_IGNORE_MOVING = 2,
-		          SIW_CONSIDER_WAITING = 4,
-		          SIW_CONSIDER_PUSHED = 8,
+/*		          SIW_CONSIDER_WAITING = 4,
+		          SIW_CONSIDER_PUSHED = 8,*/
 		          SIW_IGNORE_OWN_MOBILE_UNITS = 16;
 
 		bool IsWithinRangeForBuilding(const gc_ptr<Unit>& unit);

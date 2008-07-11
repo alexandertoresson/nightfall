@@ -153,17 +153,17 @@ namespace Game
 
 		*/
 
-		void UnitMainNode::ScheduleUnitNodeAddition(const gc_root_ptr<Unit>& unit)
+		void UnitMainNode::ScheduleUnitNodeAddition(const gc_root_ptr<Unit>::type& unit)
 		{
 			SDL_LockMutex(listsMutex);
 			unitScheduledForAddition.insert(unit);
 			SDL_UnlockMutex(listsMutex);
 		}
 
-		void UnitMainNode::ScheduleUnitNodeDeletion(const gc_root_ptr<Unit>& unit)
+		void UnitMainNode::ScheduleUnitNodeDeletion(const gc_root_ptr<Unit>::type& unit)
 		{
 			SDL_LockMutex(listsMutex);
-			std::set<gc_root_ptr<Unit> >::iterator it = unitScheduledForAddition.find(unit);
+			std::set<gc_root_ptr<Unit>::type >::iterator it = unitScheduledForAddition.find(unit);
 			if (it != unitScheduledForAddition.end())
 			{
 				unitScheduledForAddition.erase(it);
@@ -200,7 +200,7 @@ namespace Game
 			SDL_UnlockMutex(listsMutex);
 		}
 
-		void UnitMainNode::ScheduleProjectileAddition(const gc_root_ptr<Projectile>& proj)
+		void UnitMainNode::ScheduleProjectileAddition(const gc_root_ptr<Projectile>::type& proj)
 		{
 			SDL_LockMutex(listsMutex);
 			projScheduledForAddition.insert(proj);
@@ -210,7 +210,7 @@ namespace Game
 		void UnitMainNode::ScheduleProjectileDeletion(const gc_ptr<Projectile>& proj)
 		{
 			SDL_LockMutex(listsMutex);
-			std::set<gc_root_ptr<Projectile> >::iterator it = projScheduledForAddition.find(proj);
+			std::set<gc_root_ptr<Projectile>::type >::iterator it = projScheduledForAddition.find(proj);
 			if (it != projScheduledForAddition.end())
 			{
 				projScheduledForAddition.erase(it);
@@ -257,7 +257,7 @@ namespace Game
 			}
 			unitScheduledForDeselection.clear();
 
-			for (std::vector<gc_root_ptr<Unit> >::iterator it = unitScheduledForDeletion.begin(); it != unitScheduledForDeletion.end(); it++)
+			for (std::vector<gc_root_ptr<Unit>::type >::iterator it = unitScheduledForDeletion.begin(); it != unitScheduledForDeletion.end(); it++)
 			{
 				const gc_ptr<Unit>& unit = *it;
 				const gc_ptr<UnitNode>& unitNode = unitToUnitNode[unit];
@@ -285,10 +285,10 @@ namespace Game
 			// Additions
 			/////////////////////////////////////////////////////////////////////////
 
-			for (std::set<gc_root_ptr<Unit> >::iterator it = unitScheduledForAddition.begin(); it != unitScheduledForAddition.end(); it++)
+			for (std::set<gc_root_ptr<Unit>::type >::iterator it = unitScheduledForAddition.begin(); it != unitScheduledForAddition.end(); it++)
 			{
 				const gc_ptr<Unit>& unit = *it;
-				const gc_root_ptr<UnitNode> unitNode = new UnitNode(unit);
+				const gc_root_ptr<UnitNode>::type unitNode = new UnitNode(unit);
 //				std::cout << "add " << unit->GetHandle() << " (" << unit << ")" << std::endl;
 				AddChild(unitNode);
 				unitToUnitNode[unit] = unitNode;
@@ -301,17 +301,17 @@ namespace Game
 				gc_ptr<UnitNode>& unitNode = unitToUnitNode[unit];
 				if (!unitToSelectNode[unit])
 				{
-					gc_root_ptr<UnitSelectionNode> selectNode = new UnitSelectionNode(unit);
+					gc_root_ptr<UnitSelectionNode>::type selectNode = new UnitSelectionNode(unit);
 					unitNode->AddChild(selectNode);
 					unitToSelectNode[unit] = selectNode;
 				}
 			}
 			unitScheduledForSelection.clear();
 
-			for (std::set<gc_root_ptr<Projectile> >::iterator it = projScheduledForAddition.begin(); it != projScheduledForAddition.end(); it++)
+			for (std::set<gc_root_ptr<Projectile>::type >::iterator it = projScheduledForAddition.begin(); it != projScheduledForAddition.end(); it++)
 			{
 				const gc_ptr<Projectile>& proj = *it;
-				gc_root_ptr<ProjectileNode> projNode = new ProjectileNode(proj);
+				gc_root_ptr<ProjectileNode>::type projNode = new ProjectileNode(proj);
 				AddChild(projNode);
 				projToProjNode[proj] = projNode;
 			}
@@ -402,7 +402,7 @@ namespace Game
 			}
 		}
 
-		UnitSubMeshRenderNode::UnitSubMeshRenderNode(const gc_root_ptr<Unit>& unit, const gc_ptr<Utilities::OgreSubMesh>& submesh) : OgreSubMeshNode(submesh), unit(unit)
+		UnitSubMeshRenderNode::UnitSubMeshRenderNode(const gc_root_ptr<Unit>::type& unit, const gc_ptr<Utilities::OgreSubMesh>& submesh) : OgreSubMeshNode(submesh), unit(unit)
 		{
 			int i = 0;
 			assert(unit);
@@ -480,7 +480,7 @@ namespace Game
 			OgreSubMeshNode::Render();
 		}
 
-		UnitNode::UnitNode(const gc_root_ptr<Unit>& unit)
+		UnitNode::UnitNode(const gc_root_ptr<Unit>::type& unit)
 		{
 			const gc_ptr<Utilities::OgreMesh>& mesh = unit->type->mesh;
 			this->unit = unit;
@@ -490,7 +490,7 @@ namespace Game
 			}
 		}
 
-		UnitSelectionNode::UnitSelectionNode(const gc_root_ptr<Unit>& unit) : unit(unit)
+		UnitSelectionNode::UnitSelectionNode(const gc_root_ptr<Unit>::type& unit) : unit(unit)
 		{
 			
 		}

@@ -100,7 +100,7 @@ namespace Scene
 				void SetMatrix(Utilities::Matrix4x4 mat, MatrixType matType);
 		};
 
-		extern gc_root_ptr<Node> rootNode;
+		extern gc_root_ptr<Node>::type rootNode;
 	}
 }
 

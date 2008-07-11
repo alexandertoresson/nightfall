@@ -20,7 +20,7 @@ void gc_marker_base::shade()
 	}
 }
 
-gc_marker_base::gc_marker_base(Mark mark, int refs) : mark(mark), tempMark(MARK_WHITE), modIter(1), refs(refs)
+gc_marker_base::gc_marker_base(Mark mark, int refs) : mark(mark), tempMark(MARK_WHITE), refs(refs)
 {
 	insert();
 }

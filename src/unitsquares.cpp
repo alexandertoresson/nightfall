@@ -19,7 +19,7 @@ namespace Game
 		char***       traversalTimeBySize;
 		int bigSquareHeight, bigSquareWidth;
 		int bigSquareRightShift = 4;
-		gc_root_ptr<RangeArray> nextToRangeArray;
+		gc_root_ptr<RangeArray>::type nextToRangeArray;
 		GLfloat unitBuildingMaximumAltitude = -0.3f;
 
 		void GetWHUpperLeftCorner(int width, int height, float mx, float my, int& lx, int& uy)
@@ -985,14 +985,14 @@ namespace Game
 					{
 						return true;
 					}
-					if (flags & SIW_CONSIDER_WAITING && curUnit->isWaiting)
+/*					if (flags & SIW_CONSIDER_WAITING && curUnit->isWaiting)
 					{
 						return false;
 					}
 					if (flags & SIW_CONSIDER_PUSHED && curUnit->isPushed)
 					{
 						return false;
-					}
+					}*/
 					if (flags & SIW_IGNORE_MOVING && curUnit->isMoving)
 					{
 						return true;
@@ -1020,14 +1020,14 @@ namespace Game
 				{
 					return true;
 				}
-				if (flags & SIW_CONSIDER_WAITING && curUnit->isWaiting)
+/*				if (flags & SIW_CONSIDER_WAITING && curUnit->isWaiting)
 				{
 					return false;
 				}
 				if (flags & SIW_CONSIDER_PUSHED && curUnit->isPushed)
 				{
 					return false;
-				}
+				}*/
 				if (flags & SIW_IGNORE_MOVING && curUnit->isMoving)
 				{
 					return true;

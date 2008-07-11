@@ -209,6 +209,6 @@ namespace Scene
 			mtxStack[matType].pop();
 		}
 
-		gc_root_ptr<Node> rootNode = new Node;
+		gc_root_ptr<Node>::type rootNode = new Node;
 	}
 }

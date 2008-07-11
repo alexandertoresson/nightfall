@@ -175,9 +175,9 @@ namespace Game
 		double GetPowerAtDawn(const gc_ptr<Player>& player);
 		double GetPowerAtDusk(const gc_ptr<Player>& player);
 		
-		gc_root_ptr<Projectile> CreateProjectile(const gc_ptr<ProjectileType>& type, Utilities::Vector3D start, const gc_ptr<Unit>& goal);
+		gc_root_ptr<Projectile>::type CreateProjectile(const gc_ptr<ProjectileType>& type, Utilities::Vector3D start, const gc_ptr<Unit>& goal);
 		
-		gc_root_ptr<Projectile> CreateProjectile(const gc_ptr<ProjectileType>& type, Utilities::Vector3D start, Utilities::Vector3D goal);
+		gc_root_ptr<Projectile>::type CreateProjectile(const gc_ptr<ProjectileType>& type, Utilities::Vector3D start, Utilities::Vector3D goal);
 
 		void InitUnits(void);
 	}
