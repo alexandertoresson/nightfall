@@ -3,6 +3,7 @@
 #define __GC_PTR_H__
 
 #include "sdlheader.h"
+#include "type_traits.h"
 #include <map>
 #include <set>
 #include <typeinfo>
@@ -10,9 +11,7 @@
 #include <cassert>
 #include <string>
 
-#include "boost/type_traits/is_fundamental.hpp"
-
-template <typename T, typename U = boost::is_fundamental<T> >
+template <typename T, bool B = is_fundamental<T>::value >
 struct gc_default_shader
 {
 	static void shade(T* ref)
@@ -22,7 +21,7 @@ struct gc_default_shader
 };
 
 template <typename T>
-struct gc_default_shader<T, boost::true_type>
+struct gc_default_shader<T, true>
 {
 	static void shade(T* ref)
 	{
@@ -32,6 +31,10 @@ struct gc_default_shader<T, boost::true_type>
 template <typename T>
 struct gc_null_shader
 {
+	void shade()
+	{
+	}
+
 	static void shade(T* ref)
 	{
 	}
