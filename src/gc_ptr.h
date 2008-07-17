@@ -169,7 +169,7 @@ struct gc_root_counter
 	static void decrefs(gc_marker_base* m)
 	{
 		if (m)
-			m->increfs();
+			m->decrefs();
 	}
 };
 

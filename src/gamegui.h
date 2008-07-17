@@ -54,7 +54,7 @@ namespace Game
 		class UnitActions : public Window::GUI::Panel
 		{
 		protected:
-			gc_ptr<Dimension::Unit> pUnit;
+			gc_root_ptr<Dimension::Unit>::type pUnit;
 			Window::GUI::PicButton* MoveAttack;
 			Window::GUI::PicButton* Stop;
 			Window::GUI::PicButton* Build;
@@ -91,8 +91,8 @@ namespace Game
 		protected:
 			std::vector<BuildButton*> objects;
 
-			gc_ptr<Dimension::UnitType> pUnitType;
-			gc_ptr<Dimension::Unit> pUnit;
+			gc_root_ptr<Dimension::UnitType>::type pUnitType;
+			gc_root_ptr<Dimension::Unit>::type pUnit;
 
 			void SetLayout();
 
@@ -167,9 +167,9 @@ namespace Game
 			Window::GUI::Picture* pPicture;
 			GameMap* pMap;
 
-			gc_ptr<Dimension::Unit> pUnit;
+			gc_root_ptr<Dimension::Unit>::type pUnit;
 
-			std::map<gc_ptr<Dimension::UnitType>, UnitBuild*> GUI_Build;
+			std::map<gc_root_ptr<Dimension::UnitType>::type, UnitBuild*> GUI_Build;
 			GameWindow* pGame;
 			GLuint tmap;
 

@@ -1808,6 +1808,8 @@ namespace Game
 			
 //			std::cout << "remove " << unit->GetHandle() << " (" << unit << ")" << std::endl;
 
+			DeleteAssociatedSquares(unit, unit->curAssociatedSquare.x, unit->curAssociatedSquare.y);
+
 			if (unit->isCompleted)
 			{
 				unit->type->numExisting--;
@@ -1889,8 +1891,6 @@ namespace Game
 			}
 
 			DeselectUnit(unit);
-
-			DeleteAssociatedSquares(unit, unit->curAssociatedSquare.x, unit->curAssociatedSquare.y);
 
 			RemoveUnitFromBigSquare(unit);
 			
