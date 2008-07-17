@@ -45,6 +45,7 @@ namespace Game
 
 			gc_array<TerrainBSVBOs, 2> bsvbos;
 			Scene::Render::VBO index;
+			Scene::Render::VBO light;
 
 			void shade()
 			{
@@ -66,14 +67,20 @@ namespace Game
 		Utilities::Vector3D GetTerrainCoord(float x, float y);
 		Dimension::Position GetPosition(Utilities::Vector3D* v);
 
-		class TerrainNode : public Scene::Graph::Node
+		class TerrainNode : public Scene::Render::GLStateNode
 		{
-			private:
+			public:
 				TerrainNode();
 			protected:
 				virtual void Render();
+		};
+
+		class WaterNode : public Scene::Render::GLStateNode
+		{
 			public:
-				static TerrainNode instance;
+				WaterNode();
+			protected:
+				virtual void Render();
 		};
 
 	}

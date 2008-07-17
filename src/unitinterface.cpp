@@ -2651,7 +2651,7 @@ else \
 		if (!lua_istable(pVM, 1))
 			LUA_FAILURE("Invalid argument, must be a table")
 
-		pUnitType = UnitType::New();
+		pUnitType = new UnitType;
 
 		pUnitType->player = player;
 		pUnitType->numBuilt = 0;
@@ -2746,7 +2746,7 @@ else \
 
 		if (!isResearched)
 		{
-			gc_ptr<Research> research = Research::New();
+			gc_ptr<Research> research = new Research;
 			ResearchRequirement res_req;
 
 			research->id = "Research" + std::string(pUnitType->id);
@@ -2886,7 +2886,7 @@ else \
 		if (!lua_istable(pVM, 1))
 			LUA_FAILURE("Invalid argument, must be a table")
 
-		pResearch = Research::New();
+		pResearch = new Research;
 
 		pResearch->player = player;
 

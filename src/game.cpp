@@ -473,15 +473,16 @@ namespace Game
 			
 			////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 			
-			Scene::Graph::rootNode->AddChild(gc_ptr<Scene::Graph::Node>(&Dimension::Camera::instance, null_deleter));
-			Dimension::Camera::instance.AddChild(gc_ptr<Scene::Graph::Node>(&Dimension::Environment::EnvironmentNode::instance, null_deleter));
-			Dimension::Camera::instance.AddChild(gc_ptr<Scene::Graph::Node>(&Dimension::Environment::SkyboxNode::instance, null_deleter));
-			Dimension::Camera::instance.AddChild(gc_ptr<Scene::Graph::Node>(&Dimension::TerrainNode::instance, null_deleter));
-			Dimension::Camera::instance.AddChild(gc_ptr<Scene::Graph::Node>(&Dimension::UnitMainNode::instance, null_deleter));
+			Scene::Graph::rootNode->AddChild(gc_ptr<Dimension::Camera>(&Dimension::Camera::instance, null_deleter));
+			Dimension::Camera::instance.AddChild(gc_ptr<Dimension::Environment::EnvironmentNode>(&Dimension::Environment::EnvironmentNode::instance, null_deleter));
+			Dimension::Camera::instance.AddChild(gc_ptr<Dimension::Environment::SkyboxNode>(&Dimension::Environment::SkyboxNode::instance, null_deleter));
+			Dimension::Camera::instance.AddChild(new Dimension::TerrainNode);
+			Dimension::Camera::instance.AddChild(new Dimension::WaterNode);
+			Dimension::Camera::instance.AddChild(gc_ptr<Dimension::UnitMainNode>(&Dimension::UnitMainNode::instance, null_deleter));
 			// cleanup node, for resetting stuff for fixed function stuff...
 			Dimension::Camera::instance.AddChild(new Scene::Render::GLStateNode(new Scene::Render::GLState()));
-			Dimension::Camera::instance.AddChild(gc_ptr<Scene::Graph::Node>(&Dimension::BuildOutlineNode::instance, null_deleter));
-			Dimension::Camera::instance.AddChild(gc_ptr<Scene::Graph::Node>(&FX::ParticleNode::instance, null_deleter));
+			Dimension::Camera::instance.AddChild(gc_ptr<Dimension::BuildOutlineNode>(&Dimension::BuildOutlineNode::instance, null_deleter));
+			Dimension::Camera::instance.AddChild(gc_ptr<FX::ParticleNode>(&FX::ParticleNode::instance, null_deleter));
 			Scene::Graph::rootNode->AddChild(gc_ptr<Scene::Graph::Node>(&GUINode::instance, null_deleter));
 
 			/*

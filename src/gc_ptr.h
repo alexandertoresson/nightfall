@@ -11,6 +11,8 @@
 #include <cassert>
 #include <string>
 
+#define GC_PTR_DEBUG
+
 template <typename T, bool B = is_fundamental<T>::value >
 struct gc_default_shader
 {
@@ -101,6 +103,11 @@ class gc_marker : public gc_marker_base
 	private:
 		T* ref;
 		void(*func)(T*);
+#ifdef GC_PTR_DEBUG
+		static std::map<T*, gc_marker*> refToMarker;
+		static std::map<T*, int*> refToCrap;
+		static SDL_mutex* dMutex;
+#endif
 
 		void dispose()
 		{
@@ -135,9 +142,42 @@ class gc_marker : public gc_marker_base
 	public:
 		gc_marker(T* ref = NULL, void(*func)(T*) = NULL, Mark mark = MARK_WHITE, int refs = 0) : gc_marker_base(mark, refs), ref(ref), func(func)
 		{
+#ifdef GC_PTR_DEBUG
+			SDL_LockMutex(dMutex);
+			if (refToMarker.find(ref) != refToMarker.end())
+			{
+				delete refToCrap[ref];
+				*(int*) 0 = 0;
+			}
+			else
+			{
+				refToMarker[ref] = this;
+				refToCrap[ref] = new int;
+				delete refToCrap[ref];
+			}
+			SDL_UnlockMutex(dMutex);
+#endif
+		}
+
+		~gc_marker()
+		{
+#ifdef GC_PTR_DEBUG
+			SDL_LockMutex(dMutex);
+			refToMarker.erase(ref);
+			SDL_UnlockMutex(dMutex);
+#endif
 		}
 		
 };
+
+#ifdef GC_PTR_DEBUG
+template <typename T, typename _Shader>
+std::map<T*, gc_marker<T, _Shader>* > gc_marker<T, _Shader>::refToMarker;
+template <typename T, typename _Shader>
+std::map<T*, int*> gc_marker<T, _Shader>::refToCrap;
+template <typename T, typename _Shader>
+SDL_mutex* gc_marker<T, _Shader>::dMutex = SDL_CreateMutex();
+#endif
 
 struct gc_default_counter
 {
@@ -173,9 +213,21 @@ struct gc_root_counter
 	}
 };
 
+template <typename T>
+class gc_ptr_from_this;
+
+template<class T, class T2>
+void transfer_to_gc_ptr_from_this(gc_marker_base* m, gc_ptr_from_this<T>* gcft, T2* ref);
+
 template <typename T, typename _Counter = gc_default_counter, typename _Shader = gc_default_shader<T> >
 class gc_ptr
 {
+	private:
+		gc_ptr(T* ref, gc_marker_base* m) : ref(ref), m(m)
+		{
+			_Counter::increfs(m);
+		}
+
 	protected:
 		T* ref;
 		gc_marker_base* m;
@@ -199,10 +251,12 @@ class gc_ptr
 		template <typename T2, typename _Shader2>
 		gc_ptr(T2* a, void(*func)(T2*) = NULL) : ref(a), m(a ? new gc_marker<T2, _Shader2>(a, func, _Counter::defaultMark, _Counter::defaultRefs) : NULL)
 		{
+			transfer_to_gc_ptr_from_this(m, ref, ref);
 		}
 
 		gc_ptr(T* a, void(*func)(T*) = NULL) : ref(a), m(a ? new gc_marker<T, _Shader>(a, func, _Counter::defaultMark, _Counter::defaultRefs) : NULL)
 		{
+			transfer_to_gc_ptr_from_this(m, ref, ref);
 		}
 
 		~gc_ptr()
@@ -269,7 +323,39 @@ class gc_ptr
 	
 	template <typename T2, typename _Counter2, typename _Shader2>
 	friend class gc_ptr;
+	
+	friend class gc_ptr_from_this<T>;
 };
+
+template <typename T>
+class gc_ptr_from_this
+{
+	public:
+		T* ref;
+		gc_marker_base* m;
+
+	protected:
+		gc_ptr<T> GetRef()
+		{
+			return gc_ptr<T>(ref, m);
+		}
+	
+	friend class gc_ptr<T>;
+};
+
+template<class T, class T2>
+void transfer_to_gc_ptr_from_this(gc_marker_base* m, gc_ptr_from_this<T>* gcft, T2* ref)
+{
+	if (gcft)
+	{
+		gcft->ref = ref;
+		gcft->m = m;
+	}
+}
+
+inline void transfer_to_gc_ptr_from_this(gc_marker_base* m, ... )
+{
+}
 
 template <typename T, typename _Shader = gc_default_shader<T> >
 struct gc_root_ptr
@@ -287,34 +373,6 @@ template <typename T>
 void null_deleter(T* a)
 {
 }
-
-template <typename T>
-class gc_ptr_from_this
-{
-	private:
-		gc_ptr<T> self;
-	public:
-		gc_ptr_from_this()
-		{
-			self = gc_ptr<T>(static_cast<T*>(this));
-		}
-
-		gc_ptr<T> GetRef()
-		{
-			return self;
-		}
-		
-		gc_ptr<T> GetWeak()
-		{
-			return self;
-		}
-		
-		static gc_ptr<T> New()
-		{
-			return (new T)->GetRef();
-		}
-
-};
 
 template <typename T2>
 void gc_shade_container(const T2& c)

@@ -1585,7 +1585,7 @@ namespace Game
 				return NULL;
 			}
 
-			gc_ptr<Unit> unit = Unit::New(id);
+			gc_ptr<Unit> unit = new Unit(id);
 
 			PrepareUnitEssentials(unit, type);
 //			PrepareAnimationData(unit);
@@ -1975,7 +1975,7 @@ namespace Game
 			if (!owner)
 				return NULL;
 
-			gc_ptr<Unit> unit = Unit::New();
+			gc_ptr<Unit> unit = new Unit;
 
 			unit->completeness = 100.0;
 			unit->isCompleted = true;

@@ -16,7 +16,7 @@ namespace Scene
 {
 	namespace Graph
 	{
-		class Node
+		class Node : public gc_ptr_from_this<Node>
 		{
 			public:
 				enum MatrixType
@@ -34,7 +34,7 @@ namespace Scene
 				virtual void PostRender();
 
 				std::map<int, gc_ptr<Node> > children;
-				Node* parent;
+				gc_ptr<Node> parent;
 				static Utilities::Matrix4x4 matrices[MATRIXTYPE_NUM];
 				static std::stack<Utilities::Matrix4x4> mtxStack[MATRIXTYPE_NUM];
 				bool enabled;

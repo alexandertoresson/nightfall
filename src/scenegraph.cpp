@@ -71,7 +71,7 @@ namespace Scene
 			{
 				node->parent->RemoveChild(node);
 			}
-			node->parent = this;
+			node->parent = GetRef();
 			if (placement > lastPlacement)
 			{
 				lastPlacement = placement;
@@ -130,7 +130,7 @@ namespace Scene
 
 		void Node::BuildMatrices(gc_ptr<Node> baseNode)
 		{
-			if (parent && baseNode != gc_ptr<Node>(parent, null_deleter))
+			if (parent && baseNode != parent)
 			{
 				parent->BuildMatrices(baseNode);
 			}

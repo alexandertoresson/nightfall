@@ -6,6 +6,7 @@
 #include "paths.h"
 #include "utilities.h"
 #include "window.h"
+#include "materialxml.h"
 #include <iostream>
 #include <fstream>
 #include <cmath>
@@ -20,6 +21,17 @@ namespace Game
 		float terrainHeight = 3.0f;
 		float waterLevel = -1.35f, waterHeight = 0.1f;
 
+		GLfloat    terrainMaterialModifiers[2][2] = {
+		                                              {
+		                                                0.2f,   // not seen, not lighted
+		                                                0.5f    // seen, not lighted
+		                                              },
+		                                              {
+		                                                0.2f,   // not seen, lighted
+		                                                1.0f    // seen, lighted
+		                                              }
+		                                            };
+							 
 		// overall quality of terrain; increase to increase terrain detail
 		float quality = 15000.0;
 		
@@ -503,13 +515,17 @@ namespace Game
 					Scene::Render::VBO& positions = heightMap->bsvbos[y][x].positions;
 					Scene::Render::VBO& normals = heightMap->bsvbos[y][x].normals;
 					int len = (q_square_size+1)*(q_square_size+1)*3;
+
 					positions.data.floats = new GLfloat[len];
-					normals.data.floats = new GLfloat[len];
 					positions.size = len * sizeof(GLfloat);
+
+					normals.data.floats = new GLfloat[len];
 					normals.size = len * sizeof(GLfloat);
+
 					int i = 0;
 					int basey = y * q_square_size;
 					int basex = x * q_square_size;
+
 					for (int y2 = 0; y2 <= q_square_size; y2++)
 					{
 						for (int x2 = 0; x2 <= q_square_size; x2++)
@@ -527,6 +543,13 @@ namespace Game
 					}
 				}
 			}
+
+			Scene::Render::VBO& light = heightMap->light;
+
+			int flen = (q_square_size+1)*(q_square_size+1);
+
+			light.data.floats = new GLfloat[flen];
+			light.size = flen * sizeof(GLfloat);
 
 			Scene::Render::VBO& index = heightMap->index;
 
@@ -1207,8 +1230,29 @@ namespace Game
 
 					TerrainBSVBOs& vbos = heightMap->bsvbos[y][x];
 
+					int i = 0;
+					int my = y * q_square_size;
+					int basex = x * q_square_size;
+					int mx = basex;
+					float* data = heightMap->light.data.floats;
+					Uint16** NLOS = pWorld->NumLightsOnSquare;
+					Uint16** NUSS = currentPlayerView->NumUnitsSeeingSquare;
+
+					for (int y2 = 0; y2 <= q_square_size; y2++)
+					{
+						mx = basex;
+						my++;
+						for (int x2 = 0; x2 <= q_square_size; x2++)
+						{
+							data[i] = terrainMaterialModifiers[NLOS[my][mx]][NUSS[my][mx]];
+							mx++;
+							i++;
+						}
+					}
+
 					vbos.positions.Lock();
 					vbos.normals.Lock();
+					heightMap->light.Lock();
 
 					glBindBufferARB(GL_ARRAY_BUFFER_ARB, vbos.positions.buffer);
 					glVertexPointer(3, GL_FLOAT, 0, NULL);
@@ -1443,19 +1487,27 @@ namespace Game
 			heightMap = NULL;
 		}
 
-		TerrainNode::TerrainNode()
+		TerrainNode::TerrainNode() : GLStateNode(new Scene::Render::GLState)
 		{
-			
+			myGLState->material = Utilities::LoadMaterialXML("materials/terrain.mat");
 		}
 
 		void TerrainNode::Render()
 		{
 			matrices[MATRIXTYPE_MODELVIEW].Apply();
 			Dimension::DrawTerrain();
-			Dimension::DrawWater();
 		}
 
-		TerrainNode TerrainNode::instance;
+		WaterNode::WaterNode() : GLStateNode(new Scene::Render::GLState)
+		{
+			myGLState->material = Utilities::LoadMaterialXML("materials/water.mat");
+		}
+
+		void WaterNode::Render()
+		{
+			matrices[MATRIXTYPE_MODELVIEW].Apply();
+			Dimension::DrawWater();
+		}
 
 	}
 }	
