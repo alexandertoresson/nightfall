@@ -7,7 +7,7 @@
 		<emission r="0.0" g="0.0" b="0.0" a="1.0" />
 		<shininess value="10.0" />
 		<textures>
-			<texture filename="textures/mtterrain.png" name="terrainTexture" />
+			<texture filename="textures/mtterrain2.png" name="terrainTexture" />
 		</textures>
 		<shader vertex_shader="shaders/terrain.vert"
 	        	fragment_shader="shaders/terrain.frag" />

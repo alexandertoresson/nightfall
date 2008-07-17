@@ -24,6 +24,11 @@ function InitLevel()
 	SetWaterLevel(-2.0);
 
 	---------------------------------------------------
+	
+	SetWaterMaterial("materials/water-default.mat");
+	SetTerrainMaterial("materials/terrain-default.mat");
+
+	---------------------------------------------------
 
 	InitSkybox(30, 9)
 
