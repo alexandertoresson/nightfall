@@ -1250,6 +1250,8 @@ namespace Game
 						my++;
 					}
 
+					heightMap->light.SetChanged();
+
 					vbos.positions.Lock();
 					vbos.normals.Lock();
 					heightMap->light.Lock();
