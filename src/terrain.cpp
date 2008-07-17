@@ -431,7 +431,7 @@ namespace Game
 
 			cout << numwater << " water squares" << endl;
 			cout << numbigwater << " big water squares" << endl;
-			for (int i = 0; i < 120; i++)
+			for (int i = 0; i < 200; i++)
 			{
 				CalculateWater();
 			}
@@ -819,8 +819,8 @@ namespace Game
 				my = 0;
 			}
 
-			return (heights[my][mx] * (1 - xmix) + heights[my][mx+1] * xmix) * (1 - ymix) +
-			       ((heights[my+1][mx] * (1 - xmix) + heights[my+1][mx+1] * xmix) * ymix);
+			return ((heights[my][mx] * (1 - xmix) + heights[my][mx+1] * xmix) * (1 - ymix) +
+			       ((heights[my+1][mx] * (1 - xmix) + heights[my+1][mx+1] * xmix) * ymix)) * terrainHeight * 0.5;
 		}
 
 		// get the terrain normal at the specified location, interpolated
@@ -881,7 +881,7 @@ namespace Game
 		// get the terrain height at the specified location
 		float GetTerrainHeight(int x, int y)
 		{
-			return heightMap->heights[y][x];
+			return heightMap->heights[y][x] * terrainHeight * 0.5;
 		}
 
 		Utilities::Vector3D GetTerrainCoord(float x, float y)
