@@ -29,8 +29,10 @@ namespace Scene
 			unsigned valsPerItem;
 			GLuint buffer;
 			bool isElemBuffer;
+			GLenum mode;
+			bool changed;
 
-			VBO() : numVals(0), size(0), valsPerItem(0), buffer(0), isElemBuffer(false)
+			VBO(bool isElemBuffer = false, GLenum mode = GL_STATIC_DRAW_ARB) : numVals(0), size(0), valsPerItem(0), buffer(0), isElemBuffer(isElemBuffer), mode(mode), changed(true)
 			{
 				data.pnt = NULL;
 			}
@@ -45,6 +47,11 @@ namespace Scene
 
 			void Lock();
 			void Unlock();
+
+			void SetChanged()
+			{
+				changed = true;
+			}
 
 			void shade()
 			{

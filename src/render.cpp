@@ -19,16 +19,20 @@ namespace Scene
 			if (!buffer)
 			{
 				glGenBuffersARB(1, &buffer);
+			}
+			if (changed)
+			{
 				if (isElemBuffer)
 				{
 					glBindBufferARB(GL_ELEMENT_ARRAY_BUFFER_ARB, buffer);
-					glBufferDataARB(GL_ELEMENT_ARRAY_BUFFER_ARB, size, data.pnt, GL_STATIC_DRAW_ARB);
+					glBufferDataARB(GL_ELEMENT_ARRAY_BUFFER_ARB, size, data.pnt, mode);
 				}
 				else
 				{
 					glBindBufferARB(GL_ARRAY_BUFFER_ARB, buffer);
-					glBufferDataARB(GL_ARRAY_BUFFER_ARB, size, data.pnt, GL_STATIC_DRAW_ARB);
+					glBufferDataARB(GL_ARRAY_BUFFER_ARB, size, data.pnt, mode);
 				}
+				changed = false;
 			}
 		}
 
