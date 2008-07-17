@@ -94,7 +94,16 @@ namespace Utilities
 
 	void ParseTexture(Utilities::XMLElement *elem)
 	{
-		material->textures.push_back(new TextureImageData(elem->GetAttribute("filename"), elem->GetAttribute("name")));
+		std::string name = elem->GetAttribute("name");
+		for (unsigned i = 0; i < material->textures.size(); i++)
+		{
+			if (material->textures[i]->name == name)
+			{
+				material->textures.erase(material->textures.begin() + i);
+				break;
+			}
+		}
+		material->textures.push_back(new TextureImageData(elem->GetAttribute("filename"), name));
 	}
 
 	void ParseTextures(Utilities::XMLElement *elem)
@@ -263,7 +272,7 @@ namespace Utilities
 	{
 		if (!material->program)
 		{
-			elem->Iterate("inherit_material", ParseInheritMaterial);
+			elem->Iterate("inherit", ParseInheritMaterial);
 
 			elem->Iterate("shader", ParseShader);
 
