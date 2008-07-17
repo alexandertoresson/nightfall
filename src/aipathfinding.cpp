@@ -106,7 +106,7 @@ namespace Game
 			SDL_mutex*  pMutex;
 			bool        threadRuntime;
 			
-			gc_ptr<Dimension::Unit>  pUnit;
+			gc_root_ptr<Dimension::Unit>::type pUnit;
 
 			Dimension::IntPosition oldGoal;
 
