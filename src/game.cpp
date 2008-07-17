@@ -472,33 +472,6 @@ namespace Game
 			pLoading->Increment(increment);
 			
 			////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-			
-			Scene::Graph::rootNode->AddChild(gc_ptr<Dimension::Camera>(&Dimension::Camera::instance, null_deleter));
-			Dimension::Camera::instance.AddChild(gc_ptr<Dimension::Environment::EnvironmentNode>(&Dimension::Environment::EnvironmentNode::instance, null_deleter));
-			Dimension::Camera::instance.AddChild(gc_ptr<Dimension::Environment::SkyboxNode>(&Dimension::Environment::SkyboxNode::instance, null_deleter));
-			Dimension::Camera::instance.AddChild(new Dimension::TerrainNode);
-			Dimension::Camera::instance.AddChild(new Dimension::WaterNode);
-			Dimension::Camera::instance.AddChild(gc_ptr<Dimension::UnitMainNode>(&Dimension::UnitMainNode::instance, null_deleter));
-			// cleanup node, for resetting stuff for fixed function stuff...
-			Dimension::Camera::instance.AddChild(new Scene::Render::GLStateNode(new Scene::Render::GLState()));
-			Dimension::Camera::instance.AddChild(gc_ptr<Dimension::BuildOutlineNode>(&Dimension::BuildOutlineNode::instance, null_deleter));
-			Dimension::Camera::instance.AddChild(gc_ptr<FX::ParticleNode>(&FX::ParticleNode::instance, null_deleter));
-			Scene::Graph::rootNode->AddChild(gc_ptr<Scene::Graph::Node>(&GUINode::instance, null_deleter));
-
-			/*
-
-			if (Dimension::GetCurrentPlayer()->vUnits.size())
-			Dimension::Camera::instance.SetCamera(Dimension::GetCurrentPlayer()->vUnits.at(0), 30.0f, -40.0f);
-			else
-			Dimension::Camera::instance.SetCamera(Utilities::Vector3D(7.0, 0.0, -13.0), 30.0f, -40.0f);
-
-			*/
-			Dimension::Camera::instance.SetYMinimum(0.5f);
-			Dimension::Camera::instance.SetYMaximum(15.0f);
-
-			pLoading->Increment(increment);
-			
-			////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 			pVM.SetFunction("SetPlayers");
 			if (pVM.CallFunction(0, 1) != SUCCESS)
 			{
@@ -515,6 +488,25 @@ namespace Game
 			{
 				return ERROR_GENERAL;
 			}
+			pLoading->Increment(increment);
+			
+			////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+			
+			Scene::Graph::rootNode->AddChild(gc_ptr<Dimension::Camera>(&Dimension::Camera::instance, null_deleter));
+			Dimension::Camera::instance.AddChild(gc_ptr<Dimension::Environment::EnvironmentNode>(&Dimension::Environment::EnvironmentNode::instance, null_deleter));
+			Dimension::Camera::instance.AddChild(gc_ptr<Dimension::Environment::SkyboxNode>(&Dimension::Environment::SkyboxNode::instance, null_deleter));
+			Dimension::Camera::instance.AddChild(new Dimension::TerrainNode);
+			Dimension::Camera::instance.AddChild(new Dimension::WaterNode);
+			Dimension::Camera::instance.AddChild(gc_ptr<Dimension::UnitMainNode>(&Dimension::UnitMainNode::instance, null_deleter));
+			// cleanup node, for resetting stuff for fixed function stuff...
+			Dimension::Camera::instance.AddChild(new Scene::Render::GLStateNode(new Scene::Render::GLState()));
+			Dimension::Camera::instance.AddChild(gc_ptr<Dimension::BuildOutlineNode>(&Dimension::BuildOutlineNode::instance, null_deleter));
+			Dimension::Camera::instance.AddChild(gc_ptr<FX::ParticleNode>(&FX::ParticleNode::instance, null_deleter));
+			Scene::Graph::rootNode->AddChild(gc_ptr<Scene::Graph::Node>(&GUINode::instance, null_deleter));
+
+			Dimension::Camera::instance.SetYMinimum(0.5f);
+			Dimension::Camera::instance.SetYMaximum(15.0f);
+
 			pLoading->Increment(increment);
 			
 			////////////////////////////////////////////////////////////////////////////////////////////////////////////////
