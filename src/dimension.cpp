@@ -104,7 +104,7 @@ namespace Game
 			}
 		}
 
-		Player::Player(std::string name, PlayerType playertype, std::string raceScript, std::string aiScript, Utilities::Colour colour0, Utilities::Colour colour1, Utilities::Colour colour2) : raceState(this->GetRef()), aiState(this->GetRef())
+		Player::Player(std::string name, PlayerType playertype, std::string raceScript, std::string aiScript, Utilities::Colour colour0, Utilities::Colour colour1, Utilities::Colour colour2) : raceState(NULL), aiState(NULL)
 		{
 			this->name = name;
 			this->type = playertype;
@@ -165,6 +165,13 @@ namespace Game
 					this->unitAIFuncs.unitKilled.func += "_AI";
 					break;
 			}
+
+		}
+
+		void Player::CompleteConstruction()
+		{
+			raceState = new Utilities::Scripting::LuaVMState(GetRef());
+			aiState = new Utilities::Scripting::LuaVMState(GetRef());
 
 			this->index = pWorld->vPlayers.size();
 			pWorld->vPlayers.push_back(this->GetRef());
@@ -353,16 +360,16 @@ namespace Game
 
  					if (research->luaEffectObj.length())
  					{
- 						lua_State *pVM = research->player->aiState.GetState();
+ 						lua_State *pVM = research->player->aiState->GetState();
 
 						// Make the luawrapper code believe that we're calling this function...
-						research->player->aiState.SetCurFunction(research->luaEffectObj + ".undo");
+						research->player->aiState->SetCurFunction(research->luaEffectObj + ".undo");
 
 						// Get the "apply" function from the user-supplied table
  						lua_getglobal(pVM, research->luaEffectObj.c_str());
  						lua_getfield(pVM, -1, "undo");
  						lua_pushlightuserdata(pVM, (void*) research->player->GetHandle());
- 						research->player->aiState.CallFunction(1);
+ 						research->player->aiState->CallFunction(1);
  					}
 				}
 				researchs.clear();

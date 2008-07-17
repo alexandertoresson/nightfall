@@ -105,6 +105,7 @@ namespace Utilities
 			std::cout << "[Lua VM] Constructing" << std::endl;
 #endif
 			m_pState = lua_open();
+			std::cout << "open " << m_pState << std::endl;
 
 			if (player)
 			{
@@ -131,6 +132,7 @@ namespace Utilities
 		{
 			if (m_pState)
 			{
+				std::cout << "close " << m_pState << std::endl;
 				if (!global)
 				{
 					Game::Dimension::pWorld->luaStateToPlayer.erase(m_pState);
@@ -253,9 +255,9 @@ namespace Utilities
 				if (!player->isRemote)
 				{
 					std::cout << "Initializing LUA states for player " << i++ << std::endl;
-					player->aiState.DoFile("scripts/race/" + player->raceScript + "/" + player->raceScript + ".lua");
-					player->aiState.DoFile("scripts/race/" + player->raceScript + "/" + player->aiScript + "/" + player->aiScript + ".lua");
-					player->aiState.DoFile(Game::Rules::CurrentLevelScript);
+					player->aiState->DoFile("scripts/race/" + player->raceScript + "/" + player->raceScript + ".lua");
+					player->aiState->DoFile("scripts/race/" + player->raceScript + "/" + player->aiScript + "/" + player->aiScript + ".lua");
+					player->aiState->DoFile(Game::Rules::CurrentLevelScript);
 				}
 			}
 		}
@@ -267,13 +269,13 @@ namespace Utilities
 				const gc_ptr<Game::Dimension::Player>& player = Game::Dimension::pWorld->vPlayers[i];
 				if (!player->isRemote)
 				{
-					player->aiState.SetFunction("InitRace");
-					lua_pushlightuserdata(player->aiState.GetState(), (void*) player->GetHandle());
-					player->aiState.CallFunction(1);
+					player->aiState->SetFunction("InitRace");
+					lua_pushlightuserdata(player->aiState->GetState(), (void*) player->GetHandle());
+					player->aiState->CallFunction(1);
 
-					player->aiState.SetFunction("InitAI");
-					lua_pushlightuserdata(player->aiState.GetState(), (void*) player->GetHandle());
-					player->aiState.CallFunction(1);
+					player->aiState->SetFunction("InitAI");
+					lua_pushlightuserdata(player->aiState->GetState(), (void*) player->GetHandle());
+					player->aiState->CallFunction(1);
 
 					RecheckAllRequirements(player);
 

@@ -1241,13 +1241,13 @@ namespace Game
 					for (int y2 = 0; y2 <= q_square_size; y2++)
 					{
 						mx = basex;
-						my++;
 						for (int x2 = 0; x2 <= q_square_size; x2++)
 						{
 							data[i] = terrainMaterialModifiers[NLOS[my][mx]][NUSS[my][mx]];
 							mx++;
 							i++;
 						}
+						my++;
 					}
 
 					vbos.positions.Lock();

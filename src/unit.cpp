@@ -30,11 +30,6 @@ namespace Game
 		int**         numUnitsPerAreaMap;
 		int           nextPushID = 1;
 
-		Unit::Unit(int id) : HasHandle<Unit>(id)
-		{
-			
-		}
-
 		ActionQueueItem::~ActionQueueItem()
 		{
 		}
@@ -468,10 +463,10 @@ namespace Game
 
  				if (research->luaEffectObj.length())
  				{
- 					lua_State *pVM = unit->owner->aiState.GetState();
+ 					lua_State *pVM = unit->owner->aiState->GetState();
 
 					// Make the luawrapper code believe that we're calling this function...
-					unit->owner->aiState.SetCurFunction(research->luaEffectObj + ".apply");
+					unit->owner->aiState->SetCurFunction(research->luaEffectObj + ".apply");
 
 					// Get the "apply" function from the user-supplied table
  					lua_getglobal(pVM, research->luaEffectObj.c_str());
@@ -479,7 +474,7 @@ namespace Game
  					lua_pushlightuserdata(pVM, (void*) unit->owner->GetHandle());
  					lua_pushlightuserdata(pVM, (void*) unit->type->GetHandle());
  					lua_pushlightuserdata(pVM, (void*) unit->GetHandle());
- 					unit->owner->aiState.CallFunction(3);
+ 					unit->owner->aiState->CallFunction(3);
  				}
 			}
 			
@@ -1585,7 +1580,8 @@ namespace Game
 				return NULL;
 			}
 
-			gc_ptr<Unit> unit = new Unit(id);
+			gc_ptr<Unit> unit = new Unit;
+			unit->AssignHandle(id);
 
 			PrepareUnitEssentials(unit, type);
 //			PrepareAnimationData(unit);
@@ -1976,6 +1972,7 @@ namespace Game
 				return NULL;
 
 			gc_ptr<Unit> unit = new Unit;
+			unit->AssignHandle();
 
 			unit->completeness = 100.0;
 			unit->isCompleted = true;

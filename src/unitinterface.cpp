@@ -1568,7 +1568,9 @@ namespace UnitLuaInterface
 		{
 			raceScript = "robots";
 		}
-		new Player(name, type, std::string(raceScript), std::string(aiScript), colour0, colour1, colour2);
+		gc_ptr<Player> player(new Player(name, type, std::string(raceScript), std::string(aiScript), colour0, colour1, colour2));
+		player->CompleteConstruction();
+		player->AssignHandle();
 		LUA_SUCCESS
 	}
 
@@ -2652,6 +2654,7 @@ else \
 			LUA_FAILURE("Invalid argument, must be a table")
 
 		pUnitType = new UnitType;
+		pUnitType->AssignHandle();
 
 		pUnitType->player = player;
 		pUnitType->numBuilt = 0;
@@ -2747,6 +2750,8 @@ else \
 		if (!isResearched)
 		{
 			gc_ptr<Research> research = new Research;
+			research->AssignHandle();
+
 			ResearchRequirement res_req;
 
 			research->id = "Research" + std::string(pUnitType->id);
@@ -2887,6 +2892,7 @@ else \
 			LUA_FAILURE("Invalid argument, must be a table")
 
 		pResearch = new Research;
+		pResearch->AssignHandle();
 
 		pResearch->player = player;
 

@@ -71,12 +71,14 @@ namespace Game
 			std::string       raceScript;
 			std::string       aiScript;
 
-			Utilities::Scripting::LuaVMState raceState;
-			Utilities::Scripting::LuaVMState aiState;
+			gc_ptr<Utilities::Scripting::LuaVMState> raceState;
+			gc_ptr<Utilities::Scripting::LuaVMState> aiState;
 
 			Player(std::string name, PlayerType playertype, std::string raceScript, std::string aiScript, Utilities::Colour colour0, Utilities::Colour colour1, Utilities::Colour colour2);
 
 			~Player();
+
+			void CompleteConstruction();
 
 			void shade()
 			{
@@ -86,6 +88,8 @@ namespace Game
 				gc_shade_container(vResearchs);
 				gc_shade_map(unitTypeMap);
 				gc_shade_map(researchMap);
+				raceState.shade();
+				aiState.shade();
 			}
 		};
 		

@@ -51,8 +51,9 @@ namespace Utilities
 
 				SDL_mutex *CallErrMutex;
 
+				LuaVMState();
 				LuaVMState(const gc_ptr<Game::Dimension::Player>& player);
-				~LuaVMState(void);
+				~LuaVMState();
 
 				void RegisterFunction(std::string alias, int (*fptr)(lua_State*));
 

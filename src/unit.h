@@ -106,8 +106,6 @@ namespace Game
 			Unit*               pusher;*/
 			FaceTarget          faceTarget;
 
-			Unit(int id = -1);
-
 			~Unit();
 
 			void shade()

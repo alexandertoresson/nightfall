@@ -334,6 +334,11 @@ class gc_ptr_from_this
 		T* ref;
 		gc_marker_base* m;
 
+		gc_ptr_from_this() : ref(NULL), m(NULL)
+		{
+			
+		}
+
 	protected:
 		gc_ptr<T> GetRef()
 		{

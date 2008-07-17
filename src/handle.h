@@ -129,9 +129,8 @@ namespace Game
 				int independentHandle;
 
 			public:
-				HasHandle(int id = -1) : handle(id)
+				HasHandle() : handle(-1), independentHandle(-1)
 				{
-					HandleManager<T>::AssignHandle(gc_ptr_from_this<T>::GetRef(), handle, independentHandle);
 				}
 
 				~HasHandle()
@@ -139,13 +138,27 @@ namespace Game
 					HandleManager<T>::RevokeHandle(handle);
 				}
 
+				void AssignHandle(int id = -1)
+				{
+					handle = id;
+					HandleManager<T>::AssignHandle(gc_ptr_from_this<T>::GetRef(), handle, independentHandle);
+				}
+
 				int GetHandle()
 				{
+					if (handle == -1)
+					{
+						std::cout << "Uninitialized handle for " << typeid(T).name() << std::endl;
+					}
 					return handle;
 				}
 
 				int GetIndependentHandle()
 				{
+					if (independentHandle == -1)
+					{
+						std::cout << "Uninitialized independent handle for " << typeid(T).name() << std::endl;
+					}
 					return independentHandle;
 				}
 		
