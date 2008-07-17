@@ -24,89 +24,6 @@ namespace Game
 	{
 		namespace Environment
 		{
-/*
-			Vector4D::Vector4D(GLfloat i1 / * = 0.000000 * /, GLfloat i2 / * = 0.000000 * /, GLfloat i3 / * = 0.000000 * /, GLfloat i4 / * = 1.000000 * /)
-			{
-				m1 = i1;
-				m2 = i2;
-				m3 = i3;
-				m4 = i4;
-
-				arr = NULL;
-			}
-
-			Vector4D::~Vector4D(void)
-			{
-				if (arr != NULL)
-					DeleteGLArray();
-			}
-
-			void Vector4D::BuildFromGLArray(GLfloat* arr)
-			{
-				m1 = arr[0];
-				m2 = arr[1];
-				m3 = arr[2];
-				m4 = arr[3];
-			}
-
-			void Vector4D::BuildFromVAList(...)
-			{
-				va_list ap;
-				int args = 4;
-				va_start(ap, args);
-
-				m1 = va_arg(ap, GLfloat);
-				m2 = va_arg(ap, GLfloat);
-				m3 = va_arg(ap, GLfloat);
-				m4 = va_arg(ap, GLfloat);
-
-				va_end(ap);
-			}
-
-			GLfloat* Vector4D::ToGLArray(void)
-			{
-				if (arr != NULL)
-				{
-					if (arr[0] == m1 && arr[1] == m2 && arr[2] == m3 && arr[3] == m4)
-						return arr;
-					else
-						DeleteGLArray();
-				}
-				
-				GLfloat* arr = new GLfloat[4];
-				
-				arr[0] = m1;
-				arr[1] = m2;
-				arr[2] = m3;
-				arr[3] = m4;
-
-				return arr;
-			}
-
-			const char* Vector4D::ToString(void)
-			{
-				std::ostringstream ss;
-				ss << "{ ";
-				ss << m1;
-				ss << ", ";
-				ss << m2;
-				ss << ", ";
-				ss << m3;
-				ss << ", ";
-				ss << m4;
-				ss << " }";
-
-				return ss.str().c_str();
-			}
-
-			void Vector4D::DeleteGLArray(void)
-			{
-				if (arr != NULL)
-					delete [] arr;
-
-				arr = NULL;
-			}
-*/
 
 			FourthDimension* FourthDimension::m_pInstance = NULL;
 
@@ -271,30 +188,6 @@ namespace Game
 				m_curFogEnd = m_curEnvCond->fogEnd;
 				m_curAlpha = 0.0f;
 
-/*				if (m_curEnvCond->terrainMaterialAmbientDiffuse[0][0][0] >= 0.0f)
-				{
-					for (i = 0; i < 2; i++)
-					{
-						for (int j = 0; j < 2; j++)
-						{
-							for (int k = 0; k < 4; k++)
-								Dimension::terrainMaterialAmbientDiffuse[i][j][k] = m_curEnvCond->terrainMaterialAmbientDiffuse[i][j][k];
-						}
-					}
-				}
-
-				if (m_curEnvCond->waterMaterialAmbientDiffuse[0][0][0] >= 0.0f)
-				{
-					for (i = 0; i < 2; i++)
-					{
-						for (int j = 0; j < 2; j++)
-						{
-							for (int k = 0; k < 4; k++)
-								Dimension::waterMaterialAmbientDiffuse[i][j][k] = m_curEnvCond->waterMaterialAmbientDiffuse[i][j][k];
-						}
-					}
-				}*/
-
 			}
 
 			bool FourthDimension::ApplyEnvironmentalConditions(EnvironmentalCondition* const cond /* = NULL */)
@@ -415,34 +308,6 @@ namespace Game
 					m_curDiffuse[i] = interpCond_1->diffuse[i] * (1 - interpProgress) + interpCond_2->diffuse[i] * interpProgress;
 					m_curSunPos[i] = interpCond_1->sunPos[i] * (1 - interpProgress) + interpCond_2->sunPos[i] * interpProgress;
 				}
-
-/*				if (interpCond_1->waterMaterialAmbientDiffuse[0][0][0] >= 0.0f)
-				{
-					for (i = 0; i < 2; i++)
-					{
-						for (int j = 0; j < 2; j++)
-						{
-							for (int k = 0; k < 4; k++)
-							{
-								Dimension::waterMaterialAmbientDiffuse[i][j][k] = interpCond_1->waterMaterialAmbientDiffuse[i][j][k] * (1 - interpProgress) + interpCond_2->waterMaterialAmbientDiffuse[i][j][k] * interpProgress;
-							}
-						}
-					}
-				}
-
-				if (interpCond_1->terrainMaterialAmbientDiffuse[0][0][0] >= 0.0f)
-				{
-					for (i = 0; i < 2; i++)
-					{
-						for (int j = 0; j < 2; j++)
-						{
-							for (int k = 0; k < 4; k++)
-							{
-								Dimension::terrainMaterialAmbientDiffuse[i][j][k] = interpCond_1->terrainMaterialAmbientDiffuse[i][j][k] * (1 - interpProgress) + interpCond_2->terrainMaterialAmbientDiffuse[i][j][k] * interpProgress;
-							}
-						}
-					}
-				}*/
 
 				if (m_curEnvCond->fogColor[0] > 0.0f)
 				{
