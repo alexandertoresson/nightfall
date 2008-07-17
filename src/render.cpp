@@ -41,7 +41,7 @@ namespace Scene
 			
 		}
 
-		void GLStateNode::SetState(GLState::GLStateBool state, bool b)
+		void GLState::SetState(GLStateBool state, bool b)
 		{
 			switch (state)
 			{
@@ -68,16 +68,10 @@ namespace Scene
 			}
 		}
 
-		GLStateNode::GLStateNode(gc_ptr<GLStateNode::GLState> state)
+		void GLState::Apply()
 		{
-			myGLState = state;
-		}
-		
-		void GLStateNode::PreRender()
-		{
-			Node::PreRender();
 			int i;
-			if (curSetState != myGLState)
+			if (curSetState != GetRef())
 			{
 				if (curSetState && curSetState->material)
 				{
@@ -85,9 +79,9 @@ namespace Scene
 						(*it)->Unlock();
 				}
 
-				for (GLStateBoolList::iterator it = myGLState->stateBools.begin(); it != myGLState->stateBools.end(); it++)
+				for (GLStateBoolList::iterator it = stateBools.begin(); it != stateBools.end(); it++)
 				{
-					GLState::GLStateBool state = it->first;
+					GLStateBool state = it->first;
 					bool b = it->second;
 					if ((curStateBools[state] != STATEBOOLSTATE_ENABLED && b) || (curStateBools[state] != STATEBOOLSTATE_DISABLED && !b))
 					{
@@ -95,13 +89,13 @@ namespace Scene
 					}
 				}
 
-				if (myGLState->material)
+				if (material)
 				{
-					glUseProgramObjectARB(myGLState->material->program);
+					glUseProgramObjectARB(material->program);
 
-					for (std::vector<gc_ptr<Utilities::Uniform> >::iterator it = myGLState->material->uniforms.begin(); it != myGLState->material->uniforms.end(); it++)
+					for (std::vector<gc_ptr<Utilities::Uniform> >::iterator it = material->uniforms.begin(); it != material->uniforms.end(); it++)
 					{
-						GLint id = glGetUniformLocationARB(myGLState->material->program, (*it)->name.c_str());
+						GLint id = glGetUniformLocationARB(material->program, (*it)->name.c_str());
 						if (id != -1)
 						{
 							(*it)->Set(id);
@@ -113,13 +107,13 @@ namespace Scene
 					}
 
 					i = 0;
-					for (std::vector<gc_ptr<Utilities::TextureImageData> >::iterator it = myGLState->material->textures.begin(); it != myGLState->material->textures.end(); it++, i++)
+					for (std::vector<gc_ptr<Utilities::TextureImageData> >::iterator it = material->textures.begin(); it != material->textures.end(); it++, i++)
 					{
 						(*it)->Lock();
 
-						if (myGLState->material->program)
+						if (material->program)
 						{
-							GLint sampler = glGetUniformLocationARB(myGLState->material->program, (*it)->name.c_str());
+							GLint sampler = glGetUniformLocationARB(material->program, (*it)->name.c_str());
 							glUniform1iARB(sampler, i);
 						}
 
@@ -131,11 +125,11 @@ namespace Scene
 
 					glActiveTexture(GL_TEXTURE0_ARB);
 
-					glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT, myGLState->material->ambient.val);
-					glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, myGLState->material->diffuse.val);
-					glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, myGLState->material->specular.val);
-					glMaterialfv(GL_FRONT_AND_BACK, GL_EMISSION, myGLState->material->emission.val);
-					glMaterialfv(GL_FRONT_AND_BACK, GL_SHININESS, &myGLState->material->shininess);
+					glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT, material->ambient.val);
+					glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, material->diffuse.val);
+					glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, material->specular.val);
+					glMaterialfv(GL_FRONT_AND_BACK, GL_EMISSION, material->emission.val);
+					glMaterialfv(GL_FRONT_AND_BACK, GL_SHININESS, &material->shininess);
 				}
 				else
 				{
@@ -144,29 +138,34 @@ namespace Scene
 				
 			}
 
-			curSetState = myGLState;
+			curSetState = GetRef();
 
 		}
 
-		gc_ptr<GLStateNode::GLState> GLStateNode::curSetState = NULL;
+		gc_ptr<GLState> GLState::curSetState = NULL;
 
-		GLStateNode::StateBoolState GLStateNode::curStateBools[GeometryNode::GLState::GLSTATE_NUM] =
+		GLState::StateBoolState GLState::curStateBools[GLState::GLSTATE_NUM] =
 			{
-				GLStateNode::STATEBOOLSTATE_UNKNOWN,
-				GLStateNode::STATEBOOLSTATE_UNKNOWN,
-				GLStateNode::STATEBOOLSTATE_UNKNOWN
+				GLState::STATEBOOLSTATE_UNKNOWN,
+				GLState::STATEBOOLSTATE_UNKNOWN,
+				GLState::STATEBOOLSTATE_UNKNOWN
 			};
 
-		GeometryNode::GeometryNode(gc_ptr<GeometryNode::GeomState> geomState, gc_ptr<GLStateNode::GLState> glState) : GLStateNode(glState)
+		GLStateNode::GLStateNode(gc_ptr<GLState> state)
 		{
-			myGeomState = geomState;
+			myGLState = state;
 		}
 		
-		void GeometryNode::PreRender()
+		void GLStateNode::PreRender()
 		{
-			GLStateNode::PreRender();
+			Node::PreRender();
+			myGLState->Apply();
+		}
+
+		void GeomState::Apply(GLhandleARB program)
+		{
 			int i;
-			if (curSetState != myGeomState)
+			if (curSetState != GetRef())
 			{
 				if (curSetState)
 				{
@@ -182,19 +181,19 @@ namespace Scene
 						(*it)->Unlock();
 				}
 
-				if (myGeomState->vertexArray)
+				if (vertexArray)
 				{
-					myGeomState->vertexArray->Lock();
+					vertexArray->Lock();
 					glEnableClientState(GL_VERTEX_ARRAY);
-					glBindBufferARB(GL_ARRAY_BUFFER_ARB, myGeomState->vertexArray->buffer);
+					glBindBufferARB(GL_ARRAY_BUFFER_ARB, vertexArray->buffer);
 					glVertexPointer(3, GL_FLOAT, 0, NULL);
 				}
 	
-				if (myGeomState->normalArray)
+				if (normalArray)
 				{
-					myGeomState->normalArray->Lock();
+					normalArray->Lock();
 					glEnableClientState(GL_NORMAL_ARRAY);
-					glBindBufferARB(GL_ARRAY_BUFFER_ARB, myGeomState->normalArray->buffer);
+					glBindBufferARB(GL_ARRAY_BUFFER_ARB, normalArray->buffer);
 					glNormalPointer(GL_FLOAT, 0, NULL);
 				}
 				else
@@ -203,15 +202,15 @@ namespace Scene
 				}
 
 				i = 0;
-				for (std::vector<GeomState::AttribArray>::iterator it = myGeomState->attribArrays.begin(); it != myGeomState->attribArrays.end(); it++, i++)
+				for (std::vector<AttribArray>::iterator it = attribArrays.begin(); it != attribArrays.end(); it++, i++)
 				{
 					it->array->Lock();
-					glBindAttribLocationARB(myGLState->material->program, i, it->name.c_str());
+					glBindAttribLocationARB(program, i, it->name.c_str());
 					glBindBufferARB(GL_ARRAY_BUFFER_ARB, it->array->buffer);
 					glVertexAttribPointerARB(i, it->array->size, it->type, GL_FALSE, 0, NULL);
 				}
 
-				if (myGeomState->texCoordArrays.size())
+				if (texCoordArrays.size())
 				{
 					glEnableClientState(GL_TEXTURE_COORD_ARRAY);
 				}
@@ -221,7 +220,7 @@ namespace Scene
 				}
 
 				i = 0;
-				for (std::vector<gc_ptr<VBO> >::iterator it = myGeomState->texCoordArrays.begin(); it != myGeomState->texCoordArrays.end(); it++, i++)
+				for (std::vector<gc_ptr<VBO> >::iterator it = texCoordArrays.begin(); it != texCoordArrays.end(); it++, i++)
 				{
 					const gc_ptr<VBO>& vbo = *it;
 					
@@ -232,14 +231,14 @@ namespace Scene
 					i++;
 				}
 
-				if (myGeomState->vertexArray)
+				if (vertexArray)
 				{
-					if (myGeomState->indicesArray)
+					if (indicesArray)
 					{
-						myGeomState->indicesArray->Lock();
+						indicesArray->Lock();
 						glEnableClientState(GL_INDEX_ARRAY);
-						glBindBufferARB(GL_ELEMENT_ARRAY_BUFFER_ARB, myGeomState->indicesArray->buffer);
-						glIndexPointer(myGeomState->indicesAre32Bit ? GL_INT : GL_SHORT, 0, NULL);
+						glBindBufferARB(GL_ELEMENT_ARRAY_BUFFER_ARB, indicesArray->buffer);
+						glIndexPointer(indicesAre32Bit ? GL_INT : GL_SHORT, 0, NULL);
 					}
 					else
 					{
@@ -249,28 +248,43 @@ namespace Scene
 
 			}
 
-			curSetState = myGeomState;
+			curSetState = GetRef();
 
+		}
+
+		void GeomState::Draw()
+		{
+			if (indicesArray)
+			{
+				glDrawElements(primitive, numElems, indicesAre32Bit ?  GL_UNSIGNED_INT : GL_UNSIGNED_SHORT, NULL);
+			}
+			else
+			{
+				glDrawArrays(primitive, 0, numElems);
+			}
+
+		}
+
+		gc_ptr<GeomState> GeomState::curSetState = NULL;
+
+		GeometryNode::GeometryNode(gc_ptr<GeomState> geomState, gc_ptr<GLState> glState) : GLStateNode(glState)
+		{
+			myGeomState = geomState;
+		}
+		
+		void GeometryNode::PreRender()
+		{
+			GLStateNode::PreRender();
+			myGeomState->Apply(myGLState->material->program);
 		}
 
 		void GeometryNode::Render()
 		{
 			matrices[MATRIXTYPE_MODELVIEW].Apply();
 
-			if (myGeomState->indicesArray)
-			{
-				glDrawElements(myGeomState->primitive, myGeomState->numElems, myGeomState->indicesAre32Bit ?  GL_UNSIGNED_INT : GL_UNSIGNED_SHORT, NULL);
-			}
-			else
-			{
-				glDrawArrays(myGeomState->primitive, 0, myGeomState->numElems);
-			}
-
+			myGeomState->Draw();
 		}
 		
-		gc_ptr<GeometryNode::GeomState> GeometryNode::curSetState = NULL;
-		unsigned GeometryNode::curNumAttribArrays = 0;
-
 		OgreSubMeshNode::OgreSubMeshNode(const gc_ptr<Utilities::OgreSubMesh>& submesh) : GeometryNode(new GeomState, new GLState)
 		{
 			const gc_ptr<Utilities::OgreVertexBuffer>& vb = submesh->vbs[0];

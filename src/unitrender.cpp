@@ -22,15 +22,15 @@ namespace Game
 	{
 		
 		GLfloat    unitMaterialModifiers[2][2] = {
-							   {
-							     0.0f,   // not seen, not lighted
-							     0.5f    // seen, not lighted
-							   },
-							   {
-							     0.0f,   // not seen, lighted
-							     1.0f    // seen, lighted
-							   }
-							 };
+		                                           {
+		                                             0.0f,   // not seen, not lighted
+		                                             0.5f    // seen, not lighted
+		                                           },
+		                                           {
+		                                             0.0f,   // not seen, lighted
+		                                             1.0f    // seen, lighted
+		                                           }
+		                                         };
 							 
 		void SetParticleCoordSpace(float x, float y, float z, float scale)
 		{

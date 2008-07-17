@@ -479,7 +479,7 @@ namespace Game
 			Dimension::Camera::instance.AddChild(gc_ptr<Scene::Graph::Node>(&Dimension::TerrainNode::instance, null_deleter));
 			Dimension::Camera::instance.AddChild(gc_ptr<Scene::Graph::Node>(&Dimension::UnitMainNode::instance, null_deleter));
 			// cleanup node, for resetting stuff for fixed function stuff...
-			Dimension::Camera::instance.AddChild(new Scene::Render::GLStateNode(new Scene::Render::GLStateNode::GLState()));
+			Dimension::Camera::instance.AddChild(new Scene::Render::GLStateNode(new Scene::Render::GLState()));
 			Dimension::Camera::instance.AddChild(gc_ptr<Scene::Graph::Node>(&Dimension::BuildOutlineNode::instance, null_deleter));
 			Dimension::Camera::instance.AddChild(gc_ptr<Scene::Graph::Node>(&FX::ParticleNode::instance, null_deleter));
 			Scene::Graph::rootNode->AddChild(gc_ptr<Scene::Graph::Node>(&GUINode::instance, null_deleter));
