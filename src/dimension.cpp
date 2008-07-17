@@ -409,7 +409,6 @@ namespace Game
 
 			//Deallocate Terrain & Water & Heightmap
 			UnloadTerrain();
-			glDeleteTextures(1, &Dimension::terraintexture);
 		
 			pWorld.reset();
 		}

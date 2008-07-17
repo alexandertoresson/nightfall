@@ -311,7 +311,7 @@ namespace Window
 			while(go)
 			{
 				// nollställ backbufferten och depthbufferten
-				glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+				glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 
 				// nollställ vyn
 				glLoadIdentity();
@@ -2379,7 +2379,7 @@ namespace Window
 			{
 
 				// nollställ backbufferten och depthbufferten
-				glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+				glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 
 				// nollställ vyn
 				glLoadIdentity();

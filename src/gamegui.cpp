@@ -1097,15 +1097,15 @@ namespace Game
 			cout << "CLICKED!" << endl;
 		}
 
-		GamePlayBar::GamePlayBar(GameWindow *ref, SDL_Surface *img)
+		GamePlayBar::GamePlayBar(GameWindow *ref)
 		{
 			bgColor[0] = 0.0f;
 			bgColor[1] = 0.0f;
 			bgColor[2] = 0.7f;
 			bgColor[3] = 0.6f;
 			pGame = ref;
-			if (!Game::Rules::noGraphics)
-				tmap = CreateMap(img, Dimension::heightMap, Dimension::pWorld->width, Dimension::pWorld->height, 256,256);
+/*			if (!Game::Rules::noGraphics)
+				tmap = CreateMap(img, Dimension::heightMap, Dimension::pWorld->width, Dimension::pWorld->height, 256,256);*/
 			buildSelected = false;
 		}
 
@@ -1117,8 +1117,8 @@ namespace Game
 			delete pSelected;
 			delete pActions;
 			delete pMap;
-			if (!Game::Rules::noGraphics)
-				glDeleteTextures(1, &tmap);
+/*			if (!Game::Rules::noGraphics)
+				glDeleteTextures(1, &tmap);*/
 		}
 
 		void GamePlayBar::PaintTop()
@@ -1324,7 +1324,7 @@ namespace Game
 
 			pSelected = new UnitSelected(pGame, this, nopic);
 			pActions = new UnitActions(nopic, pGame);
-			pMap = new GameMap(tmap);
+			pMap = new GameMap(0);
 
 			build_panel = Add(pSelected);
 			SetConstraint(build_panel, location1 = 0.3f * this->w, 0.05f, this->w - (this->w * 0.3f) - 1.0f, 0.95);

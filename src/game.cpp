@@ -267,7 +267,7 @@ namespace Game
 			gameRunning = false;
 		}
 
-		int GameWindow::InitGUI(SDL_Surface* img)
+		int GameWindow::InitGUI()
 		{
 			float increment = 0.1f / 3.0f; //0.1 (10%) divided on 1 update;
 
@@ -290,7 +290,7 @@ namespace Game
 			pMainGame->SetFocusEnabled(false);
 
 			pTopBar = new GameTopBar();
-			pPlayBar = new GamePlayBar(this, img);
+			pPlayBar = new GamePlayBar(this);
 
 			int topBar = pMainGame->Add(pTopBar);
 			pMainGame->SetConstraintPercent(topBar, 0.0f, 0.0f, 1.0f, sizes[0]);
@@ -518,6 +518,10 @@ namespace Game
 			pLoading->Increment(increment);
 			
 			////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+			Game::Rules::GameWindow::Instance()->InitGUI();
+			pLoading->Increment(increment);
+
+			////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 			Utilities::Scripting::InitAI();
 			pLoading->Increment(increment);
 			
@@ -659,7 +663,7 @@ namespace Game
 		bool GameWindow::PaintAll()
 		{
 			// nollställ backbufferten och depthbufferten
-			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 
 			// nollställ vyn
 			glLoadIdentity();

@@ -185,7 +185,7 @@ namespace Game
 			void PaintTop();
 
 		public:
-			GamePlayBar(GameWindow* ref,SDL_Surface *map);
+			GamePlayBar(GameWindow* ref);
 			void init();
 			void SetUnit();
 			void SwitchSelected(const gc_ptr<Dimension::Unit>&);

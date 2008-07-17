@@ -1028,10 +1028,228 @@ namespace Game
 			}
 		}
 
-		GLuint terraintexture;
-
-		int DrawTerrain()
+		void DrawWater()
 		{
+/*			int mipmap_level, scaled_square_size;
+			float world_square_size;
+			int mx, my;
+			int mx1, my1, mx2, my2;
+			float wx1, wy1, wx2, wy2;
+			float mix = Rules::time_passed_since_last_water_pass * 3;
+			int step_size;
+			XYZCoord* normal;
+			bool is_seen, is_lighted;
+			Uint16** NumUnitsSeeingSquare = Dimension::currentPlayerView->NumUnitsSeeingSquare;
+			
+			glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, waterMaterialSpecular);
+			glMaterialf(GL_FRONT_AND_BACK, GL_SHININESS, waterMaterialShininess);
+
+			glEnable(GL_COLOR_MATERIAL);
+			
+			// draw each big square
+			for (int y=0;y<pWorld->height/q_square_size;y++)
+			{
+				//for (int x=0;x<pWorld->width/q_square_size;x++)
+				for (int x=is_visible[0][y];x<=is_visible[1][y];x++)
+				{
+
+					mipmap_level = waterQuality;
+
+					// calculate the number of small squares in a big square at this mipmap level
+					scaled_square_size = q_square_size >> mipmap_level;
+
+					// calculate real size of a small square
+					world_square_size = (float) 16 / (float) 128;
+
+					// calculate the base index x and y coords into the height, normal and texcoord arrays at the current mipmap level
+					mx = x * q_square_size;
+					my = y * q_square_size;
+					step_size = 1 << mipmap_level;
+					
+					if (big_square_has_water[y][x])
+					{
+
+						for (int y2=0;y2<=q_square_size;y2+=step_size)
+						{
+
+							for (int x2=0;x2<=q_square_size;x2+=step_size)
+							{
+								mx1 = mx + x2;
+								my1 = my + y2;
+								pWorld->ppWater[water_interpolated][my1][mx1] = pWorld->ppWater[water_cur_front][my1][mx1] * (1 - mix) + pWorld->ppWater[water_cur_back][my1][mx1] * mix;
+							}
+
+						}
+
+						int start_x, start_y, end_x, end_y;
+						Utilities::Vector3D x_vector, y_vector;
+
+						start_x = mx == 0 ? 1 : mx;
+						start_y = my == 0 ? 1 : my;
+						end_x = mx + q_square_size == pWorld->width-1 ? pWorld->width-2 : mx + q_square_size;
+						end_y = my + q_square_size == pWorld->height-1 ? pWorld->height-2 : my + q_square_size;
+
+						for (int y2=start_y;y2<=end_y;y2+=step_size)
+						{
+
+							for (int x2=start_x;x2<=end_x;x2+=step_size)
+							{
+								y_vector = Utilities::Vector3D(0.0, pWorld->ppWater[water_interpolated][y2+1][x2] - pWorld->ppWater[water_interpolated][y2-1][x2], 0.250);
+								x_vector = Utilities::Vector3D(0.250, pWorld->ppWater[water_interpolated][y2][x2+1] - pWorld->ppWater[water_interpolated][y2][x2-1], 0.0);
+								y_vector.cross(x_vector);
+								y_vector.normalize();
+								water_normals[y2][x2]->x = y_vector.x;
+								water_normals[y2][x2]->y = y_vector.y;
+								water_normals[y2][x2]->z = y_vector.z;
+							}
+
+						}
+
+						glDisable(GL_TEXTURE_2D);
+
+						// we will use quad strips for rendering
+						glBegin(GL_QUAD_STRIP);
+
+						glColor3f(waterColor[0], waterColor[1], waterColor[2]);
+						glNormal3f(0.0f, 1.0f, 0.0f);
+
+						// 'scanline' by 'scanline'...
+						for (int y2=0;y2<q_square_size;y2+=step_size)
+						{
+
+							mx1 = mx + 0;
+							my1 = my + y2;
+							my2 = my + y2 + step_size;
+							wx1 = (float) mx1 * world_square_size - terrainOffsetX;
+							wy1 = (float) my1 * world_square_size - terrainOffsetY;
+							wy2 = (float) my2 * world_square_size - terrainOffsetY;
+
+							if (y2 != 0)
+							{
+								// code for rendering invisible polygons that go to the starting position of the next scanline
+								normal = water_normals[my1][mx1];
+//								texcoord = texcoords[my1][mx1];
+								glNormal3f(normal->x, normal->y, normal->z);
+//								glTexCoord2f(texcoord->u, texcoord->v);
+								glVertex3f(wx1, waterLevel + pWorld->ppWater[water_interpolated][my1][mx1], wy1);
+
+//								glNormal3f(normal->x, normal->y, normal->z);
+//								glTexCoord2f(texcoord->u, texcoord->v);
+								glVertex3f(wx1, waterLevel + pWorld->ppWater[water_interpolated][my1][mx1], wy1);
+								
+							}
+
+							is_seen = NumUnitsSeeingSquare[my1][mx1] > 0 ? 1 : 0;
+							is_lighted = pWorld->NumLightsOnSquare[my1][mx1] > 0 ? 1 : 0;
+							glColor4f(waterMaterialAmbientDiffuse[is_lighted][is_seen][0],
+								  waterMaterialAmbientDiffuse[is_lighted][is_seen][1],
+								  waterMaterialAmbientDiffuse[is_lighted][is_seen][2],
+								  waterMaterialAmbientDiffuse[is_lighted][is_seen][3]);
+							// initial coordinates
+							normal = water_normals[my1][mx1];
+//							texcoord = texcoords[my1][mx1];
+							glNormal3f(normal->x, normal->y, normal->z);
+//							glTexCoord2f(texcoord->u, texcoord->v);
+							glVertex3f(wx1, waterLevel + pWorld->ppWater[water_interpolated][my1][mx1], wy1);
+							
+
+							is_seen = NumUnitsSeeingSquare[my2][mx1] > 0 ? 1 : 0;
+							is_lighted = pWorld->NumLightsOnSquare[my2][mx1] > 0 ? 1 : 0;
+							normal = water_normals[my2][mx1];
+							glColor4f(waterMaterialAmbientDiffuse[is_lighted][is_seen][0],
+								  waterMaterialAmbientDiffuse[is_lighted][is_seen][1],
+								  waterMaterialAmbientDiffuse[is_lighted][is_seen][2],
+								  waterMaterialAmbientDiffuse[is_lighted][is_seen][3]);
+//							texcoord = texcoords[my2][mx1];
+							glNormal3f(normal->x, normal->y, normal->z);
+//							glTexCoord2f(texcoord->u, texcoord->v);
+							glVertex3f(wx1, waterLevel + pWorld->ppWater[water_interpolated][my2][mx1], wy2);
+
+							for (int x2=0;x2<q_square_size;x2+=step_size)
+							{
+								// map x1, y1, x2 and y2 for the current scaled sqaure
+								mx1 = mx + x2;
+								my1 = my + y2;
+								mx2 = mx + x2 + step_size;
+								my2 = my + y2 + step_size;
+								// world x1, y1, x2 and y2
+								wx1 = (float) mx1 * world_square_size - terrainOffsetX;
+								wy1 = (float) my1 * world_square_size - terrainOffsetY;
+								wx2 = (float) mx2 * world_square_size - terrainOffsetX;
+								wy2 = (float) my2 * world_square_size - terrainOffsetY;
+							
+								is_seen = NumUnitsSeeingSquare[my1][mx2] > 0 ? 1 : 0;
+								is_lighted = pWorld->NumLightsOnSquare[my1][mx2] > 0 ? 1 : 0;
+							
+								glColor4f(waterMaterialAmbientDiffuse[is_lighted][is_seen][0],
+									  waterMaterialAmbientDiffuse[is_lighted][is_seen][1],
+									  waterMaterialAmbientDiffuse[is_lighted][is_seen][2],
+									  waterMaterialAmbientDiffuse[is_lighted][is_seen][3]);
+								// render it!
+								normal = water_normals[my1][mx2];
+//								texcoord = texcoords[my1][mx2];
+								glNormal3f(normal->x, normal->y, normal->z);
+//								glTexCoord2f(texcoord->u, texcoord->v);
+								glVertex3f(wx2, waterLevel + pWorld->ppWater[water_interpolated][my1][mx2], wy1);
+
+								is_seen = NumUnitsSeeingSquare[my2][mx2] > 0 ? 1 : 0;
+								is_lighted = pWorld->NumLightsOnSquare[my2][mx2] > 0 ? 1 : 0;
+
+								glColor4f(waterMaterialAmbientDiffuse[is_lighted][is_seen][0],
+									  waterMaterialAmbientDiffuse[is_lighted][is_seen][1],
+									  waterMaterialAmbientDiffuse[is_lighted][is_seen][2],
+									  waterMaterialAmbientDiffuse[is_lighted][is_seen][3]);
+								normal = water_normals[my2][mx2];
+//								texcoord = texcoords[my2][mx2];
+								glNormal3f(normal->x, normal->y, normal->z);
+//								glTexCoord2f(texcoord->u, texcoord->v);
+								glVertex3f(wx2, waterLevel + pWorld->ppWater[water_interpolated][my2][mx2], wy2);
+//								glVertex3f(wx2, waterLevel, wy2);
+								
+								
+							}
+							
+							if (y != q_square_size)
+							{
+								// code for rendering invisible polygons that go to the starting position of the next scanline
+//								glNormal3f(normal->x, normal->y, normal->z);
+//								glTexCoord2f(texcoord->u, texcoord->v);
+								glVertex3f(wx2, waterLevel + pWorld->ppWater[water_interpolated][my2][mx2], wy2);
+//								glVertex3f(wx2, waterLevel, wy2);
+
+//								glNormal3f(normal->x, normal->y, normal->z);
+//								glTexCoord2f(texcoord->u, texcoord->v);
+								glVertex3f(wx2, waterLevel + pWorld->ppWater[water_interpolated][my2][mx2], wy2);
+//								glVertex3f(wx2, waterLevel, wy2);
+							}
+							
+						}
+
+						glEnd();
+
+						glEnable(GL_TEXTURE_2D);
+
+					}
+				}
+			}
+			
+			glDisable(GL_COLOR_MATERIAL);*/
+			
+		}
+
+		void UnloadTerrain()
+		{
+			heightMap = NULL;
+		}
+
+		TerrainNode::TerrainNode() : GLStateNode(new Scene::Render::GLState)
+		{
+			myGLState->material = Utilities::LoadMaterialXML("materials/terrain.mat");
+		}
+
+		void TerrainNode::Render()
+		{
+			matrices[MATRIXTYPE_MODELVIEW].Apply();
 
 			Utilities::Vector3D pos_vector_near, pos_vector_far, cur_mod_pos, void_pos;
 			
@@ -1256,6 +1474,11 @@ namespace Game
 					vbos.normals.Lock();
 					heightMap->light.Lock();
 
+					int loc = glGetAttribLocationARB(myGLState->material->program, "light");
+					glEnableVertexAttribArrayARB(loc);
+					glBindBufferARB(GL_ARRAY_BUFFER_ARB, heightMap->light.buffer);
+					glVertexAttribPointerARB(loc, 1, GL_FLOAT, GL_FALSE, 0, NULL);
+
 					glBindBufferARB(GL_ARRAY_BUFFER_ARB, vbos.positions.buffer);
 					glVertexPointer(3, GL_FLOAT, 0, NULL);
 
@@ -1272,232 +1495,6 @@ namespace Game
 
 			heightMap->index.Unlock();
 
-			return SUCCESS;
-		}
-
-		void DrawWater()
-		{
-/*			int mipmap_level, scaled_square_size;
-			float world_square_size;
-			int mx, my;
-			int mx1, my1, mx2, my2;
-			float wx1, wy1, wx2, wy2;
-			float mix = Rules::time_passed_since_last_water_pass * 3;
-			int step_size;
-			XYZCoord* normal;
-			bool is_seen, is_lighted;
-			Uint16** NumUnitsSeeingSquare = Dimension::currentPlayerView->NumUnitsSeeingSquare;
-			
-			glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, waterMaterialSpecular);
-			glMaterialf(GL_FRONT_AND_BACK, GL_SHININESS, waterMaterialShininess);
-
-			glEnable(GL_COLOR_MATERIAL);
-			
-			// draw each big square
-			for (int y=0;y<pWorld->height/q_square_size;y++)
-			{
-				//for (int x=0;x<pWorld->width/q_square_size;x++)
-				for (int x=is_visible[0][y];x<=is_visible[1][y];x++)
-				{
-
-					mipmap_level = waterQuality;
-
-					// calculate the number of small squares in a big square at this mipmap level
-					scaled_square_size = q_square_size >> mipmap_level;
-
-					// calculate real size of a small square
-					world_square_size = (float) 16 / (float) 128;
-
-					// calculate the base index x and y coords into the height, normal and texcoord arrays at the current mipmap level
-					mx = x * q_square_size;
-					my = y * q_square_size;
-					step_size = 1 << mipmap_level;
-					
-					if (big_square_has_water[y][x])
-					{
-
-						for (int y2=0;y2<=q_square_size;y2+=step_size)
-						{
-
-							for (int x2=0;x2<=q_square_size;x2+=step_size)
-							{
-								mx1 = mx + x2;
-								my1 = my + y2;
-								pWorld->ppWater[water_interpolated][my1][mx1] = pWorld->ppWater[water_cur_front][my1][mx1] * (1 - mix) + pWorld->ppWater[water_cur_back][my1][mx1] * mix;
-							}
-
-						}
-
-						int start_x, start_y, end_x, end_y;
-						Utilities::Vector3D x_vector, y_vector;
-
-						start_x = mx == 0 ? 1 : mx;
-						start_y = my == 0 ? 1 : my;
-						end_x = mx + q_square_size == pWorld->width-1 ? pWorld->width-2 : mx + q_square_size;
-						end_y = my + q_square_size == pWorld->height-1 ? pWorld->height-2 : my + q_square_size;
-
-						for (int y2=start_y;y2<=end_y;y2+=step_size)
-						{
-
-							for (int x2=start_x;x2<=end_x;x2+=step_size)
-							{
-								y_vector = Utilities::Vector3D(0.0, pWorld->ppWater[water_interpolated][y2+1][x2] - pWorld->ppWater[water_interpolated][y2-1][x2], 0.250);
-								x_vector = Utilities::Vector3D(0.250, pWorld->ppWater[water_interpolated][y2][x2+1] - pWorld->ppWater[water_interpolated][y2][x2-1], 0.0);
-								y_vector.cross(x_vector);
-								y_vector.normalize();
-								water_normals[y2][x2]->x = y_vector.x;
-								water_normals[y2][x2]->y = y_vector.y;
-								water_normals[y2][x2]->z = y_vector.z;
-							}
-
-						}
-
-						glDisable(GL_TEXTURE_2D);
-
-						// we will use quad strips for rendering
-						glBegin(GL_QUAD_STRIP);
-
-						glColor3f(waterColor[0], waterColor[1], waterColor[2]);
-						glNormal3f(0.0f, 1.0f, 0.0f);
-
-						// 'scanline' by 'scanline'...
-						for (int y2=0;y2<q_square_size;y2+=step_size)
-						{
-
-							mx1 = mx + 0;
-							my1 = my + y2;
-							my2 = my + y2 + step_size;
-							wx1 = (float) mx1 * world_square_size - terrainOffsetX;
-							wy1 = (float) my1 * world_square_size - terrainOffsetY;
-							wy2 = (float) my2 * world_square_size - terrainOffsetY;
-
-							if (y2 != 0)
-							{
-								// code for rendering invisible polygons that go to the starting position of the next scanline
-								normal = water_normals[my1][mx1];
-//								texcoord = texcoords[my1][mx1];
-								glNormal3f(normal->x, normal->y, normal->z);
-//								glTexCoord2f(texcoord->u, texcoord->v);
-								glVertex3f(wx1, waterLevel + pWorld->ppWater[water_interpolated][my1][mx1], wy1);
-
-//								glNormal3f(normal->x, normal->y, normal->z);
-//								glTexCoord2f(texcoord->u, texcoord->v);
-								glVertex3f(wx1, waterLevel + pWorld->ppWater[water_interpolated][my1][mx1], wy1);
-								
-							}
-
-							is_seen = NumUnitsSeeingSquare[my1][mx1] > 0 ? 1 : 0;
-							is_lighted = pWorld->NumLightsOnSquare[my1][mx1] > 0 ? 1 : 0;
-							glColor4f(waterMaterialAmbientDiffuse[is_lighted][is_seen][0],
-								  waterMaterialAmbientDiffuse[is_lighted][is_seen][1],
-								  waterMaterialAmbientDiffuse[is_lighted][is_seen][2],
-								  waterMaterialAmbientDiffuse[is_lighted][is_seen][3]);
-							// initial coordinates
-							normal = water_normals[my1][mx1];
-//							texcoord = texcoords[my1][mx1];
-							glNormal3f(normal->x, normal->y, normal->z);
-//							glTexCoord2f(texcoord->u, texcoord->v);
-							glVertex3f(wx1, waterLevel + pWorld->ppWater[water_interpolated][my1][mx1], wy1);
-							
-
-							is_seen = NumUnitsSeeingSquare[my2][mx1] > 0 ? 1 : 0;
-							is_lighted = pWorld->NumLightsOnSquare[my2][mx1] > 0 ? 1 : 0;
-							normal = water_normals[my2][mx1];
-							glColor4f(waterMaterialAmbientDiffuse[is_lighted][is_seen][0],
-								  waterMaterialAmbientDiffuse[is_lighted][is_seen][1],
-								  waterMaterialAmbientDiffuse[is_lighted][is_seen][2],
-								  waterMaterialAmbientDiffuse[is_lighted][is_seen][3]);
-//							texcoord = texcoords[my2][mx1];
-							glNormal3f(normal->x, normal->y, normal->z);
-//							glTexCoord2f(texcoord->u, texcoord->v);
-							glVertex3f(wx1, waterLevel + pWorld->ppWater[water_interpolated][my2][mx1], wy2);
-
-							for (int x2=0;x2<q_square_size;x2+=step_size)
-							{
-								// map x1, y1, x2 and y2 for the current scaled sqaure
-								mx1 = mx + x2;
-								my1 = my + y2;
-								mx2 = mx + x2 + step_size;
-								my2 = my + y2 + step_size;
-								// world x1, y1, x2 and y2
-								wx1 = (float) mx1 * world_square_size - terrainOffsetX;
-								wy1 = (float) my1 * world_square_size - terrainOffsetY;
-								wx2 = (float) mx2 * world_square_size - terrainOffsetX;
-								wy2 = (float) my2 * world_square_size - terrainOffsetY;
-							
-								is_seen = NumUnitsSeeingSquare[my1][mx2] > 0 ? 1 : 0;
-								is_lighted = pWorld->NumLightsOnSquare[my1][mx2] > 0 ? 1 : 0;
-							
-								glColor4f(waterMaterialAmbientDiffuse[is_lighted][is_seen][0],
-									  waterMaterialAmbientDiffuse[is_lighted][is_seen][1],
-									  waterMaterialAmbientDiffuse[is_lighted][is_seen][2],
-									  waterMaterialAmbientDiffuse[is_lighted][is_seen][3]);
-								// render it!
-								normal = water_normals[my1][mx2];
-//								texcoord = texcoords[my1][mx2];
-								glNormal3f(normal->x, normal->y, normal->z);
-//								glTexCoord2f(texcoord->u, texcoord->v);
-								glVertex3f(wx2, waterLevel + pWorld->ppWater[water_interpolated][my1][mx2], wy1);
-
-								is_seen = NumUnitsSeeingSquare[my2][mx2] > 0 ? 1 : 0;
-								is_lighted = pWorld->NumLightsOnSquare[my2][mx2] > 0 ? 1 : 0;
-
-								glColor4f(waterMaterialAmbientDiffuse[is_lighted][is_seen][0],
-									  waterMaterialAmbientDiffuse[is_lighted][is_seen][1],
-									  waterMaterialAmbientDiffuse[is_lighted][is_seen][2],
-									  waterMaterialAmbientDiffuse[is_lighted][is_seen][3]);
-								normal = water_normals[my2][mx2];
-//								texcoord = texcoords[my2][mx2];
-								glNormal3f(normal->x, normal->y, normal->z);
-//								glTexCoord2f(texcoord->u, texcoord->v);
-								glVertex3f(wx2, waterLevel + pWorld->ppWater[water_interpolated][my2][mx2], wy2);
-//								glVertex3f(wx2, waterLevel, wy2);
-								
-								
-							}
-							
-							if (y != q_square_size)
-							{
-								// code for rendering invisible polygons that go to the starting position of the next scanline
-//								glNormal3f(normal->x, normal->y, normal->z);
-//								glTexCoord2f(texcoord->u, texcoord->v);
-								glVertex3f(wx2, waterLevel + pWorld->ppWater[water_interpolated][my2][mx2], wy2);
-//								glVertex3f(wx2, waterLevel, wy2);
-
-//								glNormal3f(normal->x, normal->y, normal->z);
-//								glTexCoord2f(texcoord->u, texcoord->v);
-								glVertex3f(wx2, waterLevel + pWorld->ppWater[water_interpolated][my2][mx2], wy2);
-//								glVertex3f(wx2, waterLevel, wy2);
-							}
-							
-						}
-
-						glEnd();
-
-						glEnable(GL_TEXTURE_2D);
-
-					}
-				}
-			}
-			
-			glDisable(GL_COLOR_MATERIAL);*/
-			
-		}
-
-		void UnloadTerrain()
-		{
-			heightMap = NULL;
-		}
-
-		TerrainNode::TerrainNode() : GLStateNode(new Scene::Render::GLState)
-		{
-			myGLState->material = Utilities::LoadMaterialXML("materials/terrain.mat");
-		}
-
-		void TerrainNode::Render()
-		{
-			matrices[MATRIXTYPE_MODELVIEW].Apply();
-			Dimension::DrawTerrain();
 		}
 
 		WaterNode::WaterNode() : GLStateNode(new Scene::Render::GLState)

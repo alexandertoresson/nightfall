@@ -1706,35 +1706,6 @@ namespace UnitLuaInterface
 		LUA_SUCCESS
 	}
 	
-	int LLoadTerrainTexture(lua_State* pVM)
-	{
-		if (lua_isnil(pVM, 1))
-		{
-			lua_pushlightuserdata(pVM, NULL);
-			return 1;
-		}
-		
-		if (!lua_isstring(pVM, 1))
-		{
-			lua_pushlightuserdata(pVM, NULL);
-			return 1;
-		}
-	
-		std::stringstream ss("");
-		ss << "textures/";
-		ss << lua_tostring(pVM, 1);
-		
-		SDL_Surface* img = Utilities::LoadImage(ss.str().c_str());
-		
-		if (img != NULL)
-		{
-			Game::Dimension::terraintexture = Utilities::CreateGLTexture(img);
-		}
-		
-		lua_pushlightuserdata(pVM, (void*)img);
-		return 1;
-	}
-
 #define ASSERT_PARAM_COUNT(count) \
 	for (int lua_idx = 1; lua_idx <= (count); lua_idx++) \
 	{ \
@@ -1778,56 +1749,6 @@ namespace UnitLuaInterface
 		LUA_SUCCESS
 	}
 
-	int LPrepareGUI(lua_State* pVM)
-	{
-		if (lua_isnil(pVM, 1))
-		{
-			LUA_FAILURE("Incorrect arguments")
-		}
-		
-		if (!lua_isuserdata(pVM, 1))
-		{
-			LUA_FAILURE("First argument no pointer")
-		}
-		
-		SDL_Surface* p = (SDL_Surface*) lua_touserdata(pVM, 1);
-		
-		if (p == NULL)
-		{
-			LUA_FAILURE("Null pointer")
-		}
-		
-		Game::Rules::GameWindow::Instance()->InitGUI(p);
-		
-		p = NULL;
-		
-		LUA_SUCCESS
-	}
-	
-	int LFreeSurface(lua_State* pVM)
-	{
-		if (lua_isnil(pVM, 1))
-		{
-			LUA_FAILURE("Incorrect arguments")
-		}
-		
-		if (!lua_isuserdata(pVM, 1))
-		{
-			LUA_FAILURE("First argument no pointer")
-		}
-		
-		SDL_Surface* p = (SDL_Surface*) lua_touserdata(pVM, 1);
-		
-		if (p != NULL)
-		{
-			SDL_FreeSurface(p);
-		}
-		
-		p = NULL;
-		
-		LUA_SUCCESS
-	}
-	
 	int LAllocEnvironmentalCondition(lua_State* pVM)
 	{
 		Game::Dimension::Environment::EnvironmentalCondition* env = new
@@ -3344,11 +3265,8 @@ else \
 		pVM->RegisterFunction("LoadHeightmap", LLoadHeightmap);
 		pVM->RegisterFunction("SetHeightmapModifier", LSetHeightmapModifier);
 		pVM->RegisterFunction("SetMaximumBuildingAltitude", LSetMaximumBuildingAltitude);
-		pVM->RegisterFunction("LoadTerrainTexture", LLoadTerrainTexture);
 		pVM->RegisterFunction("SetWaterLevel", LSetWaterLevel);
 		pVM->RegisterFunction("SetWaterHeight", LSetWaterHeight);
-		pVM->RegisterFunction("PrepareGUI", LPrepareGUI);
-		pVM->RegisterFunction("FreeSurface", LFreeSurface);
 		pVM->RegisterFunction("AllocEnvironmentalCondition", LAllocEnvironmentalCondition);
 		pVM->RegisterFunction("SetHours", LSetHours);
 		pVM->RegisterFunction("SetType", LSetType);

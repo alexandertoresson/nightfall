@@ -104,7 +104,7 @@ namespace Game
 				int LoadGame(bool isNetworked = false, Networking::NETWORKTYPE ntype = Networking::CLIENT);
 				void EndGame();
 				
-				int InitGUI(SDL_Surface* img);
+				int InitGUI();
 
 				Window::GUI::ConsoleBuffer* GetConsoleBuffer(void) const;
 

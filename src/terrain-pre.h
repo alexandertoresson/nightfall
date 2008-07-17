@@ -26,8 +26,6 @@ namespace Game
 
 		struct HeightMap;
 		
-		extern GLuint terraintexture;
-		
 		extern float terrainOffsetX, terrainOffsetY;
 		extern float terrainHeight;
 		extern float waterLevel;

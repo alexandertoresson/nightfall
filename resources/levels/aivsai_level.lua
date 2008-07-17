@@ -24,12 +24,6 @@ function InitLevel()
 
 	---------------------------------------------------
 
-	map_texture = LoadTerrainTexture("terrain3.png")
-	PrepareGUI(map_texture)
-	FreeSurface(map_texture)
-
-	---------------------------------------------------
-
 	InitSkybox(30, 9)
 
 	---------------------------------------------------
