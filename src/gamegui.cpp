@@ -1105,7 +1105,7 @@ namespace Game
 			bgColor[3] = 0.6f;
 			pGame = ref;
 			if (!Game::Rules::noGraphics)
-				tmap = CreateMap(img, &Dimension::HeightMipmaps[0][0], Dimension::pWorld->width, Dimension::pWorld->height, 256,256);
+				tmap = CreateMap(img, Dimension::heightMap, Dimension::pWorld->width, Dimension::pWorld->height, 256,256);
 			buildSelected = false;
 		}
 

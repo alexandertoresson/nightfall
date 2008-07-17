@@ -31,7 +31,6 @@ namespace Game
 		extern float terrainOffsetX, terrainOffsetY;
 		extern float terrainHeight;
 		extern float waterLevel;
-		extern HeightMap HeightMipmaps[2][32];
 		extern int water_cur_front, water_cur_back;
 
 		// overall quality of terrain; increase to increase terrain detail
@@ -40,8 +39,7 @@ namespace Game
 		extern int waterQuality;
 		
 		float GetTerrainHeight(float x, float y);
-		float GetTerrainHeightHighestLevel(float x, float y);
-		float GetTerrainHeightHighestLevel(int x, int y);
+		float GetTerrainHeight(int x, int y);
 		
 		int DrawTerrain();
 		void DrawWater();

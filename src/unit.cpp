@@ -626,9 +626,9 @@ namespace Game
 			else
 			{
 				goto_pos = target->pos;
-				goal_pos = Utilities::Vector3D(goto_pos.x, goto_pos.y, Dimension::GetTerrainHeightHighestLevel(goto_pos.x, goto_pos.y));
+				goal_pos = Utilities::Vector3D(goto_pos.x, goto_pos.y, Dimension::GetTerrainHeight(goto_pos.x, goto_pos.y));
 				goal_pos.z += target->type->height * 0.25f * 0.0625f;
-				gc_root_ptr<Projectile>::type proj = CreateProjectile(attacker->type->projectileType, Utilities::Vector3D(attacker->pos.x, attacker->pos.y, GetTerrainHeightHighestLevel(attacker->pos.x, attacker->pos.y)), goal_pos);
+				gc_root_ptr<Projectile>::type proj = CreateProjectile(attacker->type->projectileType, Utilities::Vector3D(attacker->pos.x, attacker->pos.y, GetTerrainHeight(attacker->pos.x, attacker->pos.y)), goal_pos);
 				proj->goalUnit = target;
 				attacker->projectiles.push_back(proj);
 				UnitMainNode::instance.ScheduleProjectileAddition(proj);
@@ -655,7 +655,7 @@ namespace Game
 				Networking::checksum_output << "PROJ " << AI::currentFrame << ": " << proj->pos.x << ", " << proj->pos.y << ", " << proj->pos.z << " " << proj->pos.distance(proj->goalPos) << " " << proj->type->speed * (1.0 / AI::aiFps) << "\n";
 #endif
 /*					if (proj->type->isHoming && proj->goalUnit != NULL)
-					proj->goalPos = GetTerrainCoordHighestLevel(proj->goalUnit->pos.x, proj->goalUnit->pos.y);*/
+					proj->goalPos = GetTerrainCoord(proj->goalUnit->pos.x, proj->goalUnit->pos.y);*/
 
 				if (proj->pos.distance(proj->goalPos) < proj->type->speed * (1.0 / AI::aiFps))
 				{
@@ -684,7 +684,7 @@ namespace Game
 					if (big_end_x >= bigSquareWidth)
 						big_end_x = bigSquareWidth-1;
 
-					Utilities::Vector3D proj_pos = GetTerrainCoordHighestLevel(proj->goalPos.x, proj->goalPos.y);
+					Utilities::Vector3D proj_pos = GetTerrainCoord(proj->goalPos.x, proj->goalPos.y);
 					proj_pos.y = proj->goalPos.z;
 
 					units_hit.clear();
@@ -699,7 +699,7 @@ namespace Game
 								if (target == pUnit)
 									continue;
 
-								Utilities::Vector3D unit_pos = GetTerrainCoordHighestLevel(target->pos.x, target->pos.y);
+								Utilities::Vector3D unit_pos = GetTerrainCoord(target->pos.x, target->pos.y);
 								if (proj_pos.distance(unit_pos) <= max_radius)
 								{
 									units_hit.push_back(target);

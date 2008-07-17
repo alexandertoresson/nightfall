@@ -28,7 +28,7 @@ namespace Window
 	{
 
 		float PixelAlign(float value, float unit);
-		GLuint CreateMap(SDL_Surface*,Game::Dimension::HeightMap*,int,int,int,int);
+		GLuint CreateMap(SDL_Surface*,gc_ptr<Game::Dimension::HeightMap>,int,int,int,int);
 
 		struct TranslatedMouse
 		{

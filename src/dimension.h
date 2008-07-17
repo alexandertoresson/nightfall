@@ -91,9 +91,6 @@ namespace Game
 		
 		struct World
 		{
-			float**         ppHeight;
-			Uint16**        ppSteepness;
-			float**         ppWater[3];
 			Uint16**        NumLightsOnSquare;
 			std::vector<gc_ptr<Unit> >   vUnits;
 			std::vector<gc_ptr<Unit> >   vUnitsWithAI;

@@ -19,25 +19,11 @@ namespace Utilities
 		z = a.z;
 	}
 	
-	Vector3D::Vector3D(Game::Dimension::XYZCoord *a)
+	Vector3D::Vector3D(const Game::Dimension::XYZCoord& a)
 	{
-		x = a->x;
-		y = a->y;
-		z = a->z;
-	}
-	
-	Vector3D::Vector3D(Game::Dimension::UVWCoord *a)
-	{
-		x = a->u;
-		y = a->v;
-		z = a->w;
-	}
-	
-	Vector3D::Vector3D(Game::Dimension::SphereNormal *a)
-	{
-		x = sin(a->phi) * cos(a->theta);
-		y = sin(a->phi) * sin(a->theta);
-		z = cos(a->phi);
+		x = a.x;
+		y = a.y;
+		z = a.z;
 	}
 	
 	Vector3D::Vector3D(float newX, float newY, float newZ)

@@ -271,7 +271,7 @@ namespace Game
 				m_curFogEnd = m_curEnvCond->fogEnd;
 				m_curAlpha = 0.0f;
 
-				if (m_curEnvCond->terrainMaterialAmbientDiffuse[0][0][0] >= 0.0f)
+/*				if (m_curEnvCond->terrainMaterialAmbientDiffuse[0][0][0] >= 0.0f)
 				{
 					for (i = 0; i < 2; i++)
 					{
@@ -293,7 +293,7 @@ namespace Game
 								Dimension::waterMaterialAmbientDiffuse[i][j][k] = m_curEnvCond->waterMaterialAmbientDiffuse[i][j][k];
 						}
 					}
-				}
+				}*/
 
 			}
 
@@ -416,7 +416,7 @@ namespace Game
 					m_curSunPos[i] = interpCond_1->sunPos[i] * (1 - interpProgress) + interpCond_2->sunPos[i] * interpProgress;
 				}
 
-				if (interpCond_1->waterMaterialAmbientDiffuse[0][0][0] >= 0.0f)
+/*				if (interpCond_1->waterMaterialAmbientDiffuse[0][0][0] >= 0.0f)
 				{
 					for (i = 0; i < 2; i++)
 					{
@@ -442,7 +442,7 @@ namespace Game
 							}
 						}
 					}
-				}
+				}*/
 
 				if (m_curEnvCond->fogColor[0] > 0.0f)
 				{

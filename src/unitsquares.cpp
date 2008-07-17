@@ -869,8 +869,8 @@ namespace Game
 			{
 				return false;
 			}
-			int steepness = pWorld->ppSteepness[y][x];
-			float height = HeightMipmaps[0][0].ppHeights[y][x];
+			int steepness = heightMap->steepness[y][x];
+			float height = heightMap->heights[y][x];
 			switch (mType)
 			{
 				case MOVEMENT_HUMAN:
@@ -1624,7 +1624,7 @@ namespace Game
 								{
 									if (x2 >= 0 && y2 >= 0 && x2 < pWorld->width && y2 < pWorld->height)
 									{
-										steepness += pWorld->ppSteepness[y2][x2];
+										steepness += heightMap->steepness[y2][x2];
 										num++;
 									}
 								}

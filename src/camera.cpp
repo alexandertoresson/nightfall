@@ -116,7 +116,7 @@ namespace Game
 				mFocus.z = terrainOffsetY - 1;
 
 			// Set Y of focus to right above the ground at the focus point
-			mFocus.y = GetTerrainHeightHighestLevel((mFocus.x + terrainOffsetX) * 8, (mFocus.z + terrainOffsetY) * 8) + 0.5;
+			mFocus.y = GetTerrainHeight((mFocus.x + terrainOffsetX) * 8, (mFocus.z + terrainOffsetY) * 8) + 0.5;
 
 			// begin by setting mView to point right into -z
 			mView.set(0.0f, 0.0f, -1.0f);
@@ -145,8 +145,8 @@ namespace Game
 				mPosition.z = terrainOffsetY - 0.0001;
 
 			// Check that mPosition.y is above mYMin units above ground level, and that it's below mYMax
-			if (mPosition.y - mYMin < GetTerrainHeightHighestLevel((mPosition.x + terrainOffsetX) * 8, (mPosition.z + terrainOffsetY) * 8))
-				mPosition.y = GetTerrainHeightHighestLevel((mPosition.x + terrainOffsetX) * 8, (mPosition.z + terrainOffsetY) * 8) + mYMin;
+			if (mPosition.y - mYMin < GetTerrainHeight((mPosition.x + terrainOffsetX) * 8, (mPosition.z + terrainOffsetY) * 8))
+				mPosition.y = GetTerrainHeight((mPosition.x + terrainOffsetX) * 8, (mPosition.z + terrainOffsetY) * 8) + mYMin;
 			else if (mPosition.y > mYMax)
 				mPosition.y = mYMax;
 

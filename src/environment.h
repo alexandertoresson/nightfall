@@ -55,8 +55,8 @@ namespace Game
 				GLfloat  ambient[4];
 				GLfloat  diffuse[4];
 				GLfloat  sunPos[4];
-				GLfloat  terrainMaterialAmbientDiffuse[2][2][4];
-				GLfloat  waterMaterialAmbientDiffuse[2][2][4];
+/*				GLfloat  terrainMaterialAmbientDiffuse[2][2][4];
+				GLfloat  waterMaterialAmbientDiffuse[2][2][4];*/
 				int      skybox;
 				bool     isNight;
 				bool     isDay;
@@ -93,7 +93,7 @@ namespace Game
 						this->sunPos[i]    = 0;
 					}
 					
-					for (int i = 0; i < 2; i++)
+/*					for (int i = 0; i < 2; i++)
 					{
 						for (int j = 0; j < 2; j++)
 						{
@@ -107,7 +107,7 @@ namespace Game
 
 					// Use presets
 					this->waterMaterialAmbientDiffuse[0][0][0] = -1.0f; 
-					this->terrainMaterialAmbientDiffuse[0][0][0] = -1.0f;
+					this->terrainMaterialAmbientDiffuse[0][0][0] = -1.0f;*/
 
 					this->fptrOnBegin = NULL;
 					this->fptrOnEnd = NULL;

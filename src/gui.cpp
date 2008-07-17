@@ -76,13 +76,13 @@ namespace Window
 			BilinearInterpolation(v, result, vx, vy);
 		}
 
-		GLuint CreateMap(SDL_Surface* texture, Game::Dimension::HeightMap* map, int mapw, int maph, int resx, int resy)
+		GLuint CreateMap(SDL_Surface* texture, gc_ptr<Game::Dimension::HeightMap> map, int mapw, int maph, int resx, int resy)
 		{
 			console << Console::imp << "Generating 2D terrain map from " << mapw << "x" << maph << " to " << resx << "x" << resy << "..." << Console::nl;
 			Uint32 start = SDL_GetTicks();
 			Uint8 *pic = new Uint8[resx * resy * 3];
 			
-			Uint8 *tmppic = pic;
+/*			Uint8 *tmppic = pic;
 			float xa = (mapw - 1) / (float)resx;
 			float ya = (maph - 1) / (float)resy;
 
@@ -175,7 +175,7 @@ namespace Window
 						tmppic++;
 					}
 				}
-			}
+			}*/
 			GLuint ogltexture;
 			glGenTextures(1, &ogltexture);
 			glBindTexture(GL_TEXTURE_2D, ogltexture);

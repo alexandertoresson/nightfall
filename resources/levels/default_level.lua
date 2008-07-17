@@ -24,23 +24,6 @@ function InitLevel()
 
 	---------------------------------------------------
 
-	-- 1:st argument -  is the square seen?
-	-- 2:nd argument -  is the square lighted?
-
-	SetTerrainAmbientDiffuse(false, false, 0.25, 0.25, 0.25, 1.0)
-	SetTerrainAmbientDiffuse(true, false, 0.35, 0.35, 0.35, 1.0)
-	SetTerrainAmbientDiffuse(false, true, 0.25, 0.25, 0.25, 1.0)
-	SetTerrainAmbientDiffuse(true, true, 0.6, 0.6, 0.6, 1.0)
-
-	SetWaterAmbientDiffuse(false, false, 0.1, 0.02, 0.02, 0.66)
-	SetWaterAmbientDiffuse(true, false, 0.2, 0.04, 0.04, 0.66)
-	SetWaterAmbientDiffuse(false, true, 0.1, 0.02, 0.02, 0.66)
-	SetWaterAmbientDiffuse(true, true, 0.4, 0.08, 0.08, 0.66)
-
-	SetWaterColor(0.2, 0, 0)
-
-	---------------------------------------------------
-
 	map_texture = LoadTerrainTexture("terrain3.png")
 	PrepareGUI(map_texture)
 	FreeSurface(map_texture)

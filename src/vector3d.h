@@ -30,13 +30,7 @@ namespace Utilities
 			Vector3D(const Vector3D& a);//                  : x(a.x) , y(a.y) , z(a.z)  {}
 			
 			// Konstruktör från XYZCoord
-			Vector3D(Game::Dimension::XYZCoord *a);//                  : x(a->x) , y(a->y) , z(a->z)  {}
-			
-			// Konstruktör från UVWCoord
-			Vector3D(Game::Dimension::UVWCoord *a);//                  : x(a->u) , y(a->v) , z(a->w)  {}
-			
-			// Konstruktör från SphereNormal
-			Vector3D(Game::Dimension::SphereNormal *a);//                  : x(a->u) , y(a->v) , z(a->w)  {}
+			Vector3D(const Game::Dimension::XYZCoord& a);//                  : x(a->x) , y(a->y) , z(a->z)  {}
 			
 			// Konstruktör med 3 initiella värden
 			Vector3D(float newX, float newY, float newZ);// : x(newX), y(newY), z(newZ) {}
