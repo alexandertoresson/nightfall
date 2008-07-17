@@ -1461,7 +1461,7 @@ namespace Game
 						mx = basex;
 						for (int x2 = 0; x2 <= q_square_size; x2++)
 						{
-							data[i] = terrainMaterialModifiers[NLOS[my][mx]][NUSS[my][mx]];
+							data[i] = terrainMaterialModifiers[NLOS[my][mx]>0][NUSS[my][mx]>0];
 							mx++;
 							i++;
 						}
