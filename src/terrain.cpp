@@ -35,9 +35,6 @@ namespace Game
 		// overall quality of terrain; increase to increase terrain detail
 		float quality = 15000.0;
 		
-		// water mipmap level, decrease to increase quality level
-		int waterQuality = 1;
-		
 		// size of the squares that the landscape is divided into.
 		// don't change if you don't really have to.
 		const int q_square_size = 32;
@@ -452,10 +449,8 @@ namespace Game
 
 		void CalculateWater()
 		{
-/*			int height, width;
-			float** ppWater[2];
-			ppWater[0] = pWorld->ppWater[0];
-			ppWater[1] = pWorld->ppWater[1];
+			int height, width;
+			gc_array<float, 3>& ppWater = heightMap->water;;
 			height = pWorld->height-1;
 			width = pWorld->width-1;
 
@@ -463,17 +458,19 @@ namespace Game
 			{
 				int y = rand() % (height-1) + 1;
 				int x = rand() % (width-1) + 1;
-				if (waterLevel > pWorld->ppHeight[y][x])
+				if (waterLevel > heightMap->heights[y][x])
 				{
-					ppWater[water_cur_front][y][x] += (float) ((double) rand() / RAND_MAX - 0.5) * (waterLevel - pWorld->ppHeight[y][x]) * 0.1f;
+					ppWater[water_cur_front][y][x] += (float) ((double) rand() / RAND_MAX - 0.5) * (waterLevel - heightMap->heights[y][x]) * 0.1f;
 				}
 			}
+
+			int i = 0;
 
 			for (int y = 1; y < height; y++)
 			{
 				for (int x = 1; x < width; x++)
 				{
-					if (HeightMipmaps[0][0].ppSquareHasWater[y][x])
+					if (heightMap->squareHasWater[y][x])
 					{
 						ppWater[water_cur_front][y][x] = (ppWater[water_cur_back][y-1][x] +
 										  ppWater[water_cur_back][y+1][x] +
@@ -482,20 +479,23 @@ namespace Game
 										  ppWater[water_cur_front][y][x];
 
 						ppWater[water_cur_front][y][x] *= 0.95f;
-						if (waterLevel + ppWater[water_cur_front][y][x] < pWorld->ppHeight[y][x])
+						if (waterLevel + ppWater[water_cur_front][y][x] < heightMap->heights[y][x])
 						{
-							ppWater[water_cur_front][y][x] = pWorld->ppHeight[y][x] - waterLevel + 0.01f;
+							ppWater[water_cur_front][y][x] = heightMap->heights[y][x] - waterLevel + 0.01f;
 						}
-						if (waterLevel + 0.01f < pWorld->ppHeight[y][x])
+						if (waterLevel + 0.01f < heightMap->heights[y][x])
 						{
 							ppWater[water_cur_front][y][x] = 0.0f;
 						}
 
 					}
+
+					i++;
 				}
 			}
 			water_cur_front ^= 1;
-			water_cur_back ^= 1;*/
+			water_cur_back ^= 1;
+
 		}
 
 		void InitVBOs()
@@ -543,13 +543,21 @@ namespace Game
 					}
 				}
 			}
-
+			
 			Scene::Render::VBO& light = heightMap->light;
 
 			int flen = (q_square_size+1)*(q_square_size+1);
 
 			light.data.floats = new GLfloat[flen];
 			light.size = flen * sizeof(GLfloat);
+
+			Scene::Render::VBO& waterBack = heightMap->waterBack;
+			Scene::Render::VBO& waterFront = heightMap->waterFront;
+
+			waterBack.data.floats = new GLfloat[flen];
+			waterBack.size = flen * sizeof(GLfloat);
+			waterFront.data.floats = new GLfloat[flen];
+			waterFront.size = flen * sizeof(GLfloat);
 
 			Scene::Render::VBO& index = heightMap->index;
 
@@ -1504,8 +1512,92 @@ namespace Game
 
 		void WaterNode::Render()
 		{
+			int loc;
+
 			matrices[MATRIXTYPE_MODELVIEW].Apply();
-			Dimension::DrawWater();
+
+			float mix = Rules::time_passed_since_last_water_pass * 3;
+
+			heightMap->index.Lock();
+
+			glEnableClientState(GL_INDEX_ARRAY);
+			glBindBufferARB(GL_ELEMENT_ARRAY_BUFFER_ARB, heightMap->index.buffer);
+			glIndexPointer(GL_SHORT, 0, NULL);
+
+			Scene::Render::VBO& waterBack = heightMap->waterBack;
+			Scene::Render::VBO& waterFront = heightMap->waterFront;
+
+			glEnableClientState(GL_VERTEX_ARRAY);
+			glDisableClientState(GL_NORMAL_ARRAY);
+			
+			loc = glGetUniformLocationARB(myGLState->material->program, "mixLevels");
+			glUniform1fARB(loc, mix);
+
+			loc = glGetUniformLocationARB(myGLState->material->program, "waterLevel");
+			glUniform1fARB(loc, waterLevel);
+
+			// draw each big square
+			for (int y=0;y<levelmap_height;y++)
+			{
+				//for (int x=0;x<pWorld->width/q_square_size;x++)
+				for (int x=is_visible[0][y];x<=is_visible[1][y];x++)
+				{
+					
+					TerrainBSVBOs& vbos = heightMap->bsvbos[y][x];
+					vbos.positions.Lock();
+
+					glBindBufferARB(GL_ARRAY_BUFFER_ARB, vbos.positions.buffer);
+					glVertexPointer(3, GL_FLOAT, 0, NULL);
+
+					// calculate the base index x and y coords into the height, normal and texcoord arrays at the current mipmap level
+					int basex = x * q_square_size;
+					int mx = basex;
+					int my = y * q_square_size;
+					int i = 0;
+					
+					if (heightMap->bigSquareHasWater[y][x])
+					{
+						for (int y2 = 0; y2 <= q_square_size; y2++)
+						{
+							mx = basex;
+							for (int x2 = 0; x2 <= q_square_size; x2++)
+							{
+								waterBack.data.floats[i] = heightMap->water[water_cur_back][my][mx];
+								waterFront.data.floats[i] = heightMap->water[water_cur_front][my][mx];
+								mx++;
+								i++;
+							}
+							my++;
+						}
+					}
+
+					waterBack.SetChanged();
+					waterFront.SetChanged();
+
+					waterBack.Lock();
+					waterFront.Lock();
+
+					loc = glGetAttribLocationARB(myGLState->material->program, "waterBack");
+					glEnableVertexAttribArrayARB(loc);
+					glBindBufferARB(GL_ARRAY_BUFFER_ARB, waterBack.buffer);
+					glVertexAttribPointerARB(loc, 1, GL_FLOAT, GL_FALSE, 0, NULL);
+
+					loc = glGetAttribLocationARB(myGLState->material->program, "waterFront");
+					glEnableVertexAttribArrayARB(loc);
+					glBindBufferARB(GL_ARRAY_BUFFER_ARB, waterFront.buffer);
+					glVertexAttribPointerARB(loc, 1, GL_FLOAT, GL_FALSE, 0, NULL);
+
+					glDrawElements(GL_QUAD_STRIP, heightMap->index.numVals, GL_UNSIGNED_SHORT, NULL);
+					
+					waterFront.Unlock();
+					waterBack.Unlock();
+
+					vbos.positions.Unlock();
+				}
+			}
+
+			heightMap->index.Unlock();
+
 		}
 
 	}

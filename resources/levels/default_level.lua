@@ -21,6 +21,7 @@ function InitLevel()
 		return false
 	end
 	SetMaximumBuildingAltitude(-0.0005)
+	SetWaterLevel(-2.0);
 
 	---------------------------------------------------
 

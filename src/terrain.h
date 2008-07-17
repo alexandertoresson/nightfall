@@ -46,6 +46,8 @@ namespace Game
 			gc_array<TerrainBSVBOs, 2> bsvbos;
 			Scene::Render::VBO index;
 			Scene::Render::VBO light;
+			Scene::Render::VBO waterBack;
+			Scene::Render::VBO waterFront;
 
 			void shade()
 			{

@@ -1,6 +1,5 @@
 uniform sampler2D waterTexture;
 varying vec3 N, L;
-varying float flight;
 
 void main(void)
 {
@@ -15,5 +14,5 @@ void main(void)
 	if (NdotH > 0.0)
 		specular = vec4(vec3(pow(NdotH, gl_FrontMaterial.shininess)), 1.0) * gl_FrontLightProduct[0].specular;
 
-	gl_FragColor = (texture2D(waterTexture, gl_TexCoord[0].st) * (ambient + diffuse) + specular) * vec4(flight);
+	gl_FragColor = (texture2D(waterTexture, gl_TexCoord[0].st) * (ambient + diffuse) + specular);
 }
