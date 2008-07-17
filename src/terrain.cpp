@@ -517,7 +517,7 @@ namespace Game
 							positions.data.floats[i] = (basex + x2) * world_square_size - terrainOffsetX;
 							normals.data.floats[i] = heightMap->normals[basey+y2][basex+x2].x;
 							i++;
-							positions.data.floats[i] = heightMap->heights[basey+y2][basex+x2] * terrainHeight;
+							positions.data.floats[i] = heightMap->heights[basey+y2][basex+x2] * terrainHeight * 0.5;
 							normals.data.floats[i] = heightMap->normals[basey+y2][basex+x2].y;
 							i++;
 							positions.data.floats[i] = (basey + y2) * world_square_size - terrainOffsetY;
@@ -530,14 +530,21 @@ namespace Game
 
 			Scene::Render::VBO& index = heightMap->index;
 
-			int len = (q_square_size+1)*(q_square_size+1)*2;
+			int len = (q_square_size+1)*q_square_size*2+(q_square_size-1)*4;
 			index.data.ushorts = new GLushort[len];
 			index.size = len * sizeof(GLushort);
 			index.numVals = len;
 
 			int i = 0;
-			for (int y2 = 0; y2 <= q_square_size; y2++)
+			for (int y2 = 0; y2 < q_square_size; y2++)
 			{
+				if (y2 != 0)
+				{
+					index.data.ushorts[i] = y2*(q_square_size+1);
+					i++;
+					index.data.ushorts[i] = y2*(q_square_size+1);
+					i++;
+				}
 				for (int x2 = 0; x2 <= q_square_size; x2++)
 				{
 					index.data.ushorts[i] = y2*(q_square_size+1)+x2;
@@ -545,14 +552,16 @@ namespace Game
 					index.data.ushorts[i] = (y2+1)*(q_square_size+1)+x2;
 					i++;
 				}
-/*				if (y2 != q_square_size)
+				if (y2 != q_square_size-1)
 				{
 					index.data.ushorts[i] = (y2+1)*(q_square_size+1)+q_square_size;
 					i++;
-					index.data.ushorts[i] = (y2+1)*(q_square_size+1);
+					index.data.ushorts[i] = (y2+1)*(q_square_size+1)+q_square_size;
 					i++;
-				}*/
+				}
 			}
+
+			std::cout << len << " " << i << std::endl;
 		}
 
 		// array storing the start and end of displayed big squares, for every column of big squares
@@ -1000,12 +1009,6 @@ namespace Game
 
 		int DrawTerrain()
 		{
-/*			// size of a small square in the 'world'
-			float world_square_size;
-			// base index coords of the big squares that the landscape is divided into
-			int mx, my;
-			int h = pWorld->height/q_square_size;
-			int w = pWorld->width/q_square_size;*/
 
 			Utilities::Vector3D pos_vector_near, pos_vector_far, cur_mod_pos, void_pos;
 			
@@ -1192,6 +1195,9 @@ namespace Game
 			glBindBufferARB(GL_ELEMENT_ARRAY_BUFFER_ARB, heightMap->index.buffer);
 			glIndexPointer(GL_SHORT, 0, NULL);
 
+			glEnableClientState(GL_VERTEX_ARRAY);
+			glEnableClientState(GL_NORMAL_ARRAY);
+
 			// draw each big square
 			for (int y=0;y<levelmap_height;y++)
 			{
@@ -1204,11 +1210,9 @@ namespace Game
 					vbos.positions.Lock();
 					vbos.normals.Lock();
 
-					glEnableClientState(GL_VERTEX_ARRAY);
 					glBindBufferARB(GL_ARRAY_BUFFER_ARB, vbos.positions.buffer);
 					glVertexPointer(3, GL_FLOAT, 0, NULL);
 
-					glEnableClientState(GL_NORMAL_ARRAY);
 					glBindBufferARB(GL_ARRAY_BUFFER_ARB, vbos.normals.buffer);
 					glNormalPointer(GL_FLOAT, 0, NULL);
 
