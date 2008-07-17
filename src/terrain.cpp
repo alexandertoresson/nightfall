@@ -18,7 +18,7 @@ namespace Game
 	namespace Dimension
 	{
 		float terrainOffsetX, terrainOffsetY;
-		float terrainHeight = 3.0f;
+		float terrainHeight = 9.0f;
 		float waterLevel = -1.35f, waterHeight = 0.1f;
 
 		GLfloat    terrainMaterialModifiers[2][2] = {
@@ -374,22 +374,6 @@ namespace Game
 
 		int numwater;
 
-		struct checkWater
-		{
-			bool generate(std::vector<unsigned> dims)
-			{
-				if (waterLevel + waterHeight / 2 >= heightMap->heights[dims[0]][dims[1]])
-				{
-					numwater++;
-					return true;
-				}
-				else
-				{
-					return false;
-				}
-			};
-		};
-
 		void InitWater()
 		{
 			int numbigwater = 0;
@@ -405,9 +389,19 @@ namespace Game
 
 			dims.erase(dims.begin());
 
-			heightMap->squareHasWater = gc_array<bool, 2>(dims, checkWater());
+			heightMap->squareHasWater = dims;
 			heightMap->waterNormals = dims;
 
+			for (int y = 0; y < pWorld->height; y++)
+			{
+				for (int x = 0; x < pWorld->width; x++)
+				{
+					if (waterHeight / 2 + waterLevel >= heightMap->heights[y][x])
+					{
+						heightMap->squareHasWater[y][x] = true;
+					}
+				}
+			}
 
 			for (int y = 0; y < levelmap_height; y++)
 			{
@@ -431,7 +425,7 @@ namespace Game
 
 			cout << numwater << " water squares" << endl;
 			cout << numbigwater << " big water squares" << endl;
-			for (int i = 0; i < 200; i++)
+			for (int i = 0; i < 100; i++)
 			{
 				CalculateWater();
 			}
@@ -466,7 +460,7 @@ namespace Game
 			{
 				int y = rand() % (height-5) + 3;
 				int x = rand() % (width-5) + 3;
-				float height = heightMap->heights[y][x] * terrainHeight * 0.5;
+				float height = heightMap->heights[y][x];
 				if (waterLevel > height)
 				{
 					float val = (float) ((double) rand() / RAND_MAX - 0.5) * (waterLevel - height) * 0.02f;
@@ -488,7 +482,7 @@ namespace Game
 				{
 					if (heightMap->squareHasWater[y][x])
 					{
-						float theight = heightMap->heights[y][x] * terrainHeight * 0.5;
+						float theight = heightMap->heights[y][x];
 						ppWater[water_cur_front][y][x] = (ppWater[water_cur_back][y-1][x] +
 										  ppWater[water_cur_back][y+1][x] +
 										  ppWater[water_cur_back][y][x-1] +
@@ -548,7 +542,7 @@ namespace Game
 							positions.data.floats[i] = (basex + x2) * world_square_size - terrainOffsetX;
 							normals.data.floats[i] = heightMap->normals[basey+y2][basex+x2].x;
 							i++;
-							positions.data.floats[i] = heightMap->heights[basey+y2][basex+x2] * terrainHeight * 0.5;
+							positions.data.floats[i] = heightMap->heights[basey+y2][basex+x2];
 							normals.data.floats[i] = heightMap->normals[basey+y2][basex+x2].y;
 							i++;
 							positions.data.floats[i] = (basey + y2) * world_square_size - terrainOffsetY;
@@ -697,7 +691,7 @@ namespace Game
 				for (int x = 0; x < width; x++)
 				{
 					file >> temp;
-					heightMap->heights[y][x] = ((float) temp / 255-0.5f)*terrainHeight;
+					heightMap->heights[y][x] = ((float) temp / 255-0.5f)*terrainHeight*0.5;
 				}
 			}
 
@@ -819,8 +813,8 @@ namespace Game
 				my = 0;
 			}
 
-			return ((heights[my][mx] * (1 - xmix) + heights[my][mx+1] * xmix) * (1 - ymix) +
-			       ((heights[my+1][mx] * (1 - xmix) + heights[my+1][mx+1] * xmix) * ymix)) * terrainHeight * 0.5;
+			return (heights[my][mx] * (1 - xmix) + heights[my][mx+1] * xmix) * (1 - ymix) +
+			       ((heights[my+1][mx] * (1 - xmix) + heights[my+1][mx+1] * xmix) * ymix);
 		}
 
 		// get the terrain normal at the specified location, interpolated
@@ -881,7 +875,7 @@ namespace Game
 		// get the terrain height at the specified location
 		float GetTerrainHeight(int x, int y)
 		{
-			return heightMap->heights[y][x] * terrainHeight * 0.5;
+			return heightMap->heights[y][x];
 		}
 
 		Utilities::Vector3D GetTerrainCoord(float x, float y)
@@ -1598,51 +1592,50 @@ namespace Game
 				for (int x=is_visible[0][y];x<=is_visible[1][y];x++)
 				{
 					
-					TerrainBSVBOs& vbos = heightMap->bsvbos[y][x];
-					vbos.positions.Lock();
-
-					glBindBufferARB(GL_ARRAY_BUFFER_ARB, vbos.positions.buffer);
-					glVertexPointer(3, GL_FLOAT, 0, NULL);
-
-					{
-						int i = 0;
-						int my = y * q_square_size;
-						int basex = x * q_square_size;
-						int mx = basex;
-						float* data = heightMap->light.data.floats;
-						Uint16** NLOS = pWorld->NumLightsOnSquare;
-						Uint16** NUSS = currentPlayerView->NumUnitsSeeingSquare;
-
-						for (int y2 = 0; y2 <= q_square_size; y2++)
-						{
-							mx = basex;
-							for (int x2 = 0; x2 <= q_square_size; x2++)
-							{
-								data[i] = terrainMaterialModifiers[NLOS[my][mx]>0][NUSS[my][mx]>0];
-								mx++;
-								i++;
-							}
-							my++;
-						}
-					}
-
-					heightMap->light.SetChanged();
-
-					heightMap->light.Lock();
-
-					loc = glGetAttribLocationARB(myGLState->material->program, "light");
-					glEnableVertexAttribArrayARB(loc);
-					glBindBufferARB(GL_ARRAY_BUFFER_ARB, heightMap->light.buffer);
-					glVertexAttribPointerARB(loc, 1, GL_FLOAT, GL_FALSE, 0, NULL);
-
-					// calculate the base index x and y coords into the height, normal and texcoord arrays at the current mipmap level
-					int basex = x * q_square_size;
-					int mx = basex;
-					int my = y * q_square_size;
-					int i = 0;
-					
 					if (heightMap->bigSquareHasWater[y][x])
 					{
+						TerrainBSVBOs& vbos = heightMap->bsvbos[y][x];
+						vbos.positions.Lock();
+
+						glBindBufferARB(GL_ARRAY_BUFFER_ARB, vbos.positions.buffer);
+						glVertexPointer(3, GL_FLOAT, 0, NULL);
+
+						{
+							int i = 0;
+							int my = y * q_square_size;
+							int basex = x * q_square_size;
+							int mx = basex;
+							float* data = heightMap->light.data.floats;
+							Uint16** NLOS = pWorld->NumLightsOnSquare;
+							Uint16** NUSS = currentPlayerView->NumUnitsSeeingSquare;
+
+							for (int y2 = 0; y2 <= q_square_size; y2++)
+							{
+								mx = basex;
+								for (int x2 = 0; x2 <= q_square_size; x2++)
+								{
+									data[i] = terrainMaterialModifiers[NLOS[my][mx]>0][NUSS[my][mx]>0];
+									mx++;
+									i++;
+								}
+								my++;
+							}
+						}
+
+						heightMap->light.SetChanged();
+
+						heightMap->light.Lock();
+
+						loc = glGetAttribLocationARB(myGLState->material->program, "light");
+						glEnableVertexAttribArrayARB(loc);
+						glBindBufferARB(GL_ARRAY_BUFFER_ARB, heightMap->light.buffer);
+						glVertexAttribPointerARB(loc, 1, GL_FLOAT, GL_FALSE, 0, NULL);
+
+						int basex = x * q_square_size;
+						int mx = basex;
+						int my = y * q_square_size;
+						int i = 0;
+						
 						for (int y2 = 0; y2 <= q_square_size; y2++)
 						{
 							mx = basex;
@@ -1655,32 +1648,32 @@ namespace Game
 							}
 							my++;
 						}
+
+						waterBack.SetChanged();
+						waterFront.SetChanged();
+
+						waterBack.Lock();
+						waterFront.Lock();
+
+						loc = glGetAttribLocationARB(myGLState->material->program, "waterBack");
+						glEnableVertexAttribArrayARB(loc);
+						glBindBufferARB(GL_ARRAY_BUFFER_ARB, waterBack.buffer);
+						glVertexAttribPointerARB(loc, 1, GL_FLOAT, GL_FALSE, 0, NULL);
+
+						loc = glGetAttribLocationARB(myGLState->material->program, "waterFront");
+						glEnableVertexAttribArrayARB(loc);
+						glBindBufferARB(GL_ARRAY_BUFFER_ARB, waterFront.buffer);
+						glVertexAttribPointerARB(loc, 1, GL_FLOAT, GL_FALSE, 0, NULL);
+
+						glDrawElements(GL_QUAD_STRIP, heightMap->index.numVals, GL_UNSIGNED_SHORT, NULL);
+						
+						waterFront.Unlock();
+						waterBack.Unlock();
+
+						vbos.positions.Unlock();
+						heightMap->light.Unlock();
+
 					}
-
-					waterBack.SetChanged();
-					waterFront.SetChanged();
-
-					waterBack.Lock();
-					waterFront.Lock();
-
-					loc = glGetAttribLocationARB(myGLState->material->program, "waterBack");
-					glEnableVertexAttribArrayARB(loc);
-					glBindBufferARB(GL_ARRAY_BUFFER_ARB, waterBack.buffer);
-					glVertexAttribPointerARB(loc, 1, GL_FLOAT, GL_FALSE, 0, NULL);
-
-					loc = glGetAttribLocationARB(myGLState->material->program, "waterFront");
-					glEnableVertexAttribArrayARB(loc);
-					glBindBufferARB(GL_ARRAY_BUFFER_ARB, waterFront.buffer);
-					glVertexAttribPointerARB(loc, 1, GL_FLOAT, GL_FALSE, 0, NULL);
-
-					glDrawElements(GL_QUAD_STRIP, heightMap->index.numVals, GL_UNSIGNED_SHORT, NULL);
-					
-					waterFront.Unlock();
-					waterBack.Unlock();
-
-					vbos.positions.Unlock();
-					heightMap->light.Unlock();
-
 				}
 			}
 

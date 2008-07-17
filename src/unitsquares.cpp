@@ -941,7 +941,7 @@ namespace Game
 			{
 				for (int x = start_x; x <= end_x; x++)
 				{
-					const gc_ptr<Unit>& pUnit = pppElements[y][x];
+					gc_ptr<Unit> pUnit = pppElements[y][x];
 					if (pUnit && !pUnit->type->isMobile)
 					{
 						pUnit->usedInAreaMaps = true;
@@ -980,7 +980,7 @@ namespace Game
 				walkable = MovementTypeCanWalkOnSquare_NoPrecalc(movementType, x, y);
 				if (walkable && (flags & SIW_ALLKNOWING || SquareIsVisible_UnGuarded(player, x, y)))
 				{
-					const gc_ptr<Unit>& curUnit = pppElements[y][x];
+					gc_ptr<Unit> curUnit = pppElements[y][x];
 					if (!curUnit || curUnit == unit)
 					{
 						return true;
@@ -1015,7 +1015,7 @@ namespace Game
 		{
 			if (flags & SIW_ALLKNOWING || SquareIsVisible_UnGuarded(player, x, y))
 			{
-				const gc_ptr<Unit>& curUnit = pppElements[y][x];
+				gc_ptr<Unit> curUnit = pppElements[y][x];
 				if (!curUnit || curUnit == unit)
 				{
 					return true;
@@ -1311,7 +1311,7 @@ namespace Game
 							// Update the lastSeenPosition in the spotted unit of the player
 							// of the spotting unit correctly.
 							int player_index = unit->owner->index;
-							const gc_ptr<Unit>& rev_unit = pppElements[ny][nx];
+							gc_ptr<Unit> rev_unit = pppElements[ny][nx];
 
 							rev_unit->lastSeenPositions[player_index] = rev_unit->curAssociatedSquare;
 						}
