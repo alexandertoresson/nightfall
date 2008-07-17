@@ -369,7 +369,7 @@ namespace Game
 		{
 			bool generate(std::vector<unsigned> dims)
 			{
-				if (waterLevel + waterHeight / 2 >= heightMap->heights[dims[1]][dims[2]])
+				if (waterLevel + waterHeight / 2 >= heightMap->heights[dims[0]][dims[1]])
 				{
 					numwater++;
 					return true;
@@ -398,9 +398,6 @@ namespace Game
 
 			heightMap->squareHasWater = gc_array<bool, 2>(dims, checkWater());
 			heightMap->waterNormals = dims;
-
-//					HeightMipmaps[0][0].ppSquareHasWater[y][x] = (waterLevel + waterHeight / 2 >= pWorld->ppHeight[y][x]);
-//					numwater += HeightMipmaps[0][0].ppSquareHasWater[y][x];
 
 
 			for (int y = 0; y < levelmap_height; y++)
@@ -489,6 +486,75 @@ namespace Game
 			water_cur_back ^= 1;*/
 		}
 
+		void InitVBOs()
+		{
+			float world_square_size = 0.125f;
+
+			std::vector<unsigned> dims;
+			dims.push_back(levelmap_height);
+			dims.push_back(levelmap_width);
+
+			heightMap->bsvbos = dims;
+
+			for (int y = 0; y < levelmap_height; y++)
+			{
+				for (int x = 0; x < levelmap_width; x++)
+				{
+					Scene::Render::VBO& positions = heightMap->bsvbos[y][x].positions;
+					Scene::Render::VBO& normals = heightMap->bsvbos[y][x].normals;
+					int len = (q_square_size+1)*(q_square_size+1)*3;
+					positions.data.floats = new GLfloat[len];
+					normals.data.floats = new GLfloat[len];
+					positions.size = len * sizeof(GLfloat);
+					normals.size = len * sizeof(GLfloat);
+					int i = 0;
+					int basey = y * q_square_size;
+					int basex = x * q_square_size;
+					for (int y2 = 0; y2 <= q_square_size; y2++)
+					{
+						for (int x2 = 0; x2 <= q_square_size; x2++)
+						{
+							positions.data.floats[i] = (basex + x2) * world_square_size - terrainOffsetX;
+							normals.data.floats[i] = heightMap->normals[basey+y2][basex+x2].x;
+							i++;
+							positions.data.floats[i] = heightMap->heights[basey+y2][basex+x2] * terrainHeight;
+							normals.data.floats[i] = heightMap->normals[basey+y2][basex+x2].y;
+							i++;
+							positions.data.floats[i] = (basey + y2) * world_square_size - terrainOffsetY;
+							normals.data.floats[i] = heightMap->normals[basey+y2][basex+x2].z;
+							i++;
+						}
+					}
+				}
+			}
+
+			Scene::Render::VBO& index = heightMap->index;
+
+			int len = (q_square_size+1)*(q_square_size+1)*2;
+			index.data.ushorts = new GLushort[len];
+			index.size = len * sizeof(GLushort);
+			index.numVals = len;
+
+			int i = 0;
+			for (int y2 = 0; y2 <= q_square_size; y2++)
+			{
+				for (int x2 = 0; x2 <= q_square_size; x2++)
+				{
+					index.data.ushorts[i] = y2*(q_square_size+1)+x2;
+					i++;
+					index.data.ushorts[i] = (y2+1)*(q_square_size+1)+x2;
+					i++;
+				}
+/*				if (y2 != q_square_size)
+				{
+					index.data.ushorts[i] = (y2+1)*(q_square_size+1)+q_square_size;
+					i++;
+					index.data.ushorts[i] = (y2+1)*(q_square_size+1);
+					i++;
+				}*/
+			}
+		}
+
 		// array storing the start and end of displayed big squares, for every column of big squares
 		int *is_visible[2];
 		
@@ -565,14 +631,14 @@ namespace Game
 
 			file.close();
 			
-			std::vector<unsigned> dims;
-			dims.push_back(height/q_square_size);
-			dims.push_back(width/q_square_size);
-
-			heightMap->bigSquareHasWater = dims;
-
 			levelmap_height = height/q_square_size;
 			levelmap_width = width/q_square_size;
+
+			std::vector<unsigned> dims;
+			dims.push_back(levelmap_height);
+			dims.push_back(levelmap_width);
+
+			heightMap->bigSquareHasWater = dims;
 
 			is_visible[0] = new int[levelmap_height];
 			is_visible[1] = new int[levelmap_height];
@@ -595,6 +661,10 @@ namespace Game
 /*				cout << "Calculating mipmaps for heightmap..." <<  endl;
 				
 				CreateMipmaps();*/
+
+				cout << "Initializing VBOs..." << endl;
+
+				InitVBOs();
 
 			}
 
@@ -1116,28 +1186,41 @@ namespace Game
 			// viewing plane in the middle of the screen
 			Utilities::WindowCoordToVector((Window::windowWidth-1) * 0.5, (Window::windowHeight-1) * 0.5, cur_mod_pos, void_pos);
 
+			heightMap->index.Lock();
+
+			glEnableClientState(GL_INDEX_ARRAY);
+			glBindBufferARB(GL_ELEMENT_ARRAY_BUFFER_ARB, heightMap->index.buffer);
+			glIndexPointer(GL_SHORT, 0, NULL);
+
 			// draw each big square
-/*			for (int y=0;y<pWorld->height/q_square_size;y++)
+			for (int y=0;y<levelmap_height;y++)
 			{
 				//for (int x=0;x<pWorld->width/q_square_size;x++)
 				for (int x=is_visible[0][y];x<=is_visible[1][y];x++)
 				{
 
-					// calculate real size of a small square
-					world_square_size = (float) 16 / (float) (128 >> mipmap_level);
+					TerrainBSVBOs& vbos = heightMap->bsvbos[y][x];
 
-					// calculate the base index x and y coords into the height, normal and texcoord arrays at the current mipmap level
-					mx = x * (q_square_size >> mipmap_level);
-					my = y * (q_square_size >> mipmap_level);
+					vbos.positions.Lock();
+					vbos.normals.Lock();
 
-					// get the heights, normals and texcoords into local vars
-					heights = HeightMipmaps[0][mipmap_level].ppHeights;
-					normals = HeightMipmaps[0][mipmap_level].ppNormals;
-					texcoords = HeightMipmaps[0][mipmap_level].ppTexCoords;
+					glEnableClientState(GL_VERTEX_ARRAY);
+					glBindBufferARB(GL_ARRAY_BUFFER_ARB, vbos.positions.buffer);
+					glVertexPointer(3, GL_FLOAT, 0, NULL);
 
+					glEnableClientState(GL_NORMAL_ARRAY);
+					glBindBufferARB(GL_ARRAY_BUFFER_ARB, vbos.normals.buffer);
+					glNormalPointer(GL_FLOAT, 0, NULL);
+
+					glDrawElements(GL_QUAD_STRIP, heightMap->index.numVals, GL_UNSIGNED_SHORT, NULL);
+
+					vbos.positions.Unlock();
+					vbos.normals.Unlock();
 
 				}
-			}*/
+			}
+
+			heightMap->index.Unlock();
 
 			return SUCCESS;
 		}

@@ -27,6 +27,12 @@ namespace Game
 			float z;
 		};
 
+		struct TerrainBSVBOs : gc_null_shader<TerrainBSVBOs>
+		{
+			Scene::Render::VBO positions;
+			Scene::Render::VBO normals;
+		};
+
 		struct HeightMap
 		{
 			gc_array<float, 2> heights;
@@ -37,6 +43,9 @@ namespace Game
 			gc_array<XYZCoord, 2> waterNormals;
 			gc_array<bool, 2> bigSquareHasWater;
 
+			gc_array<TerrainBSVBOs, 2> bsvbos;
+			Scene::Render::VBO index;
+
 			void shade()
 			{
 				heights.shade();
@@ -46,6 +55,7 @@ namespace Game
 				squareHasWater.shade();
 				waterNormals.shade();
 				bigSquareHasWater.shade();
+				bsvbos.shade();
 			}
 		};
 		
