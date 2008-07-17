@@ -308,7 +308,7 @@ namespace Game
 
 					val /= (float) n-1; // to compensate for the middle point, which will always be 0
 
-					steepness = (int) (val * 1000);
+					steepness = (int) (val * 1000); // Scale the value
 
 					if (steepness > 65535)
 					{
@@ -363,10 +363,31 @@ namespace Game
 
 		int water_cur_front = 1, water_cur_back = 0, water_interpolated = 2;
 
+		int numwater;
+
+		struct checkWater
+		{
+			bool generate(std::vector<unsigned> dims)
+			{
+				if (waterLevel + waterHeight / 2 >= heightMap->heights[dims[1]][dims[2]])
+				{
+					numwater++;
+					return true;
+				}
+				else
+				{
+					return false;
+				}
+			};
+		};
+
 		void InitWater()
 		{
-			int numwater = 0, numbigwater = 0;
+			int numbigwater = 0;
 			std::vector<unsigned> dims;
+
+			numwater = 0;
+
 			dims.push_back(3);
 			dims.push_back(pWorld->height);
 			dims.push_back(pWorld->width);
@@ -375,7 +396,7 @@ namespace Game
 
 			dims.erase(dims.begin());
 
-			heightMap->squareHasWater = dims;
+			heightMap->squareHasWater = gc_array<bool, 2>(dims, checkWater());
 			heightMap->waterNormals = dims;
 
 //					HeightMipmaps[0][0].ppSquareHasWater[y][x] = (waterLevel + waterHeight / 2 >= pWorld->ppHeight[y][x]);
@@ -392,7 +413,7 @@ namespace Game
 						{
 							if (heightMap->squareHasWater[y*q_square_size+y2][x*q_square_size+x2])
 							{
-								big_square_has_water[y][x] = true;
+								heightMap->bigSquareHasWater[y][x] = true;
 								numbigwater += 1;
 								goto next_big_square;
 							}
@@ -544,15 +565,11 @@ namespace Game
 
 			file.close();
 			
-			big_square_has_water = new bool*[height/q_square_size];
-			for (int y=0;y<height/q_square_size;y++)
-			{
-				big_square_has_water[y] = new bool[width/q_square_size];
-				for (int x=0;x<height/q_square_size;x++)
-				{
-					big_square_has_water[y][x] = false;
-				}
-			}
+			std::vector<unsigned> dims;
+			dims.push_back(height/q_square_size);
+			dims.push_back(width/q_square_size);
+
+			heightMap->bigSquareHasWater = dims;
 
 			levelmap_height = height/q_square_size;
 			levelmap_width = width/q_square_size;

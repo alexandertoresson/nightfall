@@ -45,6 +45,7 @@ namespace Game
 				water.shade();
 				squareHasWater.shade();
 				waterNormals.shade();
+				bigSquareHasWater.shade();
 			}
 		};
 		
