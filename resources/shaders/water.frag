@@ -1,5 +1,6 @@
 uniform sampler2D waterTexture;
 varying vec3 N, L;
+varying float C;
 
 void main(void)
 {
@@ -8,7 +9,7 @@ void main(void)
 	
 	float NdotL = max(0.0, dot(N_norm, L));
 	vec4 diffuse = vec4(vec3(NdotL), 1.0) * gl_FrontLightProduct[0].diffuse;
-	vec4 ambient = vec4(vec3(gl_FrontLightProduct[0].ambient), 1.0);
+	vec4 ambient = vec4(vec3(gl_FrontLightProduct[0].ambient) * vec3(C), 1.0);
 	float NdotH = max(0.0, dot(N_norm, H));
 	vec4 specular = vec4(0.0);
 	if (NdotH > 0.0)

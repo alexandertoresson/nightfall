@@ -450,17 +450,33 @@ namespace Game
 		void CalculateWater()
 		{
 			int height, width;
-			gc_array<float, 3>& ppWater = heightMap->water;;
+			float matrix[5][5] = {{0.05, 0.25, 0.33, 0.25, 0.05},
+			                      {0.25, 0.53, 0.66, 0.53, 0.25},
+			                      {0.33, 0.66, 1.00, 0.66, 0.33},
+			                      {0.25, 0.53, 0.66, 0.53, 0.25},
+			                      {0.05, 0.25, 0.33, 0.25, 0.05}};
+			gc_array<float, 3>& ppWater = heightMap->water;
 			height = pWorld->height-1;
 			width = pWorld->width-1;
 
+			water_cur_front ^= 1;
+			water_cur_back ^= 1;
+
 			for (int i = 0; i < 1000; i++)
 			{
-				int y = rand() % (height-1) + 1;
-				int x = rand() % (width-1) + 1;
-				if (waterLevel > heightMap->heights[y][x])
+				int y = rand() % (height-5) + 3;
+				int x = rand() % (width-5) + 3;
+				float height = heightMap->heights[y][x] * terrainHeight * 0.5;
+				if (waterLevel > height)
 				{
-					ppWater[water_cur_front][y][x] += (float) ((double) rand() / RAND_MAX - 0.5) * (waterLevel - heightMap->heights[y][x]) * 0.1f;
+					float val = (float) ((double) rand() / RAND_MAX - 0.5) * (waterLevel - height) * 0.02f;
+					for (int y2 = 0; y2 < 5; y2++)
+					{
+						for (int x2 = 0; x2 < 5; x2++)
+						{
+							ppWater[water_cur_front][y+y2-2][x+x2-2] += val * matrix[y2][x2];
+						}
+					}
 				}
 			}
 
@@ -472,6 +488,7 @@ namespace Game
 				{
 					if (heightMap->squareHasWater[y][x])
 					{
+						float theight = heightMap->heights[y][x] * terrainHeight * 0.5;
 						ppWater[water_cur_front][y][x] = (ppWater[water_cur_back][y-1][x] +
 										  ppWater[water_cur_back][y+1][x] +
 										  ppWater[water_cur_back][y][x-1] +
@@ -479,11 +496,11 @@ namespace Game
 										  ppWater[water_cur_front][y][x];
 
 						ppWater[water_cur_front][y][x] *= 0.95f;
-						if (waterLevel + ppWater[water_cur_front][y][x] < heightMap->heights[y][x])
+						if (ppWater[water_cur_front][y][x] < theight - waterLevel)
 						{
-							ppWater[water_cur_front][y][x] = heightMap->heights[y][x] - waterLevel + 0.01f;
+							ppWater[water_cur_front][y][x] = theight - waterLevel;
 						}
-						if (waterLevel + 0.01f < heightMap->heights[y][x])
+						if (waterLevel < theight)
 						{
 							ppWater[water_cur_front][y][x] = 0.0f;
 						}
@@ -493,8 +510,6 @@ namespace Game
 					i++;
 				}
 			}
-			water_cur_front ^= 1;
-			water_cur_back ^= 1;
 
 		}
 
@@ -1535,6 +1550,8 @@ namespace Game
 
 			loc = glGetUniformLocationARB(myGLState->material->program, "waterLevel");
 			glUniform1fARB(loc, waterLevel);
+
+			glNormal3f(0.0, 1.0, 0.0);
 
 			// draw each big square
 			for (int y=0;y<levelmap_height;y++)
