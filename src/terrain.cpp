@@ -23,11 +23,11 @@ namespace Game
 
 		GLfloat    terrainMaterialModifiers[2][2] = {
 		                                              {
-		                                                0.2f,   // not seen, not lighted
-		                                                0.5f    // seen, not lighted
+		                                                0.35f,   // not seen, not lighted
+		                                                0.7f    // seen, not lighted
 		                                              },
 		                                              {
-		                                                0.2f,   // not seen, lighted
+		                                                0.35f,   // not seen, lighted
 		                                                1.0f    // seen, lighted
 		                                              }
 		                                            };
@@ -566,6 +566,23 @@ namespace Game
 			light.data.floats = new GLfloat[flen];
 			light.size = flen * sizeof(GLfloat);
 
+			Scene::Render::VBO& texCoords = heightMap->texCoords;
+
+			texCoords.data.floats = new GLfloat[flen*2];
+			texCoords.size = flen * 2 * sizeof(GLfloat);
+
+			int i = 0;
+			for (int y2 = 0; y2 <= q_square_size; y2++)
+			{
+				for (int x2 = 0; x2 <= q_square_size; x2++)
+				{
+					texCoords.data.floats[i] = (float) x2 / pWorld->width;
+					i++;
+					texCoords.data.floats[i] = (float) y2 / pWorld->height;
+					i++;
+				}
+			}
+
 			Scene::Render::VBO& waterBack = heightMap->waterBack;
 			Scene::Render::VBO& waterFront = heightMap->waterFront;
 
@@ -581,7 +598,7 @@ namespace Game
 			index.size = len * sizeof(GLushort);
 			index.numVals = len;
 
-			int i = 0;
+			i = 0;
 			for (int y2 = 0; y2 < q_square_size; y2++)
 			{
 				if (y2 != 0)
@@ -1459,6 +1476,15 @@ namespace Game
 			glBindBufferARB(GL_ELEMENT_ARRAY_BUFFER_ARB, heightMap->index.buffer);
 			glIndexPointer(GL_SHORT, 0, NULL);
 
+			heightMap->texCoords.Lock();
+
+			glEnable(GL_TEXTURE_2D);
+
+			glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+			glClientActiveTextureARB(GL_TEXTURE0_ARB);
+			glBindBufferARB(GL_ARRAY_BUFFER_ARB, heightMap->texCoords.buffer);
+			glTexCoordPointer(2, GL_FLOAT, 0, NULL);
+
 			glEnableClientState(GL_VERTEX_ARRAY);
 			glEnableClientState(GL_NORMAL_ARRAY);
 
@@ -1497,7 +1523,13 @@ namespace Game
 					vbos.normals.Lock();
 					heightMap->light.Lock();
 
-					int loc = glGetAttribLocationARB(myGLState->material->program, "light");
+					int loc = glGetUniformLocationARB(myGLState->material->program, "baseX");
+					glUniform1fARB(loc, float(x * q_square_size) / pWorld->width);
+
+					loc = glGetUniformLocationARB(myGLState->material->program, "baseY");
+					glUniform1fARB(loc, float(y * q_square_size) / pWorld->height);
+
+					loc = glGetAttribLocationARB(myGLState->material->program, "light");
 					glEnableVertexAttribArrayARB(loc);
 					glBindBufferARB(GL_ARRAY_BUFFER_ARB, heightMap->light.buffer);
 					glVertexAttribPointerARB(loc, 1, GL_FLOAT, GL_FALSE, 0, NULL);
@@ -1516,8 +1548,9 @@ namespace Game
 				}
 			}
 
-			heightMap->index.Unlock();
+			heightMap->texCoords.Unlock();
 
+			heightMap->index.Unlock();
 		}
 
 		WaterNode::WaterNode() : GLStateNode(new Scene::Render::GLState)
@@ -1544,6 +1577,7 @@ namespace Game
 
 			glEnableClientState(GL_VERTEX_ARRAY);
 			glDisableClientState(GL_NORMAL_ARRAY);
+			glDisableClientState(GL_TEXTURE_COORD_ARRAY);
 			
 			loc = glGetUniformLocationARB(myGLState->material->program, "mixLevels");
 			glUniform1fARB(loc, mix);
@@ -1565,6 +1599,37 @@ namespace Game
 
 					glBindBufferARB(GL_ARRAY_BUFFER_ARB, vbos.positions.buffer);
 					glVertexPointer(3, GL_FLOAT, 0, NULL);
+
+					{
+						int i = 0;
+						int my = y * q_square_size;
+						int basex = x * q_square_size;
+						int mx = basex;
+						float* data = heightMap->light.data.floats;
+						Uint16** NLOS = pWorld->NumLightsOnSquare;
+						Uint16** NUSS = currentPlayerView->NumUnitsSeeingSquare;
+
+						for (int y2 = 0; y2 <= q_square_size; y2++)
+						{
+							mx = basex;
+							for (int x2 = 0; x2 <= q_square_size; x2++)
+							{
+								data[i] = terrainMaterialModifiers[NLOS[my][mx]>0][NUSS[my][mx]>0];
+								mx++;
+								i++;
+							}
+							my++;
+						}
+					}
+
+					heightMap->light.SetChanged();
+
+					heightMap->light.Lock();
+
+					loc = glGetAttribLocationARB(myGLState->material->program, "light");
+					glEnableVertexAttribArrayARB(loc);
+					glBindBufferARB(GL_ARRAY_BUFFER_ARB, heightMap->light.buffer);
+					glVertexAttribPointerARB(loc, 1, GL_FLOAT, GL_FALSE, 0, NULL);
 
 					// calculate the base index x and y coords into the height, normal and texcoord arrays at the current mipmap level
 					int basex = x * q_square_size;
@@ -1610,6 +1675,8 @@ namespace Game
 					waterBack.Unlock();
 
 					vbos.positions.Unlock();
+					heightMap->light.Unlock();
+
 				}
 			}
 

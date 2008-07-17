@@ -2,6 +2,8 @@ varying vec3 N, L;
 attribute float waterBack, waterFront;
 uniform float mixLevels, waterLevel;
 varying float C;
+varying float flight;
+attribute float light;
 
 void main(void)
 {
@@ -10,4 +12,5 @@ void main(void)
 	N = normalize(gl_NormalMatrix * gl_Normal);
 	L = vec3(normalize(gl_LightSource[0].position));
 	C = mix(waterBack, waterFront, mixLevels) * 20;
+	flight = light;
 }

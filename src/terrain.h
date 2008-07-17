@@ -48,6 +48,8 @@ namespace Game
 			Scene::Render::VBO light;
 			Scene::Render::VBO waterBack;
 			Scene::Render::VBO waterFront;
+			
+			Scene::Render::VBO texCoords;
 
 			void shade()
 			{
