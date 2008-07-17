@@ -78,6 +78,11 @@ class gc_marker_base
 	public:
 
 		gc_marker_base(Mark mark, int refs);
+
+		virtual ~gc_marker_base()
+		{
+			
+		}
 		
 		virtual void dispose() = 0;
 		virtual void blacken() = 0;
