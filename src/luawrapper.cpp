@@ -18,7 +18,7 @@ namespace Utilities
 {
 	namespace Scripting
 	{
-		gc_ptr<LuaVMState> globalVMState;
+		gc_root_ptr<LuaVMState>::type globalVMState;
 
 		void SetEnum(lua_State *L, const char* field, int value)
 		{
@@ -105,7 +105,6 @@ namespace Utilities
 			std::cout << "[Lua VM] Constructing" << std::endl;
 #endif
 			m_pState = lua_open();
-			std::cout << "open " << m_pState << std::endl;
 
 			if (player)
 			{
@@ -132,7 +131,6 @@ namespace Utilities
 		{
 			if (m_pState)
 			{
-				std::cout << "close " << m_pState << std::endl;
 				if (!global)
 				{
 					Game::Dimension::pWorld->luaStateToPlayer.erase(m_pState);

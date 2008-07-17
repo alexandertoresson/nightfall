@@ -69,7 +69,7 @@ namespace Utilities
 				}
 		};
 
-		extern gc_ptr<LuaVMState> globalVMState;
+		extern gc_root_ptr<LuaVMState>::type globalVMState;
 		
 		const gc_ptr<Game::Dimension::Player>& GetPlayerByVMstate(lua_State *vmState);
 		LuaVMState *GetObjectByVMstate(lua_State *vmState);
