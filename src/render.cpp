@@ -142,6 +142,11 @@ namespace Scene
 
 		}
 
+		void GLState::ResetState()
+		{
+			curSetState = NULL;
+		}
+
 		gc_ptr<GLState> GLState::curSetState = NULL;
 
 		GLState::StateBoolState GLState::curStateBools[GLState::GLSTATE_NUM] =
@@ -263,6 +268,11 @@ namespace Scene
 				glDrawArrays(primitive, 0, numElems);
 			}
 
+		}
+
+		void GeomState::ResetState()
+		{
+			curSetState = NULL;
 		}
 
 		gc_ptr<GeomState> GeomState::curSetState = NULL;

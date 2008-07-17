@@ -666,7 +666,7 @@ namespace Game
 
 			GUINode::instance.SetParams(pMainPanel, w, h);
 
-			Scene::Graph::rootNode->Traverse();
+			Scene::Graph::Node::TraverseFullTree();
 
 			SDL_GL_SwapBuffers();
 			return true;

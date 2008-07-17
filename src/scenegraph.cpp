@@ -1,4 +1,5 @@
 #include "scenegraph.h"
+#include "render.h"
 
 namespace Scene
 {
@@ -163,6 +164,13 @@ namespace Scene
 		{
 			matrices[matType] = mtxStack[matType].top();
 			mtxStack[matType].pop();
+		}
+
+		void Node::TraverseFullTree()
+		{
+			Render::GLState::ResetState();
+			Render::GeomState::ResetState();
+			rootNode->Traverse();
 		}
 
 		SwitchNode::SwitchNode() : Node(), active(0)

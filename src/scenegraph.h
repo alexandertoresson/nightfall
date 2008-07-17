@@ -72,6 +72,8 @@ namespace Scene
 					gc_shade_map(children);
 				}
 
+				static void TraverseFullTree();
+
 		};
 
 		class SwitchNode : public Node

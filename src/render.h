@@ -50,11 +50,13 @@ namespace Scene
 				
 				typedef std::map<GLStateBool, bool> GLStateBoolList;
 
+				static void ResetState();
+				
 			private:
 
 				static StateBoolState curStateBools[GLSTATE_NUM];
 				static gc_ptr<GLState> curSetState;
-				
+
 				void SetState(GLStateBool state, bool b);
 		};
 
@@ -113,6 +115,8 @@ namespace Scene
 					indicesArray.shade();
 					gc_shade_container(texCoordArrays);
 				}
+				
+				static void ResetState();
 				
 			private:
 				static gc_ptr<GeomState> curSetState;
