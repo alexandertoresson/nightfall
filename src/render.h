@@ -81,6 +81,11 @@ namespace Scene
 					std::string name;
 					gc_ptr<VBO> array;
 					GLenum type;
+
+					AttribArray(std::string name, gc_ptr<VBO> array, GLenum type) : name(name), array(array), type(type)
+					{
+						
+					}
 				};
 
 				gc_ptr<VBO> vertexArray;
