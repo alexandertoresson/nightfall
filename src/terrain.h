@@ -74,6 +74,7 @@ namespace Game
 		class TerrainNode : public Scene::Render::GLStateNode
 		{
 			public:
+				static std::string material;
 				TerrainNode();
 			protected:
 				virtual void Render();
@@ -82,6 +83,7 @@ namespace Game
 		class WaterNode : public Scene::Render::GLStateNode
 		{
 			public:
+				static std::string material;
 				WaterNode();
 			protected:
 				virtual void Render();

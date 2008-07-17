@@ -1749,6 +1749,20 @@ namespace UnitLuaInterface
 		LUA_SUCCESS
 	}
 
+	int LSetWaterMaterial(lua_State* pVM)
+	{
+		WaterNode::material = std::string(lua_tostring(pVM, 1));
+
+		LUA_SUCCESS
+	}
+
+	int LSetTerrainMaterial(lua_State* pVM)
+	{
+		TerrainNode::material = std::string(lua_tostring(pVM, 1));
+
+		LUA_SUCCESS
+	}
+
 	int LAllocEnvironmentalCondition(lua_State* pVM)
 	{
 		Game::Dimension::Environment::EnvironmentalCondition* env = new
@@ -3267,6 +3281,8 @@ else \
 		pVM->RegisterFunction("SetMaximumBuildingAltitude", LSetMaximumBuildingAltitude);
 		pVM->RegisterFunction("SetWaterLevel", LSetWaterLevel);
 		pVM->RegisterFunction("SetWaterHeight", LSetWaterHeight);
+		pVM->RegisterFunction("SetWaterMaterial", LSetWaterMaterial);
+		pVM->RegisterFunction("SetTerrainMaterial", LSetTerrainMaterial);
 		pVM->RegisterFunction("AllocEnvironmentalCondition", LAllocEnvironmentalCondition);
 		pVM->RegisterFunction("SetHours", LSetHours);
 		pVM->RegisterFunction("SetType", LSetType);

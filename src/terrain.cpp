@@ -24,7 +24,7 @@ namespace Game
 		GLfloat    terrainMaterialModifiers[2][2] = {
 		                                              {
 		                                                0.35f,   // not seen, not lighted
-		                                                0.7f    // seen, not lighted
+		                                                0.6f    // seen, not lighted
 		                                              },
 		                                              {
 		                                                0.35f,   // not seen, lighted
@@ -1284,8 +1284,10 @@ namespace Game
 
 		TerrainNode::TerrainNode() : GLStateNode(new Scene::Render::GLState)
 		{
-			myGLState->material = Utilities::LoadMaterialXML("materials/terrain.mat");
+			myGLState->material = Utilities::LoadMaterialXML(material);
 		}
+
+		std::string TerrainNode::material = "materials/terrain.mat";
 
 		void TerrainNode::Render()
 		{
@@ -1555,8 +1557,10 @@ namespace Game
 
 		WaterNode::WaterNode() : GLStateNode(new Scene::Render::GLState)
 		{
-			myGLState->material = Utilities::LoadMaterialXML("materials/water.mat");
+			myGLState->material = Utilities::LoadMaterialXML(material);
 		}
+
+		std::string WaterNode::material = "materials/water.mat";
 
 		void WaterNode::Render()
 		{
