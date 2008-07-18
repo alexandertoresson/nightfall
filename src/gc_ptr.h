@@ -325,6 +325,11 @@ class gc_ptr
 				m->shade();
 		}
 
+		T* get()
+		{
+			return ref;
+		}
+
 	
 	template <typename T2, typename _Counter2, typename _Shader2>
 	friend class gc_ptr;
