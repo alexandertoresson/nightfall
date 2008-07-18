@@ -38,6 +38,8 @@ namespace Game
 		int pathnodes = 0;
 		int paths = 0;
 
+		SDL_mutex* updateMutex = SDL_CreateMutex();
+
 		using namespace Utilities::Scripting;
 
 		bool NextFrame()
@@ -849,10 +851,14 @@ namespace Game
 				// Send unit commands that could not be sent while lua ai was running
 				ApplyScheduledCommandUnits();
 
+				SDL_LockMutex(updateMutex);
+
 				// Apply deletions last, so it may 'undo' actions that have been applied before,
 				// otherwise if you apply actions after it, you may apply actions with targets
 				// that are deleted units.
 				Dimension::DeleteScheduledUnits(); 
+
+				SDL_UnlockMutex(updateMutex);
 
 				// Delete units that have lost their ground for existance, and 'undo' researches
 				// that also have.

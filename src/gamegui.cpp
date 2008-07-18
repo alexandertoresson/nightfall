@@ -2091,6 +2091,9 @@ namespace Game
 			glEnd();
 
 			glDisable(GL_TEXTURE_2D);
+
+			SDL_LockMutex(AI::updateMutex);
+
 			for(vector<gc_ptr<Dimension::Unit> >::iterator iter = Dimension::pWorld->vUnits.begin(); iter != Dimension::pWorld->vUnits.end(); iter++)
 			{
 				if(UnitIsVisible(*iter, Dimension::currentPlayerView))
@@ -2116,6 +2119,8 @@ namespace Game
 				}
 			}
 			
+			SDL_UnlockMutex(AI::updateMutex);
+
 			glPopMatrix();
 			return SUCCESS;
 		}

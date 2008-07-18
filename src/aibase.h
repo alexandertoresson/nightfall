@@ -43,6 +43,7 @@ namespace Game
 		void SendUnitEventToLua_BecomeIdle(const gc_ptr<Dimension::Unit>& pUnit);
 
 		extern unsigned aiFps;
+		extern SDL_mutex* updateMutex;
 	
 	}
 }
