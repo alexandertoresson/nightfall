@@ -51,6 +51,7 @@ namespace Game
 			gc_ptr<UnitType> type = unit->type;
 			const gc_ptr<Utilities::OgreMesh>& mesh = type->mesh;
 			Utilities::Vector3D near_plane, far_plane;
+			bool result = false;
 
 			if (!mesh)
 				return false;
@@ -59,11 +60,14 @@ namespace Game
 
 				const gc_ptr<UnitNode>& unitNode = UnitMainNode::instance.GetUnitNode(unit);
 
-				unitNode->GetMatrix(Scene::Graph::Node::MATRIXTYPE_MODELVIEW).Apply();
-				
-				WindowCoordToVector((GLdouble) clickx, (GLdouble) clicky, near_plane, far_plane);
+				if (unitNode)
+				{
+					unitNode->GetMatrix(Scene::Graph::Node::MATRIXTYPE_MODELVIEW).Apply();
+					
+					WindowCoordToVector((GLdouble) clickx, (GLdouble) clicky, near_plane, far_plane);
 
-				bool result = unit->type->mesh->CheckRayIntersect(near_plane, far_plane, distance);
+					result = unit->type->mesh->CheckRayIntersect(near_plane, far_plane, distance);
+				}
 				
 			glPopMatrix();
 
@@ -73,14 +77,17 @@ namespace Game
 		// get the screen coord of the middle (0.0, 0.0, 0.0) of unit
 		Utilities::Vector3D GetUnitWindowPos(const gc_ptr<Unit>& unit)
 		{
-			Utilities::Vector3D win_vector;
+			Utilities::Vector3D win_vector(-1000, -1000, -1000);
 			glPushMatrix();
 
 				const gc_ptr<UnitNode>& unitNode = UnitMainNode::instance.GetUnitNode(unit);
 
-				unitNode->GetMatrix(Scene::Graph::Node::MATRIXTYPE_MODELVIEW).Apply();
+				if (unitNode)
+				{
+					unitNode->GetMatrix(Scene::Graph::Node::MATRIXTYPE_MODELVIEW).Apply();
 
-				WorldCoordToWindowCoord(Utilities::Vector3D(0.0f, 0.0f, 0.0f), win_vector);
+					WorldCoordToWindowCoord(Utilities::Vector3D(0.0f, 0.0f, 0.0f), win_vector);
+				}
 
 			glPopMatrix();
 
@@ -93,6 +100,7 @@ namespace Game
 		{
 			gc_ptr<Unit> cur_unit;
 			float cur_dist = 1e10, dist;
+			SDL_LockMutex(AI::updateMutex);
 			for (vector<gc_ptr<Unit> >::iterator it = Dimension::pWorld->vUnits.begin(); it != Dimension::pWorld->vUnits.end(); it++)
 			{
 				const gc_ptr<Unit>& unit = *it;
@@ -111,6 +119,7 @@ namespace Game
 					}
 				}
 			}
+			SDL_UnlockMutex(AI::updateMutex);
 			return cur_unit;
 		}
 /*

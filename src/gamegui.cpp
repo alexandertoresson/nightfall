@@ -535,6 +535,8 @@ namespace Game
 					}
 
 					Utilities::Vector3D win_coord;
+					SDL_LockMutex(AI::updateMutex);
+
 					for (vector<gc_ptr<Dimension::Unit> >::iterator it = Dimension::pWorld->vUnits.begin(); it != Dimension::pWorld->vUnits.end(); it++)
 					{
 						win_coord = Dimension::GetUnitWindowPos(*it);
@@ -543,6 +545,8 @@ namespace Game
 							AddSelectedUnit(*it);
 						}
 					}
+					SDL_UnlockMutex(AI::updateMutex);
+
 				}
 				else
 				{
@@ -692,21 +696,18 @@ namespace Game
 						}
 						case SDLK_DELETE:
 						{
-							if(Dimension::GetCurrentPlayer()->vUnits.size() > 0)
+							const std::vector<gc_ptr<Dimension::Unit> > unitsSelected = Dimension::GetSelectedUnits();
+							for (unsigned i = 0; i < unitsSelected.size(); i++)
 							{
-								const std::vector<gc_ptr<Dimension::Unit> > unitsSelected = Dimension::GetSelectedUnits();
-								for (unsigned i = 0; i < unitsSelected.size(); i++)
+								const gc_ptr<Dimension::Unit>& p = unitsSelected[i];
+
+								if (p->owner == Dimension::currentPlayer)
 								{
-									const gc_ptr<Dimension::Unit>& p = unitsSelected[i];
 
-									if (p->owner == Dimension::currentPlayer)
-									{
-
-										if (Networking::isNetworked)
-											Networking::PrepareDamaging(p, p->type->maxHealth+1);
-										else
-											Dimension::KillUnit(p);
-									}
+									if (Networking::isNetworked)
+										Networking::PrepareDamaging(p, p->type->maxHealth+1);
+									else
+										Dimension::KillUnit(p);
 								}
 							}
 							break;
@@ -718,6 +719,7 @@ namespace Game
 								gc_ptr<Game::Dimension::Player> current_player = 
 									Game::Dimension::GetCurrentPlayer();
 									
+								SDL_LockMutex(AI::updateMutex);
 								if (current_player->vUnits.size())
 								{
 									vector<gc_ptr<Game::Dimension::Unit> >::iterator it = 
@@ -729,6 +731,7 @@ namespace Game
 										it++;
 									}
 								}
+								SDL_UnlockMutex(AI::updateMutex);
 
 								pGame->input->SetKeyState(SDLK_q, true);
 							}
