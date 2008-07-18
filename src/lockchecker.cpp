@@ -207,7 +207,7 @@ std::vector<ThreadInfo> threads;
 void CheckLock(SDL_mutex* m, std::string name, std::string file, unsigned line)
 {
 	Uint32 locker = SDL_ThreadID();
-	if (startTime == 0)
+	if (startTime == 0 || startTime > 100000)
 	{
 		startTime = SDL_GetTicks();
 	}
@@ -244,8 +244,9 @@ void CheckLock(SDL_mutex* m, std::string name, std::string file, unsigned line)
 
 	LockMutex(m);
 
-	LockMutex(lockCheckMutex);
 	Uint32 totTime = SDL_GetTicks() - sTime;
+
+	LockMutex(lockCheckMutex);
 
 	lI->lockTime = SDL_GetTicks();
 
@@ -300,8 +301,8 @@ void CheckUnlock(SDL_mutex* m, std::string name, std::string file, unsigned line
 	lI->byUniq->totalExecTime += eTime;
 	lI->byUniq->execTimes++;
 
-	Uint32 cTime = SDL_GetTicks();
 	lockedItems.erase(m);
+	Uint32 cTime = SDL_GetTicks();
 	UnlockMutex(m);
 
 	eTime = SDL_GetTicks() - cTime;
@@ -330,6 +331,7 @@ void RecordDelay(unsigned n)
 {
 	Uint32 sTime = SDL_GetTicks();
 	Delay(n);
+	Uint32 eTime = SDL_GetTicks() - sTime;
 	LockMutex(lockCheckMutex);
 	if (threads.size() == 0)
 	{
@@ -338,7 +340,6 @@ void RecordDelay(unsigned n)
 		tI.line = 0;
 		threads.push_back(tI);
 	}
-	Uint32 eTime = SDL_GetTicks() - sTime;
 	spentDTime += eTime;
 	threads[idToIndex[SDL_ThreadID()]].delay += eTime;
 	UnlockMutex(lockCheckMutex);
@@ -348,7 +349,8 @@ void RecordCondWait(SDL_cond* cond, SDL_mutex* mutex)
 {
 	Uint32 sTime = SDL_GetTicks();
 	CondWait(cond, mutex);
-	if (startTime == 0)
+	Uint32 eTime = SDL_GetTicks() - sTime;
+	if (startTime == 0 || startTime > 100000)
 	{
 		startTime = SDL_GetTicks();
 	}
@@ -360,7 +362,6 @@ void RecordCondWait(SDL_cond* cond, SDL_mutex* mutex)
 		tI.line = 0;
 		threads.push_back(tI);
 	}
-	Uint32 eTime = SDL_GetTicks() - sTime;
 	spentCTime += eTime;
 	threads[idToIndex[SDL_ThreadID()]].condWait += eTime;
 	UnlockMutex(lockCheckMutex);
@@ -454,6 +455,8 @@ void WriteLockReport(std::string file)
 	ofile << "Total time: " << SDL_GetTicks() - startTime << std::endl;
 	ofile << "Total number of threads: " << numThreads << std::endl;
 	ofile << "Time running: " << (float) ((totTime * numThreads) - spentLTime - spentDTime - spentCTime) / totTime << std::endl;
+	ofile << "Start time: " << startTime << std::endl;
+	ofile << "Current time: " << SDL_GetTicks() << std::endl;
 
 	ofile.close();
 
