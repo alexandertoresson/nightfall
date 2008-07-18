@@ -105,8 +105,8 @@ void gc_marker_base::sweep()
 			{
 				numPerSize[name]++;
 			}
-			delete *it;
 			(*it)->dispose();
+			delete *it;
 		}
 
 		SDL_LockMutex(mutex);
