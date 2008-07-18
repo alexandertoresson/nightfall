@@ -14,6 +14,7 @@ namespace Game
 
 		void Camera::ApplyMatrix()
 		{
+			SDL_LockMutex(cameraMutex);
 			PushMatrix(MATRIXTYPE_MODELVIEW);
 
 			CheckPosition();
@@ -50,6 +51,7 @@ namespace Game
 			matrices[MATRIXTYPE_MODELVIEW].MulBy(m);
 			matrices[MATRIXTYPE_MODELVIEW].Translate(-(mPosition + mView));
 
+			SDL_UnlockMutex(cameraMutex);
 		}
 		
 		void Camera::PostRender()
@@ -60,10 +62,12 @@ namespace Game
 		// Set camera settings manually to a specific setting
 		void Camera::SetCamera(Utilities::Vector3D focus, GLfloat zoom, GLfloat rotation)
 		{
+			SDL_LockMutex(cameraMutex);
 			mFocus = focus;
 			mZoom = zoom;
 			mRotation = rotation;
 			CheckPosition();
+			SDL_UnlockMutex(cameraMutex);
 		}
 
 		Utilities::Vector3D Camera::GetFocus()
@@ -83,17 +87,21 @@ namespace Game
 
 		void Camera::SetCamera(const gc_ptr<Unit>& unit, GLfloat zoom, GLfloat rotation)
 		{
+			SDL_LockMutex(cameraMutex);
 			mFocus = GetTerrainCoord(unit->pos.x, unit->pos.y);
 			mZoom = zoom;
 			mRotation = rotation;
 			CheckPosition();
+			SDL_UnlockMutex(cameraMutex);
 		}
 
 		void Camera::SetFocus(float terrain_x, float terrain_y)
 		{
+			SDL_LockMutex(cameraMutex);
 			mFocus.x = (terrain_x / 8) - terrainOffsetX;
 			mFocus.z = (terrain_y / 8) - terrainOffsetY;
 			CheckPosition();
+			SDL_UnlockMutex(cameraMutex);
 		}
 
 		// Go through the camera settings, check that they are correct, and set mPosition and mView accordingly after mFocus, mZoom and mRotation
@@ -161,6 +169,7 @@ namespace Game
 		// Fly in the 'forwards' direction
 		void Camera::Fly(GLfloat speed)
 		{
+			SDL_LockMutex(cameraMutex);
 			Utilities::Vector3D forward;
 
 			// Calculate what is the forward direction by taking a vector directly into -z and rotating it by mRotation degrees
@@ -177,11 +186,13 @@ namespace Game
 
 			// Update mPosition and mView and make sure new values are within limits
 			CheckPosition();
+			SDL_UnlockMutex(cameraMutex);
 		}
 
 		// like Camera::Fly, but fly to the right and left in the current view
 		void Camera::FlyHorizontally(GLfloat speed)
 		{
+			SDL_LockMutex(cameraMutex);
 			Utilities::Vector3D forward;
 			
 			forward.set(0.0f, 0.0f, -1.0f);
@@ -194,20 +205,25 @@ namespace Game
 			mFocus.x -= speed * forward.z;
 
 			CheckPosition();
+			SDL_UnlockMutex(cameraMutex);
 		}
 
 		// Change how zoomed in the view is
 		void Camera::Zoom(GLfloat speed)
 		{
+			SDL_LockMutex(cameraMutex);
 			mZoom += speed;
 			CheckPosition();
+			SDL_UnlockMutex(cameraMutex);
 		}
 	
 		// Changed rotation
 		void Camera::Rotate(GLfloat speed)
 		{
+			SDL_LockMutex(cameraMutex);
 			mRotation += speed;
 			CheckPosition();
+			SDL_UnlockMutex(cameraMutex);
 		}
 		
 		Camera Camera::instance;

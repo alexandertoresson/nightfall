@@ -319,7 +319,7 @@ namespace Game
 					m_curFogEnd += interpCond_1->fogEnd * (1 - interpProgress) + interpCond_2->fogEnd * interpProgress;
 				}
 				
-				SetFog(false);
+//				SetFog(false);
 				
 				m_skyboxRotation += 120.0 * (lastPass / m_hourLength / (float) m_dayLength);
 

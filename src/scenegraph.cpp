@@ -56,7 +56,7 @@ namespace Scene
 		{
 			if (parent)
 			{
-				parent->RemoveChild(gc_ptr<Node>(this, null_deleter));
+				parent->RemoveChild(GetRef());
 			}
 		}
 

@@ -105,6 +105,7 @@ void gc_marker_base::sweep()
 			{
 				numPerSize[name]++;
 			}
+			delete *it;
 			(*it)->dispose();
 		}
 
@@ -120,7 +121,6 @@ void gc_marker_base::sweep()
 		for (MarkerSet::iterator it = white.begin(); it != white.end(); it++)
 		{
 			rwhite.erase(rwhite.find(*it));
-			delete *it;
 		}
 		SDL_UnlockMutex(mutex);
 

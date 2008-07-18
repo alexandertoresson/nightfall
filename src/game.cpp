@@ -265,6 +265,11 @@ namespace Game
 			part_y = 70.0f;
 
 			gameRunning = false;
+
+			atLeastOneFrameCalculated = false;
+
+			renderMutex = SDL_CreateMutex();
+
 		}
 
 		int GameWindow::InitGUI()
@@ -524,10 +529,6 @@ namespace Game
 			pLoading->Increment(increment);
 			
 			////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-			Game::AI::InitAIThreads();
-			pLoading->Increment(increment);
-
-			////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 			Dimension::InitUnits();
 			pLoading->Increment(increment);
 
@@ -736,7 +737,7 @@ namespace Game
 				Dimension::Camera::instance.Rotate(Game::Dimension::cameraRotationSpeed * time_since_last_frame);		
 			else if (input->GetKeyState(SDLK_END))
 				Dimension::Camera::instance.Rotate(-Game::Dimension::cameraRotationSpeed * time_since_last_frame);
-
+			
 			//Empty current UnitBuild and execute building
 			if(Dimension::GetSelectedUnits().size() == 0)
 			{
@@ -765,6 +766,28 @@ namespace Game
 			}
 		}
 
+		
+		int _GameLogicThread(void* arg)
+		{
+			Game::AI::InitAIThreads();
+
+			while (GameWindow::Instance()->RunGameLogicFrame())
+			{
+			}
+			return 1;
+		}
+
+		int GameWindow::RunGameLogicFrame()
+		{
+			if (go)
+			{
+				PerformPreFrame();
+				atLeastOneFrameCalculated = true;
+				return 1;
+			}
+			return 0;
+		}
+
 		int GameWindow::RunLoop()
 		{
 //			Uint32 last_save = SDL_GetTicks();
@@ -773,14 +796,27 @@ namespace Game
 				glClearColor( 0.2f, 0.2f, 0.2f, 0.7f );
 
 			go = true;
+
+			SDL_Thread* gameThread = SDL_CreateThread(_GameLogicThread, NULL);
+
+			while (!atLeastOneFrameCalculated)
+			{
+				SDL_Delay(1);
+			}
+
 			while(go)
 			{
-				PerformPreFrame();
+				if (Game::Rules::noGraphics)
+					SDL_Delay(1);
+
+				SDL_LockMutex(renderMutex);
 
 				if (!Game::Rules::noGraphics)
 					PaintAll();
 			
 				ProcessEvents();
+
+				SDL_UnlockMutex(renderMutex);
 
 				frames++;
 
@@ -834,12 +870,23 @@ namespace Game
 				}*/
 
 			}
+			SDL_WaitThread(gameThread, NULL);
 			return returnValue;
 		}
 
 		void GameWindow::Stop()
 		{
 			go = false;
+		}
+
+		void GameWindow::PauseRendering()
+		{
+			SDL_LockMutex(renderMutex);
+		}
+		
+		void GameWindow::ResumeRendering()
+		{
+			SDL_UnlockMutex(renderMutex);
 		}
 		
 		GameWindow::GUINode::GUINode() : pMainPanel(NULL), w(0), h(0)

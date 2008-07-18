@@ -865,7 +865,9 @@ namespace Game
 				static int i = 0;
 				if (i % 100 == 0)
 				{
+					Game::Rules::GameWindow::Instance()->PauseRendering();
 					gc_marker_base::sweep();
+					Game::Rules::GameWindow::Instance()->ResumeRendering();
 				}
 				i++;
 

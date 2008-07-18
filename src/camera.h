@@ -25,6 +25,7 @@ namespace Game
 				Utilities::Vector3D mUp;
 				Utilities::Vector3D mFocus;
 				GLfloat mYMax, mYMin, mZoom, mRotation;
+				SDL_mutex* cameraMutex;
 				
 				Camera(void)     : mPosition(Utilities::Vector3D(0.0f, 0.0f, 0.0f)),
 				                   mView(Utilities::Vector3D(0.0f, 0.0f, 0.0f)),
@@ -33,17 +34,18 @@ namespace Game
 								   mYMax(10.0f),
 								   mYMin(0),
 								   mZoom(2.0f),
-								   mRotation(0.0f)
+								   mRotation(0.0f),
+								   cameraMutex(SDL_CreateMutex())
 				{}
 				
 			protected:
 				virtual void ApplyMatrix();
 				virtual void PostRender();
+				void CheckPosition();
 			public:
 				void SetCamera(Utilities::Vector3D, GLfloat, GLfloat);
 				void SetCamera(const gc_ptr<Unit>& unit, GLfloat zoom, GLfloat rotation);
 				void SetFocus(float terrain_x, float terrain_y);
-				void CheckPosition();
 				void Fly(GLfloat);
 				void FlyHorizontally(GLfloat);
 				void Zoom(GLfloat);

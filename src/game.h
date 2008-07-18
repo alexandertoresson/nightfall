@@ -74,6 +74,10 @@ namespace Game
 				Window::GUI::InfoLabel *p_lblMoney;
 				Window::GUI::InfoLabel *p_lblTime;
 
+				bool atLeastOneFrameCalculated;
+
+				SDL_mutex* renderMutex;
+
 				static void Sell(Window::GUI::EventType evt, void* arg);
 			private:
 				static GameWindow* pInstance;
@@ -114,8 +118,12 @@ namespace Game
 				void PerformPostFrame();
 				void ResetGame(); //Should perform last initalization, and game start.
 				int RunLoop();
+				int RunGameLogicFrame();
 				void Stop();
 				virtual ~GameWindow();
+
+				void PauseRendering();
+				void ResumeRendering();
 				
 			friend class GameInput; //Allows access to protected and private members of this class. Practical reasons.
 			friend class UnitBuild;
