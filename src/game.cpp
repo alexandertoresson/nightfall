@@ -767,7 +767,7 @@ namespace Game
 
 		int GameWindow::RunLoop()
 		{
-			Uint32 last_save = SDL_GetTicks();
+//			Uint32 last_save = SDL_GetTicks();
 
 			if (!Game::Rules::noGraphics)
 				glClearColor( 0.2f, 0.2f, 0.2f, 0.7f );
