@@ -623,14 +623,21 @@ namespace Game
 			ThreadData* tdata = (ThreadData*)arg;
 			while (tdata->threadRuntime == true)
 			{
-				for (int i = 0; i < 200; i++)
+				for (int i = 0; i < 10; i++)
 				{
-					if (PerformPathfinding(tdata) == PATHSTATE_EMPTY_QUEUE)
+					SDL_LockMutex(tdata->pMutex);
+					for (int i = 0; i < 20; i++)
 					{
-						SDL_Delay(10);
-						continue;
+						if (PerformPathfinding(tdata) == PATHSTATE_EMPTY_QUEUE)
+						{
+							SDL_UnlockMutex(tdata->pMutex);
+							goto delay;
+						}
 					}
+					SDL_UnlockMutex(tdata->pMutex);
 				}
+
+				delay:
 				
 				SDL_Delay(10);
 			}
@@ -2104,6 +2111,20 @@ namespace Game
 			tdata->pUnit = NULL;
 		}
 
+		bool CheckPopLazy(ThreadData* tdata, gc_ptr<MovementData>& md)
+		{
+			if (md->_popFromQueue)
+			{
+				SDL_LockMutex(gpmxCommand);
+				ParsePopQueueReason(tdata, md);
+				tdata->pUnit = NULL;
+				
+				SDL_UnlockMutex(gpmxCommand);
+				return true;
+			}
+			return false;
+		}
+			
 		bool CheckPop(ThreadData* tdata, gc_ptr<MovementData>& md)
 		{
 			SDL_LockMutex(gpmxCommand);
@@ -2112,7 +2133,6 @@ namespace Game
 				ParsePopQueueReason(tdata, md);
 				tdata->pUnit = NULL;
 				
-				SDL_UnlockMutex(tdata->pMutex);
 				SDL_UnlockMutex(gpmxCommand);
 				return true;
 			}
@@ -2122,14 +2142,11 @@ namespace Game
 			
 		int PerformPathfinding(ThreadData* tdata)
 		{
-			SDL_LockMutex(tdata->pMutex);
-
 			gc_ptr<Dimension::Unit> unit = NULL;
 			gc_ptr<MovementData> md;
 
 			if (!tdata->pUnit)
 			{
-				SDL_UnlockMutex(tdata->pMutex);
 				SDL_LockMutex(gpmxQueue);
 				if (gCalcQueue.empty())
 				{
@@ -2142,12 +2159,6 @@ namespace Game
 					gCalcQueue.pop();
 					tdata->pUnit->pMovementData->_associatedThread = tdata->threadIndex;
 					SDL_UnlockMutex(gpmxQueue);
-					SDL_LockMutex(tdata->pMutex);
-
-					if (CheckPop(tdata, tdata->pUnit->pMovementData))
-					{
-						return SUCCESS;
-					}
 
 					SDL_LockMutex(gpmxThreadState);
 					tdata->pUnit->pMovementData->_currentState = INTTHRSTATE_PROCESSING;
@@ -2203,7 +2214,7 @@ namespace Game
 			unit = tdata->pUnit;
 			md   = unit->pMovementData;
 
-			if (CheckPop(tdata, md))
+			if (CheckPopLazy(tdata, md))
 			{
 				return SUCCESS;
 			}
@@ -2259,24 +2270,11 @@ namespace Game
 								break;
 							}
 						
-							SDL_UnlockMutex(tdata->pMutex);
-
 							if (steps > MAXIMUM_CALCULATIONS_PER_FRAME)
 							{
-								SDL_LockMutex(tdata->pMutex);
-								
 								md->calcState = CALCSTATE_AWAITING_NEXT_FRAME;
 								
-								SDL_UnlockMutex(tdata->pMutex);
 								return SUCCESS;
-							}
-							else
-							{
-								SDL_LockMutex(tdata->pMutex);
-								if (CheckPop(tdata, md))
-								{
-									return SUCCESS;
-								}
 							}
 						} while (1);
 					}
@@ -2295,24 +2293,10 @@ namespace Game
 								break;
 							}
 						
-							SDL_UnlockMutex(tdata->pMutex);
-
 							if (steps > MAXIMUM_CALCULATIONS_PER_FRAME)
 							{
-								SDL_LockMutex(tdata->pMutex);
-								
 								md->calcState = CALCSTATE_AWAITING_NEXT_FRAME;
-								
-								SDL_UnlockMutex(tdata->pMutex);
 								return SUCCESS;
-							}
-							else
-							{
-								SDL_LockMutex(tdata->pMutex);
-								if (CheckPop(tdata, md))
-								{
-									return SUCCESS;
-								}
 							}
 						} while (1);
 					}
@@ -2364,30 +2348,13 @@ namespace Game
 
 						state = PathfindingStep(tdata);
 						
-						if (CheckPop(tdata, md))
-						{
-							return SUCCESS;
-						}
-
-						SDL_UnlockMutex(tdata->pMutex);
-
 						if (steps > MAXIMUM_CALCULATIONS_PER_FRAME && state != PATHSTATE_GOAL)
 						{
-							SDL_LockMutex(tdata->pMutex);
-							
 							md->calcState = CALCSTATE_AWAITING_NEXT_FRAME;
-							
-							SDL_UnlockMutex(tdata->pMutex);
 							return SUCCESS;
 						}
 						else  if (state == PATHSTATE_OK || state == PATHSTATE_IMPOSSIBLE)
 						{
-							SDL_LockMutex(tdata->pMutex);
-							if (CheckPop(tdata, md))
-							{
-								return SUCCESS;
-							}
-							continue;
 						}
 						else
 						{
@@ -2399,11 +2366,6 @@ namespace Game
 					
 					} while (1);
 				}
-			}
-
-			if (!quit)
-			{
-				SDL_LockMutex(tdata->pMutex); // << ... mutex from locking when quitting the loop
 			}
 
 			SDL_LockMutex(gpmxThreadState);
@@ -2446,8 +2408,6 @@ namespace Game
 
 			
 			tdata->pUnit = NULL;
-			
-			SDL_UnlockMutex(tdata->pMutex);
 			
 			return ret;
 		}

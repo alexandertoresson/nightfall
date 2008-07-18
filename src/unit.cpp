@@ -1269,10 +1269,11 @@ namespace Game
 #endif
 				should_move = false;
 				pUnit->isMoving = false;
-				if (!pUnit->owner->isRemote && !AI::IsUndergoingPathCalc(pUnit))
+				// The bug that caused this to be necessary appears to be gone
+/*				if (!pUnit->owner->isRemote && !AI::IsUndergoingPathCalc(pUnit))
 				{
 					ChangePath(pUnit, pUnit->pMovementData->action.goal.pos.x, pUnit->pMovementData->action.goal.pos.y, pUnit->pMovementData->action.action, pUnit->pMovementData->action.goal.unit, pUnit->pMovementData->action.args, pUnit->pMovementData->action.rotation);
-				}
+				}*/
 			}
 
 			if (should_move)
@@ -1743,7 +1744,7 @@ namespace Game
 
 		void KillUnit(gc_ptr<Unit> unit)
 		{
-			unsigned int i;
+//			unsigned int i;
 			
 //			std::cout << "Kill " << unit->GetHandle() << std::endl;
 
@@ -1765,7 +1766,7 @@ namespace Game
 				}
 			}
 
-			AI::PausePathfinding();
+/*			AI::PausePathfinding();
 
 			for (i = 0; i < pWorld->vUnits.size(); i++)
 			{
@@ -1798,7 +1799,7 @@ namespace Game
 				}
 			}
 
-			AI::ResumePathfinding();
+			AI::ResumePathfinding();*/
 
 		}
 
