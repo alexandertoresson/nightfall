@@ -99,7 +99,11 @@ namespace Game
 
 		gc_ptr<Unit> GetUnitByID(int id)
 		{
-			return HandleManager<Unit>::InterpretHandle(id);
+			if (HandleManager<Unit>::IsCorrectHandle(id))
+			{
+				return HandleManager<Unit>::InterpretHandle(id);
+			}
+			return NULL;
 		}
 
 		double GetIncomeAtNoon(const gc_ptr<Player>& player)
