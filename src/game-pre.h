@@ -12,7 +12,7 @@ namespace Game
 	namespace Rules
 	{
 
-		extern float time_since_last_frame;
+		extern float time_since_last_render_frame;
 		extern std::string CurrentLevel;
 		extern std::string CurrentLevelScript;
 

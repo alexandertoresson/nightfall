@@ -965,11 +965,11 @@ namespace Game
 					*/
 					if ((*event).button.button == SDL_BUTTON_WHEELUP)
 					{
-						Dimension::Camera::instance.Zoom(-60.0f * time_since_last_frame);
+						Dimension::Camera::instance.Zoom(-60.0f * time_since_last_render_frame);
 					}
 					else if ((*event).button.button == SDL_BUTTON_WHEELDOWN)
 					{
-						Dimension::Camera::instance.Zoom(60.0f * time_since_last_frame);
+						Dimension::Camera::instance.Zoom(60.0f * time_since_last_render_frame);
 					}
 					break;
 				}

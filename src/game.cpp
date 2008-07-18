@@ -80,7 +80,7 @@ namespace Game
 			return pConsole;
 		}
 
-		float time_since_last_frame;
+		float time_since_last_render_frame;
 		float time_passed_since_last_water_pass = 0.0;
 		
 //////////////////////
@@ -269,6 +269,7 @@ namespace Game
 			atLeastOneFrameCalculated = false;
 
 			renderMutex = SDL_CreateMutex();
+			pauseRendering = false;
 
 		}
 
@@ -649,6 +650,30 @@ namespace Game
 			}
 
 			delete event;
+			
+			//Key States operations
+			if (input->GetKeyState(SDLK_UP))
+				Dimension::Camera::instance.Fly(-1.5f * time_since_last_render_frame);
+					
+			else if (input->GetKeyState(SDLK_DOWN))
+				Dimension::Camera::instance.Fly(1.5f * time_since_last_render_frame);
+
+				
+			if (input->GetKeyState(SDLK_LEFT))
+				Dimension::Camera::instance.FlyHorizontally(-Game::Dimension::cameraFlySpeed * time_since_last_render_frame);
+			else if (input->GetKeyState(SDLK_RIGHT))
+				Dimension::Camera::instance.FlyHorizontally(Game::Dimension::cameraFlySpeed * time_since_last_render_frame);
+				
+			if (input->GetKeyState(SDLK_PAGEUP))
+				Dimension::Camera::instance.Zoom(Game::Dimension::cameraZoomSpeed * time_since_last_render_frame);
+			else if (input->GetKeyState(SDLK_PAGEDOWN))
+				Dimension::Camera::instance.Zoom(-Game::Dimension::cameraZoomSpeed * time_since_last_render_frame);
+
+			if (input->GetKeyState(SDLK_HOME))
+				Dimension::Camera::instance.Rotate(Game::Dimension::cameraRotationSpeed * time_since_last_render_frame);
+			else if (input->GetKeyState(SDLK_END))
+				Dimension::Camera::instance.Rotate(-Game::Dimension::cameraRotationSpeed * time_since_last_render_frame);
+			
 	
 			return true;
 		}
@@ -715,29 +740,6 @@ namespace Game
 				time_passed_since_last_ai_pass = 0;
 			}
 
-			//Key States operations
-			if (input->GetKeyState(SDLK_UP))
-				Dimension::Camera::instance.Fly(-1.5f * time_since_last_frame);
-					
-			else if (input->GetKeyState(SDLK_DOWN))
-				Dimension::Camera::instance.Fly(1.5f * time_since_last_frame);
-
-				
-			if (input->GetKeyState(SDLK_LEFT))
-				Dimension::Camera::instance.FlyHorizontally(-Game::Dimension::cameraFlySpeed * time_since_last_frame);					
-			else if (input->GetKeyState(SDLK_RIGHT))
-				Dimension::Camera::instance.FlyHorizontally(Game::Dimension::cameraFlySpeed * time_since_last_frame);
-				
-			if (input->GetKeyState(SDLK_PAGEUP))
-				Dimension::Camera::instance.Zoom(Game::Dimension::cameraZoomSpeed * time_since_last_frame);				
-			else if (input->GetKeyState(SDLK_PAGEDOWN))
-				Dimension::Camera::instance.Zoom(-Game::Dimension::cameraZoomSpeed * time_since_last_frame);
-
-			if (input->GetKeyState(SDLK_HOME))
-				Dimension::Camera::instance.Rotate(Game::Dimension::cameraRotationSpeed * time_since_last_frame);		
-			else if (input->GetKeyState(SDLK_END))
-				Dimension::Camera::instance.Rotate(-Game::Dimension::cameraRotationSpeed * time_since_last_frame);
-			
 			//Empty current UnitBuild and execute building
 			if(Dimension::GetSelectedUnits().size() == 0)
 			{
@@ -804,19 +806,32 @@ namespace Game
 				SDL_Delay(1);
 			}
 
+			Uint32 lastFrameTime = SDL_GetTicks();
+
+			SDL_LockMutex(renderMutex);
+
 			while(go)
 			{
+				time_since_last_render_frame = (SDL_GetTicks() - lastFrameTime) / 1000.0;
+				lastFrameTime = SDL_GetTicks();
+
 				if (Game::Rules::noGraphics)
 					SDL_Delay(1);
-
-				SDL_LockMutex(renderMutex);
 
 				if (!Game::Rules::noGraphics)
 					PaintAll();
 			
 				ProcessEvents();
 
-				SDL_UnlockMutex(renderMutex);
+				if (pauseRendering)
+				{
+					SDL_UnlockMutex(renderMutex);
+
+					SDL_Delay(1); // Force a context switch; I found that just unlocking and locking didn't
+					              // guarantee at all that the other thread manages to lock the mutex
+					              
+					SDL_LockMutex(renderMutex);
+				}
 
 				frames++;
 
@@ -881,11 +896,13 @@ namespace Game
 
 		void GameWindow::PauseRendering()
 		{
+			pauseRendering = true;
 			SDL_LockMutex(renderMutex);
 		}
 		
 		void GameWindow::ResumeRendering()
 		{
+			pauseRendering = false;
 			SDL_UnlockMutex(renderMutex);
 		}
 		

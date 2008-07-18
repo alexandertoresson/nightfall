@@ -62,6 +62,7 @@ namespace Game
 
 				Uint32 last_frame, this_frame;
 				float time_passed_since_last_ai_pass;
+				float time_since_last_frame;
 
 				float goto_x, goto_y;
 				int build_x, build_y;
@@ -77,6 +78,8 @@ namespace Game
 				bool atLeastOneFrameCalculated;
 
 				SDL_mutex* renderMutex;
+
+				bool pauseRendering;
 
 				static void Sell(Window::GUI::EventType evt, void* arg);
 			private:

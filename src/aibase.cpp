@@ -865,9 +865,11 @@ namespace Game
 				static int i = 0;
 				if (i % 100 == 0)
 				{
+					Uint32 ticks = SDL_GetTicks();
 					Game::Rules::GameWindow::Instance()->PauseRendering();
 					gc_marker_base::sweep();
 					Game::Rules::GameWindow::Instance()->ResumeRendering();
+					std::cout << SDL_GetTicks() - ticks << " ticks" << std::endl;
 				}
 				i++;
 
