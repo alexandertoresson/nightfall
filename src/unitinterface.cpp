@@ -876,7 +876,7 @@ namespace UnitLuaInterface
 	};
 
 	vector<ScheduledDamaging*> scheduledDamagings;
-	SDL_mutex* scheduledDamagingsMutex = SDL_CreateMutex();
+	SDL_mutex* scheduledDamagingsMutex = NULL;
 
 	void ApplyScheduledDamagings()
 	{
@@ -941,7 +941,7 @@ namespace UnitLuaInterface
 	};
 
 	vector<ScheduledAction*> scheduledActions;
-	SDL_mutex* scheduledActionsMutex = SDL_CreateMutex();
+	SDL_mutex* scheduledActionsMutex = NULL;
 
 	void ApplyScheduledActions()
 	{
@@ -3183,6 +3183,15 @@ else \
 
 	void Init(Scripting::LuaVMState* pVM)
 	{
+		if (!scheduledActionsMutex)
+		{
+			scheduledActionsMutex = SDL_CreateMutex();
+		}
+		if (!scheduledDamagingsMutex)
+		{
+			scheduledDamagingsMutex = SDL_CreateMutex();
+		}
+
 		pVM->RegisterFunction("GetUnitHealth", LGetUnitHealth);
 		pVM->RegisterFunction("GetUnitPower", LGetUnitPower);
 		pVM->RegisterFunction("GetUnitMaxHealth", LGetUnitMaxHealth);

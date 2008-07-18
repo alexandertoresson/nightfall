@@ -3,11 +3,16 @@
 
 void gc_marker_base::insert()
 {
-	SDL_LockMutex(mutex);
+	// This is so gc_ptrs can be constructed before initgc() has been run.
+	// Before that, we do not have any threads running either, so no danger
+	// in not locking the mutex.
+	if (mutex)
+		SDL_LockMutex(mutex);
 
 	marked[mark].insert(this);
 
-	SDL_UnlockMutex(mutex);
+	if (mutex)
+		SDL_UnlockMutex(mutex);
 }
 
 void gc_marker_base::shade()
@@ -128,10 +133,15 @@ void gc_marker_base::sweep()
 	}
 }
 
+void gc_marker_base::initgc()
+{
+	mutex = SDL_CreateMutex();
+}
+
 gc_marker_base::MarkerSet gc_marker_base::marked[gc_marker_base::MARK_NUM];
 gc_marker_base::MarkerSet gc_marker_base::marked_temp[gc_marker_base::MARK_NUM];
 
-SDL_mutex* gc_marker_base::mutex = SDL_CreateMutex();
+SDL_mutex* gc_marker_base::mutex = NULL;
 
 gc_marker_base::CollectStep gc_marker_base::collectStep = gc_marker_base::COLLECTSTEP_NOTSTARTED;
 bool gc_marker_base::startedCollecting = false;

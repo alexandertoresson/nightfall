@@ -177,7 +177,7 @@ LockHash lockHashByM(256, cmp_m, hash_m);
 LockHash lockHashByPos(256, cmp_pos, hash_pos);
 LockHash lockHashByUniq(1, cmp_uniq, hash_uniq);
 
-SDL_mutex *lockCheckMutex = SDL_CreateMutex();
+SDL_mutex *lockCheckMutex = NULL;
 
 Uint32 startTime = 0;
 
@@ -207,9 +207,18 @@ std::vector<ThreadInfo> threads;
 void CheckLock(SDL_mutex* m, std::string name, std::string file, unsigned line)
 {
 	Uint32 locker = SDL_ThreadID();
+	if (!m)
+	{
+		std::cout << "The mutex pointer received was NULL. SDL would let this continue, but rather do nothing as it has no mutex to lock. I'm now gonna crash the program, to prevent you from shooting yourself in the foot." << std::endl;
+		*(int*) 0 = 0;
+	}
 	if (startTime == 0 || startTime > 100000)
 	{
 		startTime = SDL_GetTicks();
+	}
+	if (!lockCheckMutex)
+	{
+		lockCheckMutex = SDL_CreateMutex();
 	}
 	LockMutex(lockCheckMutex);
 	if (threads.size() == 0)
@@ -274,6 +283,15 @@ void CheckLock(SDL_mutex* m, std::string name, std::string file, unsigned line)
 void CheckUnlock(SDL_mutex* m, std::string name, std::string file, unsigned line)
 {
 	LockedItems* lI = NULL;
+	if (!m)
+	{
+		std::cout << "The mutex pointer received was NULL. SDL would let this continue, but rather do nothing as it has no mutex to lock. I'm now gonna crash the program, to prevent you from shooting yourself in the foot." << std::endl;
+		*(int*) 0 = 0;
+	}
+	if (!lockCheckMutex)
+	{
+		lockCheckMutex = SDL_CreateMutex();
+	}
 	LockMutex(lockCheckMutex);
 	std::map<SDL_mutex*, LockedItems*>::iterator it = lockedItems.find(m);
 
@@ -332,6 +350,10 @@ void RecordDelay(unsigned n)
 	Uint32 sTime = SDL_GetTicks();
 	Delay(n);
 	Uint32 eTime = SDL_GetTicks() - sTime;
+	if (!lockCheckMutex)
+	{
+		lockCheckMutex = SDL_CreateMutex();
+	}
 	LockMutex(lockCheckMutex);
 	if (threads.size() == 0)
 	{
@@ -345,15 +367,39 @@ void RecordDelay(unsigned n)
 	UnlockMutex(lockCheckMutex);
 }
 
-void RecordCondWait(SDL_cond* cond, SDL_mutex* mutex)
+void RecordCondWait(SDL_cond* cond, SDL_mutex* mutex, std::string name, std::string file, unsigned line)
 {
-	Uint32 sTime = SDL_GetTicks();
-	CondWait(cond, mutex);
-	Uint32 eTime = SDL_GetTicks() - sTime;
+	if (!cond)
+	{
+		std::cout << "The condition pointer received was NULL. SDL would let this continue, but rather do nothing as it has no condition to wait for. I'm now gonna crash the program, to prevent you from shooting yourself in the foot." << std::endl;
+		*(int*) 0 = 0;
+	}
+	if (!mutex)
+	{
+		std::cout << "The mutex pointer received was NULL. SDL would let this continue, but rather do nothing as it has no mutex to lock. I'm now gonna crash the program, to prevent you from shooting yourself in the foot." << std::endl;
+		*(int*) 0 = 0;
+	}
 	if (startTime == 0 || startTime > 100000)
 	{
 		startTime = SDL_GetTicks();
 	}
+	if (!lockCheckMutex)
+	{
+		lockCheckMutex = SDL_CreateMutex();
+	}
+	LockMutex(lockCheckMutex);
+	std::map<SDL_mutex*, LockedItems*>::iterator it = lockedItems.find(mutex);
+	if (it == lockedItems.end())
+	{
+		std::cout << "Error: Attempted to unlock not locked mutex " << name << " at " << file << ":" << line << std::endl;
+		return;
+	}
+	UnlockMutex(lockCheckMutex);
+
+	Uint32 sTime = SDL_GetTicks();
+	CondWait(cond, mutex);
+	Uint32 eTime = SDL_GetTicks() - sTime;
+
 	LockMutex(lockCheckMutex);
 	if (threads.size() == 0)
 	{
@@ -371,6 +417,10 @@ SDL_Thread* RecordCreateThread(int (*fn)(void *), void *data, std::string file, 
 {
 	SDL_Thread *thread;
 	thread = CreateThread(fn, data);
+	if (!lockCheckMutex)
+	{
+		lockCheckMutex = SDL_CreateMutex();
+	}
 	LockMutex(lockCheckMutex);
 	
 	if (threads.size() == 0)
@@ -409,6 +459,10 @@ void OutputLockItem(LockItem* item)
 
 void WriteLockReport(std::string file)
 {
+	if (!lockCheckMutex)
+	{
+		lockCheckMutex = SDL_CreateMutex();
+	}
 	LockMutex(lockCheckMutex);
 	
 	Uint32 totTime = SDL_GetTicks() - startTime;

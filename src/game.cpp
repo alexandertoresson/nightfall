@@ -446,7 +446,7 @@ namespace Game
 		int GameWindow::InitGame(bool is_new_game, bool isNetworked, Networking::NETWORKTYPE ntype)
 		{
 			input = new Dimension::InputController();
-			float increment = 0.9f / 13.0f; //0.9 (90%) divided on 12 updates...
+			float increment = 0.9f / 13.0f; //0.9 (90%) divided on 13 updates...
 			Dimension::pWorld = new Dimension::World;
 
 			Utilities::Scripting::InitGlobalState();
@@ -464,6 +464,10 @@ namespace Game
 
 			Dimension::Environment::FourthDimension* pDimension = Dimension::Environment::FourthDimension::Instance();
 			
+			////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+			Game::AI::InitAIMiscMutexes();
+			pLoading->Increment(increment);
+
 			////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 			Utilities::InitTextures(256);
 			pLoading->Increment(increment);

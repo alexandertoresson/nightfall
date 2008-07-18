@@ -95,6 +95,8 @@ class gc_marker_base
 
 		static void sweep();
 
+		static void initgc();
+
 	template <typename T, typename _Shader>
 	friend class gc_marker;
 	template <typename T, typename _Shader, typename _Counter>

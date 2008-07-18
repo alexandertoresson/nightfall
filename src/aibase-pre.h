@@ -69,6 +69,7 @@ namespace Game
 		};
 
 		void InitAIThreads();
+		void InitAIMiscMutexes();
 		void SendScheduledUnitEvents();
 	}
 }

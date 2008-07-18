@@ -73,6 +73,9 @@ int main(int argc, char** argv)
 	
 	Window::OnClose(KillAll);
 
+	gc_marker_base::initgc();
+
+
 	{
 		errCode = InitMainConfig();
 

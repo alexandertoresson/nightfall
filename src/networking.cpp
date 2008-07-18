@@ -442,7 +442,7 @@ namespace Game
 			return (float) rotation / 256 * 360;
 		}
 
-		SDL_mutex* prepareActionMutex = SDL_CreateMutex();
+		SDL_mutex* prepareActionMutex = NULL;
 
 		void PrepareAction(const gc_ptr<Dimension::Unit>& unit, const gc_ptr<Dimension::Unit>& target, int x, int y, AI::UnitAction action, const Dimension::ActionArguments& args, float rotation)
 		{
@@ -489,7 +489,7 @@ namespace Game
 			unsentPaths.push_back(path);
 		}
 
-		SDL_mutex* prepareCreationMutex = SDL_CreateMutex();
+		SDL_mutex* prepareCreationMutex = NULL;
 
 		void PrepareCreation(const gc_ptr<Dimension::UnitType>& unittype, int x, int y, float rot)
 		{
@@ -511,7 +511,7 @@ namespace Game
 			SDL_UnlockMutex(prepareCreationMutex);
 		}
 
-		SDL_mutex* prepareDamagingMutex = SDL_CreateMutex();
+		SDL_mutex* prepareDamagingMutex = NULL;
 
 		void PrepareDamaging(const gc_ptr<Dimension::Unit>& unit, float damage)
 		{
@@ -530,7 +530,7 @@ namespace Game
 			SDL_UnlockMutex(prepareDamagingMutex);
 		}
 
-		SDL_mutex* prepareSellMutex = SDL_CreateMutex();
+		SDL_mutex* prepareSellMutex = NULL;
 
 		void PrepareSell(const gc_ptr<Dimension::Player>& owner, int amount)
 		{
@@ -1811,6 +1811,11 @@ namespace Game
 
 		int StartNetwork(NETWORKTYPE type)
 		{
+			prepareActionMutex = SDL_CreateMutex();
+			prepareCreationMutex = SDL_CreateMutex();
+			prepareDamagingMutex = SDL_CreateMutex();
+			prepareSellMutex = SDL_CreateMutex();
+
 			mutPacketInQueue = SDL_CreateMutex();
 			mutPacketOutQueue = SDL_CreateMutex();
 			mutPacketFrameOutQueue = SDL_CreateMutex();

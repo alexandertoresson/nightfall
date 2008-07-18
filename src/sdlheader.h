@@ -1,5 +1,7 @@
 //#include "memfragdebug.h" // Enable for memory fragmentation debugging
 
+#define NO_LOCKCHECKER
+
 #ifdef __CONFIG_H__
 #include "config.h"
 #endif
@@ -60,7 +62,7 @@
 #error GL_ARB_texture_env_crossbar is needed for this program
 #endif
 
-/*#ifndef NO_LOCKCHECKER
+#ifndef NO_LOCKCHECKER
 #include "lockchecker.h" // Enable for mutex look debugging and statistics
-#endif*/
+#endif
 

@@ -1574,7 +1574,7 @@ namespace Game
 		set<gc_ptr<Unit> > unitsScheduledForDeletion;
 		list<gc_ptr<Unit> > unitsScheduledForDisplay;
 
-		SDL_mutex* unitCreationMutex = SDL_CreateMutex();
+		SDL_mutex* unitCreationMutex = NULL;
 
 		// create a unit, but don't display it
 		gc_ptr<Unit> CreateUnitNoDisplay(const gc_ptr<UnitType>& type, int id, bool complete)
@@ -1638,7 +1638,7 @@ namespace Game
 			return NULL;
 		}
 
-		SDL_mutex* unitsScheduledForDisplayMutex = SDL_CreateMutex();
+		SDL_mutex* unitsScheduledForDisplayMutex = NULL;
 
 		bool ScheduleDisplayUnit(const gc_ptr<Unit>& unit, int x, int y)
 		{
@@ -2039,6 +2039,9 @@ namespace Game
 
 		void InitUnits()
 		{
+
+			unitCreationMutex = SDL_CreateMutex();
+			unitsScheduledForDisplayMutex = SDL_CreateMutex();
 
 			numUnitsPerAreaMap = new int*[4];
 

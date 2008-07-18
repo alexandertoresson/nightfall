@@ -38,7 +38,7 @@ namespace Game
 		int pathnodes = 0;
 		int paths = 0;
 
-		SDL_mutex* updateMutex = SDL_CreateMutex();
+		SDL_mutex* updateMutex = NULL;
 
 		using namespace Utilities::Scripting;
 
@@ -189,7 +189,7 @@ namespace Game
 			scheduledUnitEvents.clear();
 		}
 
-		SDL_mutex *scheduleUnitEventMutex = SDL_CreateMutex();
+		SDL_mutex *scheduleUnitEventMutex = NULL;
 
 		void ScheduleActionUnitEvent(const gc_ptr<Dimension::Unit>& pUnit, EventAIFunc *aiEvent)
 		{
@@ -613,6 +613,12 @@ namespace Game
 			}
 
 			return 1;
+		}
+
+		void InitAIMiscMutexes()
+		{
+			updateMutex = SDL_CreateMutex();
+			scheduleUnitEventMutex = SDL_CreateMutex();
 		}
 
 		void InitAIThreads()
