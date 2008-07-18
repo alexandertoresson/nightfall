@@ -811,7 +811,7 @@ namespace Game
 					frames = 0;
 					last_status_time = SDL_GetTicks();
 				}
-				if (SDL_GetTicks() - last_save >= 300000)
+/*				if (SDL_GetTicks() - last_save >= 300000)
 				{
 					bool exists;
 					time_t rawtime;
@@ -831,7 +831,7 @@ namespace Game
 						system(("bzip2 \"" + filename + "\"").c_str());
 					}
 					last_save = SDL_GetTicks();
-				}
+				}*/
 
 			}
 			return returnValue;
