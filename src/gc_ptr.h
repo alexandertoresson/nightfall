@@ -11,7 +11,7 @@
 #include <cassert>
 #include <string>
 
-#define GC_PTR_DEBUG
+//#define GC_PTR_DEBUG
 
 template <typename T, bool B = is_fundamental<T>::value >
 struct gc_default_shader
