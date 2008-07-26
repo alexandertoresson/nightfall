@@ -715,6 +715,11 @@ namespace Game
 
 			if (!Game::Rules::noGraphics)
 			{
+				if (time_passed_since_last_ai_pass < 1 / AI::aiFps)
+				{
+					SDL_Delay(1);
+				}
+
 				time_passed_since_last_water_pass += time_since_last_frame;
 				while (time_passed_since_last_water_pass >= (1.0f / 3))
 				{
