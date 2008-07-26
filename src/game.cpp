@@ -514,7 +514,7 @@ namespace Game
 			Dimension::Camera::instance.AddChild(gc_ptr<FX::ParticleNode>(&FX::ParticleNode::instance, null_deleter));
 			Scene::Graph::rootNode->AddChild(gc_ptr<Scene::Graph::Node>(&GUINode::instance, null_deleter));
 
-			Dimension::Camera::instance.SetYMinimum(0.5f);
+			Dimension::Camera::instance.SetYMinimum(1.0f);
 			Dimension::Camera::instance.SetYMaximum(15.0f);
 
 			pLoading->Increment(increment);
