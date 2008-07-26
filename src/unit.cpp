@@ -314,7 +314,7 @@ namespace Game
 				}
 			}
 
-			gc_ptr<Unit>& newUnit = unit->pMovementData->action.goal.unit;
+			gc_ptr<Unit> newUnit = unit->pMovementData->action.goal.unit;
 			ObjectRequirements &requirements = newUnit->type->requirements;
 
 			if (newUnit->pMovementData->action.action == AI::ACTION_DIE)
