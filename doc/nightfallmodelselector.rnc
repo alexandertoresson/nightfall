@@ -33,11 +33,11 @@ switch =
 case =
 	element case {
 		attribute value { text },
-		attribute fallthrough { xsd:boolean },
+		[ a:defaultValue = "false" ] attribute fallthrough { xsd:boolean },
 		(mesh | switch | include)*
 	}
 default =
 	element default {
-		attribute fallthrough { xsd:boolean },
+		[ a:defaultValue = "false" ] attribute fallthrough { xsd:boolean },
 		(mesh | switch | include)*
 	}
