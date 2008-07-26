@@ -206,8 +206,6 @@ namespace Utilities
 
 	int SwitchTo2DViewport(float w, float h)
 	{
-		//Makes the transperent box ontop of the rendered 3d scene
-
 		glPushMatrix(); // push the modelview matrix
 
 		glLoadIdentity();
