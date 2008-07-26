@@ -4,5 +4,9 @@
 	<properties>
 		<watermaterial name="materials/water" />
 		<terrainmaterial name="materials/terrain-deathmatch" />
+		<usablearea>
+			<start x="50" y="50" />
+			<end x="200" y="200" />
+		</usablearea>
 	</properties>
 </terrain>

@@ -237,36 +237,41 @@ namespace Game
 
 				for (int x = 0; x < pWorld->width; x++)
 				{
+					steepness = 65535;
 
-					n = 0;
-					start_y = y - 1 < 0 ? 0 : y - 1;
-					start_x = x - 1 < 0 ? 0 : x - 1;
-
-					end_y = y + 1 > pWorld->height-1 ? pWorld->height-1 : y + 1;
-					end_x = x + 1 > pWorld->width-1 ? pWorld->width-1 : x + 1;
-
-					for (int y2 = start_y; y2 <= end_y; y2++)
+					if (x >= heightMap->startUA.x && x <= heightMap->endUA.x &&
+					    y >= heightMap->startUA.y && y <= heightMap->endUA.y)
 					{
-						for (int x2 = start_x; x2 <= end_x; x2++)
+
+						n = 0;
+						start_y = y - 1 < 0 ? 0 : y - 1;
+						start_x = x - 1 < 0 ? 0 : x - 1;
+
+						end_y = y + 1 > pWorld->height-1 ? pWorld->height-1 : y + 1;
+						end_x = x + 1 > pWorld->width-1 ? pWorld->width-1 : x + 1;
+
+						for (int y2 = start_y; y2 <= end_y; y2++)
 						{
-							val += fabs(heightMap->heights[y2][x2] - heightMap->heights[y][x]);
-							n++;
+							for (int x2 = start_x; x2 <= end_x; x2++)
+							{
+								val += fabs(heightMap->heights[y2][x2] - heightMap->heights[y][x]);
+								n++;
+							}
 						}
-					}
 
-					val /= (float) n-1; // to compensate for the middle point, which will always be 0
+						val /= (float) n-1; // to compensate for the middle point, which will always be 0
 
-					steepness = (int) (val * 1000); // Scale the value
+						steepness = (int) (val * 1000); // Scale the value
 
-					if (steepness > 65535)
-					{
-						steepness = 65535;
+						if (steepness > 65535)
+						{
+							steepness = 65535;
+						}
+
 					}
 
 					heightMap->steepness[y][x] = steepness;
-
 				}
-
 			}
 		}
 
@@ -673,10 +678,6 @@ namespace Game
 
 			}
 
-			cout << "Calculating steepness..." << endl;
-
-			CalculateSteepness();
-
 			InitFog();
 		
 			InitLight();
@@ -745,10 +746,8 @@ namespace Game
 
 		void ParseTerrain(Utilities::XMLElement *elem)
 		{
-			Utilities::TagFuncMap tfmap;
-			tfmap["heightmap"] = ParseHeightmap;
-			tfmap["properties"] = ParseProperties;
-			elem->Iterate(tfmap, NULL);
+			elem->Iterate("heightmap", ParseHeightmap);
+			elem->Iterate("properties", ParseProperties);
 		}
 
 		bool LoadTerrainXML(std::string name)
@@ -776,6 +775,12 @@ namespace Game
 			{
 				std::cout << "No heightmap loaded!" << std::endl;
 				ret = false;
+			}
+			else
+			{	
+				cout << "Calculating steepness..." << endl;
+
+				CalculateSteepness();
 			}
 
 			return ret;

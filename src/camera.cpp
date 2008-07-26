@@ -123,6 +123,19 @@ namespace Game
 			else if (mFocus.z >= terrainOffsetY - 2)
 				mFocus.z = terrainOffsetY - 2;
 
+			float mapx = (mFocus.x + terrainOffsetX) * 8, mapy = (mFocus.z + terrainOffsetY) * 8;
+
+			// Check so x and z of mFocus isn't outside of the 'usable area' of the map
+			if (mapx <= heightMap->startUA.x)
+				mFocus.x = heightMap->startUA.x / 8.0 - terrainOffsetX;
+			else if (mapx >= heightMap->endUA.x)
+				mFocus.x = heightMap->endUA.x / 8.0 - terrainOffsetX;
+			
+			if (mapy <= heightMap->startUA.y)
+				mFocus.z = heightMap->startUA.y / 8.0 - terrainOffsetY;
+			else if (mapy >= heightMap->endUA.y)
+				mFocus.z = heightMap->endUA.y / 8.0 - terrainOffsetY;
+
 			// Set Y of focus to the ground at the focus point
 			mFocus.y = GetTerrainHeight((mFocus.x + terrainOffsetX) * 8, (mFocus.z + terrainOffsetY) * 8);
 
