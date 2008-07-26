@@ -47,8 +47,8 @@ namespace Game
 			Utilities::Vector3D hit_pos;
 			bool processed = false;
 			Utilities::Vector3D v_templ[2], v[2][2][2];
-			v_templ[0].set(-terrainOffsetX, py, -terrainOffsetY);
-			v_templ[1].set(+terrainOffsetX, py + terrainHeight, +terrainOffsetY);
+			v_templ[0].set(-terrainOffsetX*10, py, -terrainOffsetY*10);
+			v_templ[1].set(+terrainOffsetX*10, py + terrainHeight, +terrainOffsetY*10);
 			for (int x=0;x<2;x++)
 			{
 				for (int y=0;y<2;y++)
@@ -222,69 +222,6 @@ namespace Game
 			}
 		}
 
-/*		void CreateTexCoords()
-		{
-
-			HeightMipmaps[0][0].ppTexCoords = new UVWCoord**[pWorld->height];
-			for(int y=0;y<pWorld->height;y++)
-			{
-
-				HeightMipmaps[0][0].ppTexCoords[y] = new UVWCoord*[pWorld->width];
-
-				for(int x=0;x<pWorld->width;x++)
-				{
-					HeightMipmaps[0][0].ppTexCoords[y][x] = new UVWCoord;
-					// set u coordinate according to steepness in terrain
-					// handles edge cases
-					if (x != 0 && x != pWorld->width-1 && y != 0 && y != pWorld->height-1)
-					{
-						HeightMipmaps[0][0].ppTexCoords[y][x]->u = (fabs(pWorld->ppHeight[y][x+1] - pWorld->ppHeight[y][x-1]) +
-											    fabs(pWorld->ppHeight[y-1][x] - pWorld->ppHeight[y+1][x]));
-					}
-					// y is at an edge
-					else if (x != 0 && x != pWorld->width-1)
-					{
-						HeightMipmaps[0][0].ppTexCoords[y][x]->u = (fabs(pWorld->ppHeight[y][x+1] - pWorld->ppHeight[y][x-1])) * 2;
-					}
-					// x is at an edge
-					else if (y != 0 && y != pWorld->height-1)
-					{
-						HeightMipmaps[0][0].ppTexCoords[y][x]->u = (fabs(pWorld->ppHeight[y+1][x] - pWorld->ppHeight[y-1][x])) * 2;
-					}
-					// x and y is at an edge
-					else
-					{
-						HeightMipmaps[0][0].ppTexCoords[y][x]->u = 0.0;
-					}
-					// set v coordinate according to height
-					HeightMipmaps[0][0].ppTexCoords[y][x]->v = 1 - (pWorld->ppHeight[y][x] / terrainHeight + 0.5f);
-
-					HeightMipmaps[0][0].ppTexCoords[y][x]->u += (float) ((double) rand() / RAND_MAX - 0.5) * 0.01f;
-					HeightMipmaps[0][0].ppTexCoords[y][x]->v += (float) ((double) rand() / RAND_MAX - 0.5) * 0.01f;
-
-					// u and v must not be lower than 0.01 or 0.99 for artifacts to not happen
-					if (HeightMipmaps[0][0].ppTexCoords[y][x]->u > 0.99f)
-					{
-						HeightMipmaps[0][0].ppTexCoords[y][x]->u = 0.99f;
-					}
-					if (HeightMipmaps[0][0].ppTexCoords[y][x]->v > 0.99f)
-					{
-						HeightMipmaps[0][0].ppTexCoords[y][x]->v = 0.99f;
-					}
-					if (HeightMipmaps[0][0].ppTexCoords[y][x]->u < 0.01f)
-					{
-						HeightMipmaps[0][0].ppTexCoords[y][x]->u = 0.01f;
-					}
-					if (HeightMipmaps[0][0].ppTexCoords[y][x]->v < 0.01f)
-					{
-						HeightMipmaps[0][0].ppTexCoords[y][x]->v = 0.01f;
-					}
-					HeightMipmaps[0][0].ppTexCoords[y][x]->w = 0.0f;
-				}
-			}
-
-		}*/
-
 		void CalculateSteepness()
 		{
 			int n, steepness;
@@ -400,6 +337,7 @@ namespace Game
 					if (waterHeight / 2 + waterLevel >= heightMap->heights[y][x])
 					{
 						heightMap->squareHasWater[y][x] = true;
+						numwater++;
 					}
 				}
 			}
@@ -728,10 +666,6 @@ namespace Game
 
 				InitWater();
 
-/*				cout << "Calculating mipmaps for heightmap..." <<  endl;
-				
-				CreateMipmaps();*/
-
 				cout << "Initializing VBOs..." << endl;
 
 				InitVBOs();
@@ -925,6 +859,20 @@ namespace Game
 			return false;
 		}
 
+		void IncludeScanline(int x1, int x2, int y)
+		{
+			if (x2 < x1) return;
+			if (x1 < 0) x1 = 0;
+			if (x2 >= levelmap_width) x2 = levelmap_width-1;
+			if (y < 0) y = 0;
+			if (y >= levelmap_height) y = levelmap_height-1;
+						
+			if (is_visible[0][y] > x1)
+				is_visible[0][y] = x1;
+			if (is_visible[1][y] < x2)
+				is_visible[1][y] = x2;
+		}
+
 		// Draws an 'inclusion line' from (x1, y1) to (x2, y2)
 		void DefineInclusionLine(float x1, float y1, float x2, float y2)
 		{
@@ -932,20 +880,10 @@ namespace Game
 			float delta, newx, temp;
 
 			// scale to big squares
-			x1 = (x1 + terrainOffsetX) * 8 / 32;
-			y1 = (y1 + terrainOffsetY) * 8 / 32;
-			x2 = (x2 + terrainOffsetX) * 8 / 32;
-			y2 = (y2 + terrainOffsetY) * 8 / 32;
-
-			// check for too big and too small coordinates
-			if (x1 < 0.0f) x1 = 0.0f;
-			if (x1 >= levelmap_width) x1 = (float) levelmap_width-0.0001f;
-			if (y1 < 0.0f) y1 = 0.0f;
-			if (y1 >= levelmap_height) y1 = (float) levelmap_height-0.0001f;
-			if (x2 < 0.0f) x2 = 0.0f;
-			if (x2 >= levelmap_width) x2 = (float) levelmap_width-0.0001f;
-			if (y2 < 0.0f) y2 = 0.0f;
-			if (y2 >= levelmap_height) y2 = (float) levelmap_height-0.0001f;
+			x1 = (x1 + terrainOffsetX) * 8 / q_square_size;
+			y1 = (y1 + terrainOffsetY) * 8 / q_square_size;
+			x2 = (x2 + terrainOffsetX) * 8 / q_square_size;
+			y2 = (y2 + terrainOffsetY) * 8 / q_square_size;
 
 			// convert to integers
 			x1_i = (int) floor(x1);
@@ -953,31 +891,20 @@ namespace Game
 			x2_i = (int) floor(x2);
 			y2_i = (int) floor(y2);
 
-			if (x1_i < 0 || x2_i < 0 || y1_i < 0 || y2_i < 0 || x1_i >= levelmap_width || x2_i >= levelmap_width || y1_i >= levelmap_height || y2_i >= levelmap_height)
-			{
-				return;
-			}
-
 			if (x1_i == x2_i) // special case: x is constant
 			{
 				if (y2_i >= y1_i) // two cases: y2 > y1 and y1 < y2
 				{
 					for (int y = y1_i; y <= y2_i; y++)
 					{
-						if (is_visible[0][y] > x1_i)
-							is_visible[0][y] = x1_i; // set start
-						if (is_visible[1][y] < x1_i)
-							is_visible[1][y] = x1_i; // set end
+						IncludeScanline(x1_i, x1_i, y);
 					}
 				}
 				else
 				{
 					for (int y = y2_i; y <= y1_i; y++)
 					{
-						if (is_visible[0][y] > x1_i)
-							is_visible[0][y] = x1_i; // set start
-						if (is_visible[1][y] < x1_i)
-							is_visible[1][y] = x1_i; // set end
+						IncludeScanline(x1_i, x1_i, y);
 					}
 				}
 			}
@@ -1012,25 +939,14 @@ namespace Game
 					x1_i = (int) floor(x1); // start x and end x on this y
 					x2_i = (int) floor(newx);
 
-					if (x1_i > levelmap_width-1) x1_i = levelmap_width-1; // check for overflow
-					if (x2_i > levelmap_width-1) x2_i = levelmap_width-1;
-					if (x1_i < 0) x1_i = 0;
-					if (x2_i < 0) x2_i = 0;
-
 					if (x1_i < x2_i)
 					{
 						// set start x and end x
-						if (is_visible[0][y] > x1_i)
-							is_visible[0][y] = x1_i;
-						if (is_visible[1][y] < x2_i)
-							is_visible[1][y] = x2_i;
+						IncludeScanline(x1_i, x2_i, y);
 					}
 					else
 					{
-						if (is_visible[0][y] > x2_i)
-							is_visible[0][y] = x2_i;
-						if (is_visible[1][y] < x1_i)
-							is_visible[1][y] = x1_i;
+						IncludeScanline(x2_i, x1_i, y);
 					}
 
 					x1 = newx;
@@ -1044,24 +960,13 @@ namespace Game
 				x1_i = (int) floor(x1);
 				x2_i = (int) floor(newx);
 
-				if (x1_i > levelmap_width-1) x1_i = levelmap_width-1; // check for overflow
-				if (x2_i > levelmap_width-1) x2_i = levelmap_width-1;
-				if (x1_i < 0) x1_i = 0;
-				if (x2_i < 0) x2_i = 0;
-
 				if (x1_i < x2_i)
 				{
-					if (is_visible[0][y2_i] > x1_i)
-						is_visible[0][y2_i] = x1_i;
-					if (is_visible[1][y2_i] < x2_i)
-						is_visible[1][y2_i] = x2_i;
+					IncludeScanline(x1_i, x2_i, y2_i);
 				}
 				else
 				{
-					if (is_visible[0][y2_i] > x2_i)
-						is_visible[0][y2_i] = x2_i;
-					if (is_visible[1][y2_i] < x1_i)
-						is_visible[1][y2_i] = x1_i;
+					IncludeScanline(x2_i, x1_i, y2_i);
 				}
 			}
 		}
@@ -1293,31 +1198,33 @@ namespace Game
 
 			Utilities::Vector3D pos_vector_near, pos_vector_far, cur_mod_pos, void_pos;
 			
-			float fmx_low_v[2][64], fmy_low_v[2][64], fmx_high_v[2][64], fmy_high_v[2][64];
+			float fmx_low_v[2][2], fmy_low_v[2][2], fmx_high_v[2][2], fmy_high_v[2][2];
 
-			float fmx_low_h[64][2], fmy_low_h[64][2], fmx_high_h[64][2], fmy_high_h[64][2];
-
-			for (int y=0;y<pWorld->height/q_square_size;y++)
+			for (int y=0;y<levelmap_height;y++)
 			{
 				is_visible[0][y] = 65536;
 				is_visible[1][y] = -65536;
 			}
 
+			// get the map mesh position of the viewer by getting the near
+			// viewing plane in the middle of the screen
+			Utilities::WindowCoordToVector((Window::windowWidth-1) * 0.5, (Window::windowHeight-1) * 0.5, cur_mod_pos, void_pos);
+
 			// Get the map coords at a few different places on the screen,
-			// at a resolution of 2x64 by default.
+			// at a resolution of 2x2 by default.
 			// Note: what is returned is not the pure map coords, rather coords in
 			// the terrain mesh.
 			// fm[xy]_low positions are derived from the case when the terrain is
 			// at its lowest possible height, -1.5f.
 			// fm[xy]_high is derived from when the terrain is at its highest
 			// possible height, +1.5f
-			for (int y=0;y<64;y++)
+			for (int y=0;y<2;y++)
 			{
 				for (int x=0;x<2;x++)
 				{
 					// first get vector of ray into the screen at the
 					// appropriate screen position
-					Utilities::WindowCoordToVector((Window::windowWidth-1) * x, ((Window::windowHeight-1)/63) * y, pos_vector_near, pos_vector_far);
+					Utilities::WindowCoordToVector((Window::windowWidth-1) * x, (Window::windowHeight-1) * y, pos_vector_near, pos_vector_far);
 					// then get map mesh coords
 					Dimension::GetMapCoord(pos_vector_near, pos_vector_far, -terrainHeight/2, fmx_low_v[x][y], fmy_low_v[x][y]);
 					if (cur_mod_pos.y < terrainHeight/2)
@@ -1331,144 +1238,24 @@ namespace Game
 				}
 			}
 			
-			for (int y=0;y<2;y++)
-			{
-				for (int x=0;x<64;x++)
-				{
-					// first get vector of ray into the screen at the
-					// appropriate screen position
-					Utilities::WindowCoordToVector(((Window::windowWidth-1)/63) * x, (Window::windowHeight-1) * y, pos_vector_near, pos_vector_far);
-					// then get map mesh coords
-					Dimension::GetMapCoord(pos_vector_near, pos_vector_far, -terrainHeight/2, fmx_low_h[x][y], fmy_low_h[x][y]);
-					if (cur_mod_pos.y < terrainHeight/2)
-					{
-						Dimension::GetMapCoord(pos_vector_near, pos_vector_far, pos_vector_near.y, fmx_high_h[x][y], fmy_high_h[x][y]);
-					}
-					else
-					{
-						Dimension::GetMapCoord(pos_vector_near, pos_vector_far, +terrainHeight/2, fmx_high_h[x][y], fmy_high_h[x][y]);
-					}
-				}
-			}
-			
 			// Draw inclusion lines for the left and right sides of the low and
 			// high view frustums
-			for (int y=0;y<63;y++)
-			{
-				for (int x=0;x<2;x++)
-				{
-					DefineInclusionLine(fmx_low_v[x][y], fmy_low_v[x][y], fmx_low_v[x][y+1], fmy_low_v[x][y+1]);
-					DefineInclusionLine(fmx_high_v[x][y], fmy_high_v[x][y], fmx_high_v[x][y+1], fmy_high_v[x][y+1]);
-				}
-			}
 			
-			for (int y=0;y<2;y++)
-			{
-				for (int x=0;x<63;x++)
-				{
-					DefineInclusionLine(fmx_low_h[x][y], fmy_low_h[x][y], fmx_low_h[x+1][y], fmy_low_h[x+1][y]);
-					DefineInclusionLine(fmx_high_h[x][y], fmy_high_h[x][y], fmx_high_h[x+1][y], fmy_high_h[x+1][y]);
-				}
-			}
+			DefineInclusionLine(fmx_low_v[0][0], fmy_low_v[0][0], fmx_low_v[0][1], fmy_low_v[0][1]);
+			DefineInclusionLine(fmx_low_v[1][0], fmy_low_v[1][0], fmx_low_v[1][1], fmy_low_v[1][1]);
+			DefineInclusionLine(fmx_high_v[0][0], fmy_high_v[0][0], fmx_high_v[0][1], fmy_high_v[0][1]);
+			DefineInclusionLine(fmx_high_v[1][0], fmy_high_v[1][0], fmx_high_v[1][1], fmy_high_v[1][1]);
 			
 			// Draw the inclusion vectors for the upper and lower sides of the
 			// view frustums
 			DefineInclusionLine(fmx_low_v[0][0], fmy_low_v[0][0], fmx_low_v[1][0], fmy_low_v[1][0]);
-			DefineInclusionLine(fmx_low_v[0][63], fmy_low_v[0][63], fmx_low_v[1][63], fmy_low_v[1][63]);
+			DefineInclusionLine(fmx_low_v[0][1], fmy_low_v[0][1], fmx_low_v[1][1], fmy_low_v[1][1]);
 			DefineInclusionLine(fmx_high_v[0][0], fmy_high_v[0][0], fmx_high_v[1][0], fmy_high_v[1][0]);
-			DefineInclusionLine(fmx_high_v[0][63], fmy_high_v[0][63], fmx_high_v[1][63], fmy_high_v[1][63]);
+			DefineInclusionLine(fmx_high_v[0][1], fmy_high_v[0][1], fmx_high_v[1][1], fmy_high_v[1][1]);
 
-			// Connect corners of high and low view frustums
-			DefineInclusionLine(fmx_low_v[0][0], fmy_low_v[0][0], fmx_high_v[0][0], fmy_high_v[0][0]);
-			DefineInclusionLine(fmx_low_v[0][63], fmy_low_v[0][63], fmx_high_v[0][63], fmy_high_v[0][63]);
-			DefineInclusionLine(fmx_low_v[1][63], fmy_low_v[1][63], fmx_high_v[1][63], fmy_high_v[1][63]);
-			DefineInclusionLine(fmx_low_v[1][0], fmy_low_v[1][0], fmx_high_v[1][0], fmy_high_v[1][0]);
-
-			// special cases, where the frustums include parts of two neighbouring
-			// sides of the map. doing this with the high frustum is not needed,
-			// as if the high frustum reaches the sides, the low frustum does too.
-			// One possible scenario:
-			// +----------+
-			// |   |      |
-			// |   |      |
-			// |\  |      |
-			// |  \|      |
-			// |   *      |
-			// +----------+
-			// Well, crappy ascii art, but you prolly get the idea.
-			// Anyway, in this scenario, the frustum reaches the upper and left
-			// sides, and should thus include them. However, this won't happen
-			// without a special case, as the normal inclusion lines will just
-			// draw a line between the places where the view vectors hit the sides
-
-			// left and upper
-			if (fmx_low_v[0][0] < -terrainOffsetX+0.01 && fmy_low_v[1][0] < -terrainOffsetY+0.01)
-			{
-				DefineInclusionLine(fmx_low_v[0][0], fmy_low_v[0][0], -terrainOffsetX, -terrainOffsetY);
-				DefineInclusionLine(-terrainOffsetX, -terrainOffsetY, fmx_low_v[1][0], fmy_low_v[1][0]);
-			}
-			// upper and right
-			if (fmy_low_v[0][0] < -terrainOffsetY+0.01 && fmx_low_v[1][0] > terrainOffsetX-0.01)
-			{
-				DefineInclusionLine(fmx_low_v[0][0], fmy_low_v[0][0], terrainOffsetX, -terrainOffsetY);
-				DefineInclusionLine(terrainOffsetX, -terrainOffsetY, fmx_low_v[1][0], fmy_low_v[1][0]);
-			}
-			// right and lower
-			if (fmx_low_v[0][0] > terrainOffsetX-0.01 && fmy_low_v[1][0] > terrainOffsetY-0.01)
-			{
-				DefineInclusionLine(fmx_low_v[0][0], fmy_low_v[0][0], terrainOffsetX, terrainOffsetY);
-				DefineInclusionLine(terrainOffsetX, terrainOffsetY, fmx_low_v[1][0], fmy_low_v[1][0]);
-			}
-
-			// lower and left
-			if (fmy_low_v[0][0] > terrainOffsetY-0.01 && fmx_low_v[1][0] < -terrainOffsetX+0.01)
-			{
-				DefineInclusionLine(fmx_low_v[0][0], fmy_low_v[0][0], -terrainOffsetX, terrainOffsetY);
-				DefineInclusionLine(-terrainOffsetX, terrainOffsetY, fmx_low_v[1][0], fmy_low_v[1][0]);
-			}
-
-			// special case where the frustum includes a full side and parts of
-			// the two neighbouring sides. Example scenario:
-			// +----------+
-			// |          |
-			// |\         |
-			// | \       /|
-			// |   \   /  |
-			// |     *    |
-			// +----------+
-
-			// left, upper and right
-			if (fmx_low_v[0][0] < -terrainOffsetX+0.01 && fmx_low_v[1][0] > terrainOffsetX-0.01)
-			{
-				DefineInclusionLine(fmx_low_v[0][0], fmy_low_v[0][0], -terrainOffsetX, -terrainOffsetY);
-				DefineInclusionLine(-terrainOffsetX, -terrainOffsetY, terrainOffsetX, -terrainOffsetY);
-				DefineInclusionLine(terrainOffsetX, -terrainOffsetY, fmx_low_v[1][0], fmy_low_v[1][0]);
-			}
-			// rigt, lower and left
-			if (fmx_low_v[0][0] > terrainOffsetX-0.01 && fmx_low_v[1][0] < -terrainOffsetX+0.01)
-			{
-				DefineInclusionLine(fmx_low_v[0][0], fmy_low_v[0][0], terrainOffsetX, terrainOffsetY);
-				DefineInclusionLine(terrainOffsetX, terrainOffsetY, -terrainOffsetX, terrainOffsetY);
-				DefineInclusionLine(-terrainOffsetX, terrainOffsetY, fmx_low_v[1][0], fmy_low_v[1][0]);
-			}
-			// upper, right and lower
-			if (fmy_low_v[0][0] < -terrainOffsetY+0.01 && fmy_low_v[1][0] > terrainOffsetY-0.01)
-			{
-				DefineInclusionLine(fmx_low_v[0][0], fmy_low_v[0][0], terrainOffsetX, -terrainOffsetY);
-				DefineInclusionLine(terrainOffsetX, -terrainOffsetY, terrainOffsetX, terrainOffsetY);
-				DefineInclusionLine(terrainOffsetX, terrainOffsetY, fmx_low_v[1][0], fmy_low_v[1][0]);
-			}
-			// lower, left and upper
-			if (fmy_low_v[0][0] > terrainOffsetY-0.01 && fmy_low_v[1][0] < -terrainOffsetY+0.01)
-			{
-				DefineInclusionLine(fmx_low_v[0][0], fmy_low_v[0][0], -terrainOffsetX, terrainOffsetY);
-				DefineInclusionLine(-terrainOffsetX, terrainOffsetY, -terrainOffsetX, -terrainOffsetY);
-				DefineInclusionLine(-terrainOffsetX, -terrainOffsetY, fmx_low_v[1][0], fmy_low_v[1][0]);
-			}
-
-			// get the map mesh position of the viewer by getting the near
-			// viewing plane in the middle of the screen
-			Utilities::WindowCoordToVector((Window::windowWidth-1) * 0.5, (Window::windowHeight-1) * 0.5, cur_mod_pos, void_pos);
+			// Draw the inclusion vectors connecting the back of the high and low view frustums
+			DefineInclusionLine(fmx_low_v[0][1], fmy_low_v[0][1], fmx_high_v[0][1], fmy_high_v[0][1]);
+			DefineInclusionLine(fmx_low_v[1][1], fmy_low_v[1][1], fmx_high_v[1][1], fmy_high_v[1][1]);
 
 			heightMap->index.Lock();
 
@@ -1551,6 +1338,74 @@ namespace Game
 			heightMap->texCoords.Unlock();
 
 			heightMap->index.Unlock();
+
+// The following is code to debug the calculation of what big square should be rendered.
+// It is very useful, so I suggest we keep it for a while.
+#if 0
+			Utilities::SwitchTo2DViewport(1.0, 1.0);
+
+			glUseProgramObjectARB(0);
+
+			glBegin(GL_QUADS);
+
+				glColor4f(0.0, 0.0, 1.0, 0.5);
+				glVertex3f(0.25, 0.25, 0);
+				glVertex3f(0.75, 0.25, 0);
+				glVertex3f(0.75, 0.75, 0);
+				glVertex3f(0.25, 0.75, 0);
+
+				glColor4f(0.0, 1.0, 0.0, 0.5);
+				glVertex3f((fmx_low_v[0][0] + terrainOffsetX) * 8 / pWorld->width / 2 + 0.25,
+				           (fmy_low_v[0][0] + terrainOffsetY) * 8 / pWorld->height / 2 + 0.25, 0);
+				glVertex3f((fmx_low_v[1][0] + terrainOffsetX) * 8 / pWorld->width / 2 + 0.25,
+				           (fmy_low_v[1][0] + terrainOffsetY) * 8 / pWorld->height / 2 + 0.25, 0);
+				glVertex3f((fmx_low_v[1][1] + terrainOffsetX) * 8 / pWorld->width / 2 + 0.25,
+				           (fmy_low_v[1][1] + terrainOffsetY) * 8 / pWorld->height / 2 + 0.25, 0);
+				glVertex3f((fmx_low_v[0][1] + terrainOffsetX) * 8 / pWorld->width / 2 + 0.25,
+				           (fmy_low_v[0][1] + terrainOffsetY) * 8 / pWorld->height / 2 + 0.25, 0);
+
+				glColor4f(1.0, 0.0, 0.0, 0.5);
+				glVertex3f((fmx_high_v[0][0] + terrainOffsetX) * 8 / pWorld->width / 2 + 0.25,
+				           (fmy_high_v[0][0] + terrainOffsetY) * 8 / pWorld->height / 2 + 0.25, 0);
+				glVertex3f((fmx_high_v[1][0] + terrainOffsetX) * 8 / pWorld->width / 2 + 0.25,
+				           (fmy_high_v[1][0] + terrainOffsetY) * 8 / pWorld->height / 2 + 0.25, 0);
+				glVertex3f((fmx_high_v[1][1] + terrainOffsetX) * 8 / pWorld->width / 2 + 0.25,
+				           (fmy_high_v[1][1] + terrainOffsetY) * 8 / pWorld->height / 2 + 0.25, 0);
+				glVertex3f((fmx_high_v[0][1] + terrainOffsetX) * 8 / pWorld->width / 2 + 0.25,
+				           (fmy_high_v[0][1] + terrainOffsetY) * 8 / pWorld->height / 2 + 0.25, 0);
+
+				glColor4f(0.0, 1.0, 1.0, 0.5);
+				glVertex3f((fmx_high_v[0][1] + terrainOffsetX) * 8 / pWorld->width / 2 + 0.25,
+				           (fmy_high_v[0][1] + terrainOffsetY) * 8 / pWorld->height / 2 + 0.25, 0);
+				glVertex3f((fmx_low_v[0][1] + terrainOffsetX) * 8 / pWorld->width / 2 + 0.25,
+				           (fmy_low_v[0][1] + terrainOffsetY) * 8 / pWorld->height / 2 + 0.25, 0);
+				glVertex3f((fmx_low_v[1][1] + terrainOffsetX) * 8 / pWorld->width / 2 + 0.25,
+				           (fmy_low_v[1][1] + terrainOffsetY) * 8 / pWorld->height / 2 + 0.25, 0);
+				glVertex3f((fmx_high_v[1][1] + terrainOffsetX) * 8 / pWorld->width / 2 + 0.25,
+				           (fmy_high_v[1][1] + terrainOffsetY) * 8 / pWorld->height / 2 + 0.25, 0);
+
+
+				for (int y=0;y<levelmap_height;y++)
+				{
+					if (is_visible[1][y] >= is_visible[0][y])
+					{
+						glColor4f(1.0f, 1.0f, 0.0f, 0.5f);
+						glVertex3f((float) is_visible[0][y] / levelmap_width / 2 + 0.25,
+						           (float) y / levelmap_height / 2 + 0.25, 0);
+						glVertex3f((float) is_visible[1][y] / levelmap_width / 2 + 0.25,
+						           (float) y / levelmap_height / 2 + 0.25, 0);
+						glVertex3f((float) is_visible[1][y] / levelmap_width / 2 + 0.25,
+						           (float) (y+1) / levelmap_height / 2 + 0.25, 0);
+						glVertex3f((float) is_visible[0][y] / levelmap_width / 2 + 0.25,
+						           (float) (y+1) / levelmap_height / 2 + 0.25, 0);
+					}
+				}
+
+			glEnd();
+
+			Utilities::RevertViewport();
+#endif
+
 		}
 
 		WaterNode::WaterNode() : GLStateNode(new Scene::Render::GLState)
