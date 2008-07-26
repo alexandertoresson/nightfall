@@ -453,8 +453,39 @@ namespace Game
 			height = pWorld->height-1;
 			width = pWorld->width-1;
 
-			water_cur_front ^= 1;
-			water_cur_back ^= 1;
+			int newCurFront = (water_cur_front + 1) % 3;
+			int newCurBack = (water_cur_back + 1) % 3;
+
+			int i = 0;
+
+			for (int y = 1; y < height; y++)
+			{
+				for (int x = 1; x < width; x++)
+				{
+					if (heightMap->squareHasWater[y][x])
+					{
+						float theight = heightMap->heights[y][x];
+						ppWater[newCurFront][y][x] = (ppWater[water_cur_front][y-1][x] +
+						                              ppWater[water_cur_front][y+1][x] +
+						                              ppWater[water_cur_front][y][x-1] +
+						                              ppWater[water_cur_front][y][x+1]) / 2 -
+						                              ppWater[water_cur_back][y][x];
+
+						ppWater[newCurFront][y][x] *= 0.95f;
+						if (ppWater[newCurFront][y][x] < theight - waterLevel)
+						{
+							ppWater[newCurFront][y][x] = theight - waterLevel;
+						}
+						if (waterLevel < theight)
+						{
+							ppWater[newCurFront][y][x] = 0.0f;
+						}
+
+					}
+
+					i++;
+				}
+			}
 
 			for (int i = 0; i < 1000; i++)
 			{
@@ -468,42 +499,14 @@ namespace Game
 					{
 						for (int x2 = 0; x2 < 5; x2++)
 						{
-							ppWater[water_cur_front][y+y2-2][x+x2-2] += val * matrix[y2][x2];
+							ppWater[newCurFront][y+y2-2][x+x2-2] += val * matrix[y2][x2];
 						}
 					}
 				}
 			}
 
-			int i = 0;
-
-			for (int y = 1; y < height; y++)
-			{
-				for (int x = 1; x < width; x++)
-				{
-					if (heightMap->squareHasWater[y][x])
-					{
-						float theight = heightMap->heights[y][x];
-						ppWater[water_cur_front][y][x] = (ppWater[water_cur_back][y-1][x] +
-										  ppWater[water_cur_back][y+1][x] +
-										  ppWater[water_cur_back][y][x-1] +
-										  ppWater[water_cur_back][y][x+1]) / 2 -
-										  ppWater[water_cur_front][y][x];
-
-						ppWater[water_cur_front][y][x] *= 0.95f;
-						if (ppWater[water_cur_front][y][x] < theight - waterLevel)
-						{
-							ppWater[water_cur_front][y][x] = theight - waterLevel;
-						}
-						if (waterLevel < theight)
-						{
-							ppWater[water_cur_front][y][x] = 0.0f;
-						}
-
-					}
-
-					i++;
-				}
-			}
+			water_cur_back = newCurBack;
+			water_cur_front = newCurFront;
 
 		}
 
@@ -1559,6 +1562,8 @@ namespace Game
 		void WaterNode::Render()
 		{
 			int loc;
+			int curFront = water_cur_front;
+			int curBack = water_cur_back;
 
 			matrices[MATRIXTYPE_MODELVIEW].Apply();
 
@@ -1641,8 +1646,8 @@ namespace Game
 							mx = basex;
 							for (int x2 = 0; x2 <= q_square_size; x2++)
 							{
-								waterBack.data.floats[i] = heightMap->water[water_cur_back][my][mx];
-								waterFront.data.floats[i] = heightMap->water[water_cur_front][my][mx];
+								waterBack.data.floats[i] = heightMap->water[curBack][my][mx];
+								waterFront.data.floats[i] = heightMap->water[curFront][my][mx];
 								mx++;
 								i++;
 							}
