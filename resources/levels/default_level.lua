@@ -25,8 +25,8 @@ function InitLevel()
 
 	---------------------------------------------------
 	
-	SetWaterMaterial("materials/water-default.mat");
-	SetTerrainMaterial("materials/terrain-default.mat");
+	SetWaterMaterial("materials/water-default");
+	SetTerrainMaterial("materials/terrain-default");
 
 	---------------------------------------------------
 

@@ -1,22 +1,16 @@
 
 namespace a = "http://relaxng.org/ns/compatibility/annotations/1.0"
 
-start = modelselector
-modelselector =
-	element modelselector {
+start = materialselector
+materialselector =
+	element materialselector {
 		attribute version { xsd:decimal },
-		(mesh | switch | include)+
+		(material | switch | include)+
 	}
 
-mesh =
-	element mesh {
-		attribute material { xsd:text }?,
-		attribute mesh { xsd:text }?,
-		submesh+
-	}
-submesh =
-	element submesh {
-		attribute material { xsd:text }
+material =
+	element material {
+		attribute name { xsd:text }?,
 	}
 
 include =

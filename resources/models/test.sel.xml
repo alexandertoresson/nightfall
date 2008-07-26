@@ -1,4 +1,4 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<selector version="1.0">
-	<mesh material="materials/test.mat" mesh="models/test" />
-</selector>
+<modelselector version="1.0">
+	<mesh material="materials/unit" mesh="models/test" />
+</modelselector>

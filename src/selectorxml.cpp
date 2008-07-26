@@ -1,4 +1,4 @@
-#include "modelselectorxml.h"
+#include "selectorxml.h"
 
 #include "ogrexmlmodel.h"
 #include "materialxml.h"
@@ -10,7 +10,13 @@
 namespace Utilities
 {
 	static gc_ptr<OgreMesh> mesh = NULL;
+	static gc_ptr<Material> material = NULL;
 	static unsigned submesh_index = 0;
+	static enum
+	{
+		FILETYPE_MESH,
+		FILETYPE_MATERIAL
+	} filetype;
 
 	static void ParseSubMesh(Utilities::XMLElement *elem)
 	{
@@ -56,6 +62,11 @@ namespace Utilities
 		}
 
 		elem->Iterate("submesh", ParseSubMesh);
+	}
+	
+	static void ParseMaterial(Utilities::XMLElement *elem)
+	{
+		material = LoadSpecificMaterialXML(elem->GetAttribute("name"));
 	}
 	
 	static std::stack<bool> case_found;
@@ -113,18 +124,33 @@ namespace Utilities
 	}
 	
 	void LoadModelSelector(std::string name);
+	void LoadMaterialSelector(std::string name);
 
 	void ParseInclude(Utilities::XMLElement *elem)
 	{
 		std::string name = elem->GetAttribute("name");
-		LoadModelSelector(name);
+		if (filetype == FILETYPE_MESH)
+		{
+			LoadModelSelector(name);
+		}
+		else
+		{
+			LoadMaterialSelector(name);
+		}
 	}
 
 	void ParseSelector(Utilities::XMLElement *elem)
 	{
 		TagFuncMap tfmap;
+		if (filetype == FILETYPE_MESH)
+		{
+			tfmap["mesh"] = ParseMesh;
+		}
+		else
+		{
+			tfmap["material"] = ParseMaterial;
+		}
 		tfmap["switch"] = ParseSwitch;
-		tfmap["mesh"] = ParseMesh;
 		tfmap["include"] = ParseInclude;
 		elem->Iterate(tfmap, NULL);
 	}
@@ -137,7 +163,8 @@ namespace Utilities
 
 		if (filename.length() && xmlReader.Read(filename))
 		{
-			xmlReader.root->Iterate("selector", ParseSelector);
+			filetype = FILETYPE_MESH;
+			xmlReader.root->Iterate("modelselector", ParseSelector);
 		}
 		else
 		{
@@ -165,6 +192,43 @@ namespace Utilities
 		filenameToMesh[name] = mesh;
 
 		return mesh;
+
+	}
+
+	void LoadMaterialSelector(std::string name)
+	{
+		Utilities::XMLReader xmlReader;
+		
+		std::string filename = Utilities::GetDataFile(name + ".sel.xml");
+
+		if (filename.length() && xmlReader.Read(filename))
+		{
+			filetype = FILETYPE_MATERIAL;
+			xmlReader.root->Iterate("materialselector", ParseSelector);
+		}
+		else
+		{
+			material = LoadSpecificMaterialXML(name);
+		}
+		
+		xmlReader.Deallocate();
+
+	}
+
+	static std::map<std::string, gc_ptr<Material> > filenameToMaterial;
+
+	gc_ptr<Material> LoadMaterialXML(std::string name)
+	{
+		material = filenameToMaterial[name];
+
+		if (!material)
+		{
+			LoadMaterialSelector(name);
+		}
+
+		filenameToMaterial[name] = material;
+
+		return material;
 
 	}
 

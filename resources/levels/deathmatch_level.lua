@@ -25,8 +25,8 @@ function InitLevel()
 
 	---------------------------------------------------
 	
-	SetWaterMaterial("materials/water.mat");
-	SetTerrainMaterial("materials/terrain-deathmatch.mat");
+	SetWaterMaterial("materials/water");
+	SetTerrainMaterial("materials/terrain-deathmatch");
 
 	---------------------------------------------------
 

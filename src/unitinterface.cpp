@@ -19,7 +19,7 @@
 #include "ogrexmlmodel.h"
 #include "materialxml-pre.h"
 #include "defaultcolours.h"
-#include "modelselectorxml.h"
+#include "selectorxml.h"
 #include "unittype.h"
 #include "handle.h"
 #include <sstream>

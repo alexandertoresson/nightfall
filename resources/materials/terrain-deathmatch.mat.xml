@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <materials version="1.0">
 	<material>
-		<inherit filename="materials/terrain.mat" />
+		<inherit filename="materials/terrain" />
 		<textures>
-			<texture filename="textures/mtterrain.png" name="terrainTexture" />
+			<texture filename="textures/terrain-deathmatch.png" name="terrainTexture" />
 		</textures>
 	</material>
 </materials>

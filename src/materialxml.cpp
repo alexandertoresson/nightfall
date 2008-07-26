@@ -264,7 +264,7 @@ namespace Utilities
 	void ParseInheritMaterial(Utilities::XMLElement *elem)
 	{
 		std::string filename = elem->GetAttribute("filename");
-		gc_ptr<Material> inherited = LoadMaterialXML(filename);
+		gc_ptr<Material> inherited = LoadSpecificMaterialXML(filename);
 		*material = *inherited;
 	}
 
@@ -307,10 +307,10 @@ namespace Utilities
 		elem->Iterate(tfmap, NULL);
 	}
 
-	gc_ptr<Material> LoadMaterialXML(std::string name)
+	gc_ptr<Material> LoadSpecificMaterialXML(std::string name)
 	{
 		XMLReader xmlReader;
-		std::string filename = Utilities::GetDataFile(name);
+		std::string filename = Utilities::GetDataFile(name + ".mat.xml");
 
 		material = filenameToMaterial[name];
 

@@ -7,6 +7,7 @@
 #include "utilities.h"
 #include "window.h"
 #include "materialxml.h"
+#include "selectorxml.h"
 #include <iostream>
 #include <fstream>
 #include <cmath>
@@ -1284,7 +1285,7 @@ namespace Game
 			myGLState->material = Utilities::LoadMaterialXML(material);
 		}
 
-		std::string TerrainNode::material = "materials/terrain.mat";
+		std::string TerrainNode::material = "materials/terrain";
 
 		void TerrainNode::Render()
 		{
@@ -1557,7 +1558,7 @@ namespace Game
 			myGLState->material = Utilities::LoadMaterialXML(material);
 		}
 
-		std::string WaterNode::material = "materials/water.mat";
+		std::string WaterNode::material = "materials/water";
 
 		void WaterNode::Render()
 		{
