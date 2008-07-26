@@ -106,7 +106,7 @@ namespace Game
 			SDL_mutex*  pMutex;
 			bool        threadRuntime;
 			
-			gc_root_ptr<Dimension::Unit>::type pUnit;
+			gc_ptr<Dimension::Unit> pUnit;
 
 			Dimension::IntPosition oldGoal;
 
@@ -623,19 +623,16 @@ namespace Game
 			ThreadData* tdata = (ThreadData*)arg;
 			while (tdata->threadRuntime == true)
 			{
-				for (int i = 0; i < 10; i++)
+				SDL_LockMutex(tdata->pMutex);
+				for (int i = 0; i < 200; i++)
 				{
-					SDL_LockMutex(tdata->pMutex);
-					for (int i = 0; i < 20; i++)
+					if (PerformPathfinding(tdata) == PATHSTATE_EMPTY_QUEUE)
 					{
-						if (PerformPathfinding(tdata) == PATHSTATE_EMPTY_QUEUE)
-						{
-							SDL_UnlockMutex(tdata->pMutex);
-							goto delay;
-						}
+						SDL_UnlockMutex(tdata->pMutex);
+						goto delay;
 					}
-					SDL_UnlockMutex(tdata->pMutex);
 				}
+				SDL_UnlockMutex(tdata->pMutex);
 
 				delay:
 				
@@ -771,7 +768,7 @@ namespace Game
 			{
 				SDL_LockMutex(gpmxThreadState);
 
-				curState = pUnit->pMovementData->_currentState;
+				curState = md->_currentState;
 
 				if (curState == INTTHRSTATE_PROCESSING)
 				{

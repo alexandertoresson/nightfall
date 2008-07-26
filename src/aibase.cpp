@@ -878,9 +878,15 @@ namespace Game
 				if (i % 100 == 0)
 				{
 					Uint32 ticks = SDL_GetTicks();
+
 					Game::Rules::GameWindow::Instance()->PauseRendering();
+					AI::PausePathfinding();
+
 					gc_marker_base::sweep();
+
 					Game::Rules::GameWindow::Instance()->ResumeRendering();
+					AI::ResumePathfinding();
+
 					std::cout << SDL_GetTicks() - ticks << " ticks" << std::endl;
 				}
 				i++;
