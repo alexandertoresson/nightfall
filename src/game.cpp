@@ -894,6 +894,7 @@ namespace Game
 				}*/
 
 			}
+			SDL_UnlockMutex(renderMutex);
 			SDL_WaitThread(gameThread, NULL);
 			return returnValue;
 		}
