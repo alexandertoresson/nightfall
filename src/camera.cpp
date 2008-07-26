@@ -107,24 +107,24 @@ namespace Game
 		// Go through the camera settings, check that they are correct, and set mPosition and mView accordingly after mFocus, mZoom and mRotation
 		void Camera::CheckPosition()
 		{
-			if (mZoom < 5.0f) 
-				mZoom = 5.0f;
+			if (mZoom < 10.0f) 
+				mZoom = 10.0f;
 			if (mZoom > 67.5f) 
 				mZoom = 67.5f;
 			
 			// Check so x and z of mFocus isn't outside the map
-			if (mFocus.x <= -terrainOffsetX + 1)
-				mFocus.x = -terrainOffsetX + 1;
-			else if (mFocus.x >= terrainOffsetX - 1)
-				mFocus.x = terrainOffsetX - 1;
+			if (mFocus.x <= -terrainOffsetX + 2)
+				mFocus.x = -terrainOffsetX + 2;
+			else if (mFocus.x >= terrainOffsetX - 2)
+				mFocus.x = terrainOffsetX - 2;
 			
-			if (mFocus.z <= -terrainOffsetY + 1)
-				mFocus.z = -terrainOffsetY + 1;
-			else if (mFocus.z >= terrainOffsetY - 1)
-				mFocus.z = terrainOffsetY - 1;
+			if (mFocus.z <= -terrainOffsetY + 2)
+				mFocus.z = -terrainOffsetY + 2;
+			else if (mFocus.z >= terrainOffsetY - 2)
+				mFocus.z = terrainOffsetY - 2;
 
-			// Set Y of focus to right above the ground at the focus point
-			mFocus.y = GetTerrainHeight((mFocus.x + terrainOffsetX) * 8, (mFocus.z + terrainOffsetY) * 8) + 0.5;
+			// Set Y of focus to the ground at the focus point
+			mFocus.y = GetTerrainHeight((mFocus.x + terrainOffsetX) * 8, (mFocus.z + terrainOffsetY) * 8);
 
 			// begin by setting mView to point right into -z
 			mView.set(0.0f, 0.0f, -1.0f);
