@@ -629,7 +629,7 @@ namespace Game
 				goal_pos.z += target->type->height * 0.25f * 0.0625f;
 				gc_root_ptr<Projectile>::type proj = CreateProjectile(attacker->type->projectileType, Utilities::Vector3D(attacker->pos.x, attacker->pos.y, GetTerrainHeight(attacker->pos.x, attacker->pos.y)), goal_pos, attacker);
 				proj->goalUnit = target;
-				attacker->owner->vProjectiles.push_back(proj);
+				attacker->vProjectiles.push_back(proj);
 				UnitMainNode::instance.ScheduleProjectileAddition(proj);
 				PlayActionSound(attacker, Audio::SFX_ACT_FIRE_FNF);
 			}
@@ -640,118 +640,148 @@ namespace Game
 			return unit01->GetHandle() < unit02->GetHandle();
 		}
 
-		void HandleProjectiles(const gc_ptr<Player>& player)
+		bool HandleProjectile(const gc_ptr<Projectile>& proj)
 		{
-			gc_ptr<Projectile> proj = NULL;
 			float max_radius = 0;
 			vector<gc_ptr<Unit> >::iterator it;
 			list<gc_ptr<Unit> > units_hit;
+#ifdef CHECKSUM_DEBUG_HIGH
+			Networking::checksum_output << "PROJ " << AI::currentFrame << ": " << proj->pos.x << ", " << proj->pos.y << ", " << proj->pos.z << " " << proj->pos.distance(proj->goalPos) << " " << proj->type->speed * (1.0 / AI::aiFps) << "\n";
+#endif
+/*					if (proj->type->isHoming && proj->goalUnit != NULL)
+				proj->goalPos = GetTerrainCoord(proj->goalUnit->pos.x, proj->goalUnit->pos.y);*/
+
+			if (proj->pos.distance(proj->goalPos) < proj->type->speed * (1.0 / AI::aiFps))
+			{
+				
+				max_radius = proj->type->areaOfEffect * 0.125f;
+				proj->pos = proj->goalPos;
+
+#ifdef CHECKSUM_DEBUG_HIGH
+				Networking::checksum_output << "HIT " << proj->pos.x << ", " << proj->pos.y << ", " << proj->pos.z << "\n";
+#endif
+
+				int big_start_x = (int) (proj->pos.x - ceil(max_radius) - 10) >> bigSquareRightShift;
+				int big_start_y = (int) (proj->pos.y - ceil(max_radius) - 10) >> bigSquareRightShift;
+				int big_end_x = (int) (proj->pos.x + ceil(max_radius) + 10) >> bigSquareRightShift;
+				int big_end_y = (int) (proj->pos.y + ceil(max_radius) + 10) >> bigSquareRightShift;
+		
+				if (big_start_y < 0)
+					big_start_y = 0;
+
+				if (big_start_x < 0)
+					big_start_x = 0;
+
+				if (big_end_y >= bigSquareHeight)
+					big_end_y = bigSquareHeight-1;
+
+				if (big_end_x >= bigSquareWidth)
+					big_end_x = bigSquareWidth-1;
+
+				Utilities::Vector3D proj_pos = GetTerrainCoord(proj->goalPos.x, proj->goalPos.y);
+				proj_pos.y = proj->goalPos.z;
+
+				units_hit.clear();
+
+				for (int y = big_start_y; y <= big_end_y; y++)
+				{
+					for (int x = big_start_x; x <= big_end_x; x++)
+					{
+						for (it = unitsInBigSquares[y][x]->begin(); it != unitsInBigSquares[y][x]->end(); it++)
+						{
+							const gc_ptr<Unit>& target = *it;
+							if (target == proj->attacker)
+								continue;
+
+							Utilities::Vector3D unit_pos = GetTerrainCoord(target->pos.x, target->pos.y);
+							if (proj_pos.distance(unit_pos) <= max_radius)
+							{
+								units_hit.push_back(target);
+							}
+						}
+					}
+				}
+
+				units_hit.sort(UnitBinPred);
+
+				for (list<gc_ptr<Unit> >::iterator it = units_hit.begin(); it != units_hit.end(); it++)
+				{
+					gc_ptr<Unit>& target = *it;
+
+#ifdef CHECKSUM_DEBUG_HIGH
+					Networking::checksum_output << "HIT " << target->GetHandle() << "\n";
+#endif
+					if (proj->attacker->isDisplayed)
+					{
+						// Make the attacked player aware of where its attacker is
+						proj->attacker->lastSeenPositions[target->owner->index] = proj->attacker->curAssociatedSquare;
+						if (target->owner != proj->attacker->owner)
+						{
+							if (target->pMovementData->action.action != AI::ACTION_DIE)
+								AI::SendUnitEventToLua_IsAttacked(target, proj->attacker);
+						}
+						if (Attack(target, CalcUnitDamage(target, proj->attacker)))
+						{
+							if (target == proj->goalUnit || proj->goalUnit)
+								AI::CompleteAction(proj->attacker);
+						}
+					}
+					else
+					{
+						AI::CompleteAction(proj->attacker);
+					}
+				}
+
+				if (!Game::Rules::noGraphics)
+				{
+					FX::pParticleSystems->InitEffect(proj->pos.x, proj->pos.y, 0.0f, max_radius * 4, FX::PARTICLE_SPHERICAL_EXPLOSION);
+				}
+
+				UnitMainNode::instance.ScheduleProjectileDeletion(proj);
+
+				return true;
+			}
+			else
+			{
+#ifdef CHECKSUM_DEBUG_HIGH
+				Networking::checksum_output << "MOVE " << proj->direction.x << ", " << proj->direction.y << ", " << proj->direction.z << "\n";
+#endif
+				proj->pos += proj->direction * proj->type->speed * (1.0f / (float) AI::aiFps);
+			}
+			return false;
+		}
+
+		void HandleProjectiles(const gc_ptr<Player>& player)
+		{
+			gc_ptr<Projectile> proj = NULL;
 
 			for (unsigned index = 0; index < player->vProjectiles.size(); )
 			{
 				proj = player->vProjectiles.at(index);
-#ifdef CHECKSUM_DEBUG_HIGH
-				Networking::checksum_output << "PROJ " << AI::currentFrame << ": " << proj->pos.x << ", " << proj->pos.y << ", " << proj->pos.z << " " << proj->pos.distance(proj->goalPos) << " " << proj->type->speed * (1.0 / AI::aiFps) << "\n";
-#endif
-/*					if (proj->type->isHoming && proj->goalUnit != NULL)
-					proj->goalPos = GetTerrainCoord(proj->goalUnit->pos.x, proj->goalUnit->pos.y);*/
-
-				if (proj->pos.distance(proj->goalPos) < proj->type->speed * (1.0 / AI::aiFps))
+				if (HandleProjectile(proj))
 				{
-					
-					max_radius = proj->type->areaOfEffect * 0.125f;
-					proj->pos = proj->goalPos;
-
-#ifdef CHECKSUM_DEBUG_HIGH
-					Networking::checksum_output << "HIT " << proj->pos.x << ", " << proj->pos.y << ", " << proj->pos.z << "\n";
-#endif
-
-					int big_start_x = (int) (proj->pos.x - ceil(max_radius) - 10) >> bigSquareRightShift;
-					int big_start_y = (int) (proj->pos.y - ceil(max_radius) - 10) >> bigSquareRightShift;
-					int big_end_x = (int) (proj->pos.x + ceil(max_radius) + 10) >> bigSquareRightShift;
-					int big_end_y = (int) (proj->pos.y + ceil(max_radius) + 10) >> bigSquareRightShift;
-			
-					if (big_start_y < 0)
-						big_start_y = 0;
-
-					if (big_start_x < 0)
-						big_start_x = 0;
-
-					if (big_end_y >= bigSquareHeight)
-						big_end_y = bigSquareHeight-1;
-
-					if (big_end_x >= bigSquareWidth)
-						big_end_x = bigSquareWidth-1;
-
-					Utilities::Vector3D proj_pos = GetTerrainCoord(proj->goalPos.x, proj->goalPos.y);
-					proj_pos.y = proj->goalPos.z;
-
-					units_hit.clear();
-
-					for (int y = big_start_y; y <= big_end_y; y++)
-					{
-						for (int x = big_start_x; x <= big_end_x; x++)
-						{
-							for (it = unitsInBigSquares[y][x]->begin(); it != unitsInBigSquares[y][x]->end(); it++)
-							{
-								const gc_ptr<Unit>& target = *it;
-								if (target == proj->attacker)
-									continue;
-
-								Utilities::Vector3D unit_pos = GetTerrainCoord(target->pos.x, target->pos.y);
-								if (proj_pos.distance(unit_pos) <= max_radius)
-								{
-									units_hit.push_back(target);
-								}
-							}
-						}
-					}
-
-					units_hit.sort(UnitBinPred);
-
-					for (list<gc_ptr<Unit> >::iterator it = units_hit.begin(); it != units_hit.end(); it++)
-					{
-						gc_ptr<Unit>& target = *it;
-
-#ifdef CHECKSUM_DEBUG_HIGH
-						Networking::checksum_output << "HIT " << target->GetHandle() << "\n";
-#endif
-						if (proj->attacker->isDisplayed)
-						{
-							// Make the attacked player aware of where its attacker is
-							proj->attacker->lastSeenPositions[target->owner->index] = proj->attacker->curAssociatedSquare;
-							if (target->owner != proj->attacker->owner)
-							{
-								if (target->pMovementData->action.action != AI::ACTION_DIE)
-									AI::SendUnitEventToLua_IsAttacked(target, proj->attacker);
-							}
-							if (Attack(target, CalcUnitDamage(target, proj->attacker)))
-							{
-								if (target == proj->goalUnit || proj->goalUnit)
-									AI::CompleteAction(proj->attacker);
-							}
-						}
-						else
-						{
-							AI::CompleteAction(proj->attacker);
-						}
-					}
-
-					if (!Game::Rules::noGraphics)
-					{
-						FX::pParticleSystems->InitEffect(proj->pos.x, proj->pos.y, 0.0f, max_radius * 4, FX::PARTICLE_SPHERICAL_EXPLOSION);
-					}
-					
-					player->vProjectiles.erase(player->vProjectiles.begin()+index);
-
-					UnitMainNode::instance.ScheduleProjectileDeletion(proj);
+					player->vProjectiles.erase(player->vProjectiles.begin() + index);
 				}
 				else
 				{
-#ifdef CHECKSUM_DEBUG_HIGH
-					Networking::checksum_output << "MOVE " << proj->direction.x << ", " << proj->direction.y << ", " << proj->direction.z << "\n";
-#endif
-					proj->pos += proj->direction * proj->type->speed * (1.0f / (float) AI::aiFps);
+					index++;
+				}
+			}
+		}
+		
+		void HandleProjectiles(const gc_ptr<Unit>& unit)
+		{
+			gc_ptr<Projectile> proj = NULL;
+
+			for (unsigned index = 0; index < unit->vProjectiles.size(); )
+			{
+				proj = unit->vProjectiles.at(index);
+				if (HandleProjectile(proj))
+				{
+					unit->vProjectiles.erase(unit->vProjectiles.begin() + index);
+				}
+				else
+				{
 					index++;
 				}
 			}
@@ -1850,6 +1880,13 @@ namespace Game
 				}
 			}
 			
+			for (vector<gc_ptr<Projectile> >::iterator it = unit->vProjectiles.begin(); it != unit->vProjectiles.end(); it++)
+			{
+				unit->owner->vProjectiles.push_back(*it);
+			}
+
+			unit->vProjectiles.clear();
+
 			if (unitsScheduledForDeletion.find(unit) != unitsScheduledForDeletion.end())
 				unitsScheduledForDeletion.erase(unit);
 

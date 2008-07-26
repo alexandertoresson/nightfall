@@ -315,6 +315,8 @@ namespace Game
 			UnitAction action;
 			int should_move;
 			
+			HandleProjectiles(pUnit);
+
 			if (pUnit->isCompleted && pUnit->hasPower && pUnit->isDisplayed && pUnit->pMovementData->action.action != ACTION_DIE)
 			{
 			

@@ -272,9 +272,11 @@ namespace Game
 		{
 			xmlfile.BeginTag("projectile");
 				
-				OutputInt(xmlfile, "player", player->GetHandle());
-
-				if (proj->attacker && proj->attacker->isDisplayed)
+				if (player)
+				{
+					OutputInt(xmlfile, "player", player->GetHandle());
+				}
+				else
 				{
 					OutputInt(xmlfile, "owner", proj->attacker->GetHandle());
 				}
@@ -344,12 +346,24 @@ namespace Game
 				{
 					const gc_ptr<Player>& player = *it;
 
-					for (vector<gc_ptr<Projectile> >::iterator it2 =player->vProjectiles.begin(); it2 != player->vProjectiles.end(); it2++)
+					for (vector<gc_ptr<Projectile> >::iterator it2 = player->vProjectiles.begin(); it2 != player->vProjectiles.end(); it2++)
 					{
 						OutputProjectile(xmlfile, player, *it2);
 					}
 
 				}
+				
+				for (vector<gc_ptr<Unit> >::iterator it = pWorld->vUnits.begin(); it != pWorld->vUnits.end(); it++)
+				{
+					const gc_ptr<Unit>& unit = *it;
+
+					for (vector<gc_ptr<Projectile> >::iterator it2 = unit->vProjectiles.begin(); it2 != unit->vProjectiles.end(); it2++)
+					{
+						OutputProjectile(xmlfile, NULL, *it2);
+					}
+
+				}
+				
 				
 			xmlfile.EndTag();
 
@@ -850,7 +864,15 @@ namespace Game
 			proj = CreateProjectile(unit->type->projectileType, pos, goalPos, unit);
 			proj->goalUnit = goalUnit;
 			proj->direction = direction;
-			player->vProjectiles.push_back(proj);
+
+			if (unit)
+			{
+				unit->vProjectiles.push_back(proj);
+			}
+			else
+			{
+				player->vProjectiles.push_back(proj);
+			}
 
 		}
 

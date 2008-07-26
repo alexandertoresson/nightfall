@@ -60,6 +60,7 @@ namespace Game
 			{
 				type.shade();
 				goalUnit.shade();
+				attacker.shade();
 			}
 		};
 
@@ -83,6 +84,7 @@ namespace Game
 			float               rotation;  // how rotated the model is
 			std::deque<ActionQueueItem>  actionQueue;
 			gc_ptr<AI::MovementData> pMovementData;
+			std::vector<gc_ptr<Projectile> > vProjectiles;
 			Uint32              lastAttack;    // frame of the last attack done by the unit
 			Uint32              lastAttacked;    // frame of the last attack done at the unit
 			Uint32              lastCommand;
@@ -137,6 +139,7 @@ namespace Game
 		bool Attack(gc_ptr<Unit>& target, float damage);
 		void InitiateAttack(gc_ptr<Unit>& attacker, gc_ptr<Unit>& target);
 		void HandleProjectiles(const gc_ptr<Player>& player);
+		void HandleProjectiles(const gc_ptr<Unit>& unit);
 		bool CanReach(const gc_ptr<Unit>& attacker, const gc_ptr<Unit>& target);
 		void ChangePath(const gc_ptr<Unit>& pUnit, int goal_x, int goal_y, AI::UnitAction action, const gc_ptr<Unit>& target, const ActionArguments& args, float rotation);
 
