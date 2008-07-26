@@ -235,6 +235,7 @@ void CheckLock(SDL_mutex* m, std::string name, std::string file, unsigned line)
 		LockedItems* lI = it->second;
 		std::cout << "Error: Attempted to lock already locked mutex " << name << " from same thread at " << file << ":" << line << std::endl;
 		std::cout << "Originally locked at " << lI->file << ":" << lI->line << std::endl;
+		UnlockMutex(lockCheckMutex);
 		return;
 	}
 
@@ -280,6 +281,70 @@ void CheckLock(SDL_mutex* m, std::string name, std::string file, unsigned line)
 	
 }
 
+void RecordLock(SDL_mutex* m, std::string name, std::string file, unsigned line)
+{
+	Uint32 locker = SDL_ThreadID();
+	if (!m)
+	{
+		std::cout << "The mutex pointer received was NULL. SDL would let this continue, but rather do nothing as it has no mutex to lock. I'm now gonna crash the program, to prevent you from shooting yourself in the foot." << std::endl;
+		*(int*) 0 = 0;
+	}
+	if (startTime == 0 || startTime > 100000)
+	{
+		startTime = SDL_GetTicks();
+	}
+	if (threads.size() == 0)
+	{
+		ThreadInfo tI;
+		tI.file = "main";
+		tI.line = 0;
+		threads.push_back(tI);
+	}
+	std::map<SDL_mutex*, LockedItems*>::iterator it = lockedItems.find(m);
+
+	if (it != lockedItems.end() && it->second->locker == locker)
+	{
+		LockedItems* lI = it->second;
+		std::cout << "Error: Attempted to lock already locked mutex " << name << " from same thread at " << file << ":" << line << std::endl;
+		std::cout << "Originally locked at " << lI->file << ":" << lI->line << std::endl;
+		return;
+	}
+
+	LockedItems* lI = new LockedItems;
+	lI->all = lockHash.getItem(m, file, line, name);
+	lI->byM = lockHashByM.getItem(m, file, line, name);
+	lI->byPos = lockHashByPos.getItem(m, file, line, name);
+	lI->byUniq = lockHashByUniq.getItem(m, file, line, name);
+	lI->m = m;
+	lI->locker = locker;
+	lI->file = file;
+	lI->line = line;
+
+	Uint32 sTime = SDL_GetTicks();
+
+	Uint32 totTime = SDL_GetTicks() - sTime;
+
+	lI->lockTime = SDL_GetTicks();
+
+	lI->all->totalLockTime += totTime;
+	lI->all->lockTimes++;
+
+	lI->byM->totalLockTime += totTime;
+	lI->byM->lockTimes++;
+
+	lI->byPos->totalLockTime += totTime;
+	lI->byPos->lockTimes++;
+
+	lI->byUniq->totalLockTime += totTime;
+	lI->byUniq->lockTimes++;
+
+	spentLTime += totTime;
+	threads[idToIndex[SDL_ThreadID()]].lockTime += totTime;
+	numLocks++;
+
+	lockedItems[m] = lI;
+}
+
 void CheckUnlock(SDL_mutex* m, std::string name, std::string file, unsigned line)
 {
 	LockedItems* lI = NULL;
@@ -302,6 +367,7 @@ void CheckUnlock(SDL_mutex* m, std::string name, std::string file, unsigned line
 	if (!lI)
 	{
 		std::cout << "Error: Attempted to unlock not locked mutex " << name << " at " << file << ":" << line << std::endl;
+		UnlockMutex(lockCheckMutex);
 		return;
 	}
 
@@ -343,6 +409,63 @@ void CheckUnlock(SDL_mutex* m, std::string name, std::string file, unsigned line
 	delete lI;
 	
 	UnlockMutex(lockCheckMutex);
+}
+
+void RecordUnlock(SDL_mutex* m, std::string name, std::string file, unsigned line)
+{
+	LockedItems* lI = NULL;
+	if (!m)
+	{
+		std::cout << "The mutex pointer received was NULL. SDL would let this continue, but rather do nothing as it has no mutex to lock. I'm now gonna crash the program, to prevent you from shooting yourself in the foot." << std::endl;
+		*(int*) 0 = 0;
+	}
+	std::map<SDL_mutex*, LockedItems*>::iterator it = lockedItems.find(m);
+
+	if (it != lockedItems.end())
+	{
+		lI = it->second;
+	}
+	if (!lI)
+	{
+		std::cout << "Error: Attempted to unlock not locked mutex " << name << " at " << file << ":" << line << std::endl;
+		return;
+	}
+
+	Uint32 eTime = SDL_GetTicks() - lI->lockTime;
+
+	lI->all->totalExecTime += eTime;
+	lI->all->execTimes++;
+
+	lI->byM->totalExecTime += eTime;
+	lI->byM->execTimes++;
+
+	lI->byPos->totalExecTime += eTime;
+	lI->byPos->execTimes++;
+
+	lI->byUniq->totalExecTime += eTime;
+	lI->byUniq->execTimes++;
+
+	lockedItems.erase(m);
+	Uint32 cTime = SDL_GetTicks();
+
+	eTime = SDL_GetTicks() - cTime;
+	
+	lI->all->totalUnlockTime += eTime;
+	lI->all->unLockTimes++;
+	
+	lI->byM->totalUnlockTime += eTime;
+	lI->byM->unLockTimes++;
+	
+	lI->byPos->totalUnlockTime += eTime;
+	lI->byPos->unLockTimes++;
+
+	lI->byUniq->totalUnlockTime += eTime;
+	lI->byUniq->unLockTimes++;
+
+	spentLTime += eTime;
+	threads[idToIndex[SDL_ThreadID()]].lockTime += eTime;
+
+	delete lI;
 }
 
 void RecordDelay(unsigned n)
@@ -388,12 +511,7 @@ void RecordCondWait(SDL_cond* cond, SDL_mutex* mutex, std::string name, std::str
 		lockCheckMutex = SDL_CreateMutex();
 	}
 	LockMutex(lockCheckMutex);
-	std::map<SDL_mutex*, LockedItems*>::iterator it = lockedItems.find(mutex);
-	if (it == lockedItems.end())
-	{
-		std::cout << "Error: Attempted to unlock not locked mutex " << name << " at " << file << ":" << line << std::endl;
-		return;
-	}
+	RecordUnlock(mutex, name, file, line);
 	UnlockMutex(lockCheckMutex);
 
 	Uint32 sTime = SDL_GetTicks();
@@ -401,6 +519,7 @@ void RecordCondWait(SDL_cond* cond, SDL_mutex* mutex, std::string name, std::str
 	Uint32 eTime = SDL_GetTicks() - sTime;
 
 	LockMutex(lockCheckMutex);
+	RecordLock(mutex, name, file, line);
 	if (threads.size() == 0)
 	{
 		ThreadInfo tI;
