@@ -130,12 +130,12 @@ namespace Game
 			mView.set(0.0f, 0.0f, -1.0f);
 
 			// rotate around X upwards by mZoom, so the more you zoom out, the more you see stuff from 'upwards'
-			mView.rotateX(-mZoom);
+			mView.rotateX(-(30 + pow(mZoom, 2) / 130));
 
 			// rotate around Y by mRotation
 			mView.rotateY(mRotation);
 			
-			// Set mPosition to be a position in the absolute direction of mView, where the distance from mFocus is (mZoom * 2) * 0.2
+			// Set mPosition to be a position in the absolute direction of mView, where the distance from mFocus is mView * (mZoom + 2) * 0.2
 			mPosition = mFocus - mView * (mZoom + 2) * 0.2;
 
 			// Set up vector to point right into +y
