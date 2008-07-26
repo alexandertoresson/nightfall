@@ -9,7 +9,7 @@
 
 namespace Utilities
 {
-	TextureImageData::TextureImageData(std::string filename, std::string name) : name(name), image(NULL), buffer(0)
+	TextureImageData::TextureImageData(std::string filename) : image(NULL), buffer(0)
 	{
 		std::string path = GetDataFile(filename);
 		
@@ -72,6 +72,21 @@ namespace Utilities
 	{
 	}
 
+	gc_ptr<TextureImageData> TextureImageData::LoadTexture(std::string filename)
+	{
+		gc_ptr<TextureImageData> texture = filenameToTexture[filename];
+
+		if (!texture)
+		{
+			texture = new TextureImageData(filename);
+			filenameToTexture[filename] = texture;
+		}
+
+		return texture;
+	}
+
+	std::map<std::string, gc_ptr<TextureImageData> > TextureImageData::filenameToTexture;
+
 	static gc_ptr<Material> material = NULL;
 	static Colour *colour = NULL;
 	static std::map<std::string, gc_ptr<Material> > filenameToMaterial;
@@ -95,15 +110,7 @@ namespace Utilities
 	void ParseTexture(Utilities::XMLElement *elem)
 	{
 		std::string name = elem->GetAttribute("name");
-		for (unsigned i = 0; i < material->textures.size(); i++)
-		{
-			if (material->textures[i]->name == name)
-			{
-				material->textures.erase(material->textures.begin() + i);
-				break;
-			}
-		}
-		material->textures.push_back(new TextureImageData(elem->GetAttribute("filename"), name));
+		material->textures[name] = TextureImageData::LoadTexture(elem->GetAttribute("filename"));
 	}
 
 	void ParseTextures(Utilities::XMLElement *elem)

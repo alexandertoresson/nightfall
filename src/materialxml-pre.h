@@ -107,14 +107,15 @@ namespace Utilities
 
 	struct TextureImageData
 	{
-		std::string name;
 		unsigned dimensions;
 		unsigned width, height, channels;
 		GLenum pixelFormat, channelFormat;
 		SDL_Surface *image;
 		GLuint buffer;
 
-		TextureImageData(std::string filename, std::string name);
+		static std::map<std::string, gc_ptr<TextureImageData> > filenameToTexture;
+
+		static gc_ptr<TextureImageData> LoadTexture(std::string filename);
 
 		void Lock();
 		void Unlock();
@@ -122,6 +123,9 @@ namespace Utilities
 		void shade()
 		{
 		}
+
+		private:
+			TextureImageData(std::string filename);
 	};
 
 	struct Material
@@ -132,7 +136,7 @@ namespace Utilities
 		Colour specular;
 		Colour emission;
 		GLfloat shininess;
-		std::vector<gc_ptr<TextureImageData> > textures;
+		std::map<std::string, gc_ptr<TextureImageData> > textures;
 		std::vector<gc_ptr<Uniform> > uniforms;
 		GLhandleARB program;
 		GLhandleARB vertShader;
@@ -145,7 +149,7 @@ namespace Utilities
 
 		void shade()
 		{
-			gc_shade_container(textures);
+			gc_shade_map(textures);
 			gc_shade_container(uniforms);
 		}
 	};

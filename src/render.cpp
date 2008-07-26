@@ -75,8 +75,8 @@ namespace Scene
 			{
 				if (curSetState && curSetState->material)
 				{
-					for (std::vector<gc_ptr<Utilities::TextureImageData> >::iterator it = curSetState->material->textures.begin(); it != curSetState->material->textures.end(); it++)
-						(*it)->Unlock();
+					for (std::map<std::string, gc_ptr<Utilities::TextureImageData> >::iterator it = curSetState->material->textures.begin(); it != curSetState->material->textures.end(); it++)
+						it->second->Unlock();
 				}
 
 				for (GLStateBoolList::iterator it = stateBools.begin(); it != stateBools.end(); it++)
@@ -107,18 +107,18 @@ namespace Scene
 					}
 
 					i = 0;
-					for (std::vector<gc_ptr<Utilities::TextureImageData> >::iterator it = material->textures.begin(); it != material->textures.end(); it++, i++)
+					for (std::map<std::string, gc_ptr<Utilities::TextureImageData> >::iterator it = material->textures.begin(); it != material->textures.end(); it++, i++)
 					{
-						(*it)->Lock();
+						it->second->Lock();
 
 						if (material->program)
 						{
-							GLint sampler = glGetUniformLocationARB(material->program, (*it)->name.c_str());
+							GLint sampler = glGetUniformLocationARB(material->program, it->first.c_str());
 							glUniform1iARB(sampler, i);
 						}
 
 						glActiveTexture(GL_TEXTURE0_ARB + i);
-						glBindTexture(GL_TEXTURE_2D, (*it)->buffer);
+						glBindTexture(GL_TEXTURE_2D, it->second->buffer);
 
 						i++;
 					}
