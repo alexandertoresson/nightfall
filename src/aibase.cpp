@@ -22,6 +22,7 @@
 #include "effect.h"
 #include "utilities.h"
 #include "unit.h"
+#include "lockfreequeue.h"
 #include <cmath>
 
 using namespace std;
@@ -174,8 +175,6 @@ namespace Game
 						pVM->CallFunction(6);
 						break;
 					case UNITEVENTTYPE_SIMPLE:
-//						std::cout << "consume " << event.func << std::endl;
-//						std::cout << *event->func << " " << event->unitID << std::endl;
 						lua_pushlightuserdata(pVM->GetState(), (void*) event.unit->GetHandle());
 						pVM->CallFunction(1);
 						break;
@@ -214,7 +213,6 @@ namespace Game
 			UnitEvent event(pUnit, aiEvent, UNITEVENTTYPE_SIMPLE);
 
 			SDL_LockMutex(scheduleUnitEventMutex);
-//			std::cout << "produce " << aiEvent->func << std::endl;
 			scheduledUnitEvents.push_back(event);
 			SDL_UnlockMutex(scheduleUnitEventMutex);
 		}
@@ -256,12 +254,6 @@ namespace Game
 				return;
 
 			UnitEvent event(pUnit, attacker, &pUnit->type->unitAIFuncs.isAttacked);
-
-/*			event->eventType = UNITEVENTTYPE_ATTACK;
-			event->unitID = pUnit->GetHandle();
-			event->playerIndex = pUnit->owner->index;
-			event->targetID = attacker->GetHandle();
-			event->func = pUnit->type->unitAIFuncs.isAttacked.func;*/
 
 			SDL_LockMutex(scheduleUnitEventMutex);
 			scheduledUnitEvents.push_back(event);
@@ -539,6 +531,12 @@ namespace Game
 		volatile bool aiIsFired;
 		volatile bool quitAIThreads;
 
+		int simpleAITicks = 0;
+		int *luaAITicks;
+		int postFrameTicks[8];
+		int GCTicks = 0;
+		int totalAITicks = 0;
+
 		int _SimpleAIThread(void* arg)
 		{
 
@@ -553,6 +551,8 @@ namespace Game
 				{
 					SDL_CondWait(fireAIConds[0], simpleAIWaitMutex);
 				} while (!aiIsFired);
+				
+				Uint32 t = SDL_GetTicks();
 				
 				for (vector<gc_ptr<Dimension::Unit> >::iterator it = Dimension::pWorld->vUnits.begin(); it != Dimension::pWorld->vUnits.end(); it++)
 				{
@@ -570,6 +570,7 @@ namespace Game
 				}
 
 				SDL_LockMutex(mainAIWaitMutexes[0]); // Make sure that the main thread is waiting for the signal
+					simpleAITicks += SDL_GetTicks() - t;
 					aiThreadsDone++; // Hijack mutex to secure updating of aiThreadsDone
 				SDL_UnlockMutex(mainAIWaitMutexes[0]);
 
@@ -593,6 +594,8 @@ namespace Game
 				{
 					SDL_CondWait(fireAIConds[i+1], luaAIWaitMutexes[i]);
 				} while (!aiIsFired);
+
+				Uint32 t = SDL_GetTicks();
 				
 				for (vector<gc_ptr<Dimension::Player> >::iterator it = playersHandledPerLuaThread[i].begin(); it != playersHandledPerLuaThread[i].end(); it++)
 				{
@@ -606,6 +609,7 @@ namespace Game
 				}
 
 				SDL_LockMutex(mainAIWaitMutexes[i+1]); // Make sure that the main thread is waiting for the signal
+					luaAITicks[i] += SDL_GetTicks() - t;
 					aiThreadsDone++;
 				SDL_UnlockMutex(mainAIWaitMutexes[i+1]);
 
@@ -677,6 +681,8 @@ namespace Game
 
 			}
 
+			luaAITicks = new int[numLuaAIThreads];
+
 		}
 
 		void QuitAIThreads()
@@ -726,6 +732,7 @@ namespace Game
 
 		void PerformAIFrame()
 		{
+			Uint32 t;
 			Dimension::PrintPlayerRefs();
 
 			static bool may_run_ai = true;
@@ -744,6 +751,8 @@ namespace Game
 					const gc_ptr<Dimension::Player>& player = *it;
 					player->oldResources = player->resources;
 				}
+
+				t = SDL_GetTicks();
 
 				if (numLuaAIThreads)
 				{
@@ -841,21 +850,46 @@ namespace Game
 
 				}
 
+				totalAITicks += SDL_GetTicks() - t;
+
+				t = SDL_GetTicks();
+				
 				///////////////////////////////////////////////////////////////////////////
 				// Particle system!
 
 				FX::pParticleSystems->Iterate(1.0f / (float) aiFps);
 				
+				postFrameTicks[0] += SDL_GetTicks() - t;
+				t = SDL_GetTicks();
+
 				///////////////////////////////////////////////////////////////////////////
 				// Apply various stuff that cannot be applied while the lua and simpleai threads are running
 
 				Dimension::DisplayScheduledUnits();
+				
+				postFrameTicks[1] += SDL_GetTicks() - t;
+				t = SDL_GetTicks();
+
 				Dimension::ApplyScheduledBigSquareUpdates();
+
+				postFrameTicks[2] += SDL_GetTicks() - t;
+				t = SDL_GetTicks();
+
 				UnitLuaInterface::ApplyScheduledActions();
+
+				postFrameTicks[3] += SDL_GetTicks() - t;
+				t = SDL_GetTicks();
+
 				UnitLuaInterface::ApplyScheduledDamagings();
+
+				postFrameTicks[4] += SDL_GetTicks() - t;
+				t = SDL_GetTicks();
 
 				// Send unit commands that could not be sent while lua ai was running
 				ApplyScheduledCommandUnits();
+
+				postFrameTicks[5] += SDL_GetTicks() - t;
+				t = SDL_GetTicks();
 
 				SDL_LockMutex(updateMutex);
 
@@ -866,13 +900,22 @@ namespace Game
 
 				SDL_UnlockMutex(updateMutex);
 
+				postFrameTicks[5] += SDL_GetTicks() - t;
+				t = SDL_GetTicks();
+
 				// Delete units that have lost their ground for existance, and 'undo' researches
 				// that also have.
 				Dimension::EnforceMinimumExistanceRequirements();
 
+				postFrameTicks[6] += SDL_GetTicks() - t;
+				t = SDL_GetTicks();
+
 				// The functions above might have queued up more events, so we do this as the
 				// last thing before deleting units, to avoid that events survive onto the next frame.
 				SendScheduledUnitEvents();
+
+				postFrameTicks[7] += SDL_GetTicks() - t;
+				t = SDL_GetTicks();
 
 				static int i = 0;
 				if (i % 100 == 0)
@@ -887,7 +930,36 @@ namespace Game
 					Game::Rules::GameWindow::Instance()->ResumeRendering();
 					AI::ResumePathfinding();
 
-					std::cout << SDL_GetTicks() - ticks << " ticks" << std::endl;
+					GCTicks += SDL_GetTicks() - ticks;
+
+					static int j = 0;
+
+					if (j % 10 == 0)
+					{
+						std::cout << "gc " << GCTicks << " sat " << simpleAITicks << " tat " << totalAITicks;
+						
+						for (int i = 0; i < 8; i++)
+						{
+							std::cout << " pft" << i << " " << postFrameTicks[i];
+							postFrameTicks[i] = 0;
+						}
+
+						for (int i = 0; i < numLuaAIThreads; i++)
+						{
+							std::cout << " lua" << i << " " << luaAITicks[i];
+							luaAITicks[i] = 0;
+						}
+
+						std::cout << std::endl;
+
+						GCTicks = 0;
+						simpleAITicks = 0;
+						totalAITicks = 0;
+
+					}
+
+					j++;
+
 				}
 				i++;
 
