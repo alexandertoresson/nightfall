@@ -1,0 +1,35 @@
+
+namespace a = "http://relaxng.org/ns/compatibility/annotations/1.0"
+
+# This describes version 1.0 of the format
+start = terrain
+terrain =
+	element terrain {
+		attribute version { xsd:decimal },
+		heightmap,
+		texture?,
+		properties?
+	}
+
+heightmap = 
+	element heightmap {
+		attribute name { xsd:text }
+	}
+
+texture =
+	element texture {
+		attribute name { xsd:text }
+	}
+
+properties =
+	element properties {
+		usablearea?
+	}
+
+usablearea =
+	element usablearea {
+		attribute startx { xsd:integer },
+		attribute starty { xsd:integer },
+		attribute endx { xsd:integer },
+		attribute endy { xsd:integer }
+	}
