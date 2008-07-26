@@ -54,6 +54,7 @@ namespace Game
 			Utilities::Vector3D direction;
 			Utilities::Vector3D goalPos;
 			gc_ptr<Unit>       goalUnit;
+			gc_ptr<Unit>       attacker;
 
 			void shade()
 			{
@@ -82,7 +83,6 @@ namespace Game
 			float               rotation;  // how rotated the model is
 			std::deque<ActionQueueItem>  actionQueue;
 			gc_ptr<AI::MovementData> pMovementData;
-			std::vector<gc_ptr<Projectile> > projectiles;
 			Uint32              lastAttack;    // frame of the last attack done by the unit
 			Uint32              lastAttacked;    // frame of the last attack done at the unit
 			Uint32              lastCommand;
@@ -136,7 +136,7 @@ namespace Game
 		bool CanAttack(const gc_ptr<Unit>& attacker);
 		bool Attack(gc_ptr<Unit>& target, float damage);
 		void InitiateAttack(gc_ptr<Unit>& attacker, gc_ptr<Unit>& target);
-		void HandleProjectiles(const gc_ptr<Unit>& pUnit);
+		void HandleProjectiles(const gc_ptr<Player>& player);
 		bool CanReach(const gc_ptr<Unit>& attacker, const gc_ptr<Unit>& target);
 		void ChangePath(const gc_ptr<Unit>& pUnit, int goal_x, int goal_y, AI::UnitAction action, const gc_ptr<Unit>& target, const ActionArguments& args, float rotation);
 
@@ -173,9 +173,9 @@ namespace Game
 		double GetPowerAtDawn(const gc_ptr<Player>& player);
 		double GetPowerAtDusk(const gc_ptr<Player>& player);
 		
-		gc_root_ptr<Projectile>::type CreateProjectile(const gc_ptr<ProjectileType>& type, Utilities::Vector3D start, const gc_ptr<Unit>& goal);
+		gc_root_ptr<Projectile>::type CreateProjectile(const gc_ptr<ProjectileType>& type, Utilities::Vector3D start, const gc_ptr<Unit>& goal, const gc_ptr<Unit>& attacker);
 		
-		gc_root_ptr<Projectile>::type CreateProjectile(const gc_ptr<ProjectileType>& type, Utilities::Vector3D start, Utilities::Vector3D goal);
+		gc_root_ptr<Projectile>::type CreateProjectile(const gc_ptr<ProjectileType>& type, Utilities::Vector3D start, Utilities::Vector3D goal, const gc_ptr<Unit>& attacker);
 
 		void InitUnits(void);
 	}

@@ -268,13 +268,15 @@ namespace Game
 			xmlfile.EndTag();
 		}
 
-		void OutputProjectile(Utilities::XMLWriter &xmlfile, const gc_ptr<Unit>& unit, const gc_ptr<Projectile>& proj)
+		void OutputProjectile(Utilities::XMLWriter &xmlfile, const gc_ptr<Player>& player, const gc_ptr<Projectile>& proj)
 		{
 			xmlfile.BeginTag("projectile");
 				
-				if (unit)
+				OutputInt(xmlfile, "player", player->GetHandle());
+
+				if (proj->attacker && proj->attacker->isDisplayed)
 				{
-					OutputInt(xmlfile, "owner", unit->GetHandle());
+					OutputInt(xmlfile, "owner", proj->attacker->GetHandle());
 				}
 
 				if (proj->goalUnit)
@@ -338,13 +340,13 @@ namespace Game
 					
 				}
 				
-				for (vector<gc_ptr<Unit> >::iterator it = pWorld->vUnits.begin(); it != pWorld->vUnits.end(); it++)
+				for (vector<gc_ptr<Player> >::iterator it = pWorld->vPlayers.begin(); it != pWorld->vPlayers.end(); it++)
 				{
-					const gc_ptr<Unit>& unit = *it;
+					const gc_ptr<Player>& player = *it;
 
-					for (vector<gc_ptr<Projectile> >::iterator it2 = unit->projectiles.begin(); it2 != unit->projectiles.end(); it2++)
+					for (vector<gc_ptr<Projectile> >::iterator it2 =player->vProjectiles.begin(); it2 != player->vProjectiles.end(); it2++)
 					{
-						OutputProjectile(xmlfile, unit, *it2);
+						OutputProjectile(xmlfile, player, *it2);
 					}
 
 				}
@@ -826,14 +828,12 @@ namespace Game
 		{
 			gc_ptr<Projectile> proj;
 			Utilities::Vector3D pos, direction, goalPos;
-			elem->Iterate("owner", ParseIntBlock);
-			const gc_ptr<Unit>& owner = GetUnitByID(i);
 
-			if (!owner)
-			{
-				std::cout << "Invalid unit index in ParseProjectile()" << std::endl;
-				return;
-			}
+			elem->Iterate("owner", ParseIntBlock);
+			const gc_ptr<Unit>& unit = GetUnitByID(i);
+
+			elem->Iterate("player", ParseIntBlock);
+			const gc_ptr<Player>& player = HandleManager<Player>::InterpretHandle(i);
 
 			elem->Iterate("goalUnit", ParseIntBlock);
 			const gc_ptr<Unit>& goalUnit = GetUnitByID(i);
@@ -847,10 +847,10 @@ namespace Game
 			elem->Iterate("goalPos", ParseVector3D);
 			goalPos = vec;
 			
-			proj = CreateProjectile(owner->type->projectileType, pos, goalPos);
+			proj = CreateProjectile(unit->type->projectileType, pos, goalPos, unit);
 			proj->goalUnit = goalUnit;
 			proj->direction = direction;
-			owner->projectiles.push_back(proj);
+			player->vProjectiles.push_back(proj);
 
 		}
 

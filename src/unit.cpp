@@ -627,9 +627,9 @@ namespace Game
 				goto_pos = target->pos;
 				goal_pos = Utilities::Vector3D(goto_pos.x, goto_pos.y, Dimension::GetTerrainHeight(goto_pos.x, goto_pos.y));
 				goal_pos.z += target->type->height * 0.25f * 0.0625f;
-				gc_root_ptr<Projectile>::type proj = CreateProjectile(attacker->type->projectileType, Utilities::Vector3D(attacker->pos.x, attacker->pos.y, GetTerrainHeight(attacker->pos.x, attacker->pos.y)), goal_pos);
+				gc_root_ptr<Projectile>::type proj = CreateProjectile(attacker->type->projectileType, Utilities::Vector3D(attacker->pos.x, attacker->pos.y, GetTerrainHeight(attacker->pos.x, attacker->pos.y)), goal_pos, attacker);
 				proj->goalUnit = target;
-				attacker->projectiles.push_back(proj);
+				attacker->owner->vProjectiles.push_back(proj);
 				UnitMainNode::instance.ScheduleProjectileAddition(proj);
 				PlayActionSound(attacker, Audio::SFX_ACT_FIRE_FNF);
 			}
@@ -640,16 +640,16 @@ namespace Game
 			return unit01->GetHandle() < unit02->GetHandle();
 		}
 
-		void HandleProjectiles(const gc_ptr<Unit>& pUnit)
+		void HandleProjectiles(const gc_ptr<Player>& player)
 		{
 			gc_ptr<Projectile> proj = NULL;
 			float max_radius = 0;
 			vector<gc_ptr<Unit> >::iterator it;
 			list<gc_ptr<Unit> > units_hit;
 
-			for (unsigned index = 0; index < pUnit->projectiles.size(); )
+			for (unsigned index = 0; index < player->vProjectiles.size(); )
 			{
-				proj = pUnit->projectiles.at(index);
+				proj = player->vProjectiles.at(index);
 #ifdef CHECKSUM_DEBUG_HIGH
 				Networking::checksum_output << "PROJ " << AI::currentFrame << ": " << proj->pos.x << ", " << proj->pos.y << ", " << proj->pos.z << " " << proj->pos.distance(proj->goalPos) << " " << proj->type->speed * (1.0 / AI::aiFps) << "\n";
 #endif
@@ -695,7 +695,7 @@ namespace Game
 							for (it = unitsInBigSquares[y][x]->begin(); it != unitsInBigSquares[y][x]->end(); it++)
 							{
 								const gc_ptr<Unit>& target = *it;
-								if (target == pUnit)
+								if (target == proj->attacker)
 									continue;
 
 								Utilities::Vector3D unit_pos = GetTerrainCoord(target->pos.x, target->pos.y);
@@ -716,16 +716,24 @@ namespace Game
 #ifdef CHECKSUM_DEBUG_HIGH
 						Networking::checksum_output << "HIT " << target->GetHandle() << "\n";
 #endif
-						pUnit->lastSeenPositions[target->owner->index] = pUnit->curAssociatedSquare;
-						if (target->owner != pUnit->owner)
+						if (proj->attacker->isDisplayed)
 						{
-							if (target->pMovementData->action.action != AI::ACTION_DIE)
-								AI::SendUnitEventToLua_IsAttacked(target, pUnit);
+							// Make the attacked player aware of where its attacker is
+							proj->attacker->lastSeenPositions[target->owner->index] = proj->attacker->curAssociatedSquare;
+							if (target->owner != proj->attacker->owner)
+							{
+								if (target->pMovementData->action.action != AI::ACTION_DIE)
+									AI::SendUnitEventToLua_IsAttacked(target, proj->attacker);
+							}
+							if (Attack(target, CalcUnitDamage(target, proj->attacker)))
+							{
+								if (target == proj->goalUnit || proj->goalUnit)
+									AI::CompleteAction(proj->attacker);
+							}
 						}
-						if (Attack(target, CalcUnitDamage(target, pUnit)))
+						else
 						{
-							if (target == proj->goalUnit || proj->goalUnit)
-								AI::CompleteAction(pUnit);
+							AI::CompleteAction(proj->attacker);
 						}
 					}
 
@@ -734,7 +742,7 @@ namespace Game
 						FX::pParticleSystems->InitEffect(proj->pos.x, proj->pos.y, 0.0f, max_radius * 4, FX::PARTICLE_SPHERICAL_EXPLOSION);
 					}
 					
-					pUnit->projectiles.erase(pUnit->projectiles.begin()+index);
+					player->vProjectiles.erase(player->vProjectiles.begin()+index);
 
 					UnitMainNode::instance.ScheduleProjectileDeletion(proj);
 				}
@@ -1766,41 +1774,6 @@ namespace Game
 				}
 			}
 
-/*			AI::PausePathfinding();
-
-			for (i = 0; i < pWorld->vUnits.size(); i++)
-			{
-				const gc_ptr<Unit>& curUnit = pWorld->vUnits.at(i);
-				while (curUnit->pMovementData->action.goal.unit == unit)
-				{
-					AI::CancelAction(curUnit);
-				}
-				if (curUnit->pMovementData->_action.goal.unit == unit)
-				{
-					AI::CancelUndergoingProc(curUnit);
-				}
-				if (curUnit->pMovementData->_newAction.goal.unit == unit)
-				{
-					AI::DequeueNewPath(curUnit);
-				}
-
-				for (vector<gc_ptr<Projectile> >::iterator it = curUnit->projectiles.begin(); it != curUnit->projectiles.end(); it++)
-				{
-					if ((*it)->goalUnit == unit)
-					{
-						(*it)->goalUnit = NULL;
-					}
-
-					//if (curUnit->projectiles.at(j)->goalUnit == unit)
-					//{
-						//curUnit->projectiles.erase(curUnit->projectiles.begin() + j);
-						//j--;
-					//}
-				}
-			}
-
-			AI::ResumePathfinding();*/
-
 		}
 
 		void RemoveUnitFromLists(gc_ptr<Unit> unit)
@@ -1818,6 +1791,7 @@ namespace Game
 			}
 
  			displayedUnitPointers.remove(unit);
+ 			unit->isDisplayed = false;
 
 //			std::cout << "Delete " << unit->GetHandle() << std::endl;
 
@@ -1928,20 +1902,6 @@ namespace Game
 				{
 					AI::DequeueNewPath(curUnit);
 				}
-
-				for (vector<gc_ptr<Projectile> >::iterator it = curUnit->projectiles.begin(); it != curUnit->projectiles.end(); it++)
-				{
-					if ((*it)->goalUnit == unit)
-					{
-						(*it)->goalUnit = NULL;
-					}
-
-					//if (curUnit->projectiles.at(j)->goalUnit == unit)
-					//{
-						//curUnit->projectiles.erase(curUnit->projectiles.begin() + j);
-						//j--;
-					//}
-				}
 			}
 
 			UnitMainNode::instance.ScheduleUnitNodeDeletion(unit);
@@ -2017,16 +1977,17 @@ namespace Game
 		}
 
 		// create a projectile
-		gc_root_ptr<Projectile>::type CreateProjectile(const gc_ptr<ProjectileType>& type, Utilities::Vector3D start, const gc_ptr<Unit>& goal)
+		gc_root_ptr<Projectile>::type CreateProjectile(const gc_ptr<ProjectileType>& type, Utilities::Vector3D start, const gc_ptr<Unit>& goal, const gc_ptr<Unit>& attacker)
 		{
 			gc_root_ptr<Projectile>::type proj = new Projectile;
 			proj->type = type;
 			proj->pos = type->startPos;
 			proj->goalUnit = goal;
+			proj->attacker = attacker;
 			return proj;
 		}
 
-		gc_root_ptr<Projectile>::type CreateProjectile(const gc_ptr<ProjectileType>& type, Utilities::Vector3D start, Utilities::Vector3D goal)
+		gc_root_ptr<Projectile>::type CreateProjectile(const gc_ptr<ProjectileType>& type, Utilities::Vector3D start, Utilities::Vector3D goal, const gc_ptr<Unit>& attacker)
 		{
 			gc_root_ptr<Projectile>::type proj = new Projectile;
 			proj->type = type;
@@ -2034,6 +1995,7 @@ namespace Game
 			proj->goalPos = goal;
 			proj->direction = goal - start;
 			proj->direction.normalize();
+			proj->attacker = attacker;
 			return proj;
 		}
 

@@ -315,8 +315,6 @@ namespace Game
 			UnitAction action;
 			int should_move;
 			
-			HandleProjectiles(pUnit);
-
 			if (pUnit->isCompleted && pUnit->hasPower && pUnit->isDisplayed && pUnit->pMovementData->action.action != ACTION_DIE)
 			{
 			
@@ -554,6 +552,11 @@ namespace Game
 				
 				Uint32 t = SDL_GetTicks();
 				
+				for (vector<gc_ptr<Dimension::Player> >::iterator it = Dimension::pWorld->vPlayers.begin(); it != Dimension::pWorld->vPlayers.end(); it++)
+				{
+					HandleProjectiles(*it);
+				}
+
 				for (vector<gc_ptr<Dimension::Unit> >::iterator it = Dimension::pWorld->vUnits.begin(); it != Dimension::pWorld->vUnits.end(); it++)
 				{
 					const gc_ptr<Dimension::Unit>& pUnit = *it;
