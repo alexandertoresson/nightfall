@@ -1,6 +1,7 @@
 
 namespace a = "http://relaxng.org/ns/compatibility/annotations/1.0"
 
+# This describes version 1.0 of the format
 start = materialselector
 materialselector =
 	element materialselector {
@@ -10,7 +11,7 @@ materialselector =
 
 material =
 	element material {
-		attribute name { xsd:text }?,
+		attribute name { xsd:text }?
 	}
 
 include =
