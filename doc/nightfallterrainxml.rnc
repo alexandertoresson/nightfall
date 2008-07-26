@@ -7,29 +7,45 @@ terrain =
 	element terrain {
 		attribute version { xsd:decimal },
 		heightmap,
-		texture?,
 		properties?
 	}
 
 heightmap = 
 	element heightmap {
-		attribute name { xsd:text }
-	}
-
-texture =
-	element texture {
-		attribute name { xsd:text }
+		attribute filename { xsd:text }
 	}
 
 properties =
 	element properties {
-		usablearea?
+		usable_area?,
+		terrain_material?,
+		water_material?
 	}
 
-usablearea =
-	element usablearea {
-		attribute startx { xsd:integer },
-		attribute starty { xsd:integer },
-		attribute endx { xsd:integer },
-		attribute endy { xsd:integer }
+terrain_material =
+	element terrain_material {
+		attribute name { xsd:text }
+	}
+
+water_material =
+	element water_material {
+		attribute name { xsd:text }
+	}
+
+usable_area =
+	element usable_area {
+		start,
+		end
+	}
+
+start =
+	element start {
+		attribute x { xsd:integer },
+		attribute y { xsd:integer }
+	}
+
+end =
+	element end {
+		attribute x { xsd:integer },
+		attribute y { xsd:integer }
 	}
