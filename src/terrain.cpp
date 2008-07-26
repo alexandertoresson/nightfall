@@ -566,7 +566,7 @@ namespace Game
 		// array storing the start and end of displayed big squares, for every column of big squares
 		int *is_visible[2];
 		
-		int LoadWorld(std::string filename)
+		int LoadHeightmap(std::string filename)
 		{
 			int width = 0, height = 0, temp;
 			std::string filepath = Utilities::GetDataFile(filename);
@@ -593,12 +593,14 @@ namespace Game
 				if (width == 0)
 				{
 					cout << "Failed!!! Invalid width!" << endl;
+					return ERROR_GENERAL;
 				}
 
 				file >> height;
 				if (height == 0)
 				{
 					cout << "Failed!!! Invalid height!" << endl;
+					return ERROR_GENERAL;
 				}
 				
 				std::cout << "Width: " << width << ", height: " << height << std::endl;
@@ -614,8 +616,6 @@ namespace Game
 				file >> height;
 			}
 
-//			pWorld = new World;
-
 			pWorld->height = height;
 			pWorld->width = width;
 			terrainOffsetY = float(height / 16);
@@ -625,7 +625,7 @@ namespace Game
 
 			heightMap->heights = height;
 			
-			// Läs från fil
+			// Read from file
 			for (int y = 0; y < height; y++)
 			{
 				// scanline per scanline
@@ -688,11 +688,61 @@ namespace Game
 				{
 					pppElements[y][x] = NULL;
 				}
-			}	
+			}
+
+			heightMap->startUA.x = 0;
+			heightMap->startUA.y = 0;
+			heightMap->endUA.x = pWorld->width-1;
+			heightMap->endUA.y = pWorld->height-1;
 
 			return SUCCESS;
 		}
 
+		void ParseHeightmap(Utilities::XMLElement *elem)
+		{
+			LoadHeightmap(elem->GetAttribute("filename"));
+		}
+
+		void ParseProperties(Utilities::XMLElement *elem)
+		{
+		}
+
+		void ParseSelector(Utilities::XMLElement *elem)
+		{
+			TagFuncMap tfmap;
+			tfmap["heightmap"] = ParseHeightmap;
+			tfmap["properties"] = ParseProperties;
+			elem->Iterate(tfmap, NULL);
+		}
+
+		bool LoadTerrainXML(std::string name)
+		{
+			bool ret = true;
+			Utilities::XMLReader xmlReader;
+
+			heightMap = NULL;
+			
+			std::string filename = Utilities::GetDataFile(name + ".ter.xml");
+
+			if (filename.length() && xmlReader.Read(filename))
+			{
+				xmlReader.root->Iterate("terrain", ParseTerrain);
+			}
+			else
+			{
+				ret = false;
+			}
+			
+			xmlReader.Deallocate();
+
+			if (!heightMap)
+			{
+				std::cout << "No heightmap loaded!" << std::endl;
+				ret = false;
+			}
+
+			return ret;
+		}
 
 		// Gets the x, y and z coords for a square, at the highest quality
 		Utilities::Vector3D GetSquareCoord(float x, float y)

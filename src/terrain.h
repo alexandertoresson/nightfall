@@ -51,6 +51,9 @@ namespace Game
 			
 			Scene::Render::VBO texCoords;
 
+			IntPosition startUA;
+			IntPosition endUA;
+
 			void shade()
 			{
 				heights.shade();
