@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<terrain version="1.0">
+	<heightmap filename="deathmatch.pgm" />
+	<properties>
+		<watermaterial name="materials/water" />
+		<terrainmaterial name="materials/terrain-deathmatch" />
+	</properties>
+</terrain>

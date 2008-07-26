@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<terrain version="1.0">
+	<heightmap filename="evenbiggerflat.pgm" />
+</terrain>

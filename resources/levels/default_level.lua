@@ -17,16 +17,11 @@ function InitLevel()
 
 	---------------------------------------------------
 
-	if not LoadHeightmap("das_bana.pgm") then
+	SetWaterLevel(-2.0);
+	if not LoadTerrain("das_bana") then
 		return false
 	end
 	SetMaximumBuildingAltitude(-0.0005)
-	SetWaterLevel(-2.0);
-
-	---------------------------------------------------
-	
-	SetWaterMaterial("materials/water-default");
-	SetTerrainMaterial("materials/terrain-default");
 
 	---------------------------------------------------
 

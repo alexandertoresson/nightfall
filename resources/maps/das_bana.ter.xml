@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<terrain version="1.0">
+	<heightmap filename="das_bana.pgm" />
+	<properties>
+		<watermaterial name="materials/water-default" />
+		<terrainmaterial name="materials/terrain-default" />
+	</properties>
+</terrain>

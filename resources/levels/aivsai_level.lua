@@ -17,7 +17,7 @@ function InitLevel()
 
 	---------------------------------------------------
 
-	if not LoadHeightmap("evenbiggerflat.pgm") then
+	if not LoadTerrain("evenbiggerflat") then
 		return false
 	end
 	SetMaximumBuildingAltitude(0.5)

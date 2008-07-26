@@ -18,15 +18,10 @@ function InitLevel()
 	---------------------------------------------------
 
 	SetWaterLevel(-1.0);
-	if not LoadHeightmap("deathmatch.pgm") then
+	if not LoadTerrain("deathmatch") then
 		return false
 	end
 	SetMaximumBuildingAltitude(-0.0005)
-
-	---------------------------------------------------
-	
-	SetWaterMaterial("materials/water");
-	SetTerrainMaterial("materials/terrain-deathmatch");
 
 	---------------------------------------------------
 

@@ -1631,28 +1631,26 @@ namespace UnitLuaInterface
 		return 0;
 	}
 	
-	int LLoadHeightmap(lua_State* pVM)
+	int LLoadTerrain(lua_State* pVM)
 	{
 		if (lua_isnil(pVM, 1))
 		{
-			LUA_FAILURE("LLoadHeightmap: Incorrect arguments")
+			LUA_FAILURE("LLoadTerrain: Incorrect arguments")
 		}
 		
 		if (!lua_isstring(pVM, 1))
 		{
-			LUA_FAILURE("LLoadHeightmap: First argument not string")
+			LUA_FAILURE("LLoadTerrain: First argument not string")
 		}
 	
 		std::string filename = "maps/" + (std::string) lua_tostring(pVM, 1);
-		int ret = Game::Dimension::LoadWorld(filename);
-		if (ret == SUCCESS)
+		int ret = Game::Dimension::LoadTerrainXML(filename);
+		if (ret)
 		{
 			LUA_SUCCESS
 		}
 		else
 		{
-			if (ret == FILE_DOES_NOT_EXIST)
-				std::cout << filename << " doesn't exist!!!!" << std::endl;
 			LUA_FAILURE("Error during world load")
 		}
 		
@@ -3285,7 +3283,7 @@ else \
 		pVM->RegisterFunction("GetUnitTypeName", LGetUnitTypeName);
 		pVM->RegisterFunction("Output", LOutput);
 		
-		pVM->RegisterFunction("LoadHeightmap", LLoadHeightmap);
+		pVM->RegisterFunction("LoadTerrain", LLoadTerrain);
 		pVM->RegisterFunction("SetHeightmapModifier", LSetHeightmapModifier);
 		pVM->RegisterFunction("SetMaximumBuildingAltitude", LSetMaximumBuildingAltitude);
 		pVM->RegisterFunction("SetWaterLevel", LSetWaterLevel);

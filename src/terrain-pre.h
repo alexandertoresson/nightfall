@@ -49,7 +49,7 @@ namespace Game
 		void InitFog();
 
 		// Ladda världen ur bin'r/textfil
-		int LoadWorld(std::string filename);
+		bool LoadTerrainXML(std::string name);
 
 		void UnloadTerrain();
 		

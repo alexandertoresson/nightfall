@@ -8,6 +8,7 @@
 #include "window.h"
 #include "materialxml.h"
 #include "selectorxml.h"
+#include "minixml.h"
 #include <iostream>
 #include <fstream>
 #include <cmath>
@@ -569,7 +570,7 @@ namespace Game
 		int LoadHeightmap(std::string filename)
 		{
 			int width = 0, height = 0, temp;
-			std::string filepath = Utilities::GetDataFile(filename);
+			std::string filepath = Utilities::GetDataFile("maps/" + filename);
 			std::ifstream file;
 
 			if (!filepath.length())
@@ -703,13 +704,48 @@ namespace Game
 			LoadHeightmap(elem->GetAttribute("filename"));
 		}
 
-		void ParseProperties(Utilities::XMLElement *elem)
+		void ParseTerrainMaterial(Utilities::XMLElement *elem)
 		{
+			TerrainNode::material = elem->GetAttribute("name");
 		}
 
-		void ParseSelector(Utilities::XMLElement *elem)
+		void ParseWaterMaterial(Utilities::XMLElement *elem)
 		{
-			TagFuncMap tfmap;
+			WaterNode::material = elem->GetAttribute("name");
+		}
+
+		void ParseStartUsableArea(Utilities::XMLElement *elem)
+		{
+			heightMap->startUA.x = elem->GetAttributeT<int>("x", 0);
+			heightMap->startUA.y = elem->GetAttributeT<int>("y", 0);
+		}
+
+		void ParseEndUsableArea(Utilities::XMLElement *elem)
+		{
+			heightMap->endUA.x = elem->GetAttributeT<int>("x", 0);
+			heightMap->endUA.y = elem->GetAttributeT<int>("y", 0);
+		}
+
+		void ParseUsableArea(Utilities::XMLElement *elem)
+		{
+			Utilities::TagFuncMap tfmap;
+			tfmap["start"] = ParseStartUsableArea;
+			tfmap["end"] = ParseEndUsableArea;
+			elem->Iterate(tfmap, NULL);
+		}
+
+		void ParseProperties(Utilities::XMLElement *elem)
+		{
+			Utilities::TagFuncMap tfmap;
+			tfmap["usablearea"] = ParseUsableArea;
+			tfmap["watermaterial"] = ParseWaterMaterial;
+			tfmap["terrainmaterial"] = ParseTerrainMaterial;
+			elem->Iterate(tfmap, NULL);
+		}
+
+		void ParseTerrain(Utilities::XMLElement *elem)
+		{
+			Utilities::TagFuncMap tfmap;
 			tfmap["heightmap"] = ParseHeightmap;
 			tfmap["properties"] = ParseProperties;
 			elem->Iterate(tfmap, NULL);
@@ -730,6 +766,7 @@ namespace Game
 			}
 			else
 			{
+				std::cout << "Terrain file " << name << " not found!" << std::endl;
 				ret = false;
 			}
 			

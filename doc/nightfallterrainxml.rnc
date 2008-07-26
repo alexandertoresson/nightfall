@@ -17,18 +17,18 @@ heightmap =
 
 properties =
 	element properties {
-		usable_area?,
-		terrain_material?,
-		water_material?
+		usablearea?,
+		terrainmaterial?,
+		watermaterial?
 	}
 
-terrain_material =
-	element terrain_material {
+terrainmaterial =
+	element terrainmaterial {
 		attribute name { xsd:text }
 	}
 
-water_material =
-	element water_material {
+watermaterial =
+	element watermaterial {
 		attribute name { xsd:text }
 	}
 
