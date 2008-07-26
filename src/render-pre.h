@@ -53,7 +53,7 @@ namespace Scene
 				changed = true;
 			}
 
-			void shade()
+			void shade() const
 			{
 				
 			}

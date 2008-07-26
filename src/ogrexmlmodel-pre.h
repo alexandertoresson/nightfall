@@ -10,10 +10,14 @@
 
 namespace Utilities
 {
+	struct OgreBone;
+
+	struct OgreVertexAnimation;
+
+	struct OgrePose;
+
 	struct OgreSubMesh;
-
 	struct OgreVertexBuffer;
-
 	struct OgreMesh;
 }
 
