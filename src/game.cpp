@@ -502,6 +502,7 @@ namespace Game
 			
 			////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 			
+			Scene::Graph::rootNode = new Scene::Graph::Node;
 			Scene::Graph::rootNode->AddChild(gc_ptr<Dimension::Camera>(&Dimension::Camera::instance, null_deleter));
 			Dimension::Camera::instance.AddChild(gc_ptr<Dimension::Environment::EnvironmentNode>(&Dimension::Environment::EnvironmentNode::instance, null_deleter));
 			Dimension::Camera::instance.AddChild(gc_ptr<Dimension::Environment::SkyboxNode>(&Dimension::Environment::SkyboxNode::instance, null_deleter));
