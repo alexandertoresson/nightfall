@@ -14,6 +14,8 @@
 
 #include "compositor-pre.h"
 
+#include "core.h"
+
 #include <string>
 #include <sdlheader.h>
 #include <list>
@@ -21,216 +23,32 @@
 
 namespace GUI
 {
-	
 	/**
-	  * Handles low-level communication with SDL, event creation, global key-attachments, state-switching (replaced by scene graph).
-	  */
-	namespace Core
+	 *	Symbolises a Window event
+	 */
+	struct WindowEvent
 	{
 		/**
-		 * Symbolises a Mouse event
+		 *	Window event types
 		 */
-		struct MouseEvent
+		enum windowEventType
 		{
-			/**
-			 * Mouse event types
-			 */
-			enum mouseEventType
-			{
-				MOUSEUP,    /**< Mousebutton up   */
-				MOUSEDOWN,  /**< Mousebutton down */
-				MOUSEMOVE,  /**< Mousemotion      */
-				MOUSESCROLL /**< Mouse scrolling  */
-			};
-			
-			SDL_Event* pEvent;
-			
-			mouseEventType type; /**< Defines the mouse event type */
-			
-			int button; /**< Button code for which button that were pressed */
-			int state;  /**< Determines if scrolling if up(1) or down(-1)*/
-			
-			int x;      /**< Absolute x-axis mouse position */
-			int y;      /**< Absolute y-axis mouse position */
+			FOCUS,   /**< Window/Controll has recieved focus */
+			NOFOCUS, /**< Window/Controll has lost focus     */
+			RESIZE,  /**< Resize event, call LayoutManager   */
+			CLOSED   /**< Window has been closed             */
 		};
 		
-		/**
-		 * Symbolises a Keyboard event
-		 */
-		struct KeyboardEvent
-		{
-			/**
-			 *	Keyboard event types
-			 */
-			Uint8 type; /**< Keydown or keyup, corresponding SDL_KEYUP, SDL_KEYDOWN */
-			int code;    /**< Charcode      */
-			SDLKey key;  /**< Keycode       */
-			SDLMod mod;  /**< Modifier hash */
-		};
+		windowEventType type;
 		
-		/**
-		 *	Symbolises a Window event
-		 */
-		struct WindowEvent
-		{
-			/**
-			 *	Window event types
-			 */
-			enum windowEventType
-			{
-				FOCUS,   /**< Window/Controll has recieved focus */
-				NOFOCUS, /**< Window/Controll has lost focus     */
-				RESIZE,  /**< Resize event, call LayoutManager   */
-				CLOSED   /**< Window has been closed             */
-			};
-			
-			windowEventType type;
-			
-			struct {
-				float x;
-				float y;
-				float w;
-				float h;
-			} bounds;
-		};
-		
-		/* Function pointer typedefs */
-		typedef bool(*eventKeyboard)(KeyboardEvent e);
-		typedef bool(*eventMouse)(MouseEvent e);
-		typedef void(*eventPaint)(float time_diff);
-		typedef void(*eventPreFrame)(float time_diff);
-		
-		enum EventType
-		{
-			MOUSE,
-			KEY,
-			PAINT,
-			PREFRAME,
-			UNKNOWN
-		};
-		
-		/**
-		 *	Handles the standard callback convention
-		 */
-		class Listener
-		{
-			public:
-				void* tag;  /**< standard parameter */
-			
-				Listener()
-				{
-					this->tag = NULL;
-				}
-				
-			virtual EventType getType() { return UNKNOWN; }
-		};
-		
-		class KeyListener : public Listener
-		{
-			public:
-				eventKeyboard fptr;
-			
-				KeyListener(eventKeyboard fptr)
-				{
-					this->fptr = fptr;
-				}
-				
-				bool call(KeyboardEvent e)
-				{
-					return fptr(e);
-				}
-				
-				virtual EventType getType() { return KEY; }
-		};
-		
-		class MouseListener : public Listener
-		{
-			public:
-				eventMouse fptr;
-				
-				MouseListener(eventMouse fptr)
-				{
-					this->fptr = fptr;
-				}
-				
-				bool call(MouseEvent e)
-				{
-					return fptr(e);
-				}
-				
-				virtual EventType getType() { return MOUSE; }
-		};
-		
-		class PaintListener : public Listener
-		{
-			public:
-				eventPaint fptr;
-				
-				PaintListener(eventPaint fptr)
-				{
-					this->fptr = fptr;
-				}
-				
-				void call(float time_diff)
-				{
-					fptr(time_diff);
-				}
-				
-				virtual EventType getType() { return PAINT; }
-		};
-		
-		class PreFrameListener : protected Listener
-		{
-			public:
-				eventPreFrame fptr;
-				
-				PreFrameListener(eventPreFrame fptr)
-				{
-					this->fptr = fptr;
-				}
-				
-				void call(float time_diff)
-				{
-					fptr(time_diff);
-				}
-						
-				virtual EventType getType() { return PREFRAME; }
-		};
-		
-		
-		struct KeyAttachment
-		{
-			SDLMod modifier;
-			KeyListener listener;
-			KeyAttachment* next;
-		};
-		
-		extern KeyAttachment*		keymaps[SDLK_LAST];
-		extern std::list<Listener*>	mouseListener;
-		extern std::list<Listener*>	keyListener;
-		extern std::list<Listener*>	paintListener;
-		extern std::list<Listener*>	preFrameListener;
-		
-		extern bool keyState[SDLK_LAST];
-		extern int mouseX;
-		extern int mouseY;
-		
-		/**
-		 * The main loop of the program, handles state execution, termination and SDL event-loop, also paint scheduling.
-		 */
-		void mainLoop();
-		
-		std::list<Listener*>::iterator addStdListener(Listener* listener);
-		
-		template<class T>
-		std::list<Listener*>::iterator addListener( T* listener)
-		{
-			return addStdListener(dynamic_cast<Listener*> (listener));
-		}
-		
-		void removeListener(std::list<Listener*>::iterator ptr);
-	}
-	
+		struct {
+			float x;
+			float y;
+			float w;
+			float h;
+		} bounds;
+	};
+
 	/**
 	 *	Eventsystem standard
 	 */
@@ -263,7 +81,7 @@ namespace GUI
 	
 	/**
 	 * Handles scaling calculations and proponanlity corrections. Handles all types of aspects and monitor resolution.
-	 * Equation: h_ref / sqrt( t * t / (a * a + 1) ) ) * 96, h_ref is the inch referens in height
+	 * Equation: h_ref / sqrt( t * t / (a * a + 1) ) ) * 96, h_ref is the inch reference in height
 	 */
 	class Metrics
 	{
@@ -335,6 +153,7 @@ namespace GUI
 		The windowsystem has three z-layers
 		Bottom (Gaming parts)
 		Normal (InGame chat dialogs)
+		Top (Dialog)
 	*/
 	
 	class Component;
