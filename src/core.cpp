@@ -69,7 +69,8 @@ namespace Core
 						{
 							while(attachedKey)
 							{
-								if(keyEvent.mod & attachedKey->modifier) {
+								if(keyEvent.mod & attachedKey->modifier || attachedKey->modifier == keyEvent.mod) //Must be both because if modifer is KMOD_NONE then it will always be false.
+								{
 									attachedKey->fptr(keyEvent);
 									break;
 								}
@@ -133,6 +134,7 @@ namespace Core
 		}
 	}
 	
+	//Binds special keys i.e. CTRL+A to a listener.
 	bool bindKey( SDLKey key, SDLMod mod, eventKeyboard listener)
 	{
 		if(keymaps[key])
@@ -140,9 +142,11 @@ namespace Core
 			KeyAttachment* current = keymaps[key];
 			KeyAttachment* next    = current->next;
 			
+			//If the current mod and key exists, it's a duplicate and will be considerd an error, duplicated binds is not supported.
 			if(current->modifier == mod)
 				return false;
 			
+			//The goal is to append the binding to the last item in the linked-list.
 			if(next)
 			{
 				while(next)
@@ -165,6 +169,7 @@ namespace Core
 		}
 	}
 	
+	//Unbinds a special key.
 	void unbindKey(SDLKey key, SDLMod mod)
 	{
 		if(keymaps[key])

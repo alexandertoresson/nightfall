@@ -19,6 +19,7 @@ namespace Window
 	bool noWindow = false;
 
 	int windowWidth, windowHeight;
+	bool windowFullscreen;
 
 	float guiResolution, guiHeight, guiWidth;
 
@@ -85,8 +86,9 @@ namespace Window
 		if (initialized == false)
 			return WINDOW_ERROR_NOT_INITIALIZED;
 
-		windowWidth  = width;
-		windowHeight = height;
+		windowWidth      = width;
+		windowHeight     = height;
+		windowFullscreen = fullscreen;
 
 		guiResolution = 1.0f / (float)height;
 		guiWidth = (float)width / (float)height;

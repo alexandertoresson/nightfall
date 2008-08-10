@@ -7,21 +7,7 @@
 #endif
 
 namespace GUI
-{
-	namespace Core
-	{
-		struct MouseEvent;
-		struct KeyboardEvent;
-		struct WindowEvent;
-		
-		struct Listener;
-		
-		typedef void(*mouse)(MouseEvent, void*);
-		typedef void(*keyboard)(KeyboardEvent, void*);
-		typedef void(*window)(WindowEvent, void*);
-		typedef void(*render)(float diff, void*);
-	}
-	
+{	
 	typedef void(*universalCallback)(void*);
 	
 	class Event;

@@ -10,6 +10,7 @@ namespace Window
 {
 	extern bool initialized;
 
+	extern bool windowFullscreen;
 	extern int windowWidth, windowHeight;
 	extern float guiWidth, guiHeight, guiResolution;
 

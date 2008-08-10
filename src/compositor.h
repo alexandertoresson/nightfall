@@ -15,6 +15,7 @@
 #include "compositor-pre.h"
 
 #include "core.h"
+#include "window.h"
 
 #include <string>
 #include <sdlheader.h>
@@ -76,12 +77,12 @@ namespace GUI
 			 * @param evt WindowEvent structure that contains information about the window event.
 			 * @see Core::WindowEvent
 			 */
-			virtual void event(Core::WindowEvent evt) {}
+			virtual void event(WindowEvent evt) {}
 	};
 	
 	/**
 	 * Handles scaling calculations and proponanlity corrections. Handles all types of aspects and monitor resolution.
-	 * Equation: h_ref / sqrt( t * t / (a * a + 1) ) ) * 96, h_ref is the inch reference in height
+	 * Equation: h_ref / sqrt( t * t / (a * a + 1) ) ) * 96, h_ref is the inch reference in height, a = spect
 	 */
 	class Metrics
 	{
@@ -89,17 +90,23 @@ namespace GUI
 			float dpi;     /**< dpi factor */
 			float monitor; /**< Monitor inch size */
 			float monitoraspect;
+			float monitor_w; /**< Calculated from the monitors diagonal size + aspect */
+			float monitor_h; /**< Calculated from the monitors diagonal size + aspect */
+			
 		protected:
 			float dotsperwidth;  /**< dots per x-axis */
 			float dotsperheight; /**< dots per y-axis */
-			float percentscaling; /**< temporary scaling */
+			int   native_w;
+			int   native_h;
+			int   current_w;
+			int   current_h;
 			
 			/**
 			 * Coordinate-system calculation.
 			 * @param monitorsize	Holds the monitor inch size
 			 * @param monitoraspect Holds the monitor aspect, this to correct errors imposed by non-native incorrect aspect scaling, viewing 800x600 in 1280x768 screen.
 			 */
-			void calculateCoordinateSystem(float monitorsize, float monitoraspect);
+			void Metrics::calculateCoordinateSystem(float monitorsize, float monitoraspect, bool streched = false);
 			
 			/**
 			 * Coordinate-system calculation.
@@ -115,7 +122,7 @@ namespace GUI
 			 * @param monitor_px_width	monitor native pixel x-axis resolution
 			 * @param monitor_px_height monitor native pixel y-axis resolution
 			 */
-			void calculateCoordinateSystem(float monitorsize, int monitor_px_width, int monitor_px_height);
+			void calculateCoordinateSystem();
 			
 			/**
 			 * Coordinate-system calculation when application is in a window with specific resolution.
@@ -124,26 +131,29 @@ namespace GUI
 			 * @param monitor_px_width	monitor native pixel x-axis resolution
 			 * @param monitor_px_height monitor native pixel y-axis resolution
 			 */
-			void calculateCoordinateSystem(float dpi, float monitorsize, int monitor_px_width, int monitor_px_height);
+			void calculateCoordinateSystem(float dpi);
+			
+		public:
+			Metrics(int native_w, int native_h, int current_w, int current_h, bool fullscreen, float monitorsize, bool streched = false);
+		
+			float getDPI();
+			void setDPI(float dpi);
+		
+			void translatePointToPixel(float& pt_x, float& pt_y);
+			void translatePixelToPoint(float& px_x, float& px_y);
+			
+			void alignToPixel(float& x, float& y);
+			
+			void scaleFactorInch(float& w, float& h);
+			void scaleFactorCM(float& w, float& h);
 			
 			/**
 			 *	from the given
 			 */
-			void scaleCoordinateSystem();
-			void revertCoordinateSystem();
-		public:
-			float getDPI();
-			float setDPI(float dpi);
-		
-			//Problems! Coordinate can be asymmetrical!
-			float translatePointToPixel(float pt);
-			float translatePixelToPoint(float px);
+			void scale();
+			void revert();
 			
-			void alignToPixel(float& x, float& y, float& w, float& h);
-			
-			void scale(float percent);
-			
-			void setMetrics(Metrics met);
+			void setMetrics(Metrics* met);
 	};
 	
 	/*
@@ -158,7 +168,7 @@ namespace GUI
 	
 	class Component;
 
-	namespace Utilities
+	namespace Helper
 	{
 		typedef enum {
 			INFORMATION,
@@ -293,9 +303,14 @@ namespace GUI
 	class Container;
 	class Layout;
 	
-	class Component : public Event, public Metrics
+	class Component : public Event
 	{
 	protected:
+		Layout*    layoutmgr;
+		Container* container;
+		Metrics*   metrics;
+		//Workspace* master;
+		
 		int id;
 		float x;
 		float y;
@@ -314,33 +329,48 @@ namespace GUI
 		
 		virtual void event(Core::MouseEvent evt, bool& handled);
 		virtual void event(Core::KeyboardEvent evt);
-		virtual void event(Core::WindowEvent evt);
+		virtual void event(WindowEvent evt);
 		
 		virtual void paint();
 		friend class Workspace;
 	};
 	
+	class Frame;
+	
 	/* Window-Management */	
-	class Workspace : Metrics, Event
+	class Workspace : Event
 	{
-		private:
-			struct Windows {
-				Windows* prev;
-				Windows* next;
-				Component object;
-			};
+		public:
+			typedef enum {
+				BOTTOM,
+				USERSPACE,
+				ALWAYSONTOP
+			} LayerIndex;
 			
-			Windows** win;
+			typedef enum {
+				DEFAULT,
+				CENTERPARENT,
+				CENTERSCREEN,
+				USERDEFINED
+			} StartLocation;
+			
+		private:
+			std::list<Frame*> win;
 		protected:
-			void paintWindows(int layer);
+			Metrics* met;
+		
+			void paintWindows(LayerIndex layer);
 			void paintTooltips();
 			void paintDialogs();
 		public:
+			Workspace(int native_w, int native_h, float monitorsize, bool streched);
+			
 			void paint();
 			
-			void add(Component elem);
-			void remove(Component elem);
-			void positionate(Component elem, int z);
+			std::list<Component*>::iterator add(Component elem);
+			void remove(std::list<Component*>::iterator elem);
+			void remove(Component* elem);
+			void positionate(Component elem, LayerIndex z);
 	};
 	
 	struct Bounds
@@ -379,6 +409,7 @@ namespace GUI
 		public:
 			LayoutConstraint getConstraint(int id);
 			void setConstraint(int id, LayoutConstraint constraint);
+			void layout();
 	};
 	
 	class Container
@@ -391,43 +422,24 @@ namespace GUI
 			void clear();
 	};
 	
-	class Window : public Component
+	class Frame : public Component
 	{
-		public:
-			typedef enum {
-				BOTTOM,
-				USERSPACE,
-				ALWAYSONTOP
-			} LayerIndex;
-		
+		protected:
 			struct WindowParameter
 			{
-				LayerIndex layer;
+				Workspace::LayerIndex layer;
 				
-				enum {
-					DEFAULT,
-					CENTERPARENT,
-					CENTERSCREEN
-				} location;
+				Workspace::StartLocation location;
 				
-				Window* parent;
-				
+				Frame* parent;
 			};
-			
-			struct WindowChild
-			{
-				Window* current;
-				WindowChild* prev;
-				WindowChild* next;
-			};
-		protected:
+		
 			WindowParameter parameters;
-			WindowChild* children;
 			
 		public:
-			Window(float x, float y, float w, float h, WindowParameter param);
-			Window(float w, float h, WindowParameter param);
-			Window(WindowParameter param);
+			Frame(float x, float y, float w, float h, WindowParameter param);
+			Frame(float w, float h, WindowParameter param);
+			Frame(WindowParameter param);
 			
 			void setSize(float w, float h);
 			void setPosition(float x, float y);
