@@ -42,6 +42,8 @@ namespace Game
 		void SendUnitEventToLua_UnitKilled(const gc_ptr<Dimension::Unit>& pUnit);
 		void SendUnitEventToLua_BecomeIdle(const gc_ptr<Dimension::Unit>& pUnit);
 
+		void SendScheduledUnitEvents(gc_ptr<Dimension::Player> player);
+
 		extern unsigned aiFps;
 		extern SDL_mutex* updateMutex;
 	

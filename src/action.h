@@ -6,9 +6,10 @@
 #endif
 
 #include "unit-pre.h"
-#include "unittype.h"
+#include "unittype-pre.h"
 #include "aibase-pre.h"
-#include "dimension.h"
+#include "research.h"
+#include "aipathfinding-pre.h"
 
 namespace Game
 {
@@ -20,20 +21,11 @@ namespace Game
 			gc_ptr<Unit> unit;
 			IntPosition pos;
 
-			UnitGoal() : unit(NULL)
-			{
-				
-			}
+			UnitGoal();
 
-			UnitGoal(const gc_ptr<Unit>& unit, int pos_x, int pos_y) : unit(unit), pos(pos_x, pos_y)
-			{
-				
-			}
+			UnitGoal(const gc_ptr<Unit>& unit, int pos_x, int pos_y);
 
-			void shade()
-			{
-				unit.shade();
-			}
+			void shade();
 		};
 		
 		struct ActionArguments
@@ -42,48 +34,19 @@ namespace Game
 			gc_ptr<Research> research;
 			int argHandle;
 
-			ActionArguments() : argHandle(-1)
-			{
-				
-			}
+			ActionArguments();
 			
-			ActionArguments(const gc_root_ptr<UnitType>::type& unitType) : unitType(unitType), argHandle(unitType->GetHandle())
-			{
-				
-			}
+			ActionArguments(const gc_root_ptr<UnitType>::type& unitType);
 			
-			ActionArguments(const gc_root_ptr<Research>::type& research) : research(research), argHandle(research->GetHandle())
-			{
-				
-			}
+			ActionArguments(const gc_root_ptr<Research>::type& research);
 			
-			ActionArguments(const gc_ptr<UnitType>& unitType) : unitType(unitType), argHandle(unitType->GetHandle())
-			{
-				
-			}
+			ActionArguments(const gc_ptr<UnitType>& unitType);
 			
-			ActionArguments(const gc_ptr<Research>& research) : research(research), argHandle(research->GetHandle())
-			{
-				
-			}
+			ActionArguments(const gc_ptr<Research>& research);
 			
-			ActionArguments(int i) : argHandle(i)
-			{
-				if (HandleManager<UnitType>::IsCorrectHandle(i))
-				{
-					unitType = HandleManager<UnitType>::InterpretHandle(i);
-				}
-				else if (HandleManager<Research>::IsCorrectHandle(i))
-				{
-					research = HandleManager<Research>::InterpretHandle(i);
-				}
-			}
+			ActionArguments(int i);
 
-			void shade()
-			{
-				research.shade();
-				unitType.shade();
-			}
+			void shade();
 			
 		};
 
@@ -94,27 +57,30 @@ namespace Game
 			float rotation;
 			ActionArguments args;
 
-			BaseActionData()
-			{
-				
-			}
+			BaseActionData();
 
-			BaseActionData(UnitGoal goal, AI::UnitAction action, float rotation, ActionArguments args) : goal(goal), action(action), rotation(rotation), args(args)
-			{
-				
-			}
+			BaseActionData(UnitGoal goal, AI::UnitAction action, float rotation, ActionArguments args);
 			
-/*			BaseActionData(const ActionData& a) : goal(a.goal), action(a.action), rotation(a.rotation), args(a.args)
-			{
-				
-			}*/
+			void shade();
 			
-			void shade()
-			{
-				goal.shade();
-				args.shade();
-			}
+		};
+
+		enum UnitEventType
+		{
+			UNITEVENTTYPE_ACTION,
+			UNITEVENTTYPE_SIMPLE,
+			UNITEVENTTYPE_ATTACK
+		};
+
+		struct UnitEvent : public Dimension::BaseActionData
+		{
+			UnitEventType eventType;
+			gc_ptr<Dimension::Unit> unit;
+			std::string func;
+
+			UnitEvent(const gc_ptr<Dimension::Unit>& pUnit, AI::EventAIFunc *aiEvent, UnitEventType eventType);
 			
+			UnitEvent(const gc_ptr<Dimension::Unit>& pUnit, const gc_ptr<Dimension::Unit>& target, AI::EventAIFunc *aiEvent);
 		};
 
 	}

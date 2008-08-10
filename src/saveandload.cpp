@@ -942,7 +942,10 @@ namespace Game
 #ifndef WIN32
 			xmlreader.Deallocate();
 #endif	
-			AI::SendScheduledUnitEvents();
+			for (std::vector<gc_ptr<Player> >::iterator it = pWorld->vPlayers.begin(); it != pWorld->vPlayers.end(); it++)
+			{
+				AI::SendScheduledUnitEvents(*it);
+			}
 			UnitLuaInterface::ApplyScheduledActions();
 		}
 		

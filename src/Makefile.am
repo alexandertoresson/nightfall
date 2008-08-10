@@ -9,4 +9,4 @@ rts_SOURCES = main.cpp window.cpp game.cpp utilities.cpp ogrexmlmodel.cpp audio.
               paths.cpp circularbuffer.cpp minixml.cpp saveandload.cpp unittype.cpp unitsquares.cpp \
               unitrender.cpp scenegraph.cpp matrix4x4.cpp lockchecker.cpp memdebug.cpp render.cpp \
               festring.cpp materialxml.cpp configuration.cpp extensions.cpp selectorxml.cpp \
-              gc_ptr.cpp
+              gc_ptr.cpp action.cpp

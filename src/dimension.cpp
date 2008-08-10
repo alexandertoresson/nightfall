@@ -166,6 +166,8 @@ namespace Game
 					break;
 			}
 
+			scheduleUnitEventMutex = SDL_CreateMutex();
+
 		}
 
 		void Player::CompleteConstruction()

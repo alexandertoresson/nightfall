@@ -1,12 +1,15 @@
 #ifndef __HANDLE_H__
 #define __HANDLE_H__
 
+#include "research-pre.h"
+#include "dimension-pre.h"
 #include <iostream>
 
 namespace Game
 {
 	namespace Dimension
 	{
+
 		template <typename T>
 		struct HandleTraits { };
 

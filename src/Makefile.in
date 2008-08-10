@@ -59,7 +59,8 @@ am_rts_OBJECTS = main.$(OBJEXT) window.$(OBJEXT) game.$(OBJEXT) \
 	scenegraph.$(OBJEXT) matrix4x4.$(OBJEXT) lockchecker.$(OBJEXT) \
 	memdebug.$(OBJEXT) render.$(OBJEXT) festring.$(OBJEXT) \
 	materialxml.$(OBJEXT) configuration.$(OBJEXT) \
-	extensions.$(OBJEXT) selectorxml.$(OBJEXT) gc_ptr.$(OBJEXT)
+	extensions.$(OBJEXT) selectorxml.$(OBJEXT) gc_ptr.$(OBJEXT) \
+	action.$(OBJEXT)
 rts_OBJECTS = $(am_rts_OBJECTS)
 rts_LDADD = $(LDADD)
 DEFAULT_INCLUDES = -I.@am__isrc@
@@ -176,7 +177,7 @@ rts_SOURCES = main.cpp window.cpp game.cpp utilities.cpp ogrexmlmodel.cpp audio.
               paths.cpp circularbuffer.cpp minixml.cpp saveandload.cpp unittype.cpp unitsquares.cpp \
               unitrender.cpp scenegraph.cpp matrix4x4.cpp lockchecker.cpp memdebug.cpp render.cpp \
               festring.cpp materialxml.cpp configuration.cpp extensions.cpp selectorxml.cpp \
-              gc_ptr.cpp
+              gc_ptr.cpp action.cpp
 
 all: config.h
 	$(MAKE) $(AM_MAKEFLAGS) all-am
@@ -262,6 +263,7 @@ mostlyclean-compile:
 distclean-compile:
 	-rm -f *.tab.c
 
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/action.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/aibase.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/aipathfinding.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/audio.Po@am__quote@

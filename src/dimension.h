@@ -14,6 +14,8 @@
 #include "unittype.h"
 #include "requirements.h"
 #include "handle.h"
+#include "lockfreequeue.h"
+#include "action.h"
 
 #include <vector>
 
@@ -22,30 +24,6 @@ namespace Game
 	namespace Dimension
 	{
 		
-		struct Research : public HasHandle<Research>
-		{
-			std::string id;
-			std::string name;
-			std::string description;
-			bool isResearched;
-			gc_ptr<Unit> researcher;
-			std::string luaEffectObj;
-			ObjectRequirements requirements;
-			GLuint icon;
-			gc_ptr<Player> player;
-
-			Research()
-			{
-				researcher = NULL;
-			}
-
-			void shade()
-			{
-				researcher.shade();
-				player.shade();
-			}
-		};
-
 		struct Player : public HasHandle<Player>
 		{
 			std::string       name;
@@ -55,6 +33,8 @@ namespace Game
 			std::vector<gc_ptr<UnitType> >   vUnitTypes;
 			std::vector<gc_ptr<Projectile> > vProjectiles;
 			std::vector<gc_ptr<Research> >   vResearchs;
+			lockfreequeue<UnitEvent> scheduledUnitEvents;
+			SDL_mutex *scheduleUnitEventMutex;
 			Uint16**          NumUnitsSeeingSquare;
 			PlayerState*      states;
 			Resources         resources;
@@ -90,6 +70,7 @@ namespace Game
 				gc_shade_map(researchMap);
 				raceState.shade();
 				aiState.shade();
+				scheduledUnitEvents.shade();
 			}
 		};
 		

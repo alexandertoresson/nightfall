@@ -131,64 +131,36 @@ namespace Game
 			scheduledCommands.clear();
 		}
 
-		enum UnitEventType
+		void SendScheduledUnitEvents(gc_ptr<Dimension::Player> player)
 		{
-			UNITEVENTTYPE_ACTION,
-			UNITEVENTTYPE_SIMPLE,
-			UNITEVENTTYPE_ATTACK
-		};
-
-		struct UnitEvent : public Dimension::BaseActionData
-		{
-			UnitEventType eventType;
-			gc_ptr<Dimension::Unit> unit;
-			std::string func;
-
-			UnitEvent(const gc_ptr<Dimension::Unit>& pUnit, EventAIFunc *aiEvent, UnitEventType eventType) : BaseActionData(pUnit->pMovementData->action), eventType(eventType), unit(pUnit), func(aiEvent->func)
+			gc_ptr<Dimension::UnitEvent> event;
+			while (event = player->scheduledUnitEvents.consume())
 			{
-			}
-			
-			UnitEvent(const gc_ptr<Dimension::Unit>& pUnit, const gc_ptr<Dimension::Unit>& target, EventAIFunc *aiEvent) : BaseActionData(pUnit->pMovementData->action), eventType(UNITEVENTTYPE_ATTACK), unit(pUnit), func(aiEvent->func)
-			{
-				goal.unit = target;
-			}
-		};
-
-		vector<UnitEvent > scheduledUnitEvents;
-
-		void SendScheduledUnitEvents()
-		{
-			for (vector<UnitEvent >::iterator it = scheduledUnitEvents.begin(); it != scheduledUnitEvents.end(); it++)
-			{
-				const UnitEvent& event = *it;
-				gc_ptr<Utilities::Scripting::LuaVMState> pVM = event.unit->owner->aiState;
-				pVM->SetFunction(event.func);
-				switch (event.eventType)
+				gc_ptr<Utilities::Scripting::LuaVMState> pVM = event->unit->owner->aiState;
+				pVM->SetFunction(event->func);
+				switch (event->eventType)
 				{
-					case UNITEVENTTYPE_ACTION:
-						lua_pushlightuserdata(pVM->GetState(), (void*) event.unit->GetHandle());
-						lua_pushinteger(pVM->GetState(), event.action);
-						lua_pushnumber(pVM->GetState(), event.goal.pos.x);
-						lua_pushnumber(pVM->GetState(), event.goal.pos.y);
-						lua_pushlightuserdata(pVM->GetState(), (void*) (event.goal.unit ? event.goal.unit->GetHandle() : -1));
-						lua_pushlightuserdata(pVM->GetState(), (void*) event.args.argHandle);
+					case Dimension::UNITEVENTTYPE_ACTION:
+						lua_pushlightuserdata(pVM->GetState(), (void*) event->unit->GetHandle());
+						lua_pushinteger(pVM->GetState(), event->action);
+						lua_pushnumber(pVM->GetState(), event->goal.pos.x);
+						lua_pushnumber(pVM->GetState(), event->goal.pos.y);
+						lua_pushlightuserdata(pVM->GetState(), (void*) (event->goal.unit ? event->goal.unit->GetHandle() : -1));
+						lua_pushlightuserdata(pVM->GetState(), (void*) event->args.argHandle);
 						pVM->CallFunction(6);
 						break;
-					case UNITEVENTTYPE_SIMPLE:
-						lua_pushlightuserdata(pVM->GetState(), (void*) event.unit->GetHandle());
+					case Dimension::UNITEVENTTYPE_SIMPLE:
+						lua_pushlightuserdata(pVM->GetState(), (void*) event->unit->GetHandle());
 						pVM->CallFunction(1);
 						break;
-					case UNITEVENTTYPE_ATTACK:
-						lua_pushlightuserdata(pVM->GetState(), (void*) event.unit->GetHandle());
-						lua_pushlightuserdata(pVM->GetState(), (void*) event.goal.unit->GetHandle());
+					case Dimension::UNITEVENTTYPE_ATTACK:
+						lua_pushlightuserdata(pVM->GetState(), (void*) event->unit->GetHandle());
+						lua_pushlightuserdata(pVM->GetState(), (void*) event->goal.unit->GetHandle());
 						pVM->CallFunction(2);
 						break;
 				}
 			}
-			scheduledUnitEvents.clear();
 		}
-
-		SDL_mutex *scheduleUnitEventMutex = NULL;
 
 		void ScheduleActionUnitEvent(const gc_ptr<Dimension::Unit>& pUnit, EventAIFunc *aiEvent)
 		{
@@ -196,11 +168,9 @@ namespace Game
 			if (pUnit->owner->isRemote)
 				return;
 
-			UnitEvent event(pUnit, aiEvent, UNITEVENTTYPE_ACTION);
-
-			SDL_LockMutex(scheduleUnitEventMutex);
-			scheduledUnitEvents.push_back(event);
-			SDL_UnlockMutex(scheduleUnitEventMutex);
+			SDL_LockMutex(pUnit->owner->scheduleUnitEventMutex);
+			pUnit->owner->scheduledUnitEvents.produce(new Dimension::UnitEvent(pUnit, aiEvent, Dimension::UNITEVENTTYPE_ACTION));
+			SDL_UnlockMutex(pUnit->owner->scheduleUnitEventMutex);
 
 		}
 
@@ -210,11 +180,9 @@ namespace Game
 			if (pUnit->owner->isRemote)
 				return;
 
-			UnitEvent event(pUnit, aiEvent, UNITEVENTTYPE_SIMPLE);
-
-			SDL_LockMutex(scheduleUnitEventMutex);
-			scheduledUnitEvents.push_back(event);
-			SDL_UnlockMutex(scheduleUnitEventMutex);
+			SDL_LockMutex(pUnit->owner->scheduleUnitEventMutex);
+			pUnit->owner->scheduledUnitEvents.produce(new Dimension::UnitEvent(pUnit, aiEvent, Dimension::UNITEVENTTYPE_SIMPLE));
+			SDL_UnlockMutex(pUnit->owner->scheduleUnitEventMutex);
 		}
 
 		void SendUnitEventToLua_CommandCompleted(const gc_ptr<Dimension::Unit>& pUnit)
@@ -253,11 +221,9 @@ namespace Game
 			if (pUnit->owner->isRemote)
 				return;
 
-			UnitEvent event(pUnit, attacker, &pUnit->type->unitAIFuncs.isAttacked);
-
-			SDL_LockMutex(scheduleUnitEventMutex);
-			scheduledUnitEvents.push_back(event);
-			SDL_UnlockMutex(scheduleUnitEventMutex);
+			SDL_LockMutex(pUnit->owner->scheduleUnitEventMutex);
+			pUnit->owner->scheduledUnitEvents.produce(new Dimension::UnitEvent(pUnit, attacker, &pUnit->type->unitAIFuncs.isAttacked));
+			SDL_UnlockMutex(pUnit->owner->scheduleUnitEventMutex);
 		}
 
 		void HandleUnitPower()
@@ -493,6 +459,7 @@ namespace Game
 
 		void PerformLuaPlayerAI(const gc_ptr<Dimension::Player>& player)
 		{
+			SendScheduledUnitEvents(player);
 			player->aiFrame++;
 			if (player->aiFrame >= player->playerAIFuncs.performPlayerAI.delay && !player->isRemote)
 			{
@@ -627,7 +594,6 @@ namespace Game
 		void InitAIMiscMutexes()
 		{
 			updateMutex = SDL_CreateMutex();
-			scheduleUnitEventMutex = SDL_CreateMutex();
 		}
 
 		void InitAIThreads()
@@ -687,6 +653,12 @@ namespace Game
 			}
 
 			luaAITicks = new int[numLuaAIThreads];
+
+
+			for (int i = 0; i < numLuaAIThreads; i++)
+			{
+				luaAITicks[i] = 0;
+			}
 
 		}
 
@@ -914,10 +886,6 @@ namespace Game
 
 				postFrameTicks[6] += SDL_GetTicks() - t;
 				t = SDL_GetTicks();
-
-				// The functions above might have queued up more events, so we do this as the
-				// last thing before deleting units, to avoid that events survive onto the next frame.
-				SendScheduledUnitEvents();
 
 				postFrameTicks[7] += SDL_GetTicks() - t;
 				t = SDL_GetTicks();
