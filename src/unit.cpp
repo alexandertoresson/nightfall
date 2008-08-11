@@ -1697,9 +1697,6 @@ namespace Game
 			unitsScheduledForDisplay.push_back(unit);
 			SDL_UnlockMutex(unitsScheduledForDisplayMutex);
 
-			AI::SendUnitEventToLua_UnitCreation(unit);
-			AI::SendUnitEventToLua_BecomeIdle(unit);
-
 			return true;
 		}
 
@@ -1742,6 +1739,9 @@ namespace Game
 			}
 
  			displayedUnitPointers.set(unit, true);
+
+			AI::SendUnitEventToLua_UnitCreation(unit);
+			AI::SendUnitEventToLua_BecomeIdle(unit);
 
 			UnitMainNode::instance.ScheduleUnitNodeAddition(unit);
 
