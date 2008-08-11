@@ -492,8 +492,8 @@ namespace Game
 		volatile bool simpleAIThreadRunning = false;
 		volatile bool *luaAIThreadsRunning;
 
-		vector<gc_ptr<Dimension::Player> > *playersHandledPerLuaThread;
-		int* numUnitsPerLuaThread;
+		vector<gc_ptr<Dimension::Player> > playersToBeProcessed;
+		SDL_mutex *playersToProcessMutex;
 		volatile int aiThreadsDone;
 		volatile bool aiIsFired;
 		volatile bool quitAIThreads;
@@ -569,9 +569,25 @@ namespace Game
 
 				Uint32 t = SDL_GetTicks();
 				
-				for (vector<gc_ptr<Dimension::Player> >::iterator it = playersHandledPerLuaThread[i].begin(); it != playersHandledPerLuaThread[i].end(); it++)
+				while (1)
 				{
-					const gc_ptr<Dimension::Player>& player = *it;
+					gc_ptr<Dimension::Player> player;
+
+					SDL_LockMutex(playersToProcessMutex);
+
+					if (playersToBeProcessed.size())
+					{
+						player = playersToBeProcessed.front();
+						playersToBeProcessed.erase(playersToBeProcessed.begin());
+					}
+					else
+					{
+						SDL_UnlockMutex(playersToProcessMutex);
+						break;
+					}
+
+					SDL_UnlockMutex(playersToProcessMutex);
+
 					PerformLuaPlayerAI(player);
 
 					for (vector<gc_ptr<Dimension::Unit> >::iterator it2 = player->vUnitsWithLuaAI.begin(); it2 != player->vUnitsWithLuaAI.end(); it2++)
@@ -600,6 +616,9 @@ namespace Game
 		{
 			if (numLuaAIThreads)
 			{
+
+				playersToProcessMutex = SDL_CreateMutex();
+
 				quitAIThreads = false;
 				simpleAIdoneCond = SDL_CreateCond();
 				simpleAIWaitMutex = SDL_CreateMutex();
@@ -607,14 +626,11 @@ namespace Game
 				luaAIdoneConds = new SDL_cond*[numLuaAIThreads];
 				luaAIWaitMutexes = new SDL_mutex*[numLuaAIThreads];
 				luaAIThreadsRunning = new bool[numLuaAIThreads];
-				playersHandledPerLuaThread = new vector<gc_ptr<Dimension::Player> >[numLuaAIThreads];
-				numUnitsPerLuaThread = new int[numLuaAIThreads];
 				for (int i = 0; i < numLuaAIThreads; i++)
 				{
 					luaAIdoneConds[i] = SDL_CreateCond();
 					luaAIWaitMutexes[i] = SDL_CreateMutex();
 					luaAIThreadsRunning[i] = false;
-					numUnitsPerLuaThread[i] = 0;
 				}
 
 				fireAIConds = new SDL_cond*[numLuaAIThreads+1];;
@@ -692,8 +708,6 @@ namespace Game
 				delete[] luaAIdoneConds;
 				delete[] luaAIWaitMutexes;
 				delete[] luaAIThreadsRunning;
-				delete[] playersHandledPerLuaThread;
-				delete[] numUnitsPerLuaThread;
 
 				for (int i = 0; i < numLuaAIThreads+1; i++)
 				{
@@ -734,29 +748,7 @@ namespace Game
 				if (numLuaAIThreads)
 				{
 
-					///////////////////////////////////////////////////////////////////////////
-					// Balance out players over lua threads
-					
-					
-					for (int i = 0; i < numLuaAIThreads; i++)
-					{
-						playersHandledPerLuaThread[i].clear();
-						numUnitsPerLuaThread[i] = 0;
-					}
-
-					for (unsigned i = 0; i < Dimension::pWorld->vPlayers.size(); i++) // Try to divide units well between lua threads
-					{
-						int lowestUnitNum = 0;
-						for (int j = 1; j < numLuaAIThreads; j++)
-						{
-							if (numUnitsPerLuaThread[j] < numUnitsPerLuaThread[lowestUnitNum])
-							{
-								lowestUnitNum = j;
-							}
-						}
-						playersHandledPerLuaThread[lowestUnitNum].push_back(Dimension::pWorld->vPlayers[i]);
-						numUnitsPerLuaThread[lowestUnitNum] += 250 + Dimension::pWorld->vPlayers[i]->vUnits.size();
-					}
+					playersToBeProcessed = Dimension::pWorld->vPlayers;
 
 					///////////////////////////////////////////////////////////////////////////
 					// Wake up simpleai and lua threads
