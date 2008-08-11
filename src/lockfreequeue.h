@@ -31,6 +31,7 @@ class lockfreequeue
 		{
 			gc_ptr<entry> new_entry = new entry(a);
 			head->next = new_entry;
+			head = new_entry;
 		}
 
 		gc_ptr<T> consume()
