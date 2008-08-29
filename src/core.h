@@ -191,6 +191,7 @@ namespace Core
 	extern std::list<Listener*>	paintListener;
 	extern std::list<Listener*>	preFrameListener;
 	
+	extern bool go;
 	extern bool keyState[SDLK_LAST];
 	extern int mouseX;
 	extern int mouseY;
