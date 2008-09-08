@@ -306,7 +306,6 @@ namespace Game
 		void InitAreaMap(ThreadData *tdata, int size, int mt)
 		{
 			int x, y;
-			int time = SDL_GetTicks();
 
 			SDL_LockMutex(gpmxAreaMap);
 
