@@ -353,7 +353,6 @@ namespace Game
 
 			SDL_UnlockMutex(gpmxAreaMap);
 
-			printf("Area code regen %d ms\n", SDL_GetTicks() - time);
 		}
 
 		void InitAreaMaps(ThreadData* tdata)
