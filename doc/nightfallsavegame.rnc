@@ -1,0 +1,85 @@
+default namespace = ""
+
+start =
+  element nightfall_save_file {
+    element version { xsd:integer },
+    element level { xsd:NCName },
+    element hour { xsd:double },
+    element currentFrame { xsd:integer },
+    element aiFps { xsd:integer },
+    element camera {
+      element focus { x, y, z },
+      element zoom { xsd:double },
+      rotation
+    },
+    player+,
+    unit*,
+    element projectile {
+      owner,
+      element goalUnit { xsd:integer }?,
+      pos,
+      element direction { x, y, z },
+      element goalPos { x, y, z }
+    }*
+  }
+x = element x { xsd:double }
+y = element y { xsd:double }
+z = element z { xsd:double }
+rotation = element rotation { xsd:double }
+player =
+  element player {
+    (text
+     | aiFrame
+     | power
+     | element money { xsd:double }
+     | element name { xsd:NMTOKEN }
+     | element playerType { xsd:integer }
+     | element stance { xsd:integer })+
+  }
+unit =
+  element unit {
+    (text
+     | aiFrame
+     | owner
+     | pos
+     | power
+     | rotation
+     | element actionCompleteness { xsd:double }
+     | element completeness { xsd:double }
+     | element curAssociatedSquare { x, y }
+     | element faceTarget { xsd:integer }
+     | element health { xsd:double }
+     | element id { xsd:integer }
+     | element isCompleted { xsd:boolean }
+     | element isDisplayed { xsd:boolean }
+     | element isMoving { xsd:boolean }
+     | element lastAttack { xsd:integer }
+     | element lastAttacked { xsd:integer }
+     | element lastCommand { xsd:integer }
+     | element lastSeenPosition { player, pos }
+     | element movementData {
+         element actionData {
+           action,
+           startPos,
+           goal,
+           element arg {
+             element research { text }
+             | element unittype { xsd:NCName }
+           }?,
+           rotation
+         },
+         element curGoalNode { x, y }?,
+         element path {
+           element elem { x, y }+
+         }?,
+         element _actionData { action, startPos, goal, rotation }?
+       }
+     | element type { xsd:NCName })+
+  }
+owner = element owner { xsd:integer }
+pos = element pos { x, y, z? }
+power = element power { xsd:double }
+aiFrame = element aiFrame { xsd:integer }
+action = element action { xsd:integer }
+startPos = element startPos { x, y }
+goal = element goal { pos, unit? }
