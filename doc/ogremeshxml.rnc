@@ -226,4 +226,4 @@ attlist.extremes &= empty
 submesh_extremes =
   element submesh_extremes { attlist.submesh_extremes, position+ }
 attlist.submesh_extremes &= attribute index { text }
-start = submesh_extremes | mesh
+start = mesh
