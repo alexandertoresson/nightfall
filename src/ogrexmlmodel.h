@@ -108,9 +108,16 @@ namespace Utilities
 		}
 	};
 
-	struct OgreVertexAnimation
+	struct OgreAnimationTrack
 	{
 		virtual void shade() = 0;
+	};
+
+	struct OgreVertexAnimation
+	{
+		std::string name;
+		float length;
+		std::vector<OgreAnimationTrack> tracks;
 	};
 
 	struct OgreMorphAnimFrame
@@ -124,9 +131,8 @@ namespace Utilities
 		}
 	};
 
-	struct OgreMorphAnimation : public OgreVertexAnimation
+	struct OgreMorphAnimation : public OgreAnimationTrack
 	{
-		std::string name;
 		std::vector<OgreMorphAnimFrame> frames;
 		
 		void shade() const
@@ -169,9 +175,8 @@ namespace Utilities
 		}
 	};
 
-	struct OgrePoseAnimation : public OgreVertexAnimation
+	struct OgrePoseAnimation : public OgreAnimationTrack
 	{
-		std::string name;
 		std::vector<OgrePoseAnimFrame> frames;
 		
 		void shade() const
