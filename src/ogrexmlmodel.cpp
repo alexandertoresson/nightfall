@@ -15,6 +15,9 @@ namespace Utilities
 	static gc_ptr<OgreMesh> mesh = NULL;
 	static gc_ptr<OgreSubMesh> submesh = NULL;
 	static gc_ptr<OgreVertexBuffer> vb = NULL;
+	static gc_ptr<OgreVertexAnimation> vertexAnimation = NULL;
+	static gc_ptr<OgrePose> pose = NULL;
+	static gc_ptr<OgreAnimationTrack> animationTrack = NULL;
 	static std::vector<gc_ptr<OgreVertexBuffer> > vbs;
 	static unsigned numVertices;
 	static unsigned face_index, vertex_index, texcoord_index;
@@ -276,7 +279,15 @@ namespace Utilities
 		mesh->shared = vbs;
 	}
 
-	gc_ptr<OgrePose> pose = NULL;
+	void ParsePoseOffset(Utilities::XMLElement *elem)
+	{
+		OgrePoseOffset poseOffset;
+		poseOffset.index = elem->GetAttributeT<int>("index", 0);
+		poseOffset.offset.x = elem->GetAttributeT<float>("x", 0.0f);
+		poseOffset.offset.y = elem->GetAttributeT<float>("y", 0.0f);
+		poseOffset.offset.z = elem->GetAttributeT<float>("z", 0.0f);
+		pose->offsets.push_back(poseOffset);
+	}
 
 	void ParsePose(Utilities::XMLElement *elem)
 	{
@@ -291,12 +302,80 @@ namespace Utilities
 		elem->Iterate("pose", ParsePose);
 	}
 
+	void ParseMorphKeyframe(Utilities::XMLElement *elem)
+	{
+		OgreMorphAnimFrame animFrame;
+
+		// TODO: Load positions
+
+		animFrame.time = elem->GetAttributeT<float>("time", 0.0f);
+	}
+
+	void ParseMorphKeyframes(Utilities::XMLElement *elem)
+	{
+		elem->Iterate("keyframe", ParseMorphKeyframe);
+	}
+
+	void ParsePoseKeyframe(Utilities::XMLElement *elem)
+	{
+		OgrePoseAnimFrame animFrame;
+
+		// TODO: Load poserefs
+
+		animFrame.time = elem->GetAttributeT<float>("time", 0.0f);
+	}
+
+	void ParsePoseKeyframes(Utilities::XMLElement *elem)
+	{
+		elem->Iterate("keyframe", ParsePoseKeyframe);
+	}
+
+	void ParseTrack(Utilities::XMLElement *elem)
+	{
+		animationTrack = NULL;
+		if (elem->GetAttribute("type") == "morph")
+		{
+			gc_ptr<OgreMorphAnimation> ogreMorphAnimation = new OgreMorphAnimation;
+			animationTrack = ogreMorphAnimation;
+		}
+		else if (elem->GetAttribute("type") == "pose")
+		{
+			gc_ptr<OgrePoseAnimation> ogrePoseAnimation = new OgrePoseAnimation;
+			animationTrack = ogrePoseAnimation;
+		}
+		if (animationTrack)
+		{
+			animationTrack->targetsShared = elem->GetAttribute("target") == "mesh";
+			animationTrack->targetIndex = elem->GetAttributeT<int>("index", 0);
+		}
+	}
+
+	void ParseTracks(Utilities::XMLElement *elem)
+	{
+		elem->Iterate("track", ParseTrack);
+	}
+
+	void ParseAnimation(Utilities::XMLElement *elem)
+	{
+		vertexAnimation = new OgreVertexAnimation;
+		vertexAnimation->name = elem->GetAttribute("name");
+		vertexAnimation->length = elem->GetAttributeT<float>("length", 0.0f);
+		elem->Iterate("tracks", ParseTracks);
+		mesh->vertexAnimations[vertexAnimation->name] = vertexAnimation;
+	}
+
+	void ParseAnimations(Utilities::XMLElement *elem)
+	{
+		elem->Iterate("animation", ParseAnimation);
+	}
+
 	void ParseMesh(Utilities::XMLElement *elem)
 	{
 		mesh = new OgreMesh;
 		elem->Iterate("submeshes", ParseSubmeshes);
 		elem->Iterate("sharedgeometry", ParseSharedGeometry);
 		elem->Iterate("poses", ParsePoses);
+		elem->Iterate("animations", ParseAnimations);
 	}
 
 	void ParseModTranslate(Utilities::XMLElement *elem)

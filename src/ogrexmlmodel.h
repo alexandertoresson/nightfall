@@ -110,7 +110,10 @@ namespace Utilities
 
 	struct OgreAnimationTrack
 	{
-		virtual void shade() = 0;
+		bool targetsShared;
+		int targetIndex;
+
+		virtual void shade() const = 0;
 	};
 
 	struct OgreVertexAnimation
@@ -118,6 +121,11 @@ namespace Utilities
 		std::string name;
 		float length;
 		std::vector<OgreAnimationTrack> tracks;
+
+		void shade() const
+		{
+			gc_shade_container(tracks);
+		}
 	};
 
 	struct OgreMorphAnimFrame
@@ -204,7 +212,6 @@ namespace Utilities
 		unsigned numElems;
 		gc_ptr<Material> material;
 
-		std::map<std::string, gc_ptr<OgreVertexAnimation> > vertexAnimations;
 		std::vector<OgreVertexBoneAssignment> vertexBoneAssignments;
 		
 		bool CheckRayIntersect(const Vector3D& near, const Vector3D& far, float& distance);
@@ -214,7 +221,6 @@ namespace Utilities
 			faces.shade();
 			gc_shade_container(vbs);
 			material.shade();
-			gc_shade_map(vertexAnimations);
 			gc_shade_container(vertexBoneAssignments);
 		}
 
@@ -227,6 +233,7 @@ namespace Utilities
 		std::vector<gc_ptr<Scene::Render::MeshTransformation> > transforms;
 
 		std::vector<gc_ptr<OgrePose> > poses;
+		std::map<std::string, gc_ptr<OgreVertexAnimation> > vertexAnimations;
 		std::vector<gc_ptr<OgreBone> > bones;
 		std::map<std::string, OgreBoneAnimation> boneAnimations;
 
@@ -239,6 +246,7 @@ namespace Utilities
 			gc_shade_container(transforms);
 			gc_shade_container(poses);
 			gc_shade_map(boneAnimations);
+			gc_shade_map(vertexAnimations);
 		}
 	};
 
