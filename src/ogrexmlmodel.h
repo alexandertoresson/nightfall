@@ -150,7 +150,11 @@ namespace Utilities
 	struct OgrePose
 	{
 		std::string name;
+		bool targetsShared;
+		int targetIndex;
 		std::vector<OgrePoseOffset> offsets;
+
+		void shade() const {}
 	};
 
 	struct OgrePoseAnimRef

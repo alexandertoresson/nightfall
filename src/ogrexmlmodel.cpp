@@ -276,11 +276,27 @@ namespace Utilities
 		mesh->shared = vbs;
 	}
 
+	gc_ptr<OgrePose> pose = NULL;
+
+	void ParsePose(Utilities::XMLElement *elem)
+	{
+		pose = new OgrePose;
+		pose->name = elem->GetAttribute("name");
+		pose->targetsShared = elem->GetAttribute("target") == "mesh";
+		pose->targetIndex = elem->GetAttributeT<int>("index", 0);
+	}
+
+	void ParsePoses(Utilities::XMLElement *elem)
+	{
+		elem->Iterate("pose", ParsePose);
+	}
+
 	void ParseMesh(Utilities::XMLElement *elem)
 	{
 		mesh = new OgreMesh;
 		elem->Iterate("submeshes", ParseSubmeshes);
 		elem->Iterate("sharedgeometry", ParseSharedGeometry);
+		elem->Iterate("poses", ParsePoses);
 	}
 
 	void ParseModTranslate(Utilities::XMLElement *elem)
