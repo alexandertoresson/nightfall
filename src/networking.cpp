@@ -129,8 +129,22 @@ namespace Game
 #endif
 
 		// CRC32 functions:
+
+		/*
+ 		 * efone - Distributed internet phone system.
+ 		 *
+ 		 * (c) 1999,2000 Krzysztof Dabrowski
+ 		 * (c) 1999,2000 ElysiuM deeZine
+ 		 *
+ 		 * This program is free software; you can redistribute it and/or
+ 		 * modify it under the terms of the GNU General Public License
+ 		 * as published by the Free Software Foundation; either version
+ 		 * 2 of the License, or (at your option) any later version.
+ 		 *
+ 		 */
+
 		// based on implementation by Finn Yannick Jacobs
-		// GPL
+		// modified by the nightfall team to fit into the nightfall project
 
 		// crc_tab[] -- this crcTable is being build by crc32_init().
 		Uint32 crc_tab[256];
@@ -175,6 +189,8 @@ namespace Game
 				crc_tab[i] = crc;
 			}
 		}
+
+		// end CRC32 functions 
 
 		BitStream::BitStream(Uint8* data)
 		{
