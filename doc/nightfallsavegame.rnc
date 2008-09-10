@@ -28,53 +28,51 @@ z = element z { xsd:double }
 rotation = element rotation { xsd:double }
 player =
   element player {
-    (text
-     | aiFrame
-     | power
-     | element money { xsd:double }
-     | element name { xsd:NMTOKEN }
-     | element playerType { xsd:integer }
-     | element stance { xsd:integer })+
+    element name { xsd:NMTOKEN },
+    element playerType { xsd:integer },
+    element stance { xsd:integer }+,
+    element money { xsd:double },
+    power,
+    aiFrame,
+    research+
   }
 unit =
   element unit {
-    (text
-     | aiFrame
-     | owner
-     | pos
-     | power
-     | rotation
-     | element actionCompleteness { xsd:double }
-     | element completeness { xsd:double }
-     | element curAssociatedSquare { x, y }
-     | element faceTarget { xsd:integer }
-     | element health { xsd:double }
-     | element id { xsd:integer }
-     | element isCompleted { xsd:boolean }
-     | element isDisplayed { xsd:boolean }
-     | element isMoving { xsd:boolean }
-     | element lastAttack { xsd:integer }
-     | element lastAttacked { xsd:integer }
-     | element lastCommand { xsd:integer }
-     | element lastSeenPosition { player, pos }
-     | element movementData {
-         element actionData {
-           action,
-           startPos,
-           goal,
-           element arg {
-             element research { text }
-             | element unittype { xsd:NCName }
-           }?,
-           rotation
-         },
-         element curGoalNode { x, y }?,
-         element path {
-           element elem { x, y }+
-         }?,
-         element _actionData { action, startPos, goal, rotation }?
-       }
-     | element type { xsd:NCName })+
+    element id { xsd:integer },
+    owner,
+    element type { xsd:NCName },
+    pos,
+    element curAssociatedSquare { x, y },
+    element faceTarget { xsd:integer },
+    element health { xsd:double },
+    power,
+    element lastAttack { xsd:integer },
+    element lastAttacked { xsd:integer },
+    element lastCommand { xsd:integer },
+    aiFrame,
+    element completeness { xsd:double },
+    element actionCompleteness { xsd:double },
+    element isCompleted { xsd:boolean },
+    element isDisplayed { xsd:boolean },
+    element isMoving { xsd:boolean },
+    rotation,
+    element lastSeenPosition { player, pos }*,
+    element movementData {
+      element actionData {
+        action,
+        startPos,
+        goal,
+        element arg {
+          research | element unittype { xsd:NCName }
+        }?,
+        rotation
+      },
+      element curGoalNode { x, y }?,
+      element path {
+        element elem { x, y }+
+      }?,
+      element _actionData { action, startPos, goal, rotation }?
+    }
   }
 owner = element owner { xsd:integer }
 pos = element pos { x, y, z? }
@@ -83,3 +81,4 @@ aiFrame = element aiFrame { xsd:integer }
 action = element action { xsd:integer }
 startPos = element startPos { x, y }
 goal = element goal { pos, unit? }
+research = element research { text }

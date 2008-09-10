@@ -7,16 +7,16 @@ materials = element materials { material+ }
 material =
 	element material {
 		attribute version { xsd:decimal },
-		(inh?,
-		 shader?,
-		 ambient?,
-		 diffuse?,
-		 specular?,
-		 emission?,
-		 shininess?,
-		 textures?,
-		 uniforms?,
-		 shader?) &
+		(inh
+		 | shader
+		 | ambient
+		 | diffuse
+		 | specular
+		 | emission
+		 | shininess
+		 | textures
+		 | uniforms
+		 | shader) +
 	}
 
 inh = element inherit { attribute filename { text } }
@@ -79,6 +79,6 @@ uniformFloat =
 
 shader =
 	element shader {
-		attribute vertex_shader { text }
+		attribute vertex_shader { text },
 		attribute fragment_shader { text }
 	}
