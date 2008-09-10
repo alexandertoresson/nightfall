@@ -6,33 +6,33 @@ start = materialselector
 materialselector =
 	element materialselector {
 		attribute version { xsd:decimal },
-		(material | switch | include)+
+		(material | switch | inc)+
 	}
 
 material =
 	element material {
-		attribute name { xsd:text }?
+		attribute name { text }?
 	}
 
-include =
+inc =
 	element include {
-		attribute name { xsd:text }
+		attribute name { text }
 	}
 
 switch =
 	element switch {
 		attribute option { xsd:NCName },
 		case+,
-		default?
+		def?
 	}
 case =
 	element case {
 		attribute value { text },
 		[ a:defaultValue = "false" ] attribute fallthrough { xsd:boolean },
-		(mesh | switch | include)*
+		(material | switch | inc)*
 	}
-default =
+def =
 	element default {
 		[ a:defaultValue = "false" ] attribute fallthrough { xsd:boolean },
-		(mesh | switch | include)*
+		(material | switch | inc)*
 	}

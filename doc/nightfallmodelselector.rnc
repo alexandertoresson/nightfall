@@ -6,39 +6,39 @@ start = modelselector
 modelselector =
 	element modelselector {
 		attribute version { xsd:decimal },
-		(mesh | switch | include)+
+		(mesh | switch | inc)+
 	}
 
 mesh =
 	element mesh {
-		attribute material { xsd:text }?,
-		attribute mesh { xsd:text }?,
+		attribute material { text }?,
+		attribute mesh { text }?,
 		submesh+
 	}
 submesh =
 	element submesh {
-		attribute material { xsd:text }
+		attribute material { text }
 	}
 
-include =
+inc =
 	element include {
-		attribute name { xsd:text }
+		attribute name { text }
 	}
 
 switch =
 	element switch {
 		attribute option { xsd:NCName },
 		case+,
-		default?
+		def?
 	}
 case =
 	element case {
 		attribute value { text },
 		[ a:defaultValue = "false" ] attribute fallthrough { xsd:boolean },
-		(mesh | switch | include)*
+		(mesh | switch | inc)*
 	}
-default =
+def =
 	element default {
 		[ a:defaultValue = "false" ] attribute fallthrough { xsd:boolean },
-		(mesh | switch | include)*
+		(mesh | switch | inc)*
 	}

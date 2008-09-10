@@ -7,7 +7,7 @@ materials = element materials { material+ }
 material =
 	element material {
 		attribute version { xsd:decimal },
-		(inherit?,
+		(inh?,
 		 shader?,
 		 ambient?,
 		 diffuse?,
@@ -19,7 +19,7 @@ material =
 		 shader?) &
 	}
 
-inherit = element inherit { attribute filename { text } }
+inh = element inherit { attribute filename { text } }
 
 ambient =
 	element ambient {
