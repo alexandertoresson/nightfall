@@ -34,7 +34,7 @@ player =
     element money { xsd:double },
     power,
     aiFrame,
-    research+
+    research*
   }
 unit =
   element unit {
