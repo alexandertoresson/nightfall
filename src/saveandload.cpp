@@ -13,7 +13,7 @@
 #include <string>
 #include <iostream>
 
-#define CURRENT_SAVEGAME_VERSION 2
+#define CURRENT_SAVEGAME_VERSION 3
 
 using namespace std;
 
@@ -265,6 +265,14 @@ namespace Game
 				OutputDouble(xmlfile, "power", player->resources.power);
 				OutputInt(xmlfile, "aiFrame", player->aiFrame);
 
+				for (std::vector<gc_ptr<Research> >::iterator it = player->vResearchs.begin(); it != player->vResearchs.end(); it++)
+				{
+					if ((*it)->isResearched)
+					{
+						OutputString(xmlfile, "research", (*it)->id);
+					}
+				}
+
 			xmlfile.EndTag();
 		}
 
@@ -496,6 +504,20 @@ namespace Game
 			player->states[sindex++] = (PlayerState) i;
 		}
 
+		void ParsePlayerResearch(Utilities::XMLElement *elem)
+		{
+			std::string id = elem->GetText();
+			gc_ptr<Research> research = player->researchMap[id];
+
+			if (!research)
+			{
+				std::cout << "Invalid research id in ParsePlayerResearch()" << std::endl;
+				return;
+			}
+
+			research->isResearched = true;
+		}
+
 		void ParsePlayer(Utilities::XMLElement *elem)
 		{
 			if (pindex >= pWorld->vPlayers.size())
@@ -523,6 +545,8 @@ namespace Game
 
 			sindex = 0;
 			elem->Iterate("stance", ParseStances);
+
+			elem->Iterate("research", ParsePlayerResearch);
 		}
 
 		gc_ptr<Unit> unit;
