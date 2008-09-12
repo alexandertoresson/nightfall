@@ -68,6 +68,7 @@ namespace Utilities
 		virtual void Apply(const TagFuncMap& tag_funcs, const TextFunc& text_func);
 		virtual void Apply(const Utilities::FEString& tag, const TagFunc& tag_func);
 		virtual void Apply(const TextFunc& text_func);
+		virtual std::string GetText() = 0;
 		virtual ~XMLNode() {};
 	};
 
@@ -76,6 +77,7 @@ namespace Utilities
 		std::string str;
 		virtual void Apply(const TagFuncMap& tag_funcs, const TextFunc& text_func);
 		virtual void Apply(const TextFunc& text_func);
+		virtual std::string GetText();
 		virtual ~XMLTextNode() {};
 	};
 
@@ -116,6 +118,9 @@ namespace Utilities
 		virtual void Apply(const Utilities::FEString& tag, const TagFunc& tag_func);
 	
 		unsigned Count(const Utilities::FEString& tag);
+
+		virtual std::string GetText();
+
 		virtual ~XMLElement() {};
 	};
 

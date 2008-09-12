@@ -442,6 +442,11 @@ namespace Utilities
 		}
 	}
 
+	std::string XMLTextNode::GetText()
+	{
+		return str;
+	}
+
 	void XMLElement::Apply(const TagFuncMap& tag_funcs, const TextFunc& text_func)
 	{
 		TagFuncMap::const_iterator it = tag_funcs.find(tag);
@@ -528,6 +533,16 @@ namespace Utilities
 			}
 		}
 		return n;
+	}
+
+	std::string XMLElement::GetText()
+	{
+		std::string str;
+		for (std::vector<XMLNode*>::iterator it = children.begin(); it != children.end(); it++)
+		{
+			str += (*it)->GetText();
+		}
+		return str;
 	}
 
 }
