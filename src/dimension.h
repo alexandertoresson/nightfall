@@ -66,6 +66,7 @@ namespace Game
 				gc_shade_container(vUnitsWithLuaAI);
 				gc_shade_container(vUnitTypes);
 				gc_shade_container(vResearchs);
+				gc_shade_container(vProjectiles);
 				gc_shade_map(unitTypeMap);
 				gc_shade_map(researchMap);
 				raceState.shade();

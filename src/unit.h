@@ -115,6 +115,7 @@ namespace Game
 				type.shade();
 				owner.shade();
 				pMovementData.shade();
+				gc_shade_container(vProjectiles);
 			}
 		};
 
@@ -150,9 +151,7 @@ namespace Game
 		
 		void PrepareUnitEssentials(gc_ptr<Unit>& unit, const gc_ptr<UnitType>& type);
 		gc_ptr<Unit> CreateUnitNoDisplay(const gc_ptr<UnitType>& type, int id = -1, bool complete = true);
-		gc_ptr<Unit> CreateUnitNoDisplay(unsigned type, const gc_ptr<Player>& owner, int id = -1, bool complete = true);
 		gc_ptr<Unit> CreateUnit(const gc_ptr<UnitType>& type, int x, int y, int id = -1, bool complete = true);
-		gc_ptr<Unit> CreateUnit(unsigned type, const gc_ptr<Player>& owner, int x, int y, int id = -1, bool complete = true);
 		bool ScheduleDisplayUnit(const gc_ptr<Unit>& unit, int x, int y);
 		void DisplayScheduledUnits();
 		void RemoveUnitFromLists(gc_ptr<Unit> unit);

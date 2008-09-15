@@ -139,7 +139,7 @@ namespace Game
 				if (actionData->args.research)
 				{
 					xmlfile.BeginTag("arg");
-						OutputString(xmlfile, "research", actionData->args.research->name);
+						OutputString(xmlfile, "research", actionData->args.research->id);
 					xmlfile.EndTag();
 				}
 				else if (actionData->args.unitType)
@@ -197,7 +197,7 @@ namespace Game
 			xmlfile.BeginTag("unit");
 
 				OutputInt(xmlfile, "id", unit->GetHandle());
-				OutputInt(xmlfile, "owner", unit->owner->GetHandle());
+				OutputInt(xmlfile, "owner", unit->owner->index);
 
 				OutputString(xmlfile, "type", unit->type->id);
 
@@ -282,7 +282,7 @@ namespace Game
 				
 				if (player)
 				{
-					OutputInt(xmlfile, "player", player->GetHandle());
+					OutputInt(xmlfile, "player", player->index);
 				}
 				else
 				{
@@ -578,24 +578,17 @@ namespace Game
 
 			elem->Iterate("id", ParseIntBlock);
 			
-			if ((unsigned) i >= 65535)
-			{
-				std::cout << "Invalid unit index (out of range) in ParseUnit_Pass1()" << std::endl;
-				return;
-			}
-
 			id = i;
 
 			elem->Iterate("owner", ParseIntBlock);
 
 			if ((unsigned) i >= pWorld->vPlayers.size())
 			{
-				std::cout << "Invalid unit index in ParseUnit_Pass1()" << std::endl;
+				std::cout << "Invalid player index in ParseUnit_Pass1()" << std::endl;
 				return;
 			}
 
 			owner = pWorld->vPlayers[i];
-			
 
 			elem->Iterate("type", ParseStringBlock);
 
@@ -616,7 +609,7 @@ namespace Game
 			if (isDisplayed)
 			{
 				elem->Iterate("curAssociatedSquare", ParseIntPosition);
-				unit = CreateUnit(type->GetHandle(), owner, pos_int.x, pos_int.y, id, isCompleted);
+				unit = CreateUnit(type, pos_int.x, pos_int.y, id, isCompleted);
 
 				if (!unit)
 				{
@@ -643,7 +636,7 @@ namespace Game
 			}
 			else
 			{
-				unit = CreateUnitNoDisplay(type->GetHandle(), owner, id, isCompleted);
+				unit = CreateUnitNoDisplay(type, id, isCompleted);
 			}
 			
 			elem->Iterate("health", ParseDoubleBlock);
@@ -673,13 +666,29 @@ namespace Game
 		void ParseUnitArgUnitType(Utilities::XMLElement *elem)
 		{
 			elem->Iterate("unittype", ParseStringBlock);
-			args = UnitLuaInterface::GetUnitTypeByID(unit->owner, str);
+			const gc_ptr<UnitType> type = UnitLuaInterface::GetUnitTypeByID(unit->owner, str);
+			if (type)
+			{
+				args = type;
+			}
+			else
+			{
+				std::cout << "Invalid unit type name in ParseUnitArgUnitType()" << std::endl;
+			}
 		}
 
 		void ParseUnitArgResearch(Utilities::XMLElement *elem)
 		{
 			elem->Iterate("research", ParseStringBlock);
-			args = UnitLuaInterface::GetResearchByID(unit->owner, str);
+			const gc_ptr<Research> research = UnitLuaInterface::GetResearchByID(unit->owner, str);
+			if (research)
+			{
+				args = research;
+			}
+			else
+			{
+				std::cout << "Invalid research name in ParseUnitArgResearch()" << std::endl;
+			}
 		}
 
 		std::vector<IntPosition> nodes;
@@ -870,8 +879,7 @@ namespace Game
 			elem->Iterate("owner", ParseIntBlock);
 			const gc_ptr<Unit>& unit = GetUnitByID(i);
 
-			elem->Iterate("player", ParseIntBlock);
-			const gc_ptr<Player>& player = HandleManager<Player>::InterpretHandle(i);
+			const gc_ptr<Player>& player = unit->owner;
 
 			elem->Iterate("goalUnit", ParseIntBlock);
 			const gc_ptr<Unit>& goalUnit = GetUnitByID(i);

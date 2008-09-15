@@ -1667,15 +1667,6 @@ namespace Game
 			return unit;
 		}
 		
-		gc_ptr<Unit> CreateUnitNoDisplay(unsigned type, const gc_ptr<Player>& owner, int id, bool complete)
-		{
-			if (type < owner->vUnitTypes.size())
-			{
-				return CreateUnitNoDisplay(owner->vUnitTypes[type], id, complete);
-			}
-			return NULL;
-		}
-
 		SDL_mutex* unitsScheduledForDisplayMutex = NULL;
 
 		bool ScheduleDisplayUnit(const gc_ptr<Unit>& unit, int x, int y)
@@ -1761,15 +1752,6 @@ namespace Game
 			return unit;
 		}
 		
-		gc_ptr<Unit> CreateUnit(unsigned type, const gc_ptr<Player>& owner, int x, int y, int id, bool complete)
-		{
-			if (type < owner->vUnitTypes.size())
-			{
-				return CreateUnit(owner->vUnitTypes[type], x, y, id, complete);
-			}
-			return NULL;
-		}
-
 		void DisplayScheduledUnits()
 		{
 			unitsScheduledForDisplay.sort(UnitBinPred);
@@ -2021,6 +2003,7 @@ namespace Game
 			proj->pos = type->startPos;
 			proj->goalUnit = goal;
 			proj->attacker = attacker;
+			std::cout << type->speed << std::endl;
 			return proj;
 		}
 

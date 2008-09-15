@@ -1192,9 +1192,11 @@ namespace Game
 					{
 						waitingCreations.erase(waitingCreations.begin() + i--);
 						const gc_ptr<Dimension::Player>& owner = Dimension::HandleManager<Dimension::Player>::InterpretIndependentHandle(create->owner_id);
-						if (owner)
+						const gc_ptr<Dimension::UnitType>& type = Dimension::HandleManager<Dimension::UnitType>::InterpretIndependentHandle(create->unittype_id);
+						if (owner && type)
 						{
-							const gc_ptr<Dimension::Unit>& unit = Dimension::CreateUnit(create->unittype_id, owner, create->x, create->y);
+							
+							const gc_ptr<Dimension::Unit>& unit = Dimension::CreateUnit(type, owner, create->x, create->y);
 							if (unit)
 							{
 								unit->rotation = ByteToRotation(create->rot);

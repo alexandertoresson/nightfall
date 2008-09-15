@@ -1560,8 +1560,8 @@ namespace UnitLuaInterface
 		Utilities::Colour colour2 = defaultColours[index][2];
 		if (name == "USER")
 		{
-			std::stringstream ss("Player ");
-			ss << (index + 1);
+			std::stringstream ss;
+			ss << "Player " << (index + 1);
 			name = ss.str();
 		}
 		if (!strcmp(raceScript, "USER"))
