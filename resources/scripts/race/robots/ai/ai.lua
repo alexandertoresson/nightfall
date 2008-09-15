@@ -534,6 +534,7 @@ function UnitEvent_NewCommand_AI(Unit, action, x, y, goal, arg)
 	end
 	if (action == UnitAction.Build) or (action == UnitAction.Research) then
 		if action == UnitAction.Build then
+			UnitType = GetUnitType(Unit)
 			if GetUnitTypeIncomeAtNoon(UnitType) < 0 then
 				TempNoonIncomeChanges = TempNoonIncomeChanges + GetUnitTypeIncomeAtNoon(UnitType)
 			end
