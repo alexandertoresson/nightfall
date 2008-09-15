@@ -11,6 +11,6 @@ void main(void)
 
 	N = normalize(gl_NormalMatrix * gl_Normal);
 	L = vec3(normalize(gl_LightSource[0].position));
-	C = mix(waterBack, waterFront, mixLevels) * 10;
+	C = mix(waterBack, waterFront, mixLevels) * 10.0;
 	flight = light;
 }
