@@ -1,0 +1,37 @@
+
+# This describes version 1.0 of the format
+start = networkgameinfo
+networkgameinfo =
+	element networkgameinfo {
+		attribute version { xsd:decimal },
+		game*,
+		tracker*
+	}
+
+# Games tracked by this tracker
+# gameid = randomly generated ID, (hopefully) unique
+# level = name of level
+# levelhash = the sha1 (?) hash of all the level data
+# url = nightfall-rts-game://host:port/
+game =
+	element game {
+		attribute name { text },
+		attribute gameid { text },
+		attribute level { text },
+		attribute levelhash { text },
+		attribute url { text },
+		attribute maxplayers { xsd:integer },
+		attribute started { xsd:boolean },
+		attribute freeplayerslots { xsd:integer },
+		attribute freespectatorslots { xsd:integer }
+	}
+
+# Other trackers, to make the system a little alike P2P: a tracker will
+# keep track of other trackers, and a tracker can broadcast its address
+# through other trackers. A client will have to have a list of one or more
+# trackers from the beginning, but this list might expand later on when
+# it has received tracker lists from one or more trackers.
+tracker =
+	element tracker {
+		attribute url { text }
+	}
