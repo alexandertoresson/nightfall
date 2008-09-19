@@ -2214,6 +2214,10 @@ namespace Game
 
 		void NetworkJoin::Connect(Window::GUI::EventType evtType, void* info)
 		{
+			if (Networking::GetJoinStatus() == Networking::JOIN_ACCEPTED)
+			{
+				return;
+			}
 			NetworkJoin *pParent = (NetworkJoin*)info;
 			pParent->Reset();
 			if(Networking::SetClientConnect((char*)pParent->pIPText->GetText().c_str()) == SUCCESS)

@@ -36,6 +36,8 @@ namespace Game
 		
 		void ActionQueueItem::CreateVisualRepresentation()
 		{
+			return; // DISABLE: Causes problems for network games, as it causes handles to be handed out when they shouldn't
+
 			if (action == AI::ACTION_BUILD && args.unitType)
 				ghost = CreateGhostUnit(args.unitType);
 			
@@ -1307,11 +1309,10 @@ namespace Game
 #endif
 				should_move = false;
 				pUnit->isMoving = false;
-				// The bug that caused this to be necessary appears to be gone
-/*				if (!pUnit->owner->isRemote && !AI::IsUndergoingPathCalc(pUnit))
+				if (!pUnit->owner->isRemote && !AI::IsUndergoingPathCalc(pUnit))
 				{
 					ChangePath(pUnit, pUnit->pMovementData->action.goal.pos.x, pUnit->pMovementData->action.goal.pos.y, pUnit->pMovementData->action.action, pUnit->pMovementData->action.goal.unit, pUnit->pMovementData->action.args, pUnit->pMovementData->action.rotation);
-				}*/
+				}
 			}
 
 			if (should_move)

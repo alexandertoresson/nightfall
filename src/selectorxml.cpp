@@ -5,6 +5,7 @@
 #include "configuration.h"
 #include "minixml.h"
 #include "paths.h"
+#include "game.h"
 #include <cassert>
 
 namespace Utilities
@@ -186,8 +187,9 @@ namespace Utilities
 			LoadModelSelector(name);
 		}
 
-		for (unsigned i = 0; i < mesh->submeshes.size(); i++)
-			assert(mesh->submeshes[i]->material);
+		if (!Game::Rules::noGraphics)
+			for (unsigned i = 0; i < mesh->submeshes.size(); i++)
+				assert(mesh->submeshes[i]->material);
 
 		filenameToMesh[name] = mesh;
 
@@ -219,6 +221,9 @@ namespace Utilities
 
 	gc_ptr<Material> LoadMaterialXML(std::string name)
 	{
+		if (Game::Rules::noGraphics)
+			return NULL;
+
 		material = filenameToMaterial[name];
 
 		if (!material)

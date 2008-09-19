@@ -1179,7 +1179,8 @@ namespace Game
 			{
 				if (!target)
 				{
-					*(int*) 0 = 0;
+					std::cout << "Invalid action detected; needs target" << std::endl;
+					return;
 				}
 			}
 
@@ -1187,7 +1188,8 @@ namespace Game
 			{
 				if (!args.unitType && !target)
 				{
-					*(int*) 0 = 0;
+					std::cout << "Invalid action detected; needs unittype or target" << std::endl;
+					return;
 				}
 			}
 			
@@ -1195,7 +1197,8 @@ namespace Game
 			{
 				if (!args.research)
 				{
-					*(int*) 0 = 0;
+					std::cout << "Invalid action detected; needs research" << std::endl;
+					return;
 				}
 			}
 

@@ -472,7 +472,7 @@ namespace Game
 				actiondata->goalunit_id = target->GetIndependentHandle();
 			else
 				actiondata->goalunit_id = 0xFFFF;
-			actiondata->arg = args.argHandle;
+			actiondata->arg = args.argHandle - 65535;
 			actiondata->valid_at_frame = AI::currentFrame + netDelay;
 			SDL_LockMutex(prepareActionMutex);
 			if (networkType == SERVER)
@@ -1152,7 +1152,8 @@ namespace Game
 							      actiondata->action == AI::ACTION_MOVE_ATTACK_UNIT)
 							      || target)
 							{
-								AI::ApplyAction(unit, actiondata->action, actiondata->x, actiondata->y, target, actiondata->arg, ByteToRotation(actiondata->rot));
+								Dimension::ActionArguments args = actiondata->arg + 65535;
+								AI::ApplyAction(unit, actiondata->action, actiondata->x, actiondata->y, target, args, ByteToRotation(actiondata->rot));
 #ifdef CHECKSUM_DEBUG_HIGH
 								checksum_output << "ActionData chunk on frame " << AI::currentFrame << "\n";
 								checksum_output << actiondata->unit_id << " " << actiondata->goalunit_id << " " << actiondata->action << " " << actiondata->x << " " << actiondata->y << " " << actiondata->arg << "\n";
@@ -1196,7 +1197,7 @@ namespace Game
 						if (owner && type)
 						{
 							
-							const gc_ptr<Dimension::Unit>& unit = Dimension::CreateUnit(type, owner, create->x, create->y);
+							const gc_ptr<Dimension::Unit>& unit = Dimension::CreateUnit(type, create->x, create->y);
 							if (unit)
 							{
 								unit->rotation = ByteToRotation(create->rot);
