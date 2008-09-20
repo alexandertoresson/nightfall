@@ -27,7 +27,8 @@ fi
 AC_CHECK_LIB(GLEW,glewInit,[],[AC_MSG_ERROR("GLEW library could not be found!")])
 
 if @<:@ -z `pkg-config --version` @:>@; then
-	echo "pkg-config could not be found, falling back to sdl-config and lua-config... "
+	echo "pkg-config could not be found, falling back to *-config binaries... "
+
 	echo -n "checking for SDL... "
 	if @<:@ -z `sdl-config --version|grep ^1.2` @:>@; then
 		AC_MSG_ERROR("SDL library could not be found!")
@@ -36,6 +37,7 @@ if @<:@ -z `pkg-config --version` @:>@; then
 		SDL_CFLAGS=`sdl-config --cflags`
 		SDL_LIBS=`sdl-config --libs`
 	fi
+
 	echo -n "checking for LUA 5.0.x... "
 	if @<:@ -z "`lua-config50 --libs --include`" @:>@; then
 		AC_MSG_ERROR("LUA library 5.0.x or 5.1.x could not be found!")
@@ -43,6 +45,16 @@ if @<:@ -z `pkg-config --version` @:>@; then
 		echo "LUA 5.0.x found!"
 		LUA_CFLAGS=`lua-config50 --include`
 		LUA_LIBS=`lua-config50 --libs --extralibs`
+	fi
+
+	echo -n "checking for libcurl 7.x... "
+	curl-config --checkfor 7.0.0
+	if @<:@ "$?" -ne 0 @:>@; then
+		AC_MSG_ERROR("libcurl library could not be found!")
+	else
+		echo "libcurl found!"
+		CURL_CFLAGS=`curl-config --cflags`
+		CURL_LIBS=`curl-config --libs`
 	fi
 else
 	PKG_CHECK_MODULES(SDL, sdl >= 1.2.0,,
@@ -58,26 +70,38 @@ else
 	])
 	PKG_CHECK_MODULES(LUA, lua5.1 >= 5.1.0,,
 	[
-		PKG_CHECK_MODULES(LUA, lua >= 5.1.0,,
+		PKG_CHECK_MODULES(LUA, lua >= 5.0.0,,
 		[
-			echo -n "LUA 5.1.x not found, checking for LUA 5.0.x... "
 			PKG_CHECK_MODULES(LUA, lua50 >= 5.0.0,,
 			[
-			echo -n "LUA could not be found using pkg-config, falling back to lua-config50... "
-			if @<:@ -z "`lua-config50 --libs --include`" @:>@; then
-				AC_MSG_ERROR("LUA library 5.0.x or 5.1.x could not be found!")
-			else
-				echo "LUA 5.0.x found!"
-				LUA_CFLAGS=`lua-config50 --include`
-				LUA_LIBS=`lua-config50 --libs --extralibs`
-			fi
+				echo -n "LUA could not be found using pkg-config, falling back to lua-config50... "
+				if @<:@ -z "`lua-config50 --libs --include`" @:>@; then
+					AC_MSG_ERROR("LUA library 5.0.x or 5.1.x could not be found!")
+				else
+					echo "LUA 5.0.x found!"
+					LUA_CFLAGS=`lua-config50 --include`
+					LUA_LIBS=`lua-config50 --libs --extralibs`
+				fi
 			])
 		])
 	])
+	PKG_CHECK_MODULES(CURL, libcurl >= 7.0.0,,
+	[
+		echo -n "libcurl could not be found using pkg-config, falling back to curl-config... "
+
+		curl-config --checkfor 7.0.0
+		if @<:@ "$?" -ne 0 @:>@; then
+			AC_MSG_ERROR("libcurl library could not be found!")
+		else
+			echo "libcurl found!"
+			CURL_CFLAGS=`curl-config --cflags`
+			CURL_LIBS=`curl-config --libs`
+		fi
+	])
 fi
 
-LIBS="$LUA_LIBS $SDL_LIBS $LIBS"
-CFLAGS="$SDL_CFLAGS"
+CFLAGS="$LUA_CFLAGS $SDL_CFLAGS $CURL_CFLAGS"
+LIBS="$LUA_LIBS $SDL_LIBS $CURL_LIBS $LIBS"
 
 AC_CHECK_LIB(SDL_mixer,Mix_LoadMUS,[],[AC_MSG_ERROR("SDL_mixer library could not be found!")])
 AC_CHECK_LIB(SDL_image,IMG_Load,[],[AC_MSG_ERROR("SDL_image library could not be found!")])
@@ -86,8 +110,6 @@ AC_CHECK_LIB(SDL_net,SDLNet_Init,[],[AC_MSG_ERROR("SDL_net library could not be 
 
 LD="ld"
 
-echo "SDL_CFLAGS = $SDL_CFLAGS"
-echo "SDL_LIBS = $SDL_LIBS"
 echo "CFLAGS = $CFLAGS"
 echo "LIBS = $LIBS"
 
