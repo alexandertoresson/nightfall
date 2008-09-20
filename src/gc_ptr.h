@@ -48,16 +48,15 @@ class gc_marker_base
 		enum Mark
 		{
 			MARK_WHITE = 0,
-			MARK_GRAY,
-			MARK_NUM
+			MARK_GRAY
 		};
 
 	private:
 		Mark mark;
 
 		typedef std::set<gc_marker_base*> MarkerSet;
-		static MarkerSet marked[MARK_NUM];
-		static MarkerSet marked_temp[MARK_NUM];
+		static MarkerSet *(marked[2]);
+		static MarkerSet marked_temp[2];
 		static SDL_mutex *mutex;
 		static bool startedCollecting;
 		static enum CollectStep {

@@ -8,8 +8,14 @@ void gc_marker_base::insert()
 	// in not locking the mutex.
 	if (mutex)
 		SDL_LockMutex(mutex);
+	
+	if (!marked[0])
+	{
+		marked[0] = new MarkerSet;
+		marked[1] = new MarkerSet;
+	}
 
-	marked[mark].insert(this);
+	marked[mark]->insert(this);
 
 	if (mutex)
 		SDL_UnlockMutex(mutex);
@@ -36,8 +42,8 @@ void gc_marker_base::increfs()
 	assert(refs >= 0);
 	if (refs == 0)
 	{
-		marked[MARK_WHITE].erase(this);
-		marked[MARK_GRAY].insert(this);
+		marked[MARK_WHITE]->erase(this);
+		marked[MARK_GRAY]->insert(this);
 
 		mark = MARK_GRAY;
 	}
@@ -52,8 +58,8 @@ void gc_marker_base::decrefs()
 	refs--;
 	if (refs == 0 && mark == MARK_GRAY)
 	{
-		marked[MARK_GRAY].erase(this);
-		marked[MARK_WHITE].insert(this);
+		marked[MARK_GRAY]->erase(this);
+		marked[MARK_WHITE]->insert(this);
 
 		mark = MARK_WHITE;
 	}
@@ -66,8 +72,8 @@ void gc_marker_base::sweep()
 	{
 		SDL_LockMutex(mutex);
 
-		marked_temp[MARK_WHITE] = marked[MARK_WHITE];
-		marked_temp[MARK_GRAY] = marked[MARK_GRAY];
+		marked_temp[MARK_WHITE] = *marked[MARK_WHITE];
+		marked_temp[MARK_GRAY] = *marked[MARK_GRAY];
 
 		SDL_UnlockMutex(mutex);
 
@@ -115,7 +121,7 @@ void gc_marker_base::sweep()
 		}
 
 		SDL_LockMutex(mutex);
-		MarkerSet& rwhite = marked[MARK_WHITE];
+		MarkerSet& rwhite = *marked[MARK_WHITE];
 
 /*		std::cout << "Swept " << amount << " bytes in " << white.size() << " objects out of " << rwhite.size() << ". Gray: " << marked[MARK_GRAY].size() << std::endl;
 		for (std::map<std::string, int>::iterator it = numPerSize.begin(); it != numPerSize.end(); it++)
@@ -138,8 +144,8 @@ void gc_marker_base::initgc()
 	mutex = SDL_CreateMutex();
 }
 
-gc_marker_base::MarkerSet gc_marker_base::marked[gc_marker_base::MARK_NUM];
-gc_marker_base::MarkerSet gc_marker_base::marked_temp[gc_marker_base::MARK_NUM];
+gc_marker_base::MarkerSet *(gc_marker_base::marked[2]) = {NULL, NULL};
+gc_marker_base::MarkerSet gc_marker_base::marked_temp[2];
 
 SDL_mutex* gc_marker_base::mutex = NULL;
 
