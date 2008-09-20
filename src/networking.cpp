@@ -7,6 +7,8 @@
 #include "camera.h"
 #include "action.h"
 #include "handle.h"
+#include "curl.h"
+#include "utilities.h"
 #include <fstream>
 #include <cmath>
 #include <iostream>
@@ -642,13 +644,19 @@ namespace Game
 			return joinStatus;
 		}
 
-		// SERVER INTERFACE
-		bool CreateGame(char* player_name)
+		class BeginRequest : public Utilities::CURLRequest
 		{
-			playerName = player_name;
-			StartNetwork(SERVER);
-			return true; // return false if it fails to start the network...
-		}
+			void Fail()
+			{
+				std::cout << "CURL: fail" << std::endl;
+			}
+
+			void Handle(std::string ret)
+			{
+				std::cout << "CURL: success" << std::endl;
+				std::cout << ret << std::endl;
+			}
+		};
 
 		void SendSignalPacket(const char *id, int node)
 		{
@@ -1889,6 +1897,22 @@ namespace Game
 				if(ret != SUCCESS)
 					return ret;
 #endif
+			}
+			if (type == SERVER)
+			{
+				std::map<std::string, std::string> params;
+
+				params["cmd"] = "begin";
+				params["name"] = "This is a test";
+				params["level"] = Game::Rules::CurrentLevel;
+				params["levelhash"] = "1337133713371337133713371337133713371337";
+				params["port"] = Utilities::ToString(netPort);
+				params["maxplayers"] = Utilities::ToString(playerCounter + 2);
+				params["freeplayerslots"] = Utilities::ToString(netDestCount - numConnected);
+				params["freespectatorslots"] = Utilities::ToString(0);
+
+				BeginRequest *beginRequest = new BeginRequest;
+				beginRequest->HTTPGET("http://nightfall-rts.org/tracker/", params);
 			}
 			return SUCCESS;
 		}

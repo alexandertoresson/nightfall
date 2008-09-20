@@ -11,6 +11,7 @@
 
 #include <fstream>
 #include <vector>
+#include <sstream>
 
 namespace Utilities
 {
@@ -39,6 +40,13 @@ namespace Utilities
 		
 	void PrintGLError();
 
+	template <class T>
+	inline std::string ToString(const T& t)
+	{
+		std::stringstream ss;
+		ss << t;
+		return ss.str();
+	}
 }
 
 #ifdef DEBUG_DEP

@@ -41,6 +41,7 @@ namespace Utilities
 			first = false;
 		}
 		curl_easy_cleanup(curl);
+		Fetch(url);
 	}
 	
 	int CURLRequest::_Thread(void *arg)
@@ -75,13 +76,16 @@ namespace Utilities
 		{
 			req->Fail();
 		}
+
+		delete req;
+
 		return 1;
 	}
 	
 	int CURLRequest::_WriteFunc(void *ptr, size_t size, size_t nmemb, void *stream)
 	{
 		CURLRequest *req = (CURLRequest*) stream;
-		req->ret.append((char*)ptr, size*nmemb);
+		req->ret += std::string((char*)ptr, size*nmemb);
 		return size*nmemb;
 	}
 }
