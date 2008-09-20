@@ -1,0 +1,64 @@
+This is the API used to interact with a nightfall network game tracker.
+It is based on HTTP GET requests.
+Firstly, the type of command that is being sent is defined by the cmd parameter:
+
+"": List current games
+"begin": Registers a new game
+"update": Updates a registered game
+"end": Ends a game
+"registertracker": Register a new game tracker
+
+For all but the list games operation, on the first line returned is the potential error code, if the call succeeded, it will be "OK".
+Possible error values:
+FAIL -- All needed parameters were provided, but the operation failed.
+INCOMPLETE CMD -- All needed parameters for the cmd was not provided
+UNKNOWN CMD -- The cmd provided was not known
+
+List games
+----------
+
+Takes no parameters, just returns the game list in the format described in nightfallnetworkgameinfo.rnc.
+
+Register new game
+-----------------
+
+Parameters:
+name -- Name of the game
+level -- Name of the level
+levelhash -- SHA1 hash of the level data
+url -- URL in the form of nightfall-rts://host:port/ to reach the server the game is running on
+maxplayers -- Maximum number of players
+freeplayerslots -- Number of additional players that can join the game
+freespectatorslots -- Number of additional spectators that can join the game
+
+Returns a unique string on the second that will identify the game, and will be used to identify the game in subsequent requests.
+NOTE: Is not equal to gameid in the game list.
+
+Update a game
+-------------
+
+Parameters:
+secretgameid -- The game id returned when registering the game
+name -- Name of the game
+maxplayers -- Maximum number of players
+started -- Whether the game is started or not
+freeplayerslots -- Number of additional players that can join the game
+freespectatorslots -- Number of additional spectators that can join the game
+
+Returns: Nothing except error code.
+
+End a game
+----------
+
+Parameters:
+secretgameid -- The game id returned when registering the game
+
+Returns: Nothing except error code.
+
+Register a new game tracker
+---------------------------
+
+Parameters:
+url -- The URL to the game tracker
+
+Returns: Nothing except error code.

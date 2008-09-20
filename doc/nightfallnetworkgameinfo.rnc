@@ -9,14 +9,14 @@ networkgameinfo =
 	}
 
 # Games tracked by this tracker
-# gameid = randomly generated ID, (hopefully) unique
+# gameid = sequence number of game in db
 # level = name of level
 # levelhash = the sha1 (?) hash of all the level data
-# url = nightfall-rts-game://host:port/
+# url = nightfall-rts://host:port/
 game =
 	element game {
-		attribute name { text },
 		attribute gameid { text },
+		attribute name { text },
 		attribute level { text },
 		attribute levelhash { text },
 		attribute url { text },
