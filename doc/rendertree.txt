@@ -1,0 +1,28 @@
+Everything is rendered in the following way:
+
+root
+|
++-------Camera
+        |
+        +-------Environment
+        |
+        +-------Skybox
+        |
+        +-------Terrain
+        |
+        +-------Water
+        |
+        +-------Units (Units and projectiles are added and removed as needed)
+        |       |
+        |       +-------Unit
+        |       |       |
+        |       |       +-------UnitSelection (Health bar etc)
+        |       |
+        |       +-------Projectile
+        |
+        +-------BuildOutline
+        |
+        +-------Particles
+        |
+        +-------GUI
+
