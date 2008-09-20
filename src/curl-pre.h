@@ -6,6 +6,7 @@
 #endif
 
 #include <string>
+#include <map>
 
 namespace Utilities
 {
@@ -20,6 +21,7 @@ namespace Utilities
 			static void Cleanup();
 		public:
 			void Fetch(std::string url);
+			void HTTPGET(std::string url, std::map<std::string, std::string> params);
 			virtual void Handle(std::string ret) = 0;
 			virtual void Fail() = 0;
 	};
