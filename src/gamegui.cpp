@@ -2235,7 +2235,6 @@ namespace Game
 			NetworkJoin *pParent = (NetworkJoin*)info;
 			pParent->go = false;
 			pParent->returnValue = MENU;
-			Networking::ShutdownNetwork();
 		}
 
 		NetworkJoinOrCreate::NetworkJoinOrCreate()
@@ -2386,7 +2385,6 @@ namespace Game
 			pParent->go = false;
 			pParent->returnValue = MENU;
 			pParent->pMainPanel->SetVisible(pParent->startGame, false);
-			Networking::ShutdownNetwork();
 		}
 	}
 }
