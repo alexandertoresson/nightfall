@@ -26,7 +26,8 @@ Parameters:
 name -- Name of the game
 level -- Name of the level
 levelhash -- SHA1 hash of the level data
-url -- URL in the form of nightfall-rts://host:port/ to reach the server the game is running on
+host -- Optional. If not set, the IP the request comes from will be used.
+port -- The port the host runs the game on.
 maxplayers -- Maximum number of players
 freeplayerslots -- Number of additional players that can join the game
 freespectatorslots -- Number of additional spectators that can join the game
