@@ -1,0 +1,231 @@
+Garbage collector guide
+-----------------------
+
+Topics:
+
+General gc info
+gc_ptr<T, S> and gc_root_ptr<T, S>::type -- garbage-collecting pointers
+Structs/classes and shading
+gc_ptr_from_this<T> -- obtain a gc_ptr<T> for the current class
+shaders -- specify the shading operation for a specific class
+deleters -- specify what should happen when an object is deleted
+gc_array<T, i> -- i-dimensional array of T
+
+General gc info
+---------------
+
+The garbage-collector is currently a simple mark-and-sweep garbage collector,
+but which can quite easily be made incremental if needed. When the garbage
+collector runs, all other threads are stopped. This is because otherwise we
+would risk iterating through a container at the same time as another thread
+modifies it.
+
+gc_ptr<T, S> and gc_root_ptr<T, S>::type -- garbage-collecting pointers
+-----------------------------------------------------------------------
+
+T: the type to create a garbage-collecting pointer for
+S: the shader to use (optional; usually not needed)
+
+The difference between gc_root_ptr<T, S>::type and gc_ptr<T, S> is that the
+former is a root pointer, and the latter is not. So what is the difference? We
+will need a little background before that can be explained.
+
+The garbage collection works by having white, gray and black sets of nodes. A
+sweep in the garbage collection starts out by keeping the root nodes in the gray
+set, and the rest in the white set. It then, for every gray node, moves it to
+the black set, and the nodes that can be reached through it to the gray set.
+When there's nothing left in the gray set and thus everything is partitioned
+between being a white or a black node, all white nodes can be removed as those
+are not needed.
+
+The root nodes are thus important, as all other nodes are supposed to be
+possible to reach through them. A root pointer defines a root node.
+
+(The reason you have to do ::type on gc_root_ptr<T, S> is because of the lack of
+typedef templates in current C++, C++0x will alleviate this.)
+
+Using a root pointer has also an impact on performance: If for some reason, the
+number of references to a root pointer base reaches 0, we will have to move it from
+the gray set to the white set, as there no longer is a root pointer pointing to
+the data. Reference counting hurts performance, and it has to be done at
+construction, copy-construction, assignment and destruction. Also, currently, to
+make the garbage collector thread-safe, it has to lock and unlock a mutex every
+time a reference counter is to be changed. Normal gc pointers have a little of
+this, but much less extreme: they will have to be added to the white set upon
+construction, which typically is at the same time you allocate the object.
+
+So, in short: Use root pointers as little as possible, and avoid them in
+sections critical to performance. If possible, have one or a few root pointers,
+and let all other pointers be reachable through those.
+
+Also, another performance tip is that all objects that we want to keep do only
+have to be reachable through root pointers when the garbage collector is run --
+this is done at a specific point in the event loop. So, objects we want to keep
+may be unreachable through root pointers at some point, but are reachable again
+when the GC is run. Also, if we want to allocate something and do not want to
+keep it till after the GC has run, we can use a normal non-root pointer.
+
+Examples of usage:
+++++++++++++++++++
+
+struct FOO
+{
+	gc_ptr<FOO> child;
+};
+
+void f()
+{
+	gc_root_ptr<FOO>::type parent = new FOO;
+	parent->child = new FOO;
+}
+
+Most common pitfall
++++++++++++++++++++
+
+If you do something like the following:
+
+int* a = new int;
+gc_ptr<int> b = a;
+gc_ptr<int> c = a;
+
+... you will get two separate marker objects referring to the same pointer,
+which means that the object will firstly be destroyed before all references are
+gone, and then when all references are gone, it will be destroyed a second time.
+
+This is especially easy to do by accident when working with objects and the this
+pointer. For example, something as innocent as comparing this to a gc_ptr<T>
+will construct a gc_ptr<T> from this!
+
+So, if you need to access the this pointer in an object, do instead use
+gc_ptr_from_this as described below to obtain a gc_ptr<T>.
+
+Structs/classes and shading
+---------------------------
+
+Imagine you have a class as follows:
+
+class a
+{
+	gc_ptr<a> a1, a2;
+};
+
+When marking nodes, the garbage collector has to have a way to know that a1 and
+a2 is linked from every a -- in current C++, which does not have introspection,
+it cannot know this automatically. C++0x will probably solve this, but
+currently, we will have to tell it this. This is done the following way:
+
+class a
+{
+	gc_ptr<a> a1, a2;
+
+	void shade()
+	{
+		a1.shade();
+		a2.shade();
+	}
+};
+
+This means that if you forget to shade one of the gc_ptrs you store in a class
+or struct, there is a risk that it will be deleted by the garbage collector.
+
+There are a couple of helper functions for shading containers that store
+gc_ptrs:
+
+gc_shade_container<T2>(const T2&) -- shades a 'normal' container whose iterator
+is 'simple', for example std::vector.
+gc_shade_map<T2>(const T2&) -- shades the values in a map
+gc_shade_map_key<T2>(const T2&) -- shades the keys in a map
+gc_shade_map_key_value<T2>(const T2&) -- shades the keys and values in a map
+
+gc_ptr_from_this<T> -- obtain a gc_ptr<T> for the current class
+---------------------------------------------------------------
+
+This class enables you to safely obtain a gc_ptr<T> for the this pointer. You
+use it by deriving from public gc_ptr_from_this<T>, and then instead of using
+this, you call GetRef(). Example:
+
+struct FOO : public gc_ptr_from_this<FOO>
+{
+	// We want to add the object to a list of some sort upon construction
+	FOO()
+	{
+		ListManager->Add(GetRef()); // Use GetRef() instead of this
+	}
+};
+
+shaders -- specify the shading operation for a specific class
+-------------------------------------------------------------
+
+Most of the time the default shader will do, but sometimes you want to use a
+different one -- for example you may want to use gc_null_shader to specify that
+the object does not link to any gc_ptr. There are two ways of using it. For example:
+
+class a : public gc_null_shader<a>
+{
+	int i;
+};
+
+class b
+{
+	int i;
+};
+
+int main()
+{
+	gc_ptr<a> = new a;
+	gc_ptr<b, gc_null_shader> = new a;
+}
+
+deleters -- specify what should happen when an object is deleted
+----------------------------------------------------------------
+
+The default deleter simply runs delete on the pointer. Sometimes you do not want
+that, for example if it is an array you allocated. Example:
+
+gc_ptr<int> a(new int[10], array_deleter);
+
+Or if you do not want it to be deleted at all, you can use null_deleter:
+
+int a;
+gc_ptr<int> b(&a, null_deleter);
+
+gc_array<T, i> -- i-dimensional array of T
+------------------------------------------
+
+gc_array offers a nice interface to managing a garbage-collected i-dimensional
+array of T. Examples:
+
+std::vector<int> dims;
+dims.push_back(100);
+dims.push_back(100);
+// Creates a 100x100 array of ints
+gc_array<int, 2> a = dims;
+
+// Alternative way of initializing a 100x100 array of ints
+gc_array<int, 2> b = 100;
+for (int i = 0; i < 100; i++)
+{
+	b[i] = 100;
+}
+
+Also, by default all array indices will be initialized to 0 for arithmetic
+types, and T() for others. This can be overriden:
+
+template <typename T>
+struct one_array_initializer<T>
+{
+	T generate(std::vector<unsigned> indices)
+	{
+		return 1;
+	}
+};
+
+std::vector<int> dims;
+dims.push_back(100);
+dims.push_back(100);
+// Creates a 100x100 array of ints, all initialized to 1
+gc_array<int, 2> a(dims, one_array_initializer);
+
+As you see, generate() is passed a vector of indices. You can use it to assign a
+different value depending on the indices.
+
