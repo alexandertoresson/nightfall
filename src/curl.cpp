@@ -39,6 +39,8 @@ namespace Utilities
 			}
 			url += std::string(encodedKey) + "=" + std::string(encodedVal);
 			first = false;
+			curl_free(encodedKey);
+			curl_free(encodedVal);
 		}
 		curl_easy_cleanup(curl);
 		Fetch(url);
