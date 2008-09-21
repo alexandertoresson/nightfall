@@ -31,8 +31,8 @@ namespace Utilities
 
 		for (std::map<std::string, std::string>::iterator it = params.begin(); it != params.end(); it++)
 		{
-			char* encodedKey = curl_easy_escape(curl, it->first.c_str(), it->first.length());
-			char* encodedVal = curl_easy_escape(curl, it->second.c_str(), it->second.length());
+			char* encodedKey = curl_escape(it->first.c_str(), it->first.length());
+			char* encodedVal = curl_escape(it->second.c_str(), it->second.length());
 			if (!first)
 			{
 				url += "&";
