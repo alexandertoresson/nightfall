@@ -25,7 +25,6 @@ namespace Utilities
 	void CURLRequest::HTTPGET(std::string url, std::map<std::string, std::string> params)
 	{
 		bool first = true;
-		CURL *curl = curl_easy_init();
 		
 		url += "?";
 
@@ -42,7 +41,6 @@ namespace Utilities
 			curl_free(encodedKey);
 			curl_free(encodedVal);
 		}
-		curl_easy_cleanup(curl);
 		Fetch(url);
 	}
 	
