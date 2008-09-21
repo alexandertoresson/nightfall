@@ -7,7 +7,7 @@
 #include "camera.h"
 #include "action.h"
 #include "handle.h"
-#include "curl.h"
+#include "tracker.h"
 #include "utilities.h"
 #include <fstream>
 #include <cmath>
@@ -644,20 +644,6 @@ namespace Game
 			return joinStatus;
 		}
 
-		class BeginRequest : public Utilities::CURLRequest
-		{
-			void Fail()
-			{
-				std::cout << "CURL: fail" << std::endl;
-			}
-
-			void Handle(std::string ret)
-			{
-				std::cout << "CURL: success" << std::endl;
-				std::cout << ret << std::endl;
-			}
-		};
-
 		void SendSignalPacket(const char *id, int node)
 		{
 			Packet *packet = new Packet();
@@ -684,6 +670,8 @@ namespace Game
 			SendSignalPacket("STRT", -1);
 			isReadyToStart = true;
 			InitIngameNetworking();
+			
+			Utilities::gameTracker.UpdateGame(playerCounter + 2, netDestCount - numConnected, 0, isReadyToStart);
 		}
 
 		void CancelGame()
@@ -737,6 +725,7 @@ namespace Game
 				SDL_WaitThread(thrServerRecv, NULL);
 				SDL_WaitThread(thrServerSend, NULL);
 				DestroyServer();
+				Utilities::gameTracker.EndGame();
 			}
 
 			//Empty In Queue of residual packets
@@ -1900,19 +1889,7 @@ namespace Game
 			}
 			if (type == SERVER)
 			{
-				std::map<std::string, std::string> params;
-
-				params["cmd"] = "begin";
-				params["name"] = "This is a test";
-				params["level"] = Game::Rules::CurrentLevel;
-				params["levelhash"] = "1337133713371337133713371337133713371337";
-				params["port"] = Utilities::ToString(netPort);
-				params["maxplayers"] = Utilities::ToString(playerCounter + 2);
-				params["freeplayerslots"] = Utilities::ToString(netDestCount - numConnected);
-				params["freespectatorslots"] = Utilities::ToString(0);
-
-				BeginRequest *beginRequest = new BeginRequest;
-				beginRequest->HTTPGET("http://nightfall-rts.org/tracker/", params);
+				Utilities::gameTracker.BeginGame(playerCounter + 2, netDestCount - numConnected, 0);
 			}
 			return SUCCESS;
 		}
@@ -2063,6 +2040,9 @@ namespace Game
 						numConnected++;
 						if(numConnected == netDestCount)
 							serverListening = false;
+
+						Utilities::gameTracker.UpdateGame(playerCounter + 2, netDestCount - numConnected, 0, isReadyToStart);
+
 						SDL_UnlockMutex(mutServerConnected);
 					}
 				}

@@ -67,7 +67,7 @@ namespace Utilities
 			}
 			else
 			{
-				req->Handle(req->ret);
+				req->Handle();
 			}
 
 			curl_easy_cleanup(curl);

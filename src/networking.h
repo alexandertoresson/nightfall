@@ -13,6 +13,7 @@
 #include "ainode.h"
 #include "circularbuffer.h"
 #include "action.h"
+#include "unit.h"
 
 namespace Game
 {
