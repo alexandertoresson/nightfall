@@ -188,21 +188,18 @@ namespace GUI
 		struct DialogButtons
 		{
 			DialogStandardButton type;
-			std::string* names;
-			int namesLen;
+			std::vector<std::string> names;
 			int focused;
 			
 			DialogButtons()
 			{
-				names = NULL;
 				focused = -1;
 				type = B_USERDEFINED;
 			}
 			
 			DialogButtons(int buttoncount)
 			{
-				names = new std::string[buttoncount];
-				namesLen = buttoncount;
+				names = std::vector<std::string>(buttoncount);
 				focused = -1;
 				type = B_USERDEFINED;
 			}
@@ -212,30 +209,23 @@ namespace GUI
 				switch(standard)
 				{
 					case B_OK:
-						names = new std::string[1];
-						names[0] = std::string("OK");
-						namesLen = 1;
+						names.push_back("OK");
 						focused = 0;
 						type = B_OK;
 						break;
 					case B_OKCANCEL:
-						names = new std::string[2];
-						names[0] = std::string("OK");
-						names[1] = std::string("Cancel");
-						namesLen = 2;
+						names.push_back("OK");
+						names.push_back("Cancel");
 						focused = 1;
 						type = B_OKCANCEL;
 						break;
 					case B_YESNO:
-						names = new std::string[2];
-						names[0] = std::string("Yes");
-						names[1] = std::string("No");
-						namesLen = 2;
+						names.push_back("Yes");
+						names.push_back("No");
 						focused = 1;
 						type = B_YESNO;
 						break;
 					default:
-						names = NULL;
 						focused = -1;
 						break;
 				}
