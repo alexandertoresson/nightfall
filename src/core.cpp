@@ -219,8 +219,9 @@ namespace Core
 			case PREFRAME:
 				preFrameListener.push_back(listener);
 				return preFrameListener.end();
+			default:
+				return std::list<Listener*>::iterator();
 		}
-		return NULL;
 	}
 	
 	void removeListener(const std::list<Listener*>::iterator ptr)
@@ -239,6 +240,8 @@ namespace Core
 				break;
 			case PREFRAME:
 				preFrameListener.erase(ptr);
+				break;
+			default:
 				break;
 		}
 	}

@@ -106,7 +106,7 @@ namespace GUI
 			 * @param monitorsize	Holds the monitor inch size
 			 * @param monitoraspect Holds the monitor aspect, this to correct errors imposed by non-native incorrect aspect scaling, viewing 800x600 in 1280x768 screen.
 			 */
-			void Metrics::calculateCoordinateSystem(float monitorsize, float monitoraspect, bool streched = false);
+			void calculateCoordinateSystem(float monitorsize, float monitoraspect, bool streched = false);
 			
 			/**
 			 * Coordinate-system calculation.
