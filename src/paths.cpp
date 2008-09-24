@@ -24,8 +24,9 @@
 
 namespace Utilities
 {
-#if !defined(WIN32) && !defined(MAC)
-	std::vector<std::string> paths_split;
+#if defined(__unix__)
+	std::vector<std::string> xdg_data_dirs_split;
+	std::vector<std::string> xdg_config_dirs_split;
 #endif
 	
 	std::string path_from_argv0;
@@ -47,28 +48,53 @@ namespace Utilities
 		}
 
 #if defined(__unix__)
-		const char* data_paths = getenv("XDG_DATA_DIRS");
+		const char* xdg_data_dirs = getenv("XDG_DATA_DIRS");
 
-		if (data_paths)
+		if (xdg_data_dirs)
 		{
 
-			paths_split.push_back("");
+			xdg_data_dirs_split.push_back("");
 
-			for (unsigned i = 0; i < strlen(data_paths); i++)
+			for (unsigned i = 0; i < strlen(xdg_data_dirs); i++)
 			{
-				if (data_paths[i] == ':')
+				if (xdg_data_dirs[i] == ':')
 				{
-					paths_split.push_back("");
+					xdg_data_dirs_split.push_back("");
 				}
 				else
 				{
-					paths_split.back().push_back(data_paths[i]);
+					xdg_data_dirs_split.back().push_back(xdg_data_dirs[i]);
 				}
 			}
 
-			for (unsigned i = 0; i < paths_split.size(); i++)
+			for (unsigned i = 0; i < xdg_data_dirs_split.size(); i++)
 			{
-				paths_split[i] += "/nightfall/";
+				xdg_data_dirs_split[i] += "/nightfall/";
+			}
+		}
+		
+		const char* xdg_config_dirs = getenv("XDG_CONFIG_DIRS");
+
+		if (xdg_config_dirs)
+		{
+
+			xdg_config_dirs_split.push_back("");
+
+			for (unsigned i = 0; i < strlen(xdg_config_dirs); i++)
+			{
+				if (xdg_config_dirs[i] == ':')
+				{
+					xdg_config_dirs_split.push_back("");
+				}
+				else
+				{
+					xdg_config_dirs_split.back().push_back(xdg_config_dirs[i]);
+				}
+			}
+
+			for (unsigned i = 0; i < xdg_config_dirs_split.size(); i++)
+			{
+				xdg_config_dirs_split[i] += "/nightfall/";
 			}
 		}
 #endif
@@ -200,6 +226,12 @@ namespace Utilities
 					case 3:
 						return "/etc/nightfall/";
 					default:
+						
+						if (num - 4 < xdg_config_dirs_split.size())
+						{
+							return xdg_config_dirs_split[num-4];
+						}
+
 						return "";
 				}
 			case PATHTYPE_DATA:
@@ -213,9 +245,9 @@ namespace Utilities
 						return path_from_argv0 + "resources/";
 					default:
 
-						if (num - 3 < paths_split.size())
+						if (num - 3 < xdg_data_dirs_split.size())
 						{
-							return paths_split[num-3];
+							return xdg_data_dirs_split[num-3];
 						}
 
 						return "";
