@@ -99,6 +99,27 @@ will construct a gc_ptr<T> from this!
 So, if you need to access the this pointer in an object, do instead use
 gc_ptr_from_this as described below to obtain a gc_ptr<T>.
 
+Utility methods
++++++++++++++++
+
+.reset() -- Resets the reference in the pointer to NULL. Example:
+
+gc_root_ptr<int>::type a = new int;
+...
+a.reset(); // 'free' it; we're done with it
+
+
+.get() -- Gets the pointer stored inside the smart pointer. Example:
+
+gc_root_ptr<char>::type str = new char[100];
+...
+random_c_function_that_expects_a_charptr(str.get());
+
+Note: Be VERY careful with this; if you by accident create a new gc_ptr<T> out
+of it, stuff will go havoc. Note that this can be done by mistake by for
+example passing the T* to a function that expects a gc_ptr<T> or by comparing
+it to a gc_ptr<T>.
+
 Structs/classes and shading
 ---------------------------
 
