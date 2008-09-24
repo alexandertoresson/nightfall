@@ -1,0 +1,22 @@
+Dependencies:
+
+* A reasonable modern C++ compiler
+* SDL
+* SDL_image
+* SDL_ttf
+* SDL_mixer
+* SDL_net
+* GLEW
+* libcurl
+* LibLUA 5.0 or later
+
+Compilation on UNIX systems:
+
+./configure
+make
+
+It is then run by running src/rts. The game attempts to locate its files
+through rules in src/paths.cpp, and it obeys XDG_DATA_DIRS, but currently
+not XDG_CONFIG_DIRS.
+
+Currently installation does not work, so do not attempt a make install.
