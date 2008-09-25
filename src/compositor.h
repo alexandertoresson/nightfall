@@ -341,7 +341,7 @@ namespace GUI
 	class Frame;
 	
 	/* Window-Management */	
-	class Workspace : Event
+	class Workspace : public Event
 	{
 		public:
 			typedef enum {
