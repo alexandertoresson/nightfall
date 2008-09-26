@@ -30,7 +30,7 @@
 #include "sdlheader.h"
 #include <vector>
 #include <stack>
-#include <map>
+#include <list>
 
 namespace Scene
 {
@@ -53,8 +53,9 @@ namespace Scene
 				virtual void Render();
 				virtual void PostRender();
 
-				std::map<int, gc_ptr<Node> > children;
+				std::list<gc_ptr<Node> > children;
 				gc_ptr<Node> parent;
+				std::list<gc_ptr<Node> >::iterator pos_it;
 				static Utilities::Matrix4x4 matrices[MATRIXTYPE_NUM];
 				static std::stack<Utilities::Matrix4x4> mtxStack[MATRIXTYPE_NUM];
 				bool enabled;
@@ -65,17 +66,14 @@ namespace Scene
 				virtual void TraverseAllChildren();
 				virtual bool SendEventToAllChildren(SDL_Event* event);
 
-				int lastPlacement;
-
 			public:
 				Node();
 				virtual ~Node();
 
-				virtual void AddChild(gc_ptr<Node> node, int placement);
-				virtual void AddChild(gc_ptr<Node> node);
-				virtual void RemoveChild(gc_ptr<Node> node);
+				void AddChild(gc_ptr<Node> node);
+				void RemoveChild(gc_ptr<Node> node);
 
-				virtual void DeleteTree();
+				void DeleteTree();
 				virtual void Traverse();
 
 				void SetEnabled(bool enabled);
@@ -89,7 +87,7 @@ namespace Scene
 
 				virtual void shade()
 				{
-					gc_shade_map(children);
+					gc_shade_container(children);
 				}
 
 				static void TraverseFullTree();
@@ -99,14 +97,14 @@ namespace Scene
 		class SwitchNode : public Node
 		{
 			private:
-				int active;
+				gc_ptr<Node> active;
 			protected:
 				virtual void Render();
 			public:
 				SwitchNode();
-				SwitchNode(int a);
+				SwitchNode(unsigned a);
 
-				void SetActive(int a);
+				void SetActive(unsigned a);
 		};
 
 		class MatrixNode : public Node

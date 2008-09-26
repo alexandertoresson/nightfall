@@ -28,7 +28,7 @@ namespace Scene
 		Utilities::Matrix4x4 Node::matrices[MATRIXTYPE_NUM];
 		std::stack<Utilities::Matrix4x4> Node::mtxStack[MATRIXTYPE_NUM];
 
-		Node::Node() : parent(NULL), enabled(true), lastPlacement(0)
+		Node::Node() : parent(NULL), enabled(true)
 		{
 		}
 
@@ -85,51 +85,44 @@ namespace Scene
 			return SendEventToAllChildren(event);
 		}
 
-		void Node::AddChild(gc_ptr<Node> node, int placement)
+		void Node::AddChild(gc_ptr<Node> node)
 		{
-			children[placement] = node;
 			if (node->parent)
 			{
 				node->parent->RemoveChild(node);
 			}
 			node->parent = GetRef();
-			if (placement > lastPlacement)
+			children.push_back(node);
+			node->pos_it = --children.end();
+			if (node != *node->pos_it)
 			{
-				lastPlacement = placement;
+				std::cout << node << " " << *node->pos_it << std::endl;
+				*(int*)0 = 0;
 			}
-		}
-
-		void Node::AddChild(gc_ptr<Node> node)
-		{
-			AddChild(node, lastPlacement + 1);
 		}
 
 		void Node::RemoveChild(gc_ptr<Node> node)
 		{
-			for (std::map<int, gc_ptr<Node> >::iterator it = children.begin(); it != children.end(); it++)
+			if (node->parent)
 			{
-				if (it->second == node)
-				{
-					children.erase(it);
-					break;
-				}
+				children.erase(node->pos_it);
+				node->parent = NULL;
 			}
-			node->parent = NULL;
 		}
 
 		void Node::TraverseAllChildren()
 		{
-			for (std::map<int, gc_ptr<Node> >::iterator it = children.begin(); it != children.end(); it++)
+			for (std::list<gc_ptr<Node> >::iterator it = children.begin(); it != children.end(); it++)
 			{
-				it->second->Traverse();
+				(*it)->Traverse();
 			}
 		}
 
 		bool Node::SendEventToAllChildren(SDL_Event* event)
 		{
-			for (std::map<int, gc_ptr<Node> >::reverse_iterator it = children.rbegin(); it != children.rend(); it++)
+			for (std::list<gc_ptr<Node> >::reverse_iterator it = children.rbegin(); it != children.rend(); it++)
 			{
-				if (it->second->HandleEvent(event))
+				if ((*it)->HandleEvent(event))
 				{
 					return true;
 				}
@@ -193,29 +186,29 @@ namespace Scene
 			rootNode->Traverse();
 		}
 
-		SwitchNode::SwitchNode() : Node(), active(0)
+		SwitchNode::SwitchNode() : Node(), active(NULL)
 		{
 			
 		}
 
-		SwitchNode::SwitchNode(int a) : Node(), active(a)
+		SwitchNode::SwitchNode(unsigned a) : Node()
 		{
-			
+			SetActive(a);
 		}
 
-		void SwitchNode::SetActive(int a)
+		void SwitchNode::SetActive(unsigned a)
 		{
-			active = a;
+			std::list<gc_ptr<Node> >::iterator it = children.begin();
+			for (unsigned i = 0; i < a; i++)
+				it++;
+			active = *it;
 		}
 
 		void SwitchNode::Render()
 		{
-			for (std::map<int, gc_ptr<Node> >::iterator it = children.begin(); it != children.end(); it++)
+			if (active)
 			{
-				if (it->first == active)
-				{
-					it->second->Traverse();
-				}
+				active->Traverse();
 			}
 		}
 
