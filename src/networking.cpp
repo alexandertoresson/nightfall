@@ -615,17 +615,17 @@ namespace Game
 		Uint32 attempted_frames_waited = 0;
 		Uint32 bytes_sent = 0;
 
-		char* playerName;
+		std::string playerName;
 		
-		vector<char*> playerNames;
+		vector<std::string> playerNames;
 
 		
 
 		// CLIENT INTERFACE
-		int SetClientConnect(char* host)
+		int SetClientConnect(std::string host)
 		{
 			SDL_LockMutex(mutClientConnect);
-			if(SDLNet_ResolveHost(&clientConnect, host, netPort) == 0)
+			if(SDLNet_ResolveHost(&clientConnect, host.c_str(), netPort) == 0)
 			{
 				connect = true;
 				SDL_UnlockMutex(mutClientConnect);
@@ -702,7 +702,7 @@ namespace Game
 
 		// CLIENT & SERVER INTERFACE
 
-		vector<char*> GetPlayerNames()
+		vector<std::string> GetPlayerNames()
 		{
 			return playerNames;
 		}

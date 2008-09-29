@@ -2240,7 +2240,7 @@ namespace Game
 			}
 			NetworkJoin *pParent = (NetworkJoin*)info;
 			pParent->Reset();
-			if(Networking::SetClientConnect((char*)pParent->pIPText->GetText().c_str()) == SUCCESS)
+			if(Networking::SetClientConnect(pParent->pIPText->GetText()) == SUCCESS)
 			{
 				pParent->pStatus->SetText("Attempting to connect.");
 			}

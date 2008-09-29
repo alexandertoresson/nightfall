@@ -100,14 +100,13 @@ namespace Game
 		void JoinGame();
 		JoinStatus GetJoinStatus();
 		void ReadyToStart();
-		int SetClientConnect(char* host);
+		int SetClientConnect(std::string host);
 		bool isClientConnected();
 		// SERVER INTERFACE
-		bool CreateGame(char* player_name);
 		void StartGame();
 		void CancelGame();
 		// CLIENT & SERVER INTERFACE
-		std::vector<char*> GetPlayerNames();
+		std::vector<std::string> GetPlayerNames();
 		bool AllPlayersReady();
 		void SendReadyMessage();
 		void CheckNodesReady();
