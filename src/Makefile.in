@@ -62,7 +62,7 @@ am_rts_OBJECTS = main.$(OBJEXT) window.$(OBJEXT) game.$(OBJEXT) \
 	extensions.$(OBJEXT) selectorxml.$(OBJEXT) gc_ptr.$(OBJEXT) \
 	action.$(OBJEXT) curl.$(OBJEXT) tracker.$(OBJEXT) \
 	compositor.$(OBJEXT) core.$(OBJEXT) guitest.$(OBJEXT) \
-	widgets.$(OBJEXT)
+	widgets.$(OBJEXT) containers.$(OBJEXT)
 rts_OBJECTS = $(am_rts_OBJECTS)
 rts_LDADD = $(LDADD)
 DEFAULT_INCLUDES = -I.@am__isrc@
@@ -182,7 +182,7 @@ rts_SOURCES = main.cpp window.cpp game.cpp utilities.cpp ogrexmlmodel.cpp audio.
               unitrender.cpp scenegraph.cpp matrix4x4.cpp lockchecker.cpp memdebug.cpp render.cpp \
               festring.cpp materialxml.cpp configuration.cpp extensions.cpp selectorxml.cpp \
               gc_ptr.cpp action.cpp curl.cpp tracker.cpp compositor.cpp core.cpp guitest.cpp \
-              widgets.cpp
+              widgets.cpp containers.cpp
 
 all: config.h
 	$(MAKE) $(AM_MAKEFLAGS) all-am
@@ -277,6 +277,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/compositor.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/configuration.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/console.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/containers.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/core.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/curl.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/dimension.Po@am__quote@

@@ -10,4 +10,4 @@ rts_SOURCES = main.cpp window.cpp game.cpp utilities.cpp ogrexmlmodel.cpp audio.
               unitrender.cpp scenegraph.cpp matrix4x4.cpp lockchecker.cpp memdebug.cpp render.cpp \
               festring.cpp materialxml.cpp configuration.cpp extensions.cpp selectorxml.cpp \
               gc_ptr.cpp action.cpp curl.cpp tracker.cpp compositor.cpp core.cpp guitest.cpp \
-              widgets.cpp
+              widgets.cpp containers.cpp
