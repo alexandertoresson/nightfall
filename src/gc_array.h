@@ -45,7 +45,38 @@ struct default_array_initializer<T, true>
 	}
 };
 
-template <typename T, int i, typename _Counter = gc_default_counter>
+template <typename T, bool U = is_arithmetic<T>::value >
+struct default_array_shader
+{
+	static void shade(T* arr, unsigned length)
+	{
+	}
+};
+
+template <typename T>
+struct default_array_shader<gc_ptr<T>, false>
+{
+	static void shade(T* arr, unsigned length)
+	{
+		for (unsigned i = 0; i < length; i++)
+		{
+			if (arr[i])
+			{
+				arr[i].shade();
+			}
+		}
+	}
+};
+
+template <typename T>
+struct default_array_shader<T, true>
+{
+	static void shade(T* arr, unsigned length)
+	{
+	}
+};
+
+template <typename T, int i, typename _Counter = gc_default_counter, typename _Shader = default_array_shader<T> >
 class gc_array
 {
 	private:
@@ -151,11 +182,11 @@ class gc_array
 
 };
 
-template <typename T, typename _Counter>
-class gc_array<T, 1, _Counter>
+template <typename T, typename _Counter, typename _Shader>
+class gc_array<T, 1, _Counter, _Shader>
 {
 	private:
-		typedef gc_ptr<T, _Counter> PtrType;
+		typedef T* PtrType;
 		typedef gc_array<T, 1, _Counter> ThisType;
 		PtrType arr;
 		unsigned length;
@@ -165,7 +196,7 @@ class gc_array<T, 1, _Counter>
 		{
 		}
 
-		gc_array(unsigned j) : arr(new T[j], array_deleter), length(j)
+		gc_array(unsigned j) : arr(new T[j]), length(j)
 		{
 		}
 
@@ -176,7 +207,7 @@ class gc_array<T, 1, _Counter>
 			{
 				unsigned dim = dims[0];
 
-				arr = gc_ptr<T>(new T[dim], array_deleter);
+				arr = new T[dim];
 				length = dim;
 
 				for (unsigned j = 0; j < dim; j++)
@@ -217,7 +248,7 @@ class gc_array<T, 1, _Counter>
 
 		void shade()
 		{
-			arr.shade();
+			_Shader::shade(arr, length);
 		}
 };
 
