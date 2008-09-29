@@ -346,6 +346,8 @@ namespace Game
 
 		void RecheckAllRequirements(const gc_ptr<Player>& player)
 		{
+			notMeetingExistanceReqs.sResearchs.clear();
+			notMeetingExistanceReqs.sUnitTypes.clear();
 			for (std::vector<gc_ptr<Research> >::iterator it = player->vResearchs.begin(); it != player->vResearchs.end(); it++)
 			{
 				const gc_ptr<Research>& research = *it;
