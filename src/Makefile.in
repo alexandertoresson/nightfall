@@ -50,19 +50,19 @@ am_rts_OBJECTS = main.$(OBJEXT) window.$(OBJEXT) game.$(OBJEXT) \
 	font.$(OBJEXT) unit.$(OBJEXT) aipathfinding.$(OBJEXT) \
 	vector3d.$(OBJEXT) luawrapper.$(OBJEXT) \
 	unitinterface.$(OBJEXT) gui.$(OBJEXT) environment.$(OBJEXT) \
-	console.$(OBJEXT) linkedlist.$(OBJEXT) textures.$(OBJEXT) \
-	effect.$(OBJEXT) camera.$(OBJEXT) gamegui.$(OBJEXT) \
-	randomgenerator.$(OBJEXT) networking.$(OBJEXT) \
-	filesystem.$(OBJEXT) paths.$(OBJEXT) circularbuffer.$(OBJEXT) \
-	minixml.$(OBJEXT) saveandload.$(OBJEXT) unittype.$(OBJEXT) \
-	unitsquares.$(OBJEXT) unitrender.$(OBJEXT) \
-	scenegraph.$(OBJEXT) matrix4x4.$(OBJEXT) lockchecker.$(OBJEXT) \
-	memdebug.$(OBJEXT) render.$(OBJEXT) festring.$(OBJEXT) \
-	materialxml.$(OBJEXT) configuration.$(OBJEXT) \
-	extensions.$(OBJEXT) selectorxml.$(OBJEXT) gc_ptr.$(OBJEXT) \
-	action.$(OBJEXT) curl.$(OBJEXT) tracker.$(OBJEXT) \
-	compositor.$(OBJEXT) core.$(OBJEXT) guitest.$(OBJEXT) \
-	widgets.$(OBJEXT) containers.$(OBJEXT)
+	console.$(OBJEXT) textures.$(OBJEXT) effect.$(OBJEXT) \
+	camera.$(OBJEXT) gamegui.$(OBJEXT) randomgenerator.$(OBJEXT) \
+	networking.$(OBJEXT) filesystem.$(OBJEXT) paths.$(OBJEXT) \
+	circularbuffer.$(OBJEXT) minixml.$(OBJEXT) \
+	saveandload.$(OBJEXT) unittype.$(OBJEXT) unitsquares.$(OBJEXT) \
+	unitrender.$(OBJEXT) scenegraph.$(OBJEXT) matrix4x4.$(OBJEXT) \
+	lockchecker.$(OBJEXT) memdebug.$(OBJEXT) render.$(OBJEXT) \
+	festring.$(OBJEXT) materialxml.$(OBJEXT) \
+	configuration.$(OBJEXT) extensions.$(OBJEXT) \
+	selectorxml.$(OBJEXT) gc_ptr.$(OBJEXT) action.$(OBJEXT) \
+	curl.$(OBJEXT) tracker.$(OBJEXT) compositor.$(OBJEXT) \
+	core.$(OBJEXT) guitest.$(OBJEXT) widgets.$(OBJEXT) \
+	containers.$(OBJEXT)
 rts_OBJECTS = $(am_rts_OBJECTS)
 rts_LDADD = $(LDADD)
 DEFAULT_INCLUDES = -I.@am__isrc@
@@ -176,7 +176,7 @@ top_srcdir = @top_srcdir@
 AM_CXXFLAGS = -Wall -Werror -Wextra -Wno-unused-parameter -Wpointer-arith -Wcast-align -pedantic -ansi -std=c++98 ${CFLAGS}
 rts_SOURCES = main.cpp window.cpp game.cpp utilities.cpp ogrexmlmodel.cpp audio.cpp terrain.cpp \
               aibase.cpp dimension.cpp font.cpp unit.cpp aipathfinding.cpp vector3d.cpp luawrapper.cpp \
-              unitinterface.cpp gui.cpp environment.cpp console.cpp linkedlist.cpp textures.cpp \
+              unitinterface.cpp gui.cpp environment.cpp console.cpp textures.cpp \
               effect.cpp camera.cpp gamegui.cpp randomgenerator.cpp networking.cpp filesystem.cpp \
               paths.cpp circularbuffer.cpp minixml.cpp saveandload.cpp unittype.cpp unitsquares.cpp \
               unitrender.cpp scenegraph.cpp matrix4x4.cpp lockchecker.cpp memdebug.cpp render.cpp \
@@ -292,7 +292,6 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/gc_ptr.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/gui.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/guitest.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/linkedlist.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/lockchecker.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/luawrapper.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/main.Po@am__quote@

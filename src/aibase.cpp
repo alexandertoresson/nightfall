@@ -364,14 +364,14 @@ namespace Game
 					
 					if (pUnit->isMoving)
 					{
-						if (pUnit->soundNodes[Audio::SFX_ACT_MOVE_RPT] == NULL)
+						if (!pUnit->soundNodes[Audio::SFX_ACT_MOVE_RPT].active)
 						{
 							PlayRepeatingActionSound(pUnit, Audio::SFX_ACT_MOVE_RPT);
 						}
 					}
 					else
 					{
-						if (pUnit->soundNodes[Audio::SFX_ACT_MOVE_RPT] != NULL)
+						if (pUnit->soundNodes[Audio::SFX_ACT_MOVE_RPT].active)
 						{
 							StopRepeatingActionSound(pUnit, Audio::SFX_ACT_MOVE_RPT);
 							PlayActionSound(pUnit, Audio::SFX_ACT_MOVE_DONE_FNF);
@@ -962,7 +962,7 @@ namespace Game
 				{
 					if (pUnit->type->canBuild.size() > 0)
 					{
-						if (pUnit->rallypoint == NULL)
+						if (!pUnit->rallypoint)
 							pUnit->rallypoint = new Dimension::IntPosition;
 
 						pUnit->rallypoint->x = x;

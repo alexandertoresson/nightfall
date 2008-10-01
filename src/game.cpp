@@ -713,7 +713,7 @@ namespace Game
 			// nollställ vyn
 			glLoadIdentity();
 
-			Audio::PlaceSoundNodes(*Dimension::Camera::instance.GetPosVector());
+			Audio::PlaceSoundNodes(Dimension::Camera::instance.GetPosVector());
 
 			AI::aiFramesPerformedSinceLastRender = 0;
 

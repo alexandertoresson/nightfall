@@ -60,7 +60,7 @@ namespace Game
 			}
 		};
 		
-		struct Position
+		struct Position : gc_null_shader<Position>
 		{
 			float x;
 			float y;
@@ -76,7 +76,7 @@ namespace Game
 			}
 		};
 		
-		struct IntPosition
+		struct IntPosition : gc_null_shader<IntPosition>
 		{
 			int x;
 			int y;

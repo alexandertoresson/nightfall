@@ -31,6 +31,7 @@
 #include <vector>
 #include <map>
 #include <queue>
+#include <list>
 #include <iostream>
 #include <cmath>
 #include <cassert>
@@ -40,10 +41,10 @@ using namespace std;
 namespace Audio
 {
 	SDL_Thread*  pAudioThread;  // Thread monitoring the playlist.
-	AudioStates* pAudioStates;  // Hashtable that holds all sound and music. The music is accessed through std::string keys.
+	AudioStates audioStates;  // Hashtable that holds all sound and music. The music is accessed through std::string keys.
 	ThreadInfo*  pAudioThreadInfo = NULL;
 	bool         soundIsEnabled = false;
-	Utilities::LinkedList<SoundNode*>* pNodesList;
+	std::list<SoundNode> nodesList;
 
 	int Kill()
 	{
@@ -61,7 +62,6 @@ namespace Audio
 				Mix_CloseAudio();
 
 			DeallocList();
-			delete pNodesList;
 
 			return SUCCESS;
 		}
@@ -69,73 +69,27 @@ namespace Audio
 		return SUCCESS;
 	}
 
-	void _DeallocSoundNodes(Utilities::Node<SoundNode*>* pFront)
+	AudioList::~AudioList()
 	{
-		Utilities::Node<SoundNode*>* pCurNode = pFront;
-		do 
-		{
-			delete pCurNode->value;
-			pCurNode->value = NULL;
+		std::cout << "Releasing audio list \"" << this << '"' << std::endl;
 
-			pCurNode = pCurNode->pNext;
-		} while(pCurNode != NULL);
+		for (unsigned i = 0; i < ppMusic.size(); i++)
+		{
+			Mix_FreeMusic(ppMusic[i]); // Free the music-stuff
+			std::cout << ppMusic[i] << " freed" << std::endl;
+		}
+
+		for (unsigned i = 0; i < ppSound.size(); i++)
+		{
+			std::cout << ppSound[i] << " freed" << std::endl;
+			Mix_FreeChunk(ppSound[i]); // Free the binary-chunk
+		}
+
 	}
 
 	void DeallocList()
 	{
-		if (pAudioStates == NULL)
-			return;
-
-		if (pAudioThread != NULL)
-			_KillThread();
-
-		if (pAudioStates->size() > 0)
-		{
-			AudioStatesIterator iter;
-			for (iter = pAudioStates->begin(); iter != pAudioStates->end(); iter++)
-			{
-				std::cout << "Releasing audio list \"" << (*iter).first << '"' << std::endl;
-				AudioList* list = (*iter).second;
-				if (list->ppMusic != NULL)
-				{
-					for (int i = 0; i < list->length; i++)
-					{
-						if (list->ppMusic[i] != NULL)
-						{
-							Mix_FreeMusic(list->ppMusic[i]); // Free the music-stuff
-							list->ppMusic[i] = NULL;
-							std::cout << list->ppMusic[i] << " freed" << std::endl;
-						}
-					}
-
-					delete [] list->ppMusic;
-					list->ppMusic = NULL;
-				}
-				else if (list->ppSound != NULL)
-				{
-					for (int i = 0; i < list->length; i++)
-					{
-						if (list->ppSound[i] != NULL)
-						{
-							std::cout << list->ppSound[i] << " freed" << std::endl;
-							Mix_FreeChunk(list->ppSound[i]); // Free the binary-chunk
-							list->ppSound[i] = NULL;
-						}
-					}
-
-					delete [] list->ppSound;
-					list->ppSound = NULL;
-				}
-
-				std::cout << "Deleting " << (*iter).first << std::endl;
-				delete list;
-				list = NULL;
-			}
-			pAudioStates->clear();
-		}
-
-		delete pAudioStates;
-		pAudioStates = NULL;
+		audioStates.clear();
 	}
 
 	int Init(std::string configFile)
@@ -150,17 +104,17 @@ namespace Audio
 			return error;
 
 		// GetValue gets the configuration value (quiote obvious, not?)
-		const char* musicDirectory = musicConfig.GetValue("music directory").c_str();
-		const char* soundDirectory = musicConfig.GetValue("sound directory").c_str();
+		std::string musicDirectory = musicConfig.GetValue("music directory");
+		std::string soundDirectory = musicConfig.GetValue("sound directory");
 
-		// Make sure there's given a valid value (and not a null-terminated string!)
-		if (musicDirectory[0] == 0)
+		// Make sure there's given a valid value
+		if (musicDirectory.length() == 0)
 		{
 			console << Console::err << "Invalid directory input for music." << Console::nl;
 			return AUDIO_ERROR_INVALID_CONFIGURATION;
 		}
 
-		if (soundDirectory[0] == 0)
+		if (soundDirectory.length() == 0)
 		{
 			console << Console::err << "Invalid directory input for music." << Console::nl;
 			return AUDIO_ERROR_INVALID_CONFIGURATION;
@@ -201,7 +155,7 @@ namespace Audio
 
 		// Get the audio format
 		int format = (Uint16) Utilities::StringToInt(musicConfig.GetValue("audio format"));
-		const char* formatType;
+		std::string formatType;
 		if (format == 0 || format < 0 || format > 8)
 		{
 			format = MIX_DEFAULT_FORMAT;
@@ -266,20 +220,17 @@ namespace Audio
 			<< "Current mix volume: . " << GetChannelVolume(-1) << Console::nl;		
 
 		// Create audio list?
-		const char* createAudioList = musicConfig.GetValue("create audio list").c_str();
+		std::string createAudioList = musicConfig.GetValue("create audio list");
 
-		// Create a new audio handler. 
-		pAudioStates = new AudioStates;	
-
-		if (createAudioList[0] != 0 && !strcmp(createAudioList, "yes"))
+		if (createAudioList == "yes")
 		{
 			// Holds where the audio list is located
-			const char* audioListFile = musicConfig.GetValue("audio list").c_str();
+			std::string audioListFile = musicConfig.GetValue("audio list");
 
 			console << "Loading audio from audio list " << audioListFile << "..." << Console::nl;
 
 			// Make sure no zero-string
-			if (audioListFile[0] == 0)
+			if (audioListFile.length() == 0)
 			{
 				console << Console::err << "Audio list not defined" << Console::nl;
 				return AUDIO_ERROR_INVALID_AUDIO_LIST;
@@ -300,7 +251,7 @@ namespace Audio
 
 			const Utilities::StructuredInstructionsItem* pInstruction;
 			std::queue<std::string> buffer;
-			AudioList*              pList = NULL;
+			gc_ptr<AudioList>       pList = NULL;
 			std::string             name;
 			int                     currentIndex = 0;
 
@@ -313,13 +264,11 @@ namespace Audio
 				//
 				if (pInstruction->instruction == "save")
 				{
-					if (pList != NULL)
+					if (pList)
 					{
 						// Make sure the list is set to either music or sound fx.
 						if (pList->type == AUDIO_UNKNOWN)
 						{
-							delete pList;
-							DeallocList();
 							return AUDIO_ERROR_LIST_INCORRECT_FORMAT;
 						}
 						else if (pList->type == AUDIO_MUSIC && buffer.size() > 0)
@@ -344,18 +293,15 @@ namespace Audio
 
 							if (finalBuffer.size() > 0)
 							{
-								pList->length  = finalBuffer.size();
-								pList->ppMusic = new Music*[pList->length];
-								for (int i = 0; i < pList->length; i++)
+								while (finalBuffer.size())
 								{
-									pList->ppMusic[i] = finalBuffer.front();
+									pList->ppMusic.push_back(finalBuffer.front());
 									finalBuffer.pop();
 								}
-								(*pAudioStates)[name] = pList;
+								audioStates[name] = pList;
 							}
 							else
 							{
-								delete pList;
 								return ERROR_GENERAL;
 							}
 						}
@@ -379,25 +325,17 @@ namespace Audio
 								buffer.pop();
 							}
 
-							if (finalBuffer.size() > 0)
+							while (finalBuffer.size())
 							{
-								pList->ppSound = new Sound*[finalBuffer.size()];
-								pList->length  = finalBuffer.size();
-								for (int i = 0; i < pList->length; i++)
-								{
-									pList->ppSound[i] = finalBuffer.front();
-									finalBuffer.pop();
-								}
-								(*pAudioStates)[name] = pList;
+								pList->ppSound.push_back(finalBuffer.front());
+								finalBuffer.pop();
 							}
-							else
-								delete pList;
+							audioStates[name] = pList;
 						}
 
 						pList = NULL;
 
-						if (name.length() > 0)
-							name.clear();
+						name = "";
 					}
 					else
 						console << Console::err << "Warning: null-pointer pList at save-param." << Console::nl;
@@ -407,27 +345,19 @@ namespace Audio
 				//
 				else if (pInstruction->instruction == "list")
 				{					
-					if (pList != NULL)
+					if (pList)
 					{
-						console << Console::err << "Warning: pointer set where it supposed to be deallocated! Doing an immediate kill - MEMORY LEAK?!" << Console::nl;
-						delete pList;
+						console << Console::err << "Warning: audio list not saved" << Console::nl;
 					}
 
 					pList = new AudioList;
-					pList->ppSound  = NULL;
-					pList->ppMusic  = NULL;
-					pList->length   = 0;
-					pList->playType = AUDIO_PLAY_TYPE_UNKNOWN;
-					pList->type     = AUDIO_UNKNOWN;					
 
 					if (pInstruction->value.size() == 0)
 					{
-						delete pList;
-						DeallocList();
 						return AUDIO_ERROR_LIST_MISSING_TAG;
 					}
 
-					name         = pInstruction->value;
+					name = pInstruction->value;
 					currentIndex = 0;
 				}
 				//
@@ -436,9 +366,8 @@ namespace Audio
 				//
 				else if (pInstruction->instruction == "type")
 				{
-					if (pList == NULL)
+					if (!pList)
 					{
-						DeallocList();
 						return AUDIO_ERROR_LIST_CORRECT_TAG_WRONG_PLACE;
 					}
 
@@ -451,9 +380,8 @@ namespace Audio
 				//
 				else if (pInstruction->instruction == "audio")
 				{
-					if (pList == NULL)
+					if (!pList)
 					{
-						DeallocList();
 						return AUDIO_ERROR_LIST_CORRECT_TAG_WRONG_PLACE;
 					}
 
@@ -467,17 +395,9 @@ namespace Audio
 				//
 				else if (pInstruction->instruction == "add")
 				{
-					if (pList == NULL)
+					if (!pList)
 					{
-						DeallocList();
 						return AUDIO_ERROR_LIST_CORRECT_TAG_WRONG_PLACE;
-					}
-
-					if (pInstruction->value.length() > 128)
-					{
-						delete pList;
-						DeallocList();
-						return AUDIO_ERROR_LIST_INVALID_FILE;
 					}
 
 					console << "Adding " << pInstruction->value << Console::nl;
@@ -487,9 +407,6 @@ namespace Audio
 		}
 
 		_CreateThread();
-
-		pNodesList = new Utilities::LinkedList<SoundNode*>(true);
-		pNodesList->SetDeallocFunc(_DeallocSoundNodes);
 
 		return SUCCESS;
 	}
@@ -504,35 +421,28 @@ namespace Audio
 		Mix_HookMusicFinished(fptr);
 	}
 
-	void GetAudioList(std::string tag, AudioList*& pList)
+	gc_ptr<AudioList> GetAudioList(std::string tag)
 	{
 		// Returns the audio list. Hashtable. 
-		AudioStatesIterator it = (*pAudioStates).find(tag);
+		AudioStatesIterator it = audioStates.find(tag);
 
-		if (it != (*pAudioStates).end())
+		if (it != audioStates.end())
 		{
-			pList = (*it).second;
-			return;
+			return (*it).second;
 		}
-
-		if (pList != NULL)
-			pList = NULL;
+		return NULL;
 	}
 
-	Sound* GetSound(std::string tag, int index)
+	Sound* GetSound(std::string tag, unsigned index)
 	{
 		if (soundIsEnabled)
 		{
-			AudioList* pList = NULL;
-			GetAudioList(tag, pList);
+			gc_ptr<AudioList> pList = GetAudioList(tag);
 
-			if (pList == NULL)
+			if (!pList)
 				return NULL;
 
-			if (pList->ppSound == NULL)
-				return NULL;
-
-			if (index < 0 || index > pList->length)
+			if (index > pList->ppSound.size())
 				return NULL;
 
 			return pList->ppSound[index];
@@ -543,15 +453,14 @@ namespace Audio
 		}
 	}
 
-	int PlayList(std::string tag, int index, int volume)
+	int PlayList(std::string tag, unsigned index, int volume)
 	{
 		if (soundIsEnabled)
 		{
 			// Get the audio-list with its songs.
 			// No validation, no nothing. Just get it, and pass
 			// it over to it's identical twin.
-			AudioList* pList = NULL;
-			GetAudioList(tag, pList);
+			gc_ptr<AudioList> pList = GetAudioList(tag);
 
 			return PlayList(pList, index, volume, tag.c_str());
 		}
@@ -561,11 +470,11 @@ namespace Audio
 		}
 	}
 
-	int PlayList(AudioList* pList, int index /* = 0 */, int volume /* = -1 */, const char* tag /* = "" */)
+	int PlayList(gc_ptr<AudioList> pList, unsigned index, int volume, std::string tag)
 	{
 		if (soundIsEnabled)
 		{
-			if (pList == NULL)
+			if (!pList)
 				return AUDIO_ERROR_LIST_MISSING_TAG;
 
 			if (pList->type != AUDIO_MUSIC)
@@ -577,11 +486,11 @@ namespace Audio
 				return ERROR_GENERAL;
 			}
 
-			if (index >= pList->length)
-				index = pList->length - 1;
+			if (index >= pList->ppMusic.size())
+				index = pList->ppMusic.size() - 1;
 
 			SDL_LockMutex(pAudioThreadInfo->mutex);
-			if (pAudioThreadInfo->pList != NULL)
+			if (pAudioThreadInfo->pList)
 			{
 				pAudioThreadInfo->newIndex = index;
 				pAudioThreadInfo->switchSong = true;
@@ -598,45 +507,44 @@ namespace Audio
 			if (volume >= 0)
 				SetMusicVolume(volume);
 
-			if (tag != 0)
+			if (tag.length())
 				PlayListCurrentlyPlaying(tag);
 		}
 
 		return SUCCESS;
 	}
 
-	const char* PlayListCurrentlyPlaying(const char* set /* = "" */)
+	std::string PlayListCurrentlyPlaying(std::string set)
 	{
 		static std::string currentPlaylist;
-		if (set == 0)
-			return currentPlaylist.c_str();
+		if (!set.length())
+			return currentPlaylist;
 
 		currentPlaylist = set;
 		return set;
 	}
 
-	bool PlayListPlaying(const char* tag)
+	bool PlayListPlaying(std::string tag)
 	{
-		if (strcmp(PlayListCurrentlyPlaying(), tag) == 0)
+		if (PlayListCurrentlyPlaying() == tag)
 			return false;
 
 		return true;
 	}
 
-	int PlayOnce(string tag, int* channel, int index, int volume)
+	int PlayOnce(string tag, int* channel, unsigned index, int volume)
 	{
 		if (soundIsEnabled)
 		{
-			AudioList* pList = NULL;
-			GetAudioList(tag, pList);
+			gc_ptr<AudioList> pList = GetAudioList(tag);
 
-			if (pList == NULL)
+			if (!pList)
 				return AUDIO_ERROR_LIST_MISSING_TAG;
 
 			if (pList->type != AUDIO_SOUND)
 				return AUDIO_ERROR_LIST_INCORRECT_FORMAT;
 
-			if (index >= pList->length || index < 0)
+			if (index >= pList->ppSound.size())
 				return AUDIO_ERROR_LIST_INVALID_INDEX;
 
 			Sound* pNoice = pList->ppSound[index];
@@ -663,8 +571,7 @@ namespace Audio
 
 			int response = Mix_PlayChannel(-1, pNoice, 0);
 
-			if (channel != NULL)
-				*channel = response;		
+			*channel = response;
 
 			return response == -1 ? ERROR_GENERAL : SUCCESS;
 		}
@@ -674,7 +581,7 @@ namespace Audio
 		}
 	}	
 
-	int PlayOnceFromLocation(string tag, int* channel, Utilities::Vector3D* pSound, const Utilities::Vector3D* pCamera, int index, float strength)
+	int PlayOnceFromLocation(string tag, int* channel, const Utilities::Vector3D& pSound, const Utilities::Vector3D& pCamera, unsigned index, float strength)
 	{
 		if (soundIsEnabled)
 		{
@@ -682,16 +589,15 @@ namespace Audio
 			// Note: passes arguments to its identical twin defined below.
 			//
 
-			AudioList* pList = NULL;
-			GetAudioList(tag, pList);
+			gc_ptr<AudioList> pList = GetAudioList(tag);
 
-			if (pList == NULL)
+			if (!pList)
 				return AUDIO_ERROR_LIST_MISSING_TAG;
 
 			if (pList->type != AUDIO_SOUND)
 				return AUDIO_ERROR_LIST_INCORRECT_FORMAT;
 
-			if (index < 0 || index >= pList->length)
+			if (index >= pList->ppSound.size())
 				return AUDIO_ERROR_LIST_INVALID_INDEX;
 
 			return PlayOnceFromLocation(pList->ppSound[index], channel, pSound, pCamera);
@@ -702,14 +608,14 @@ namespace Audio
 		}
 	}
 
-	int PlayOnceFromLocation(Sound* pSound, int* channel, Utilities::Vector3D* vSound, const Utilities::Vector3D* vCamera, float strength)
+	int PlayOnceFromLocation(Sound* pSound, int* channel, const Utilities::Vector3D& vSound, const Utilities::Vector3D& vCamera, float strength)
 	{
 		if (soundIsEnabled)
 		{
 			if (pSound == NULL)
 				return ERROR_GENERAL;
 
-			pSound->volume = CalculateVolume(*vCamera, vSound->x, vSound->y, strength);
+			pSound->volume = CalculateVolume(vCamera, vSound, strength);
 
 			return PlayOnce(pSound, channel);
 		}
@@ -834,9 +740,9 @@ namespace Audio
 			SDL_LockMutex(pInfo->mutex);
 			Music* pTune = NULL;
 
-			if (pInfo->pList != NULL)
+			if (pInfo->pList)
 			{
-				if (pInfo->index >= pInfo->pList->length)
+				if (pInfo->index >= pInfo->pList->ppMusic.size())
 				{
 					if (pInfo->pList->playType == AUDIO_PLAY_TYPE_LOOP)
 					{
@@ -857,7 +763,7 @@ namespace Audio
 
 				SDL_UnlockMutex(pInfo->mutex);
 
-				while (pInfo->pList == NULL && pInfo->threadRuntime == true)
+				while (!pInfo->pList && pInfo->threadRuntime == true)
 					SDL_Delay(1000);
 
 				if (pInfo->threadRuntime == false)
@@ -942,122 +848,98 @@ namespace Audio
 		pAudioThread = NULL;
 	}
 
-	SoundListNode* CreateSoundNode(Sound* pSound, float x, float y, float dx, float dy, float strength, int numPlay)
+	SoundListNode CreateSoundNode(Sound* pSound, const Utilities::Vector3D& position, const Utilities::Vector3D& velocity, float strength, int numPlay)
 	{
 		if (pSound == NULL)
-			return NULL;
+			return std::list<SoundNode>::iterator();
 
-		SoundNode* pNode = new SoundNode(pSound, x, y, dx, dy, strength, numPlay);
-		if (!pNode)
-			return NULL;
-			
-		pNode->pSpeaker = NULL;
-
-		return (SoundListNode*)pNodesList->Add(pNode);
-	
-		return NULL;
+		nodesList.push_back(SoundNode(pSound, position, velocity, strength, numPlay));
+		return --nodesList.end();
 	}
 
-	void RemoveSoundNode(SoundListNode* pNode)
+	void RemoveSoundNode(SoundListNode pNode)
 	{
-		if (pNode == NULL)
-			return;
-
-		if (pNode->value->channel > -1)
+		if ((*pNode).channel > -1)
 		{
-			if (Mix_Playing(pNode->value->channel))
-				Mix_FadeOutChannel(pNode->value->channel, 500);
+			if (Mix_Playing((*pNode).channel))
+				Mix_FadeOutChannel((*pNode).channel, 500);
 		}
 
-		pNodesList->Remove(pNode, true);
-		pNode = NULL;
+		nodesList.erase(pNode);
 	}
 
 	void PlaceSoundNodes(const Utilities::Vector3D& vObserver)
 	{
 		if (soundIsEnabled)
 		{
-			if (!pNodesList->Length())
-				return;
-
-			Utilities::Node<SoundNode*>* pCurNode = pNodesList->pHead;
-			Utilities::Node<SoundNode*>* pNextNode = NULL;
-			SoundNode* pCurObj = NULL;
-			while (pCurNode != NULL)
+			for (std::list<SoundNode>::iterator it = nodesList.begin(); it != nodesList.end(); )
 			{
-				pCurObj   = pCurNode->value;
-				pNextNode = pCurNode->pNext;
-				
-				if (!pCurObj->pSpeaker)
+				if (!it->pSpeaker)
 				{
-					pCurObj->x = pCurObj->pSpeaker->pos.x;
-					pCurObj->y = pCurObj->pSpeaker->pos.y;
+					it->position = Game::Dimension::GetTerrainCoord(it->pSpeaker->pos.x, it->pSpeaker->pos.y);
 
-					if (pCurObj->pSpeaker->owner != Game::Dimension::currentPlayerView)
+					if (it->pSpeaker->owner != Game::Dimension::currentPlayerView)
 					{
-						if (!Game::Dimension::UnitIsVisible(pCurObj->pSpeaker, Game::Dimension::currentPlayerView))
+						if (!Game::Dimension::UnitIsVisible(it->pSpeaker, Game::Dimension::currentPlayerView))
 						{
-							if (pCurObj->channel > -1)
+							if (it->channel > -1)
 							{
-								if (Mix_Playing(pCurObj->channel))
-									Mix_HaltChannel(pCurObj->channel);
-								pCurObj->channel = -1;
+								if (Mix_Playing(it->channel))
+									Mix_HaltChannel(it->channel);
+								it->channel = -1;
 							}
 							
-							pCurNode = pNextNode;
+							it++;
 							continue;
 						}
 					}
 				}
 
-				Uint8 volume = CalculateVolume(vObserver, pCurObj->x, pCurObj->y, pCurObj->strength);
+				Uint8 volume = CalculateVolume(vObserver, it->position, it->strength);
 
-				if (pCurObj->channel == -1)
+				if (it->channel == -1)
 				{
 					if (volume > 0)
 					{
-						pCurObj->channel = Mix_PlayChannel(-1, pCurObj->pSound, pCurObj->times);
-						Mix_Volume(pCurObj->channel, volume);
+						it->channel = Mix_PlayChannel(-1, it->pSound, it->times);
+						Mix_Volume(it->channel, volume);
 					}
 				}
 				else
 				{
-					if (!Mix_Playing(pCurObj->channel))
+					if (!Mix_Playing(it->channel))
 					{
-						pNodesList->Remove(pCurNode, true);
+						std::list<SoundNode>::iterator last = it;
+						it++;
+						nodesList.erase(last);
 					}
 					else
 					{
-						if (Mix_Volume(pCurObj->channel, -1) != volume)
-							Mix_Volume(pCurObj->channel, volume);
+						if (Mix_Volume(it->channel, -1) != volume)
+							Mix_Volume(it->channel, volume);
 					}
 				}
 				
-				pCurNode = pNextNode;
 			}
 		}
 	}
 
-	Uint8 CalculateVolume(const Utilities::Vector3D& vCamera, float x, float y, float strength)
+	Uint8 CalculateVolume(const Utilities::Vector3D& vCamera, const Utilities::Vector3D& vPosition, float strength)
 	{
-		float distance = vCamera.distance(Game::Dimension::GetTerrainCoord(x, y));
+		float distance = vCamera.distance(vPosition);
 		if (distance >= strength)
 			return 0;
 
 		float k = MIX_MAX_VOLUME / strength;
 		Uint8 val = (Uint8)((strength - distance) * k);
-//		if (val < 0)       // if you want to test for the case where the volume is < 0, 
-//			val = 0;   // this is not the place for it as val is already an unsigned integer.
 		return val;
 	}
 
-	void SetSpeakerUnit(SoundNode* pSoundNode, const gc_ptr<Game::Dimension::Unit>& p)
+	void SetSpeakerUnit(SoundListNode& pSoundListNode, const gc_ptr<Game::Dimension::Unit>& p)
 	{
 		if (soundIsEnabled)
 		{
-			assert(pSoundNode != NULL);
-
-			pSoundNode->pSpeaker = p;
+			(*pSoundListNode).pSpeaker = p;
 		}
 	}
 }

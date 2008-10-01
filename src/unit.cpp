@@ -82,23 +82,25 @@ namespace Game
 				return;
 
 			Utilities::Vector3D groundPos = Dimension::GetTerrainCoord(unit->pos.x, unit->pos.y);
-			Audio::PlayOnceFromLocation(fx->pSound, &fx->channel, &groundPos,
+			Audio::PlayOnceFromLocation(fx->pSound, &fx->channel, groundPos,
 				Game::Dimension::Camera::instance.GetPosVector(),
 				fx->strength);
 		}
 		
 		void PlayRepeatingActionSound(const gc_ptr<Unit>& unit, Audio::SoundNodeAction action)
 		{				
-			if (unit->soundNodes[action] != NULL)
+			if (unit->soundNodes[action].active)
 				return;
 				
-			if (unit->type->actionSounds[action] == NULL)
+			if (!unit->type->actionSounds[action])
 				return;
 			
 			Audio::AudioFXInfo* inf = unit->type->actionSounds[action];
 			
-			unit->soundNodes[action] = Audio::CreateSoundNode(inf->pSound, unit->pos.x, unit->pos.y, 0, 0, inf->strength, -1);
-			Audio::SetSpeakerUnit(unit->soundNodes[action]->value, unit);
+			Utilities::Vector3D groundPos = Dimension::GetTerrainCoord(unit->pos.x, unit->pos.y);
+			unit->soundNodes[action].node = Audio::CreateSoundNode(inf->pSound, groundPos, Utilities::Vector3D(), inf->strength, -1);
+			Audio::SetSpeakerUnit(unit->soundNodes[action].node, unit);
+			unit->soundNodes[action].active = true;
 		}
 		
 		void StopRepeatingActionSound(const gc_ptr<Unit>& unit, Audio::SoundNodeAction action)
@@ -106,12 +108,12 @@ namespace Game
 			if (!unit)
 				return;
 				
-			if (unit->soundNodes[action] == NULL)
+			if (!unit->soundNodes[action].active)
 				return;
 				
-			Audio::SetSpeakerUnit(unit->soundNodes[action]->value, NULL);
-			Audio::RemoveSoundNode(unit->soundNodes[action]);
-			unit->soundNodes[action] = NULL;
+			unit->soundNodes[action].active = false;
+			Audio::SetSpeakerUnit(unit->soundNodes[action].node, NULL);
+			Audio::RemoveSoundNode(unit->soundNodes[action].node);
 		}
 		
 		bool IsDisplayedUnitPointer(const gc_ptr<Unit>& unit)
@@ -409,7 +411,7 @@ namespace Game
 
 				AI::CompleteAction(unit);
 				
-				if (unit->rallypoint != NULL)
+				if (unit->rallypoint)
 				{
 					AI::CommandUnit(newUnit, unit->rallypoint->x, unit->rallypoint->y, AI::ACTION_GOTO, ActionArguments(), true, true);
 				}
@@ -1624,7 +1626,6 @@ namespace Game
 			unit->curAssociatedBigSquare.y = -1;
 			unit->rallypoint = NULL;
 			unit->aiFrame = 0;
-			unit->lastSeenPositions = NULL;
 
 			unit->pMovementData = new AI::MovementData;
 			AI::InitMovementData(unit);
@@ -1650,7 +1651,6 @@ namespace Game
 			PrepareUnitEssentials(unit, type);
 //			PrepareAnimationData(unit);
 
-			unit->lastSeenPositions = new IntPosition[pWorld->vPlayers.size()];
 			unit->unitAIFuncs = type->unitAIFuncs;
 
 			if (!complete)
@@ -1670,11 +1670,9 @@ namespace Game
 			Networking::checksum_output << "CREATEUNIT " << type->id << "\n";
 #endif
 			
-			for (int i = 0; i < Audio::SFX_ACT_COUNT; i++)
-				unit->soundNodes[i] = NULL;
-
 			for (unsigned int i = 0; i < pWorld->vPlayers.size(); i++)
 			{
+				unit->lastSeenPositions.push_back(IntPosition());
 				unit->lastSeenPositions[i].x = -1000;
 				unit->lastSeenPositions[i].y = -1000;
 			}
@@ -1916,7 +1914,7 @@ namespace Game
 			
 			for (int i = 0; i < Audio::SFX_ACT_COUNT; i++)
 			{
-				if (unit->soundNodes[i] != NULL)
+				if (unit->soundNodes[i].active)
 				{
 					StopRepeatingActionSound(unit, (Audio::SoundNodeAction)i);
 				}
@@ -1960,12 +1958,6 @@ namespace Game
 		Unit::~Unit()
 		{
 
-			if (this->rallypoint != NULL)
-				delete this->rallypoint;
-			
-			if (this->lastSeenPositions)
-				delete[] this->lastSeenPositions;
-	
 		}
 
 		vector<gc_ptr<Unit> > unitsDisplayQueue;

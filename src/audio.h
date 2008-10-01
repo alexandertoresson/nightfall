@@ -18,11 +18,6 @@
  * You should have received a copy of the GNU General Public License
  * along with Nightfall.  If not, see <http://www.gnu.org/licenses/>.
  */
-//
-// I AM WORKING ON THIS FILE AT THE MOMENT
-// Please do not, and never, consider this the final version! :)
-//
-//
 #include "vector3d-pre.h"
 
 #ifndef __AUDIO_H__
@@ -37,7 +32,6 @@
 #include "sdlheader.h"
 
 #include "terrain.h"
-#include "linkedlist.h"
 
 #include <map>
 #include <string>
@@ -50,16 +44,19 @@ namespace Audio
 	typedef Mix_Music Music;
 	typedef Mix_Chunk Sound;
 
-	struct AudioList
+	struct AudioList : gc_null_shader<AudioList>
 	{
-		union
-		{
-			Music**     ppMusic; 
-			Sound**     ppSound; 
-		};
-		int         length;
+		std::vector<Music*>     ppMusic; 
+		std::vector<Sound*>     ppSound; 
 		PlayType    playType;
-		AudioType   type;    
+		AudioType   type;
+		
+		AudioList() : playType(AUDIO_PLAY_TYPE_UNKNOWN), type(AUDIO_UNKNOWN)
+		{
+			
+		}
+
+		~AudioList();
 	};
 
 	struct AudioFXInfo
@@ -79,17 +76,17 @@ namespace Audio
 	{
 	public:
 		Sound* pSound;
-		float x, y;
-		float dx, dy;
+		Utilities::Vector3D position;
+		Utilities::Vector3D velocity;
 		float strength;
 		int times;
 		int channel;
 
 		gc_ptr<Game::Dimension::Unit> pSpeaker;
 
-		SoundNode(Sound* p, float newX, float newY, float newDx, float newDy, float newStrength, int numPlay) :
-			pSound(p), x(newX), y(newY), dx(newDx), dy(newDy), strength(newStrength), times(numPlay),
-				channel(-1)
+		SoundNode(Sound* p, const Utilities::Vector3D& position, const Utilities::Vector3D& velocity, float newStrength, int numPlay) :
+			pSound(p), position(position), velocity(velocity), strength(newStrength), times(numPlay),
+			channel(-1)
 		{}
 
 		~SoundNode(void)
@@ -100,17 +97,17 @@ namespace Audio
 	// for the worker-thread.
 	struct ThreadInfo
 	{
-		AudioList* pList;
-		int        index;
+		gc_ptr<AudioList> pList;
+		unsigned   index;
 		SDL_mutex* mutex;
 		bool       threadRuntime;
 		bool       switchSong;
 		int        newIndex;
 	};
 	
-	typedef std::map<std::string, Audio::AudioList*>  AudioStates;
- 	typedef AudioStates::iterator                     AudioStatesIterator;
-	typedef Utilities::Node<Audio::SoundNode*>        SoundListNode;
+	typedef std::map<std::string, gc_root_ptr<Audio::AudioList>::type > AudioStates;
+ 	typedef AudioStates::iterator                            AudioStatesIterator;
+	typedef std::list<Audio::SoundNode>::iterator            SoundListNode;
 
 	// Prepare the audio-engine. Does -a lot-. 
 	// Starts up the beast, allocates channels,
@@ -125,20 +122,20 @@ namespace Audio
 	void OnChannelFinish(void (*fptr)(int));
 	void OnMusicFinish(void (*fptr)(void));
 	
-	void   GetAudioList(std::string tag, AudioList*&);
-	Sound* GetSound(std::string tag, int index);
+	gc_ptr<AudioList> GetAudioList(std::string tag);
+	Sound* GetSound(std::string tag, unsigned index);
 	
-	int  PlayList(std::string tag, int index = 0, int volume = -1);
-	int  PlayList(AudioList*, int index = 0, int volume = -1, const char* tag = "");
+	int  PlayList(std::string tag, unsigned index = 0, int volume = -1);
+	int  PlayList(gc_ptr<AudioList>, unsigned index = 0, int volume = -1, std::string tag = "");
 
-	const char* PlayListCurrentlyPlaying(const char* set = "");
-	bool        PlayListPlaying(const char* tag);
+	std::string PlayListCurrentlyPlaying(std::string set = "");
+	bool        PlayListPlaying(std::string tag);
 	
-	int PlayOnce(std::string tag, int* channel, int index = 0, int volume = -1);
+	int PlayOnce(std::string tag, int* channel, unsigned index = 0, int volume = -1);
 	int PlayOnce(Sound*, int* channel);
 	
-	int PlayOnceFromLocation(std::string, int* channel, Utilities::Vector3D* sound, const Utilities::Vector3D* camera, int index = 0, float = AUDIO_DEFAULT_SIGNAL_STRENGTH);
-	int PlayOnceFromLocation(Sound*, int* channel, Utilities::Vector3D* sound, const Utilities::Vector3D* camera, float = AUDIO_DEFAULT_SIGNAL_STRENGTH);
+	int PlayOnceFromLocation(std::string, int* channel, const Utilities::Vector3D& sound, const Utilities::Vector3D& camera, unsigned index = 0, float = AUDIO_DEFAULT_SIGNAL_STRENGTH);
+	int PlayOnceFromLocation(Sound*, int* channel, const Utilities::Vector3D& sound, const Utilities::Vector3D& camera, float = AUDIO_DEFAULT_SIGNAL_STRENGTH);
 	
 	int GetMusicVolume(void);
 	int GetChannelVolume(int);
@@ -152,11 +149,11 @@ namespace Audio
 	int  _ThreadMethod(void*);
 	void _KillThread(void);
 
-	SoundListNode* CreateSoundNode(Sound*, float x, float y, float dx, float dy, float strength, int numPlay);
-	void       RemoveSoundNode(SoundListNode*);
+	SoundListNode CreateSoundNode(Sound*, const Utilities::Vector3D& position, const Utilities::Vector3D& velocity, float strength, int numPlay);
+	void       RemoveSoundNode(SoundListNode);
 	void       PlaceSoundNodes(const Utilities::Vector3D& observer);
-	Uint8      CalculateVolume(const Utilities::Vector3D& vObserver, float x, float y, float strength);
-	void       SetSpeakerUnit(SoundNode* pSoundNode, const gc_ptr<Game::Dimension::Unit>& p);
+	Uint8      CalculateVolume(const Utilities::Vector3D& vCamera, const Utilities::Vector3D& vPosition, float strength);
+	void       SetSpeakerUnit(SoundListNode& pSoundListNode, const gc_ptr<Game::Dimension::Unit>& p);
 }
 
 #ifdef DEBUG_DEP

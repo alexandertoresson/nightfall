@@ -84,7 +84,7 @@ namespace Game
 				GLfloat GetZoom(void) const { return mZoom; }
 				GLfloat GetRotation(void) const { return mRotation; }
 
-				const Utilities::Vector3D* GetPosVector(void) { return &mPosition; };
+				const Utilities::Vector3D GetPosVector(void) { return mPosition; };
 
 				static Camera instance;
 		};

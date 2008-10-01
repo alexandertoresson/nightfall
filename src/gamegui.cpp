@@ -412,9 +412,8 @@ namespace Game
 						{
 							if (!unit->type->isMobile)
 							{
-								if (unit->rallypoint != NULL)
+								if (unit->rallypoint)
 								{
-									delete unit->rallypoint;
 									unit->rallypoint = NULL;
 								}
 								return;

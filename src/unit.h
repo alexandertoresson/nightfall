@@ -91,6 +91,17 @@ namespace Game
 			FACETARGET_TARGET
 		};
 
+		struct UnitSoundStatus
+		{
+			bool active;
+			Audio::SoundListNode node;
+
+			UnitSoundStatus() : active(false)
+			{
+				
+			}
+		};
+
 		struct Unit : HasHandle<Unit>
 		{
 			float               health;
@@ -98,7 +109,7 @@ namespace Game
 			gc_ptr<UnitType>   type;
 			gc_ptr<Player>     owner;
 			Position            pos;
-			IntPosition*        lastSeenPositions;
+			std::vector<IntPosition> lastSeenPositions;
 			IntPosition         curAssociatedSquare;
 			IntPosition         curAssociatedBigSquare;
 			float               rotation;  // how rotated the model is
@@ -119,10 +130,10 @@ namespace Game
 			bool                isPushed;
 			bool                hasPower;
 			LightState          lightState;
-			IntPosition*        rallypoint;
+			gc_ptr<IntPosition> rallypoint;
 			AI::UnitAIFuncs     unitAIFuncs;
 			int                 aiFrame;
-			Audio::SoundListNode* soundNodes[Audio::SFX_ACT_COUNT];
+			UnitSoundStatus soundNodes[Audio::SFX_ACT_COUNT];
 			int                 usedInAreaMaps;
 /*			Uint32              pushID;
 			Unit*               pusher;*/
@@ -136,6 +147,7 @@ namespace Game
 				owner.shade();
 				pMovementData.shade();
 				gc_shade_container(vProjectiles);
+				rallypoint.shade();
 			}
 		};
 
