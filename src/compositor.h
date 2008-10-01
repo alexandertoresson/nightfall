@@ -319,7 +319,7 @@ namespace GUI
 			{
 				MOVE,
 				DRAG_DROP,
-				TEXT,
+				TEXT
 			} AreaType;
 	};
 	
