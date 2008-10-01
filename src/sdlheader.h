@@ -22,7 +22,7 @@
 
 #define NO_LOCKCHECKER
 
-#ifdef __CONFIG_H__
+#ifdef HAVE_CONFIG_H
 #include "config.h"
 #endif
 
@@ -67,6 +67,8 @@
 	#include <GL/gl.h>
 	#include <GL/glu.h>
 #endif
+
+#include "i18n.h"
 
 #include "gc_ptr.h"
 

@@ -1,0 +1,65 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR Marcus Klang, Alexander Toresson and Leonard Wickmark
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: nightfall 0.1\n"
+"Report-Msgid-Bugs-To: bugs@nightfall-rts.org\n"
+"POT-Creation-Date: 2008-10-01 23:28+0200\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=CHARSET\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#: src/main.cpp:81
+msgid "Failed to initialize SDL!"
+msgstr ""
+
+#: src/main.cpp:81 src/main.cpp:113 src/main.cpp:124
+msgid "An error occurred"
+msgstr ""
+
+#: src/main.cpp:83
+msgid "Failed to initialize SDL: "
+msgstr ""
+
+#: src/main.cpp:88
+msgid "One instance of SDL has already been initialized."
+msgstr ""
+
+#: src/main.cpp:104
+msgid "config.txt could not be parsed!"
+msgstr ""
+
+#: src/main.cpp:113 src/main.cpp:115
+msgid "Window subsystem could not be initialized!"
+msgstr ""
+
+#: src/main.cpp:124 src/main.cpp:126
+msgid "Font Init Error."
+msgstr ""
+
+#: src/main.cpp:131
+msgid "Initializing Soundsytem"
+msgstr ""
+
+#: src/main.cpp:142
+msgid "SDLNet_Init Error: "
+msgstr ""
+
+#: src/main.cpp:147
+msgid "Loading World"
+msgstr ""
+
+#: src/main.cpp:175
+msgid "Loading main game..."
+msgstr ""
+
+#: src/main.cpp:369
+msgid "Goodbye!"
+msgstr ""

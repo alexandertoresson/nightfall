@@ -15,7 +15,7 @@ Compilation on UNIX systems:
 ./configure
 make
 
-It is then run by running src/rts. The game attempts to locate its files
+It is then run by running src/nightfall. The game attempts to locate its files
 through rules in src/paths.cpp, and it obeys both XDG_DATA_DIRS and
 XDG_CONFIG_DIRS.
 

@@ -53,6 +53,8 @@
 #define USE_LUA
 #include "luawrapper.h"
 
+#include "sdlheader.h"
+
 using namespace std;
 
 void ParseArguments(int argc, char** argv);
@@ -63,6 +65,14 @@ std::map<std::string, std::string> mainConfigOverrides;
 
 int main(int argc, char** argv)
 {
+
+#ifdef ENABLE_NLS
+	// Initialize gettext
+	setlocale(LC_ALL, "");
+	bindtextdomain(PACKAGE, LOCALEDIR);
+	textdomain(PACKAGE);
+#endif
+
 #ifdef WIN32
 	//RedirectIOToConsole();
 #endif
@@ -78,14 +88,14 @@ int main(int argc, char** argv)
 		if (errCode == WINDOW_ERROR_INIT_FAILURE)
 		{
 #ifdef WIN32
-			MessageBoxA( NULL, "Misslyckades med att initiera SDL!", "Fel har uppstått", MB_OK | MB_ICONERROR);
+			MessageBoxA( NULL, _("Failed to initialize SDL!"), _("An error occurred"), MB_OK | MB_ICONERROR);
 #endif
-			std::cerr << "Misslyckades med att initiera SDL: " << SDL_GetError() << std::endl;
+			std::cerr << _("Failed to initialize SDL: ") << SDL_GetError() << std::endl;
 		}
 			
 		// Borde och kan aldrig ske - men men..!
 		else if (errCode == WINDOW_ERROR_ALREADY_INITIALIZED)
-			std::cerr << "En instans av SDL har redan initierats.\n";
+			std::cerr << _("One instance of SDL has already been initialized.") << std::endl;
 
 		
 		return errCode;
@@ -101,7 +111,7 @@ int main(int argc, char** argv)
 
 		if (errCode != SUCCESS)
 		{
-			std::cerr << "config.txt could not be not parsed!" << std::endl;
+			std::cerr << _("config.txt could not be parsed!") << std::endl;
 //			return errCode; // Non-critical now that we have default values
 		}
 
@@ -110,9 +120,9 @@ int main(int argc, char** argv)
 		if (errCode != SUCCESS)
 		{
 #ifdef WIN32
-			MessageBoxA( NULL, "Window subsystem could not be initialized!", "Error", MB_OK | MB_ICONERROR);
+			MessageBoxA( NULL, _("Window subsystem could not be initialized!"), _("An error occurred"), MB_OK | MB_ICONERROR);
 #endif
-			std::cerr << "Window subsystem could not be initialized!" << std::endl;
+			std::cerr << _("Window subsystem could not be initialized!") << std::endl;
 			return errCode;
 		}
 
@@ -121,14 +131,14 @@ int main(int argc, char** argv)
 		if(Window::GUI::InitFont(Utilities::mainConfig.GetValue("default font")) != SUCCESS)
 		{
 #ifdef WIN32
-			MessageBoxA( NULL, "Font Init Error.", "Error", MB_OK | MB_ICONERROR);
+			MessageBoxA( NULL, _("Font Init Error."), _("An error occurred"), MB_OK | MB_ICONERROR);
 #endif
-			cerr << "Font Init Error." << endl;
+			cerr << _("Font Init Error.") << endl;
 			return FONT_ERROR_FILE_LOAD;
 		}
 
 		Window::GUI::LoadWindow *loading = new Window::GUI::LoadWindow(5.0f);
-		loading->SetMessage("Initializing Soundsytem");
+		loading->SetMessage(_("Initializing Soundsytem"));
 		loading->Update();
 	#if USE_AUDIO == 1
 		if (!Game::Rules::noSound)
@@ -139,12 +149,12 @@ int main(int argc, char** argv)
 		
 		if(SDLNet_Init() == -1)
 		{
-			cout << "SDLNet_Init: " << SDLNet_GetError() << endl;
+			cout << _("SDLNet_Init Error: ") << SDLNet_GetError() << endl;
 			return NETWORK_ERROR_INIT;
 		}
 
 		loading->Increment(1.0f);
-		loading->SetMessage("Loading World");
+		loading->SetMessage(_("Loading World"));
 		loading->Update();
 
 		if (Utilities::mainConfig.GetValue("camera rotation speed").length())
@@ -172,7 +182,7 @@ int main(int argc, char** argv)
 		}
 
 		loading->Increment(1.0f);
-		loading->SetMessage("Loading GameMain...");
+		loading->SetMessage(_("Loading main game..."));
 		loading->Update();
 	}
 
@@ -366,5 +376,5 @@ void KillAll(void)
 	
 	cout << "average bytes sent per aiFrame: " << (double) Game::Networking::bytes_sent / Game::AI::currentFrame << endl;
 
-	std::cout << "Goodbye!" << std::endl;
+	std::cout << _("Goodbye!") << std::endl;
 }
