@@ -208,37 +208,43 @@ namespace GUI
 	/*******************************************************************/
 	Component::Component()
 	{
-		this->x = 0;
-		this->y = 0;
-		this->w = w;
-		this->h = h;
 	}
 	
 	Component::Component(float w, float h)
 	{
-		this->x = 0;
-		this->y = 0;
-		this->w = w;
-		this->h = h;
+		dimensions.w = w;
+		dimensions.h = h; 
 	}
 	
 	Component::Component(float x, float y, float w, float h)
 	{
-		this->x = x;
-		this->y = y;
-		this->w = w;
-		this->h = h;
+		dimensions.x = x;
+		dimensions.y = y; 
+		dimensions.w = w;
+		dimensions.h = h;
 	}
 	
 	bool Component::isInsideArea(float x, float y)
 	{
-		if(x >= this->x && x <= (this->x + this->w) &&
-		   y >= this->y && y <= (this->y + this->h) )
+		if(dimensions.x >= this->dimensions.x && x <= (this->dimensions.x + this->dimensions.w) &&
+		   dimensions.y >= this->dimensions.y && dimensions.y <= (this->dimensions.y + this->dimensions.h) )
 		{
 			return true;
 		}
 		
 		return false;
+	}
+	
+	void Component::setSize(float w, float h)
+	{
+		this->dimensions.w = w;
+		this->dimensions.h = h;
+	}
+
+	void Component::setPosition(float x, float y)
+	{
+		this->dimensions.x = x;
+		this->dimensions.y = y;
 	}
 	
 	void Component::setLayoutManager(Layout* layout)
@@ -260,10 +266,25 @@ namespace GUI
 		
 	}
 	
+	/** COMPONENT::CONTAINER ******************************************************/
+	componentHandle Component::Container::add(Component* component)
+	{
+		components.push_back(component);
+		componentHandle last = components.end();
+		return --last;
+	}
+	
+	void Component::paintComponent()
+	{
+		//1. paint itself
+		paint();
+		//2. paint all controls in it.
+	}
+	
 	void Component::paint()
 	{
 		glPushMatrix();
-		glScalef(this->w, this->h,0.0f);
+		glScalef(this->dimensions.w, this->dimensions.h,0.0f);
 		glColor3f(1.0f, 1.0f, 1.0f);
 		
 		glBegin(GL_QUADS);

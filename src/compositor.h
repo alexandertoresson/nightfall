@@ -36,63 +36,7 @@
 #include <vector>
 
 namespace GUI
-{
-	/**
-	 *	Symbolises a Window event
-	 */
-	struct WindowEvent
-	{
-		/**
-		 *	Window event types
-		 */
-		enum windowEventType
-		{
-			FOCUS,   /**< Window/Controll has recieved focus */
-			NOFOCUS, /**< Window/Controll has lost focus     */
-			RESIZE,  /**< Resize event, call LayoutManager   */
-			CLOSED   /**< Window has been closed             */
-		};
-		
-		windowEventType type;
-		
-		struct {
-			float x;
-			float y;
-			float w;
-			float h;
-		} bounds;
-	};
-
-	/**
-	 *	Eventsystem standard
-	 */
-	class Event
-	{
-		public:
-		
-			/**
-			 * Mouse event
-			 * @param evt MouseEvent structure that contains the actual event information.
-			 * @param handled This notifies the calling function if the mouse event is handled or not (if the mouse point is within bounds)
-			 * @see Core::KeyboardEvent
-			 */
-			virtual void event(Core::MouseEvent evt, bool& handled) { handled = false; }
-			
-			/**
-			 * Keyboard event
-			 * @param evt KeyboardEvent structure that contains the keyboard event information
-			 * @see Core::KeyboardEvent
-			 */
-			virtual void event(Core::KeyboardEvent evt) {}
-			
-			/**
-			 * Window event
-			 * @param evt WindowEvent structure that contains information about the window event.
-			 * @see Core::WindowEvent
-			 */
-			virtual void event(WindowEvent evt) {}
-	};
-	
+{	
 	/**
 	 * Handles scaling calculations and proponanlity corrections. Handles all types of aspects and monitor resolution.
 	 * Equation: h_ref / sqrt( t * t / (a * a + 1) ) ) * 96, h_ref is the inch reference in height, a = spect
@@ -303,53 +247,204 @@ namespace GUI
 		void createDialog(DialogParameters paramDiag, universalCallback callback);
 	}
 	
-	class Container;
-	class Layout;
+	/**
+	 *	Symbolises a Window event
+	 */
+	struct WindowEvent
+	{
+		/**
+		 *	Window event types
+		 */
+		enum windowEventType
+		{
+			FOCUS,   /**< Window/Controll has recieved focus */
+			NOFOCUS, /**< Window/Controll has lost focus     */
+			RESIZE,  /**< Resize event, call LayoutManager   */
+			CLOSED,  /**< Window has been closed             */
+			DROPED   /**< Drag and drop performed            */
+		};
+		
+		windowEventType type;
+		void* data;
+		
+		struct {
+			float x;
+			float y;
+			float w;
+			float h;
+		} bounds;
+	};
+	
+	/**
+	 *	Eventsystem standard
+	 */
+	class Event
+	{
+		public:
+			
+			/**
+			 * Mouse event
+			 * @param evt MouseEvent structure that contains the actual event information.
+			 * @param handled This notifies the calling function if the mouse event is handled or not (if the mouse point is within bounds)
+			 * @see Core::KeyboardEvent
+			 */
+			virtual void event(Core::MouseEvent evt, bool& handled) { handled = false; }
+			
+			/**
+			 * Keyboard event
+			 * @param evt KeyboardEvent structure that contains the keyboard event information
+			 * @see Core::KeyboardEvent
+			 */
+			virtual void event(Core::KeyboardEvent evt) {}
+			
+			/**
+			 * Window event
+			 * @param evt WindowEvent structure that contains information about the window event.
+			 * @see Core::WindowEvent
+			 */
+			virtual void event(WindowEvent evt) {}
+			
+			/**
+			 * Window event
+			* @param evt WindowEvent structure that contains information about the window event.
+			 * @see Core::WindowEvent
+			 */
+			 
+	};
+	
+	class TrackingArea
+	{
+		public:
+			enum
+			{
+				MOVE,
+				DRAG_DROP,
+				TEXT,
+			} AreaType;
+	};
+	
+	/*
+				Layout-mangement
+											*/
+	class LayoutConstraint
+	{
+		public:
+			/*void   setAbsolute(Bounds coordinates);
+			Bounds getAbsolute(void);*/
+	};
+	
+	class Layout
+	{
+		public:
+			struct Bounds
+			{
+				float x;
+				float y;
+				float w;
+				float h;
+				
+				Bounds()
+				{
+					this->x = 0.0f;
+					this->y = 0.0f;
+					this->w = 0.0f;
+					this->h = 0.0f;
+				}
+				
+				Bounds(float x, float y, float w, float h)
+				{
+					this->x = x;
+					this->y = y;
+					this->w = w;
+					this->h = h;
+				}  
+			};
+			
+			LayoutConstraint getConstraint(int id);
+			void setConstraint(int id, LayoutConstraint constraint);
+			void layout();
+	};
+	
+	
+	
+	/*
+					Component
+											*/
+	typedef std::list<Component*>::iterator componentHandle;
 	
 	class Component : public Event
 	{
-	protected:
-		Layout*    layoutmgr;
-		Container* container;
-		Metrics*   metrics;
-		//Workspace* master;
-		
-		int id;
-		float x;
-		float y;
-		float w;
-		float h;
-		
-	public:
-		Component();
-		Component(float w, float h);
-		Component(float x, float y, float w, float h);
-		
-		bool isInsideArea(float x, float y);
-		
-		virtual void setParameter(void* param) {};
-		void setLayoutManager(Layout* layout);
-		
-		virtual void event(Core::MouseEvent evt, bool& handled);
-		virtual void event(Core::KeyboardEvent evt);
-		virtual void event(WindowEvent evt);
-		
-		virtual void paint();
-		friend class Workspace;
+		protected:
+			class Container
+			{
+				protected:
+					std::list<Component*> components;
+				public:
+					componentHandle add(Component* component);
+					Component* get(componentHandle handle);
+					void remove(componentHandle handle);
+					void clear();
+					bool isEmpty();
+					void paintAll();
+			};
+			
+			struct Bounds
+			{
+				float x;
+				float y;
+				float w;
+				float h;
+				
+				Bounds()
+				{
+					x = 0.0f;
+					y = 0.0f;
+					w = 1.0f;
+					h = 1.0f;
+				}
+			};
+	
+			Layout*    layoutmgr;
+			Container* container;
+			Metrics*   metrics;
+			
+			bool visible;
+			Bounds dimensions;
+			
+			virtual void paint();
+		public:
+			Component();
+			Component(float w, float h);
+			Component(float x, float y, float w, float h);
+			~Component();
+			
+			componentHandle add(Component* comp);
+			Component* get(componentHandle comp);
+			void remove(componentHandle comp);
+			
+			virtual bool isInsideArea(float x, float y);
+			
+			void setLayoutManager(Layout* layout);
+			void setVisible(bool state);
+			
+			virtual void setSize(float w, float h);
+			virtual void setPosition(float x, float y);
+			
+			virtual void event(Core::MouseEvent evt, bool& handled);
+			virtual void event(Core::KeyboardEvent evt);
+			virtual void event(WindowEvent evt);
+			
+			void paintComponent();
+			
+			friend class Workspace;
 	};
 	
-	class Frame;
-	
-	/* Window-Management */	
-	class Workspace : public Event
+	class Frame : public Component
 	{
-		public:
-			typedef enum {
-				BOTTOM,
-				USERSPACE,
-				ALWAYSONTOP
-			} LayerIndex;
-			
+		private:
+			virtual void paintBackground() {};
+			virtual void paintGlass() {};
+		protected:
 			typedef enum {
 				DEFAULT,
 				CENTERPARENT,
@@ -357,99 +452,63 @@ namespace GUI
 				USERDEFINED
 			} StartLocation;
 			
+			typedef enum {
+					BOTTOM = 0,
+					STANDARD = 1,
+					POPUP = 2,
+					END = 3
+			} LayerIndex;
+		
+			struct WindowParameter
+			{
+				LayerIndex layer;
+				StartLocation location;
+				Frame* parent;
+				Metrics* met;
+			};
+			
+			StartLocation	start;
+			WindowParameter parameters;
+			Bounds			windowDimensions;
+			
+			void paint();
+		public:
+			Frame(float x, float y, float w, float h, WindowParameter param);
+			Frame(float w, float h, WindowParameter param);
+			Frame(WindowParameter param);
+			~Frame();
+			
+			friend class Workspace;
+	};
+	
+	typedef std::list<Frame*>::iterator windowHandle;
+	
+	/* Window-Management */	
+	class Workspace : Event
+	{
 		private:
 			std::list<Frame*> win;
+			std::list<Frame*>::iterator bottom; /* layer-pointers */
+			std::list<Frame*>::iterator standard;
+			std::list<Frame*>::iterator popup;
+			
 		protected:
 			Metrics* met;
 		
-			void paintWindows(LayerIndex layer);
+			void paintWindows(Frame::LayerIndex layer);
 			void paintTooltips();
 			void paintDialogs();
+			
 		public:
 			Workspace(int native_w, int native_h, float monitorsize, bool streched);
 			
 			void paint();
 			
-			std::list<Component*>::iterator add(Component elem);
-			void remove(std::list<Component*>::iterator elem);
-			void remove(Component* elem);
-			void positionate(Component elem, LayerIndex z);
+			windowHandle add(Frame* elem);
+			void remove(windowHandle elem);
+			void remove(Frame* elem); /* SLOW! use remove(componentHandle) */
+			void positionate(windowHandle elem, Frame::LayerIndex z);
 	};
-	
-	struct Bounds
-	{
-		float x;
-		float y;
-		float w;
-		float h;
-		
-		Bounds()
-		{
-			this->x = 0.0f;
-			this->y = 0.0f;
-			this->w = 0.0f;
-			this->h = 0.0f;
-		}
-		
-		Bounds(float x, float y, float w, float h)
-		{
-			this->x = x;
-			this->y = y;
-			this->w = w;
-			this->h = h;
-		}  
-	};
-	
-	class LayoutConstraint
-	{
-		public:
-			void   setAbsolute(Bounds coordinates);
-			Bounds getAbsolute(void);
-	};
-	
-	class Layout
-	{
-		public:
-			LayoutConstraint getConstraint(int id);
-			void setConstraint(int id, LayoutConstraint constraint);
-			void layout();
-	};
-	
-	class Container
-	{
-		protected:
-			std::vector<Component*> components;
-		public:
-			void add(Component* component, void* param);
-			void remove(Component* component);
-			void clear();
-	};
-	
-	class Frame : public Component
-	{
-		protected:
-			struct WindowParameter
-			{
-				Workspace::LayerIndex layer;
-				
-				Workspace::StartLocation location;
-				
-				Frame* parent;
-			};
-		
-			WindowParameter parameters;
-			
-		public:
-			Frame(float x, float y, float w, float h, WindowParameter param);
-			Frame(float w, float h, WindowParameter param);
-			Frame(WindowParameter param);
-			
-			void setSize(float w, float h);
-			void setPosition(float x, float y);
-		
-		friend class Workspace;
-	};
-
 }
 
 #ifdef DEBUG_DEP

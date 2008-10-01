@@ -56,7 +56,7 @@ namespace GUI
 			
 			glPopMatrix();
 			*/
-			testComponent->paint();
+			testComponent->paintComponent();
 			
 			glFlush();
 			SDL_GL_SwapBuffers();
@@ -133,7 +133,11 @@ namespace GUI
 			met = new GUI::Metrics(1440, 900, 800, 600, true, 15.4f, false);
 			met->scale();
 			
-			testComponent = new Component(0.0f, 0.0f, 10.0f, 5.0f);
+			float w = 10.0f;
+			float h = 2.0f;
+			met->scaleFactorCM(w, h);
+			
+			testComponent = new Component(0.0f, 0.0f, w, h);
 			
 			Core::mainLoop();
 		}
