@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: nightfall 0.1\n"
 "Report-Msgid-Bugs-To: bugs@nightfall-rts.org\n"
-"POT-Creation-Date: 2008-10-02 10:30+0200\n"
+"POT-Creation-Date: 2008-10-02 22:46+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -197,50 +197,54 @@ msgstr ""
 msgid "Number of players: "
 msgstr ""
 
-#: src/main.cpp:91
+#: src/main.cpp:79
+msgid "Welcome to Nightfall!"
+msgstr ""
+
+#: src/main.cpp:92
 msgid "Failed to initialize SDL!"
 msgstr ""
 
-#: src/main.cpp:91 src/main.cpp:123 src/main.cpp:134
+#: src/main.cpp:92 src/main.cpp:124 src/main.cpp:135
 msgid "An error occurred"
 msgstr ""
 
-#: src/main.cpp:93
+#: src/main.cpp:94
 msgid "Failed to initialize SDL: "
 msgstr ""
 
-#: src/main.cpp:98
+#: src/main.cpp:99
 msgid "One instance of SDL has already been initialized."
 msgstr ""
 
-#: src/main.cpp:114
+#: src/main.cpp:115
 msgid "config.txt could not be parsed!"
 msgstr ""
 
-#: src/main.cpp:123 src/main.cpp:125
+#: src/main.cpp:124 src/main.cpp:126
 msgid "Window subsystem could not be initialized!"
 msgstr ""
 
-#: src/main.cpp:134 src/main.cpp:136
+#: src/main.cpp:135 src/main.cpp:137
 msgid "Font Init Error."
 msgstr ""
 
-#: src/main.cpp:141
+#: src/main.cpp:142
 msgid "Initializing Soundsytem"
 msgstr ""
 
-#: src/main.cpp:152
+#: src/main.cpp:153
 msgid "SDLNet_Init Error: "
 msgstr ""
 
-#: src/main.cpp:157
+#: src/main.cpp:158
 msgid "Loading World"
 msgstr ""
 
-#: src/main.cpp:185
+#: src/main.cpp:186
 msgid "Loading main game..."
 msgstr ""
 
-#: src/main.cpp:379
+#: src/main.cpp:380
 msgid "Goodbye!"
 msgstr ""

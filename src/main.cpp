@@ -76,6 +76,7 @@ int main(int argc, char** argv)
 #ifdef WIN32
 	//RedirectIOToConsole();
 #endif
+	std::cout << _("Welcome to Nightfall!") << std::endl;
 
 	Utilities::InitPaths(argv[0]);
 
