@@ -238,7 +238,7 @@ namespace Game
 		void WaitForNetwork()
 		{
 			Window::GUI::LoadWindow *pLoading = new Window::GUI::LoadWindow(1.0f);
-			pLoading->SetMessage("Awaiting network...");
+			pLoading->SetMessage(_("Awaiting network..."));
 			pLoading->SetProgress(0.0f);
 			float counter = 0.0f;
 			while(Networking::isReadyToStart == false)
@@ -323,18 +323,18 @@ namespace Game
 
 			p_lblMoney = new Window::GUI::InfoLabel();
 			p_lblMoney->AttachHandler(&GetMoney);
-			p_lblMoney->SetTooltip("Resource: Money");
+			p_lblMoney->SetTooltip(_("Resource: Money"));
 
 			p_lblPower = new Window::GUI::InfoLabel();
 			p_lblPower->AttachHandler(&GetPower);
-			p_lblPower->SetTooltip("Resource: Power");
+			p_lblPower->SetTooltip(_("Resource: Power"));
 
 			p_lblTime = new Window::GUI::InfoLabel();
 			p_lblTime->AttachHandler(&GetTime);
-			p_lblTime->SetTooltip("Time");
+			p_lblTime->SetTooltip(_("Time"));
 
 			sell = new Window::GUI::TextButton();
-			sell->SetText("Sell");
+			sell->SetText(_("Sell"));
 			sell->AttachHandler(&Sell);
 			sell->SetTag(this);
 			sell->SetType(1);
@@ -363,7 +363,7 @@ namespace Game
 
 			pConsole->SetType(0);
 			pConsole->PrepareBuffer();
-			console.WriteLine("Nightfall (Codename Twilight)");
+			console.WriteLine(_("Nightfall (Codename Twilight)"));
 			
 			pLoading->Increment(increment);
 
@@ -406,12 +406,12 @@ namespace Game
 		int GameWindow::NewGame(bool isNetworked, Networking::NETWORKTYPE ntype)
 		{
 			pLoading = new Window::GUI::LoadWindow(1.0f); //90% Game, 10% GUI
-			pLoading->SetMessage("Loading...");
+			pLoading->SetMessage(_("Loading..."));
 			pLoading->Update();
 
 			if (InitGame(true, isNetworked, ntype) != SUCCESS)
 			{
-				cout << "Failed to start game, see errors above to find out why." << endl;
+				cout << _("Failed to start game, see errors above to find out why.") << endl;
 				gameRunning = false;
 				return ERROR_GENERAL;
 			}
@@ -424,14 +424,14 @@ namespace Game
 		int GameWindow::LoadGame(bool isNetworked, Networking::NETWORKTYPE ntype)
 		{
 			pLoading = new Window::GUI::LoadWindow(1.0f); //90% Game, 10% GUI
-			pLoading->SetMessage("Loading...");
+			pLoading->SetMessage(_("Loading..."));
 			pLoading->Update();
 
 			Dimension::LoadGameSaveFile("save.xml");
 			
 			if (InitGame(false, isNetworked, ntype) != SUCCESS)
 			{
-				cout << "Failed to start game, see errors above to find out why." << endl;
+				cout << _("Failed to start game, see errors above to find out why.") << endl;
 				gameRunning = false;
 				return ERROR_GENERAL;
 			}

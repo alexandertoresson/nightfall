@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: nightfall 0.1\n"
 "Report-Msgid-Bugs-To: bugs@nightfall-rts.org\n"
-"POT-Creation-Date: 2008-10-01 23:28+0200\n"
+"POT-Creation-Date: 2008-10-02 10:30+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -16,50 +16,231 @@ msgstr ""
 "Content-Type: text/plain; charset=CHARSET\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-#: src/main.cpp:81
+#: src/game.cpp:241
+msgid "Awaiting network..."
+msgstr ""
+
+#: src/game.cpp:326
+msgid "Resource: Money"
+msgstr ""
+
+#: src/game.cpp:330
+msgid "Resource: Power"
+msgstr ""
+
+#: src/game.cpp:334
+msgid "Time"
+msgstr ""
+
+#: src/game.cpp:337
+msgid "Sell"
+msgstr ""
+
+#: src/game.cpp:366
+msgid "Nightfall (Codename Twilight)"
+msgstr ""
+
+#: src/game.cpp:409 src/game.cpp:427
+msgid "Loading..."
+msgstr ""
+
+#: src/game.cpp:414 src/game.cpp:434
+msgid "Failed to start game, see errors above to find out why."
+msgstr ""
+
+#: src/gamegui.cpp:51
+msgid "Start the game"
+msgstr ""
+
+#: src/gamegui.cpp:56
+msgid "Load a game"
+msgstr ""
+
+#: src/gamegui.cpp:61
+msgid "About"
+msgstr ""
+
+#: src/gamegui.cpp:66 src/gamegui.cpp:2166 src/gamegui.cpp:2279
+#: src/gamegui.cpp:2348
+msgid "Quit"
+msgstr ""
+
+#: src/gamegui.cpp:71
+msgid "Multiplayer"
+msgstr ""
+
+#: src/gamegui.cpp:134
+msgid "Load"
+msgstr ""
+
+#: src/gamegui.cpp:134
+msgid "Save"
+msgstr ""
+
+#: src/gamegui.cpp:197
+msgid "Continue"
+msgstr ""
+
+#: src/gamegui.cpp:202
+msgid "End Game"
+msgstr ""
+
+#: src/gamegui.cpp:207
+msgid "Quit To OS"
+msgstr ""
+
+#: src/gamegui.cpp:265
+msgid "Exit"
+msgstr ""
+
+#: src/gamegui.cpp:308
+msgid "Power: "
+msgstr ""
+
+#: src/gamegui.cpp:326
+msgid "Money: "
+msgstr ""
+
+#: src/gamegui.cpp:337
+msgid "Time: "
+msgstr ""
+
+#: src/gamegui.cpp:884
+msgid "This feature has been disabled."
+msgstr ""
+
+#: src/gamegui.cpp:1393
+msgid "Move - Attack"
+msgstr ""
+
+#: src/gamegui.cpp:1402
+msgid "Stop"
+msgstr ""
+
+#: src/gamegui.cpp:1411
+msgid "Build"
+msgstr ""
+
+#: src/gamegui.cpp:2162
+msgid "Connect"
+msgstr ""
+
+#: src/gamegui.cpp:2170
+msgid "Awaiting input..."
+msgstr ""
+
+#: src/gamegui.cpp:2179
+msgid "Host:"
+msgstr ""
+
+#: src/gamegui.cpp:2193
+msgid "Connected, joining...awaiting confirmation"
+msgstr ""
+
+#: src/gamegui.cpp:2201
+msgid "Join accepted."
+msgstr ""
+
+#: src/gamegui.cpp:2217
+msgid "Join failed."
+msgstr ""
+
+#: src/gamegui.cpp:2221
+msgid "Join cancelled."
+msgstr ""
+
+#: src/gamegui.cpp:2225
+msgid "Join rejected."
+msgstr ""
+
+#: src/gamegui.cpp:2244
+msgid "Attempting to connect."
+msgstr ""
+
+#: src/gamegui.cpp:2248
+msgid "Failed to resolve"
+msgstr ""
+
+#: src/gamegui.cpp:2271
+msgid "Join game"
+msgstr ""
+
+#: src/gamegui.cpp:2275
+msgid "Create game"
+msgstr ""
+
+#: src/gamegui.cpp:2283
+msgid "Port: "
+msgstr ""
+
+#: src/gamegui.cpp:2284
+msgid "Nickname: "
+msgstr ""
+
+#: src/gamegui.cpp:2298
+msgid "NoName"
+msgstr ""
+
+#: src/gamegui.cpp:2342
+msgid "Awaiting connections"
+msgstr ""
+
+#: src/gamegui.cpp:2344
+msgid "Start game"
+msgstr ""
+
+#: src/gamegui.cpp:2381
+msgid "Awaiting start."
+msgstr ""
+
+#: src/gamegui.cpp:2386
+msgid "Number of players: "
+msgstr ""
+
+#: src/main.cpp:91
 msgid "Failed to initialize SDL!"
 msgstr ""
 
-#: src/main.cpp:81 src/main.cpp:113 src/main.cpp:124
+#: src/main.cpp:91 src/main.cpp:123 src/main.cpp:134
 msgid "An error occurred"
 msgstr ""
 
-#: src/main.cpp:83
+#: src/main.cpp:93
 msgid "Failed to initialize SDL: "
 msgstr ""
 
-#: src/main.cpp:88
+#: src/main.cpp:98
 msgid "One instance of SDL has already been initialized."
 msgstr ""
 
-#: src/main.cpp:104
+#: src/main.cpp:114
 msgid "config.txt could not be parsed!"
 msgstr ""
 
-#: src/main.cpp:113 src/main.cpp:115
+#: src/main.cpp:123 src/main.cpp:125
 msgid "Window subsystem could not be initialized!"
 msgstr ""
 
-#: src/main.cpp:124 src/main.cpp:126
+#: src/main.cpp:134 src/main.cpp:136
 msgid "Font Init Error."
 msgstr ""
 
-#: src/main.cpp:131
+#: src/main.cpp:141
 msgid "Initializing Soundsytem"
 msgstr ""
 
-#: src/main.cpp:142
+#: src/main.cpp:152
 msgid "SDLNet_Init Error: "
 msgstr ""
 
-#: src/main.cpp:147
+#: src/main.cpp:157
 msgid "Loading World"
 msgstr ""
 
-#: src/main.cpp:175
+#: src/main.cpp:185
 msgid "Loading main game..."
 msgstr ""
 
-#: src/main.cpp:369
+#: src/main.cpp:379
 msgid "Goodbye!"
 msgstr ""

@@ -48,27 +48,27 @@ namespace Game
 		GameMenu::GameMenu()
 		{
 			pStart = new Window::GUI::TextButton();
-			pStart->SetText("Start the game");
+			pStart->SetText(_("Start the game"));
 			pStart->SetTag((void*)new Internal(this, NEWGAME));
 			pStart->AttachHandler(&GameMenu::ActionSelect);
 
 			pLoad = new Window::GUI::TextButton();
-			pLoad->SetText("Load a game");
+			pLoad->SetText(_("Load a game"));
 			pLoad->SetTag((void*)new Internal(this, LOADGAME));
 			pLoad->AttachHandler(&GameMenu::ActionSelect);
 
 			pCredits = new Window::GUI::TextButton();
-			pCredits->SetText("About");
+			pCredits->SetText(_("About"));
 			pCredits->SetTag((void*)new Internal(this, CREDITS));
 			pCredits->AttachHandler(&GameMenu::ActionSelect);
 
 			pQuit = new Window::GUI::TextButton();
-			pQuit->SetText("Quit");
+			pQuit->SetText(_("Quit"));
 			pQuit->SetTag((void*)new Internal(this, QUIT));
 			pQuit->AttachHandler(&GameMenu::ActionSelect);
 
 			pMultiplayer = new Window::GUI::TextButton();
-			pMultiplayer->SetText("Multiplayer");
+			pMultiplayer->SetText(_("Multiplayer"));
 			pMultiplayer->SetTag((void*)new Internal(this, MULTIPLAYER));
 			pMultiplayer->AttachHandler(&GameMenu::ActionSelect);
 
@@ -131,7 +131,7 @@ namespace Game
 			this->path = ".";
 
 			pHeader = new Window::GUI::Label();
-			pHeader->SetText((mode == FileBrowserDialog::MODE_LOAD) ? "Load" : "Save");
+			pHeader->SetText((mode == FileBrowserDialog::MODE_LOAD) ? _("Load") : _("Save"));
 
 			pMainPanel = new Panel();
 			SetPanel(pMainPanel);
@@ -194,17 +194,17 @@ namespace Game
 		{
 
 			pContinue = new Window::GUI::TextButton();
-			pContinue->SetText("Continue");
+			pContinue->SetText(_("Continue"));
 			pContinue->SetTag((void*)new Internal(this, GAME));
 			pContinue->AttachHandler(&GameInGameMenu::ActionSelect);
 
 			pEndGame = new Window::GUI::TextButton();
-			pEndGame->SetText("End Game");
+			pEndGame->SetText(_("End Game"));
 			pEndGame->SetTag((void*)new Internal(this, ENDGAME));
 			pEndGame->AttachHandler(&GameInGameMenu::ActionSelect);
 
 			pQuit = new Window::GUI::TextButton();
-			pQuit->SetText("Quit To OS");
+			pQuit->SetText(_("Quit To OS"));
 			pQuit->SetTag((void*)new Internal(this, QUIT));
 			pQuit->AttachHandler(&GameInGameMenu::ActionSelect);
 
@@ -262,7 +262,7 @@ namespace Game
 			pMainPanel->SetConstraint(textbox, 0.2f, 0.2f, 0.5f, Fonts.GetLineHeight(xUnit));
 			pMainPanel->SetConstraint(button, 0.1f, 0.5f, this->w - 0.2f, 0.1f);
 
-			pExit->SetText("Exit");
+			pExit->SetText(_("Exit"));
 
 			pMainPanel->SetFocusEnabled(true);
 			pMainPanel->SetFocus(textbox);
@@ -305,7 +305,7 @@ namespace Game
 				change_str = sstr2.str();
 
 			sstr << (int) player->resources.power;
-			return "Power: " + sstr.str() + " (" + change_str + ")";
+			return _("Power: ") + sstr.str() + " (" + change_str + ")";
 		}
 
 		string GetMoney()
@@ -323,7 +323,7 @@ namespace Game
 				change_str = sstr2.str();
 
 			sstr << (int) player->resources.money;
-			return "Money: " + sstr.str() + " (" + change_str + ")";
+			return _("Money: ") + sstr.str() + " (" + change_str + ")";
 		}
 
 		string GetTime()
@@ -334,7 +334,7 @@ namespace Game
 			sstr << setfill('0') << setw(2) << (int) pDimension->GetCurrentHour();
 			sstr2 << setfill('0') << setw(2) << (int) (pDimension->GetCurrentHour() * 60) % 60;
 
-			return "Time: " + sstr.str() + ":" + sstr2.str();
+			return _("Time: ") + sstr.str() + ":" + sstr2.str();
 		}
 
 		int GameInput::Paint()
@@ -881,7 +881,7 @@ namespace Game
 						case SDLK_BREAK:
 						{
 							if (Networking::isNetworked)
-								console << "This feature has been disabled." << Console::nl;
+								console << _("This feature has been disabled.") << Console::nl;
 							else
 							{
 								pGame->pause = !pGame->pause;
@@ -1390,7 +1390,7 @@ namespace Game
 
 			MoveAttack->AttachHandler(&ActionSelected);
 			MoveAttack->SetTag((void*)intern);
-			MoveAttack->SetTooltip("Move - Attack");
+			MoveAttack->SetTooltip(_("Move - Attack"));
 			MoveAttack->SetPicture(nopic);
 
 			intern = new UnitActions::InternalHandler();
@@ -1399,7 +1399,7 @@ namespace Game
 
 			Stop->AttachHandler(&ActionSelected);
 			Stop->SetTag((void*)intern);
-			Stop->SetTooltip("Stop");
+			Stop->SetTooltip(_("Stop"));
 			Stop->SetPicture(Utilities::LoadTexture("textures/symbol_stop.png"));
 
 			intern = new UnitActions::InternalHandler();
@@ -1408,7 +1408,7 @@ namespace Game
 
 			Build->AttachHandler(&ActionSelected);
 			Build->SetTag((void*)intern);
-			Build->SetTooltip("Build");
+			Build->SetTooltip(_("Build"));
 			Build->SetPicture(Utilities::LoadTexture("textures/symbol_build.png"));
 
 			this->nopic = nopic;
@@ -2159,15 +2159,15 @@ namespace Game
 
 			this->SetPanel(pMainPanel);
 
-			pConnect->SetText("Koppla upp");
+			pConnect->SetText(_("Connect"));
 			pConnect->AttachHandler(&Connect);
 			pConnect->SetTag(this);
 
-			pQuit->SetText("Avsluta");
+			pQuit->SetText(_("Quit"));
 			pQuit->AttachHandler(&Quit);
 			pQuit->SetTag(this);
 
-			pStatus->SetText("Awaiting input...");
+			pStatus->SetText(_("Awaiting input..."));
 
 			pMainPanel->SetConstraintPercent(pMainPanel->Add(pIPAdress), 0.1, 0.1, 0.4, Fonts.GetLineHeight(xUnit));
 			pMainPanel->SetConstraintPercent(pMainPanel->Add(pIPText), 0.5, 0.1, 0.4, Fonts.GetLineHeight(xUnit));
@@ -2176,7 +2176,7 @@ namespace Game
 			pMainPanel->SetConstraintPercent(pMainPanel->Add(pStatus), 0.1 , 0.5, 0.8, Fonts.GetLineHeight(xUnit));
 			pMainPanel->SetConstraintPercent(pMainPanel->Add(pQuit), 0.0, 0.9, 0.5, 0.1);
 
-			pIPAdress->SetText("Host:");
+			pIPAdress->SetText(_("Host:"));
 			pIPText->SetText(Game::Rules::host);
 			pIPText->SetMaxLen(60);
 
@@ -2190,7 +2190,7 @@ namespace Game
 
 			if(Networking::isClientConnected() == true && requestSent == false)
 			{
-				pStatus->SetText("Uppkopplad, joinar...awaiting confirmation");
+				pStatus->SetText(_("Connected, joining...awaiting confirmation"));
 				Networking::JoinGame();
 				requestSent = true;
 			}
@@ -2198,7 +2198,7 @@ namespace Game
 			Networking::JoinStatus stat = Networking::GetJoinStatus();
 			if(stat == Networking::JOIN_ACCEPTED)
 			{
-				pStatus->SetText("Join accepted.");
+				pStatus->SetText(_("Join accepted."));
 				if(Networking::isReadyToStart == true)
 				{
 					this->go = false;
@@ -2214,15 +2214,15 @@ namespace Game
 			}
 			else if(stat == Networking::JOIN_FAILED)
 			{
-				pStatus->SetText("Join failed.");
+				pStatus->SetText(_("Join failed."));
 			}
 			else if(stat == Networking::JOIN_CANCELLED)
 			{
-				pStatus->SetText("Join cancelled.");
+				pStatus->SetText(_("Join cancelled."));
 			}
 			else if(stat == Networking::JOIN_REJECTED)
 			{
-				pStatus->SetText("Join rejected.");
+				pStatus->SetText(_("Join rejected."));
 			}
 		}
 
@@ -2241,11 +2241,11 @@ namespace Game
 			pParent->Reset();
 			if(Networking::SetClientConnect(pParent->pIPText->GetText()) == SUCCESS)
 			{
-				pParent->pStatus->SetText("Attempting to connect.");
+				pParent->pStatus->SetText(_("Attempting to connect."));
 			}
 			else
 			{
-				pParent->pStatus->SetText("Failed to resolve");
+				pParent->pStatus->SetText(_("Failed to resolve"));
 			}
 		}
 
@@ -2268,20 +2268,20 @@ namespace Game
 			pMainPanel = new Window::GUI::Panel();
 
 			this->SetPanel(pMainPanel);
-			pJoin->SetText("Anslut till spel");
+			pJoin->SetText(_("Join game"));
 			pJoin->SetTag(this);
 			pJoin->AttachHandler(&Join);
 
-			pCreate->SetText("Skapa spel");
+			pCreate->SetText(_("Create game"));
 			pCreate->SetTag(this);
 			pCreate->AttachHandler(&Create);
 
-			pQuit->SetText("Avsluta");
+			pQuit->SetText(_("Quit"));
 			pQuit->SetTag(this);
 			pQuit->AttachHandler(&Quit);
 
-			pPortText->SetText("Port: ");
-			pNickText->SetText("Nickname: ");
+			pPortText->SetText(_("Port: "));
+			pNickText->SetText(_("Nickname: "));
 
 			pNick->SetMaxLen(60);
 
@@ -2295,7 +2295,7 @@ namespace Game
 
 			pMainPanel->SetConstraintPercent(pMainPanel->Add(pQuit), 0.0, 0.9, 0.5, 0.1);
 
-			pNick->SetText("NoName");
+			pNick->SetText(_("NoName"));
 
 			stringstream ss;
 			ss << Networking::netPort;
@@ -2339,13 +2339,13 @@ namespace Game
 
 			this->SetPanel(pMainPanel);
 
-			pStatus->SetText("Awaiting connections");
+			pStatus->SetText(_("Awaiting connections"));
 
-			pStart->SetText("Starta spelet");
+			pStart->SetText(_("Start game"));
 			pStart->AttachHandler(&Start);
 			pStart->SetTag(this);
 
-			pQuit->SetText("Avsluta");
+			pQuit->SetText(_("Quit"));
 			pQuit->AttachHandler(&Quit);
 			pQuit->SetTag(this);
 
@@ -2378,12 +2378,12 @@ namespace Game
 
 			if(awaitingGo)
 			{
-				pStatus->SetText("Awaiting start.");
+				pStatus->SetText(_("Awaiting start."));
 			}
 			else
 			{
 				stringstream str;
-				str << "Antal spelare: " << Networking::playerCounter;
+				str << _("Number of players: ") << Networking::playerCounter;
 				pStatus->SetText(str.str());
 				if (Game::Rules::numPlayersGoal && Networking::playerCounter == Game::Rules::numPlayersGoal)
 				{

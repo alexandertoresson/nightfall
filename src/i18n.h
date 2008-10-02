@@ -25,11 +25,15 @@
 
 #include "gettext.h"
 #define _(x) gettext(x)
+#define N_(s, p, n) ngettext(s, p, n)
 
 #else
 
-#define _(x) x
+#define _(x) (x)
+#define N_(s, p, n) ((n) == 1 ? (s) : (p)) // Fallback
 
 #endif // ENABLE_NLS
+
+#define M_(x) (x)
 
 #endif // __I18N_H__
