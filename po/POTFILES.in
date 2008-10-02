@@ -6,7 +6,6 @@ src/aibase.h
 src/ainode.h
 src/aipathfinding-pre.h
 src/aipathfinding.h
-src/array.h
 src/audio-pre.h
 src/audio.h
 src/baseactiondata.h
@@ -84,7 +83,6 @@ src/scenegraph.h
 src/sdlheader.h
 src/selectorxml-pre.h
 src/selectorxml.h
-src/static_array.h
 src/terrain-pre.h
 src/terrain.h
 src/textures.h
