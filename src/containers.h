@@ -33,14 +33,14 @@ namespace GUI
 {
 	namespace Containers
 	{
-		class TablePanel : public Component
+		class TablePanel : public Container
 		{
 			TablePanel(int cols, int rows);
 
 			void add(Component* comp, int col, int row);
 		};
 
-		class DockPanel : public Component
+		class DockPanel : public Container
 		{
 			enum DockPosition
 			{
@@ -56,7 +56,7 @@ namespace GUI
 			void add(Component* comp, DockPosition pos);
 		};
 
-		class FlowPanel : public Component
+		class FlowPanel : public Container
 		{
 			void add(Component* comp, int position=-1);
 			void add(Component* comp, std::string key);

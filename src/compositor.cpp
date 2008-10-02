@@ -247,11 +247,6 @@ namespace GUI
 		this->dimensions.y = y;
 	}
 	
-	void Component::setLayoutManager(Layout* layout)
-	{
-		this->layoutmgr = layout;
-	}
-	
 	void Component::event(Core::MouseEvent evt, bool& handled)
 	{
 		handled = false;
@@ -267,7 +262,7 @@ namespace GUI
 	}
 	
 	/** COMPONENT::CONTAINER ******************************************************/
-	componentHandle Component::Container::add(Component* component)
+	componentHandle Container::add(Component* component)
 	{
 		components.push_back(component);
 		componentHandle last = components.end();

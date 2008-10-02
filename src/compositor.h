@@ -326,11 +326,11 @@ namespace GUI
 	/*
 				Layout-mangement
 											*/
-	class LayoutConstraint
+/*	class LayoutConstraint
 	{
 		public:
-			/*void   setAbsolute(Bounds coordinates);
-			Bounds getAbsolute(void);*/
+			(*void   setAbsolute(Bounds coordinates);
+			Bounds getAbsolute(void);*)
 	};
 	
 	class Layout
@@ -363,7 +363,7 @@ namespace GUI
 			LayoutConstraint getConstraint(int id);
 			void setConstraint(int id, LayoutConstraint constraint);
 			void layout();
-	};
+	};*/
 	
 	
 	
@@ -375,18 +375,6 @@ namespace GUI
 	class Component : public Event
 	{
 		protected:
-			class Container
-			{
-				protected:
-					std::list<Component*> components;
-				public:
-					componentHandle add(Component* component);
-					Component* get(componentHandle handle);
-					void remove(componentHandle handle);
-					void clear();
-					bool isEmpty();
-					void paintAll();
-			};
 			
 			struct Bounds
 			{
@@ -402,14 +390,11 @@ namespace GUI
 					w = 1.0f;
 					h = 1.0f;
 				}
-			};
+			} dimensions;
 	
-			Layout*    layoutmgr;
-			Container* container;
 			Metrics*   metrics;
 			
 			bool visible;
-			Bounds dimensions;
 			
 			virtual void paint();
 		public:
@@ -418,13 +403,8 @@ namespace GUI
 			Component(float x, float y, float w, float h);
 			~Component();
 			
-			componentHandle add(Component* comp);
-			Component* get(componentHandle comp);
-			void remove(componentHandle comp);
-			
 			virtual bool isInsideArea(float x, float y);
 			
-			void setLayoutManager(Layout* layout);
 			void setVisible(bool state);
 			
 			virtual void setSize(float w, float h);
@@ -439,7 +419,21 @@ namespace GUI
 			friend class Workspace;
 	};
 	
-	class Frame : public Component
+	class Container : public Component
+	{
+		protected:
+			std::list<Component*> components;
+			virtual void paint();
+		public:
+			componentHandle add(Component* component);
+			Component* get(componentHandle handle);
+			void remove(componentHandle handle);
+			void clear();
+			bool isEmpty();
+			void paintAll();
+	};
+
+	class Frame : public Container
 	{
 		private:
 			virtual void paintBackground() {};
