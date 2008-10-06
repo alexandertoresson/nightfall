@@ -67,6 +67,16 @@ namespace Utilities
 		ss << t;
 		return ss.str();
 	}
+	
+	template <class T2, class T>
+	inline T2 StringCast(const T& t)
+	{
+		std::stringstream ss;
+		T2 t2;
+		ss << t;
+		ss >> t2;
+		return t2;
+	}
 }
 
 #ifdef DEBUG_DEP

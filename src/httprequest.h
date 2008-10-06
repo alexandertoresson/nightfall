@@ -18,21 +18,17 @@
  * You should have received a copy of the GNU General Public License
  * along with Nightfall.  If not, see <http://www.gnu.org/licenses/>.
  */
-#ifndef __TRACKER_H__
-#define __TRACKER_H__
+#ifndef __HTTPREQUEST_H__
+#define __HTTPREQUEST_H__
 
 #ifdef DEBUG_DEP
-#warning "tracker.h"
+#warning "httprequest.h"
 #endif
 
-#include "tracker-pre.h"
-
-namespace Utilities
-{
-}
+#include "httprequest-pre.h"
 
 #ifdef DEBUG_DEP
-#warning "tracker.h-end"
+#warning "httprequest.h-end"
 #endif
 
 #endif

@@ -18,21 +18,40 @@
  * You should have received a copy of the GNU General Public License
  * along with Nightfall.  If not, see <http://www.gnu.org/licenses/>.
  */
-#ifndef __TRACKER_H__
-#define __TRACKER_H__
+#ifndef __HTTPREQUEST_H_PRE__
+#define __HTTPREQUEST_H_PRE__
 
 #ifdef DEBUG_DEP
-#warning "tracker.h"
+#warning "httprequest.h-pre"
 #endif
 
-#include "tracker-pre.h"
+#include <string>
+#include <map>
 
 namespace Utilities
 {
-}
+	class HTTPRequest
+	{
+		private:
+			static int _Thread(void *arg);
+			std::string URLEscape(std::string str);
+		protected:
+			std::string request;
+			std::string host;
+			int port;
 
-#ifdef DEBUG_DEP
-#warning "tracker.h-end"
-#endif
+			int statusCode;
+			std::map<std::string, std::string> header;
+			std::string ret;
+			
+			void Fetch(std::string host, int port, std::string request);
+		public:
+			void Fetch(std::string method, std::string host, int port, std::string path, std::map<std::string, std::string> params, std::map<std::string, std::string> header, std::string contents);
+			void GET(std::string url, std::map<std::string, std::string> params);
+
+			virtual void Handle() = 0;
+			virtual void Fail() = 0;
+	};
+}
 
 #endif

@@ -21,30 +21,31 @@
 #include "tracker.h"
 #include "game.h"
 #include "utilities.h"
+#include "httprequest.h"
 
 #include "sdlheader.h"
 
 namespace Utilities
 {
-	class BeginRequest : public Utilities::CURLRequest
+	class BeginRequest : public Utilities::HTTPRequest
 	{
 		void Fail()
 		{
 			std::cout << "Failed to connect to tracker; retrying in 5s" << std::endl;
 			SDL_Delay(5000);
-			(new BeginRequest)->Fetch(url);
+			(new BeginRequest)->Fetch(host, port, request);
 		}
 
 		void Handle()
 		{
-			if (ret.find("OK", 0) == 0 && ret.find("\n") != std::string::npos)
+/*			if (ret.find("OK", 0) == 0 && ret.find("\n") != std::string::npos)
 			{
 				gameTracker.SetSecretGameID(ret.substr(ret.find("\n")+1));
-			}
+			}*/
 		}
 	};
 
-	class GenericRequest : public Utilities::CURLRequest
+	class GenericRequest : public Utilities::HTTPRequest
 	{
 		void Fail()
 		{
@@ -72,7 +73,7 @@ namespace Utilities
 		params["freeplayerslots"] = Utilities::ToString(freeplayerslots);
 		params["freespectatorslots"] = Utilities::ToString(freespectatorslots);
 
-		(new BeginRequest)->HTTPGET("http://nightfall-rts.org/tracker/", params);
+		(new BeginRequest)->GET("http://nightfall-rts.org/tracker/", params);
 	}
 	
 	void Tracker::UpdateGame(int maxplayers, int freeplayerslots, int freespectatorslots, bool started)
@@ -89,7 +90,7 @@ namespace Utilities
 
 		if (secretgameid.length())
 		{
-			(new GenericRequest)->HTTPGET("http://nightfall-rts.org/tracker/", params);
+			(new GenericRequest)->GET("http://nightfall-rts.org/tracker/", params);
 		}
 		else
 		{
@@ -106,7 +107,7 @@ namespace Utilities
 			params["cmd"] = "end";
 			params["secretgameid"] = secretgameid;
 
-			(new GenericRequest)->HTTPGET("http://nightfall-rts.org/tracker/", params);
+			(new GenericRequest)->GET("http://nightfall-rts.org/tracker/", params);
 
 			secretgameid = "";
 		}
@@ -129,7 +130,7 @@ namespace Utilities
 			if (!unsentUpdate.empty())
 			{
 				unsentUpdate["secretgameid"] = secretgameid;
-				(new GenericRequest)->HTTPGET("http://nightfall-rts.org/tracker/", unsentUpdate);
+				(new GenericRequest)->GET("http://nightfall-rts.org/tracker/", unsentUpdate);
 			}
 		}
 	}
