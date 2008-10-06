@@ -140,7 +140,7 @@ namespace Utilities
 	{
 		std::string name;
 		float length;
-		std::vector<OgreAnimationTrack> tracks;
+		std::vector<gc_ptr<OgreAnimationTrack> > tracks;
 
 		void shade() const
 		{
