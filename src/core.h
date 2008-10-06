@@ -43,10 +43,11 @@ namespace Core
 		 */
 		enum MouseEventType
 		{
-			MOUSEUP,    /**< Mousebutton up   */
-			MOUSEDOWN,  /**< Mousebutton down */
-			MOUSEMOVE,  /**< Mousemotion      */
-			MOUSESCROLL /**< Mouse scrolling  */
+			MOUSEUP,     /**< Mousebutton up   */
+			MOUSEDOWN,   /**< Mousebutton down */
+			MOUSEMOVE,   /**< Mousemotion      */
+			MOUSESCROLL, /**< Mouse scrolling  */
+			MOUSENONE
 		};
 		
 		SDL_Event* pEvent;
@@ -58,6 +59,8 @@ namespace Core
 		
 		int x;      /**< Absolute x-axis mouse position */
 		int y;      /**< Absolute y-axis mouse position */
+
+		MouseEvent() : pEvent(NULL), type(MOUSENONE), button(0), state(0), x(0), y(0) {}
 	};
 	
 	/**
@@ -133,7 +136,7 @@ namespace Core
 		public:
 			eventMouse fptr;
 			
-			MouseListener(eventMouse fptr)
+			MouseListener(eventMouse fptr) : fptr(fptr)
 			{
 				this->fptr = fptr;
 			}

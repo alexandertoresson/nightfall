@@ -278,7 +278,7 @@ namespace Core
 	void mainLoop()
 	{
 		int last_time = SDL_GetTicks();
-		int frames;
+		int frames = 0;
 		//float mean[10];  - will be used for better frame timings
 		//int mean_ptr = 0;
 		float time_diff = 0.0f;
