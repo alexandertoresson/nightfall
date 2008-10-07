@@ -279,10 +279,11 @@ namespace Utilities
 					int length;
 
 					index = contents.find("\r\n", lastIndex);
-					lastIndex = index+2;
 
-					ss << std::hex << contents.substr(lastIndex, index-lastIndex);
-					ss >> length;
+					ss << contents.substr(lastIndex, index-lastIndex);
+					ss >> std::hex >> length;
+
+					lastIndex = index+2;
 
 					if (length == 0 || index == std::string::npos)
 					{
@@ -290,7 +291,7 @@ namespace Utilities
 					}
 
 					decoded += contents.substr(lastIndex, length);
-					lastIndex += length;
+					lastIndex += length+2;
 
 				}
 

@@ -38,10 +38,19 @@ namespace Utilities
 
 		void Handle()
 		{
-/*			if (ret.find("OK", 0) == 0 && ret.find("\n") != std::string::npos)
+			if (statusCode == 200)
 			{
-				gameTracker.SetSecretGameID(ret.substr(ret.find("\n")+1));
-			}*/
+				if (ret.find("OK", 0) == 0 && ret.find("\n") != std::string::npos)
+				{
+					gameTracker.SetSecretGameID(ret.substr(ret.find("\n")+1));
+				}
+			}
+			else
+			{
+				std::cout << "Failed to connect to tracker; retrying in 5s" << std::endl;
+				SDL_Delay(5000);
+				(new BeginRequest)->Fetch(host, port, request);
+			}
 		}
 	};
 
