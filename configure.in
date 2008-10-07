@@ -50,15 +50,6 @@ if @<:@ -z `pkg-config --version` @:>@; then
 		LUA_LIBS=`lua-config50 --libs --extralibs`
 	fi
 
-	echo -n "checking for libcurl 7.x... "
-	curl-config --checkfor 7.0.0
-	if @<:@ "$?" -ne 0 @:>@; then
-		AC_MSG_ERROR("libcurl library could not be found!")
-	else
-		echo "libcurl found!"
-		CURL_CFLAGS=`curl-config --cflags`
-		CURL_LIBS=`curl-config --libs`
-	fi
 else
 	PKG_CHECK_MODULES(SDL, sdl >= 1.2.0,,
 	[
@@ -88,23 +79,10 @@ else
 			])
 		])
 	])
-	PKG_CHECK_MODULES(CURL, libcurl >= 7.0.0,,
-	[
-		echo -n "libcurl could not be found using pkg-config, falling back to curl-config... "
-
-		curl-config --checkfor 7.0.0
-		if @<:@ "$?" -ne 0 @:>@; then
-			AC_MSG_ERROR("libcurl library could not be found!")
-		else
-			echo "libcurl found!"
-			CURL_CFLAGS=`curl-config --cflags`
-			CURL_LIBS=`curl-config --libs`
-		fi
-	])
 fi
 
-CFLAGS="$LUA_CFLAGS $SDL_CFLAGS $CURL_CFLAGS"
-LIBS="$LUA_LIBS $SDL_LIBS $CURL_LIBS $LIBS"
+CFLAGS="$LUA_CFLAGS $SDL_CFLAGS"
+LIBS="$LUA_LIBS $SDL_LIBS $LIBS"
 
 AC_CHECK_LIB(SDL_mixer,Mix_LoadMUS,[],[AC_MSG_ERROR("SDL_mixer library could not be found!")])
 AC_CHECK_LIB(SDL_image,IMG_Load,[],[AC_MSG_ERROR("SDL_image library could not be found!")])

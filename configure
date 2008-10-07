@@ -693,8 +693,6 @@ SDL_CFLAGS
 SDL_LIBS
 LUA_CFLAGS
 LUA_LIBS
-CURL_CFLAGS
-CURL_LIBS
 LIBOBJS
 LTLIBOBJS'
 ac_subst_files=''
@@ -714,9 +712,7 @@ PKG_CONFIG
 SDL_CFLAGS
 SDL_LIBS
 LUA_CFLAGS
-LUA_LIBS
-CURL_CFLAGS
-CURL_LIBS'
+LUA_LIBS'
 
 
 # Initialize some variables set by options.
@@ -1326,8 +1322,6 @@ Some influential environment variables:
   SDL_LIBS    linker flags for SDL, overriding pkg-config
   LUA_CFLAGS  C compiler flags for LUA, overriding pkg-config
   LUA_LIBS    linker flags for LUA, overriding pkg-config
-  CURL_CFLAGS C compiler flags for CURL, overriding pkg-config
-  CURL_LIBS   linker flags for CURL, overriding pkg-config
 
 Use these variables to override the choices made by `configure' or to help
 it to find libraries and programs with nonstandard names/locations.
@@ -6944,17 +6938,6 @@ echo "$as_me: error: \"LUA library 5.0.x or 5.1.x could not be found!\"" >&2;}
 		LUA_LIBS=`lua-config50 --libs --extralibs`
 	fi
 
-	echo -n "checking for libcurl 7.x... "
-	curl-config --checkfor 7.0.0
-	if [ "$?" -ne 0 ]; then
-		{ { echo "$as_me:$LINENO: error: \"libcurl library could not be found!\"" >&5
-echo "$as_me: error: \"libcurl library could not be found!\"" >&2;}
-   { (exit 1); exit 1; }; }
-	else
-		echo "libcurl found!"
-		CURL_CFLAGS=`curl-config --cflags`
-		CURL_LIBS=`curl-config --libs`
-	fi
 else
 
 
@@ -7760,107 +7743,10 @@ else
 echo "${ECHO_T}yes" >&6; }
 	:
 fi
-
-pkg_failed=no
-{ echo "$as_me:$LINENO: checking for CURL" >&5
-echo $ECHO_N "checking for CURL... $ECHO_C" >&6; }
-
-if test -n "$PKG_CONFIG"; then
-    if test -n "$CURL_CFLAGS"; then
-        pkg_cv_CURL_CFLAGS="$CURL_CFLAGS"
-    else
-        if test -n "$PKG_CONFIG" && \
-    { (echo "$as_me:$LINENO: \$PKG_CONFIG --exists --print-errors \"libcurl >= 7.0.0\"") >&5
-  ($PKG_CONFIG --exists --print-errors "libcurl >= 7.0.0") 2>&5
-  ac_status=$?
-  echo "$as_me:$LINENO: \$? = $ac_status" >&5
-  (exit $ac_status); }; then
-  pkg_cv_CURL_CFLAGS=`$PKG_CONFIG --cflags "libcurl >= 7.0.0" 2>/dev/null`
-else
-  pkg_failed=yes
-fi
-    fi
-else
-	pkg_failed=untried
-fi
-if test -n "$PKG_CONFIG"; then
-    if test -n "$CURL_LIBS"; then
-        pkg_cv_CURL_LIBS="$CURL_LIBS"
-    else
-        if test -n "$PKG_CONFIG" && \
-    { (echo "$as_me:$LINENO: \$PKG_CONFIG --exists --print-errors \"libcurl >= 7.0.0\"") >&5
-  ($PKG_CONFIG --exists --print-errors "libcurl >= 7.0.0") 2>&5
-  ac_status=$?
-  echo "$as_me:$LINENO: \$? = $ac_status" >&5
-  (exit $ac_status); }; then
-  pkg_cv_CURL_LIBS=`$PKG_CONFIG --libs "libcurl >= 7.0.0" 2>/dev/null`
-else
-  pkg_failed=yes
-fi
-    fi
-else
-	pkg_failed=untried
 fi
 
-
-
-if test $pkg_failed = yes; then
-
-if $PKG_CONFIG --atleast-pkgconfig-version 0.20; then
-        _pkg_short_errors_supported=yes
-else
-        _pkg_short_errors_supported=no
-fi
-        if test $_pkg_short_errors_supported = yes; then
-	        CURL_PKG_ERRORS=`$PKG_CONFIG --short-errors --errors-to-stdout --print-errors "libcurl >= 7.0.0"`
-        else
-	        CURL_PKG_ERRORS=`$PKG_CONFIG --errors-to-stdout --print-errors "libcurl >= 7.0.0"`
-        fi
-	# Put the nasty error message in config.log where it belongs
-	echo "$CURL_PKG_ERRORS" >&5
-
-	{ echo "$as_me:$LINENO: result: no" >&5
-echo "${ECHO_T}no" >&6; }
-
-		echo -n "libcurl could not be found using pkg-config, falling back to curl-config... "
-
-		curl-config --checkfor 7.0.0
-		if [ "$?" -ne 0 ]; then
-			{ { echo "$as_me:$LINENO: error: \"libcurl library could not be found!\"" >&5
-echo "$as_me: error: \"libcurl library could not be found!\"" >&2;}
-   { (exit 1); exit 1; }; }
-		else
-			echo "libcurl found!"
-			CURL_CFLAGS=`curl-config --cflags`
-			CURL_LIBS=`curl-config --libs`
-		fi
-
-elif test $pkg_failed = untried; then
-
-		echo -n "libcurl could not be found using pkg-config, falling back to curl-config... "
-
-		curl-config --checkfor 7.0.0
-		if [ "$?" -ne 0 ]; then
-			{ { echo "$as_me:$LINENO: error: \"libcurl library could not be found!\"" >&5
-echo "$as_me: error: \"libcurl library could not be found!\"" >&2;}
-   { (exit 1); exit 1; }; }
-		else
-			echo "libcurl found!"
-			CURL_CFLAGS=`curl-config --cflags`
-			CURL_LIBS=`curl-config --libs`
-		fi
-
-else
-	CURL_CFLAGS=$pkg_cv_CURL_CFLAGS
-	CURL_LIBS=$pkg_cv_CURL_LIBS
-        { echo "$as_me:$LINENO: result: yes" >&5
-echo "${ECHO_T}yes" >&6; }
-	:
-fi
-fi
-
-CFLAGS="$LUA_CFLAGS $SDL_CFLAGS $CURL_CFLAGS"
-LIBS="$LUA_LIBS $SDL_LIBS $CURL_LIBS $LIBS"
+CFLAGS="$LUA_CFLAGS $SDL_CFLAGS"
+LIBS="$LUA_LIBS $SDL_LIBS $LIBS"
 
 
 { echo "$as_me:$LINENO: checking for Mix_LoadMUS in -lSDL_mixer" >&5
@@ -9012,13 +8898,11 @@ SDL_CFLAGS!$SDL_CFLAGS$ac_delim
 SDL_LIBS!$SDL_LIBS$ac_delim
 LUA_CFLAGS!$LUA_CFLAGS$ac_delim
 LUA_LIBS!$LUA_LIBS$ac_delim
-CURL_CFLAGS!$CURL_CFLAGS$ac_delim
-CURL_LIBS!$CURL_LIBS$ac_delim
 LIBOBJS!$LIBOBJS$ac_delim
 LTLIBOBJS!$LTLIBOBJS$ac_delim
 _ACEOF
 
-  if test `sed -n "s/.*$ac_delim\$/X/p" conf$$subs.sed | grep -c X` = 21; then
+  if test `sed -n "s/.*$ac_delim\$/X/p" conf$$subs.sed | grep -c X` = 19; then
     break
   elif $ac_last_try; then
     { { echo "$as_me:$LINENO: error: could not make $CONFIG_STATUS" >&5
