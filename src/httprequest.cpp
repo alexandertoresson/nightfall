@@ -91,6 +91,7 @@ namespace Utilities
 	
 	void HTTPRequest::GET(std::string url, std::map<std::string, std::string> params)
 	{
+		// separate protocol from rest of URL
 		std::string::size_type index = url.find("//", 0);
 		if (index != std::string::npos)
 		{
@@ -100,6 +101,7 @@ namespace Utilities
 		std::string host = url;
 		std::string path = "/";
 
+		// separate path from host
 		index = url.find("/", 0);
 		
 		if (index != std::string::npos)
@@ -110,6 +112,7 @@ namespace Utilities
 
 		int port = 80;
 
+		// separate port from host
 		index = host.find(":", 0);
 		
 		if (index != std::string::npos)
@@ -129,6 +132,10 @@ namespace Utilities
 		TCPsocket socket;
 		SDLNet_SocketSet set;
 		int result;
+		std::string::size_type index, lastIndex;
+		std::string statusLine;
+		std::string header;
+		std::string contents;
 
 		if (!req)
 		{
@@ -154,15 +161,16 @@ namespace Utilities
 			goto fail;
 		}
 
-		std::cout << req->request << std::endl;
-
+		// send request
 		result = SDLNet_TCP_Send(socket, req->request.c_str(), req->request.length());
 
+		// result is the number of bytes sent; if it is less than what we wanted there has been an error
 		if (result < (signed) req->request.length()) 
 		{
 			goto fail;
 		}
 
+		// receive result
 		while (true)
 		{
 			int numActive = SDLNet_CheckSockets(set, 10);
@@ -170,6 +178,9 @@ namespace Utilities
 			if (numActive && (SDLNet_SocketReady(socket)))
 			{
 				int numBytes = SDLNet_TCP_Recv(socket, &inBuf, 1024);
+				// numBytes <= 0 means that either the connection was closed or there was an error;
+				// treat as if the server closed the connection for now until we figure out how to 
+				// detect an error
 				if (numBytes <= 0)
 				{
 					break;
@@ -179,7 +190,85 @@ namespace Utilities
 			}
 		}
 
-		std::cout << raw << std::endl;
+		// separate header from contents
+		index = raw.find("\r\n\r\n", 0);
+		if (index == std::string::npos)
+		{
+			goto fail;
+		}
+		contents = raw.substr(index+4);
+		header = raw.substr(0, index);
+
+		// separate statusline from rest of header
+		index = header.find("\r\n", 0);
+		if (index == std::string::npos)
+		{
+			statusLine = header;
+			header = "";
+		}
+		else
+		{
+			statusLine = header.substr(0, index);
+			header = header.substr(index+2);
+		}
+
+		// interpret header into key -> value pairs
+		lastIndex = 0;
+		while (1)
+		{
+			index = header.find("\r\n", lastIndex);
+			std::string optionLine = header.substr(lastIndex, index);
+			lastIndex = index+2;
+
+			index = optionLine.find(":", 0);
+			if (index == std::string::npos)
+			{
+				goto fail;
+			}
+
+			std::string key = optionLine.substr(0, index);
+			std::string val = optionLine.substr(index+1);
+
+			req->header[key] = val;
+		}
+
+		// handle possible chunked transfer encoding
+		if (req->header.find("Transfer-Encoding") != req->header.end())
+		{
+			if (req->header["Transfer-Encoding"] == "chunked")
+			{
+				std::string decoded;
+
+				lastIndex = 0;
+				while (1)
+				{
+					std::stringstream ss;
+					int length;
+
+					index = contents.find("\r\n", lastIndex);
+					lastIndex = index+2;
+
+					ss << std::hex << contents.substr(lastIndex, index);
+					ss >> length;
+
+					if (length == 0)
+					{
+						break;
+					}
+
+					decoded += contents.substr(lastIndex, lastIndex+length);
+					lastIndex += length;
+				}
+
+				contents = decoded;
+			}
+		}
+
+		req->statusCode = 200;
+		req->ret = contents;
+		req->header.clear();
+
+		req->Handle();
 
 		ret:
 
