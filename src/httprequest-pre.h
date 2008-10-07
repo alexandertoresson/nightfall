@@ -34,7 +34,6 @@ namespace Utilities
 	{
 		private:
 			static int _Thread(void *arg);
-			std::string URLEscape(std::string str);
 		protected:
 			std::string request;
 			std::string host;

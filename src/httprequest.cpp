@@ -27,7 +27,7 @@
 namespace Utilities
 {	
 
-	std::string HTTPRequest::URLEscape(std::string str)
+	std::string URLEscape(std::string str)
 	{
 		std::string ret = "";
 		for (std::string::iterator it = str.begin(); it != str.end(); it++)
@@ -45,6 +45,14 @@ namespace Utilities
 			}
 		}
 		return ret;
+	}
+
+	std::string trimSpaces(std::string str)
+	{
+		std::string::size_type first, last;
+		first = str.find_first_not_of(" ");
+		last = str.find_last_not_of(" ");
+		return str.substr(first, last-first+1);
 	}
 
 	void HTTPRequest::Fetch(std::string host, int port, std::string request)
@@ -136,6 +144,7 @@ namespace Utilities
 		std::string statusLine;
 		std::string header;
 		std::string contents;
+		int statusCode;
 
 		if (!req)
 		{
@@ -212,13 +221,32 @@ namespace Utilities
 			header = header.substr(index+2);
 		}
 
+		// interpret status line
+		if (statusLine.substr(0, 5) != "HTTP/")
+		{
+			goto fail;
+		}
+
+		lastIndex = statusLine.find(" ", 0);
+		index = statusLine.find(" ", lastIndex+1);
+
+		if (lastIndex == std::string::npos || index == std::string::npos)
+		{
+			goto fail;
+		}
+
+		statusCode = StringCast<int>(statusLine.substr(lastIndex, index-lastIndex));
+
 		// interpret header into key -> value pairs
+		req->header.clear();
 		lastIndex = 0;
 		while (1)
 		{
 			index = header.find("\r\n", lastIndex);
-			std::string optionLine = header.substr(lastIndex, index);
+			std::string optionLine = header.substr(lastIndex, index-lastIndex);
 			lastIndex = index+2;
+
+			bool last = index == std::string::npos;
 
 			index = optionLine.find(":", 0);
 			if (index == std::string::npos)
@@ -226,10 +254,15 @@ namespace Utilities
 				goto fail;
 			}
 
-			std::string key = optionLine.substr(0, index);
-			std::string val = optionLine.substr(index+1);
+			std::string key = trimSpaces(optionLine.substr(0, index));
+			std::string val = trimSpaces(optionLine.substr(index+1));
 
 			req->header[key] = val;
+
+			if (last)
+			{
+				break;
+			}
 		}
 
 		// handle possible chunked transfer encoding
@@ -248,25 +281,25 @@ namespace Utilities
 					index = contents.find("\r\n", lastIndex);
 					lastIndex = index+2;
 
-					ss << std::hex << contents.substr(lastIndex, index);
+					ss << std::hex << contents.substr(lastIndex, index-lastIndex);
 					ss >> length;
 
-					if (length == 0)
+					if (length == 0 || index == std::string::npos)
 					{
 						break;
 					}
 
-					decoded += contents.substr(lastIndex, lastIndex+length);
+					decoded += contents.substr(lastIndex, length);
 					lastIndex += length;
+
 				}
 
 				contents = decoded;
 			}
 		}
 
-		req->statusCode = 200;
+		req->statusCode = statusCode;
 		req->ret = contents;
-		req->header.clear();
 
 		req->Handle();
 
