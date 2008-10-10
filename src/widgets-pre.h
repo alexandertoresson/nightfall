@@ -39,6 +39,7 @@ namespace GUI
 		class Range;
 		class Image;
 		class ToolTip;
+
 	}
 }
 

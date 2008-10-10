@@ -32,8 +32,122 @@ namespace GUI
 	
 	class Event;
 	class Window;
-	class Compositor;
-	class Metrics;
+	class Component;
+
+	/**
+	 * Handles scaling calculations and proponanlity corrections. Handles all types of aspects and monitor resolution.
+	 * Equation: h_ref / sqrt( t * t / (a * a + 1) ) ) * 96, h_ref is the inch reference in height, a = spect
+	 */
+	class Metrics
+	{
+		private:
+			float dpi;     /**< dpi factor */
+			float monitor; /**< Monitor inch size */
+			float monitoraspect;
+			float monitor_w; /**< Calculated from the monitors diagonal size + aspect */
+			float monitor_h; /**< Calculated from the monitors diagonal size + aspect */
+			
+		protected:
+			float dotsperwidth;  /**< dots per x-axis */
+			float dotsperheight; /**< dots per y-axis */
+			int   native_w;
+			int   native_h;
+			int   current_w;
+			int   current_h;
+			
+			/**
+			 * Coordinate-system calculation.
+			 * @param monitorsize	Holds the monitor inch size
+			 * @param monitoraspect Holds the monitor aspect, this to correct errors imposed by non-native incorrect aspect scaling, viewing 800x600 in 1280x768 screen.
+			 */
+			void calculateCoordinateSystem(float monitorsize, float monitoraspect, bool streched = false);
+			
+			/**
+			 * Coordinate-system calculation.
+			 * @param dpi			Specific resolution
+			 * @param monitorsize	Holds the monitor inch size
+			 * @param monitoraspect Holds the monitor aspect, this to correct errors imposed by non-native incorrect aspect scaling, viewing 800x600 in 1280x768 screen.
+			 */
+			void calculateCoordinateSystem(float dpi, float monitorsize, float monitoraspect);
+			
+			/**
+			 * Coordinate-system calculation when application is in a window.
+			 * @param monitorsize		monitor inch size
+			 * @param monitor_px_width	monitor native pixel x-axis resolution
+			 * @param monitor_px_height monitor native pixel y-axis resolution
+			 */
+			void calculateCoordinateSystem();
+			
+			/**
+			 * Coordinate-system calculation when application is in a window with specific resolution.
+			 * @param dpi				Specific resolution
+			 * @param monitorsize		monitor inch size
+			 * @param monitor_px_width	monitor native pixel x-axis resolution
+			 * @param monitor_px_height monitor native pixel y-axis resolution
+			 */
+			void calculateCoordinateSystem(float dpi);
+			
+		public:
+			Metrics(int native_w, int native_h, int current_w, int current_h, bool fullscreen, float monitorsize, bool streched = false);
+		
+			float getDPI();
+			void setDPI(float dpi);
+		
+			void translatePointToPixel(float& pt_x, float& pt_y);
+			void translatePixelToPoint(float& px_x, float& px_y);
+			
+			void alignToPixel(float& x, float& y);
+			
+			void scaleFactorInch(float& w, float& h);
+			void scaleFactorCM(float& w, float& h);
+			
+			/**
+			 *	from the given
+			 */
+			void scale();
+			void revert();
+			
+			void setMetrics(Metrics* met);
+	};
+	
+	/**
+	 *	Symbolises a Window event
+	 */
+	struct WindowEvent
+	{
+		/**
+		 *	Window event types
+		 */
+		enum windowEventType
+		{
+			FOCUS,   /**< Window/Controll has recieved focus */
+			NOFOCUS, /**< Window/Controll has lost focus     */
+			RESIZE,  /**< Resize event, call LayoutManager   */
+			CLOSED,  /**< Window has been closed             */
+			DROPED   /**< Drag and drop performed            */
+		};
+		
+		windowEventType type;
+		void* data;
+		
+		struct {
+			float x;
+			float y;
+			float w;
+			float h;
+		} bounds;
+	};
+	
+	class TrackingArea
+	{
+		public:
+			enum
+			{
+				MOVE,
+				DRAG_DROP,
+				TEXT
+			} AreaType;
+	};
 	
 }
 

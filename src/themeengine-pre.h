@@ -18,58 +18,45 @@
  * You should have received a copy of the GNU General Public License
  * along with Nightfall.  If not, see <http://www.gnu.org/licenses/>.
  */
-#ifndef __CONTAINERS_H__
-#define __CONTAINERS_H__ 
+#ifndef __THEMEENGINE_H_PRE__
+#define __THEMEENGINE_H_PRE__ 
 
 #ifdef DEBUG_DEP
-	#warning "containers.h"
+	#warning "themeengine.h-pre"
 #endif
-
-#include "containers-pre.h"
-
-#include "compositor.h"
 
 namespace GUI
 {
-	namespace Containers
+	namespace ThemeEngine
 	{
-		class TablePanel : public Container
+		namespace Info
+		{
+			enum Direction
+			{
+				DIRECTION_VERTICAL,
+				DIRECTION_HORIZONTAL
+			};
+
+			class SubComponent;
+
+			class Text;
+
+			struct ToggleButtonGroup;
+
+			class ToggleButton;
+
+			class Range;
+			
+			class Image;
+		}
+
+		class TextDrawer
 		{
 			public:
-				TablePanel(int cols, int rows);
-
-				void add(Component* comp, int col, int row);
-		};
-
-		class DockPanel : public Container
-		{
-			public:
-				enum DockPosition
-				{
-					DOCK_MIDDLE,
-					DOCK_ABOVE,
-					DOCK_BELOW,
-					DOCK_LEFT,
-					DOCK_RIGHT
-				};
-
-				DockPanel();
-
-				void add(Component* comp, DockPosition pos);
-		};
-
-		class FlowPanel : public Container
-		{
-			public:
-				void insert(Component* comp, int position=-1);
-				void add(Component* comp);
+				virtual void Draw(Info::Text* text, float x, float y, float w, float h);
+				virtual void GetSize(Info::Text* text, float& w, float& h);
 		};
 	}
 }
 
-#ifdef DEBUG_DEP
-	#warning "containers.h-end"
 #endif
-
-#endif
-

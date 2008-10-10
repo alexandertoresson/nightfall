@@ -28,67 +28,68 @@
 #include "widgets-pre.h"
 
 #include "compositor.h"
+#include "themeengine.h"
 
 namespace GUI
 {
 	namespace Widgets
 	{
-		enum Direction
+		class Button : public Component, public ThemeEngine::Info::SubComponent
 		{
-			DIRECTION_VERTICAL,
-			DIRECTION_HORIZONTAL
+			public:
+				Button(std::string text);
+				Button(Component *comp);
+
+				void setText(std::string text);
+				void setContents(Component *comp);
 		};
 
-		class Button : public Component
+		class Label : public Component, public ThemeEngine::Info::Text
 		{
-			Button(std::string text);
-			Button(Component *comp);
+			public:
+				Label(std::string text);
 
-			void setText(std::string text);
-			void setContents(Component *comp);
+				void setText(std::string text);
 		};
 
-		class Label : public Component
+		class TextBox : public Component, public ThemeEngine::Info::Text
 		{
-			Label(std::string text);
+			private:
+				bool multiLine;
+			public:
+				TextBox(bool multiLine = false, std::string text = "");
 
-			void setText(std::string text);
+				void setText(std::string text);
+				std::string getText();
 		};
 
-		class TextBox : public Component
+		class ToggleButton : public Component, public ThemeEngine::Info::ToggleButton, public ThemeEngine::Info::Text
 		{
-			TextBox(bool multiLine = false, std::string text = "");
+			public:
+				ToggleButton(std::string text, bool checked, ThemeEngine::Info::ToggleButtonGroup* group = NULL);
 
-			void setText(std::string text);
-			std::string getText();
+				void setText(std::string text);
+				
+				void setChecked(bool checked = true);
+				bool getChecked();
 		};
 
-		class ToggleButtonGroup
+		class Range : public Component, public ThemeEngine::Info::Range
 		{
-			ToggleButton* checked;
-		};
+			public:
+				Range(ThemeEngine::Info::Direction direction, Style style, float low, float high);
 
-		class ToggleButton : public Component
-		{
-			ToggleButton(std::string text, bool checked, ToggleButtonGroup* group = NULL);
+				void setPosition(float position);
+				float getPosition();
 
-			void setText(std::string text);
-			
-			void setChecked(bool checked = true);
-			bool getChecked();
-		};
-
-		class Range
-		{
-			Range(Direction direction, float low, float high);
-
-			void setPosition(float position);
-			float getPosition();
+				void setRange(float low, float high);
+				float getLow();
+				float getHigh();
 		};
 
 		class List
 		{
-			List(float itemWidth, float itemHeight, Direction flowDirection, Direction scrollDirection);
+			List(float itemWidth, float itemHeight, ThemeEngine::Info::Direction flowDirection, ThemeEngine::Info::Direction scrollDirection);
 
 			void add(std::string Text);
 			void add(Component *comp);
@@ -96,20 +97,22 @@ namespace GUI
 			Component* get(int index);
 		};
 
-		class Image
+		class Image : public Component, public ThemeEngine::Info::Image
 		{
-			Image(std::string filename, float width, float height);
+			public:
+				Image(std::string filename, float width = 0, float height = 0);
 
-			void setImage(std::string filename);
+				void setImage(std::string filename);
 		};
 
-		class ToolTip
+		class ToolTip : public Component, public ThemeEngine::Info::SubComponent
 		{
-			ToolTip(std::string text);
-			ToolTip(Component *comp);
+			public:
+				ToolTip(std::string text);
+				ToolTip(Component *comp);
 
-			void setText(std::string text);
-			void setContents(Component *comp);
+				void setText(std::string text);
+				void setContents(Component *comp);
 		};
 	}
 }
