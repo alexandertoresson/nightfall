@@ -23,8 +23,8 @@ src/console.h
 src/containers-pre.h
 src/containers.h
 src/core.h
-src/curl-pre.h
-src/curl.h
+src/httprequest-pre.h
+src/httprequest.h
 src/defaultcolours.h
 src/dimension-pre.h
 src/dimension.h
@@ -118,7 +118,7 @@ src/configuration.cpp
 src/console.cpp
 src/containers.cpp
 src/core.cpp
-src/curl.cpp
+src/httprequest.cpp
 src/dimension.cpp
 src/effect.cpp
 src/environment.cpp
