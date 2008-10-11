@@ -25,10 +25,97 @@
 	#warning "themeengine.h-pre"
 #endif
 
+#include <string>
+
 namespace GUI
 {
 	namespace ThemeEngine
 	{
+		namespace Info
+		{
+			class SubComponent;
+
+			class Text;
+
+			class ToggleButton;
+
+			class Range;
+			
+			class Image;
+			
+			class Button;
+
+			class Borders;
+		}
+
+		/* Basic Drawer API:
+			// Pass in Info object describing how the widget should be rendered, and position and width and height of it
+			virtual void Draw(Info::Foo* text, float x, float y, float w, float h);
+			// cw and ch is the size of the components inside this component.
+			// w and h are the calculated sizes of this component when it has to contain components of the specified size.
+			virtual void GetSize(Info::Foo* text, float cw, float ch, float& w, float& h);
+		*/
+
+		class TextDrawer
+		{
+			public:
+				virtual void Draw(Info::Text* text, float x, float y, float w, float h);
+				virtual void GetSize(Info::Text* text, float cw, float ch, float& w, float& h);
+		};
+		
+		class SubComponentDrawer
+		{
+			public:
+				virtual void Draw(Info::SubComponent* text, float x, float y, float w, float h);
+				virtual void GetSize(Info::SubComponent* text, float cw, float ch, float& w, float& h);
+		};
+		
+		class ToggleButtonDrawer
+		{
+			public:
+				virtual void Draw(Info::ToggleButton* text, float x, float y, float w, float h);
+				virtual void GetSize(Info::ToggleButton* text, float cw, float ch, float& w, float& h);
+		};
+		
+		class RangeDrawer
+		{
+			public:
+				virtual void Draw(Info::Range* text, float x, float y, float w, float h);
+				virtual void GetSize(Info::Range* text, float cw, float ch, float& w, float& h);
+		};
+		
+		class ImageDrawer
+		{
+			public:
+				virtual void Draw(Info::Image* text, float x, float y, float w, float h);
+				virtual void GetSize(Info::Image* text, float cw, float ch, float& w, float& h);
+		};
+		
+		class ButtonDrawer
+		{
+			public:
+				virtual void Draw(Info::Button* text, float x, float y, float w, float h);
+				virtual void GetSize(Info::Button* text, float cw, float ch, float& w, float& h);
+		};
+		
+		class BordersDrawer
+		{
+			public:
+				virtual void Draw(Info::Borders* text, float x, float y, float w, float h);
+				virtual void GetSize(Info::Borders* text, float cw, float ch, float& w, float& h);
+		};
+		
+		class Theme
+		{
+			TextDrawer* textDrawer;
+			SubComponentDrawer* subComponentDrawer;
+			ToggleButtonDrawer* toggleButtonDrawer;
+			RangeDrawer* rangeDrawer;
+			ImageDrawer* imageDrawer;
+			ButtonDrawer* buttonDrawer;
+			BordersDrawer* bordersDrawer;
+		};
+		
 		namespace Info
 		{
 			enum Direction
@@ -39,23 +126,104 @@ namespace GUI
 
 			class SubComponent;
 
-			class Text;
+			class Text
+			{
+				private:
+					std::string text;
+				public:
+					void set(std::string text);
 
-			struct ToggleButtonGroup;
+				friend class TextDrawer;
+			};
 
-			class ToggleButton;
+			struct ToggleButtonGroup
+			{
+				ToggleButton* checked;
+			};
 
-			class Range;
+			class ToggleButton
+			{
+				private:
+					bool checked;
+					ToggleButtonGroup* group;
+
+				friend class ToggleButtonDrawer;
+			};
+
+			class Range
+			{
+				public:
+					enum Style
+					{
+						STYLE_RANGE,
+						STYLE_SCROLLBAR,
+						STYLE_NUMBER
+					};
+				private:
+					Style style;
+					Direction direction;
+					float low, high;
+					float position;
+				public:
+
+					void setStyle(Style style);
+
+					void setPosition(float position);
+					float getPosition();
+
+					void setRange(float low, float high);
+					float getLow();
+					float getHigh();
+
+				friend class RangeDrawer;
+			};
 			
-			class Image;
+			class Image
+			{
+				private:
+					std::string filename;
+					float width, height;
+				public:
+					void setImage(std::string filename);
+					void setDimensions(float width, float height);
+
+				friend class ImageDrawer;
+			};
+			
+			class Button
+			{
+				public:
+					enum Style
+					{
+						STYLE_NORMAL,
+						STYLE_FLAT
+					};
+				private:
+					Style style;
+					void setStyle(Style style);
+
+				friend class ButtonDrawer;
+			};
+
+			class Borders
+			{
+				public:
+					enum Style
+					{
+						STYLE_UP,
+						STYLE_DOWN,
+						STYLE_FLAT
+					};
+				private:
+					Style style;
+					float size;
+					void setStyle(Style style);
+					void setSize(float size);
+
+				friend class BordersDrawer;
+			};
 		}
 
-		class TextDrawer
-		{
-			public:
-				virtual void Draw(Info::Text* text, float x, float y, float w, float h);
-				virtual void GetSize(Info::Text* text, float& w, float& h);
-		};
 	}
 }
 

@@ -26,6 +26,7 @@
 #endif
 
 #include "compositor-pre.h"
+#include "themeengine-pre.h"
 
 #include "core.h"
 #include "window.h"
@@ -275,9 +276,11 @@ namespace GUI
 				}
 			} dimensions;
 	
-			Metrics*   metrics;
+			Metrics* metrics;
 			
 			bool visible;
+
+			bool needsRelayout;
 			
 			virtual void paint();
 		public:
@@ -297,7 +300,11 @@ namespace GUI
 			virtual void event(Core::KeyboardEvent evt);
 			virtual void event(WindowEvent evt);
 			
-			void paintComponent();
+			virtual void paintComponent();
+			
+			virtual void layout();
+			
+			void scheduleRelayout();
 			
 			friend class Workspace;
 	};
@@ -308,12 +315,18 @@ namespace GUI
 			std::list<Component*> components;
 			virtual void paint();
 		public:
+			ThemeEngine::Info::Borders innerBorders;
+			ThemeEngine::Info::Borders outerBorders;
+
 			componentHandle add(Component* component);
 			Component* get(componentHandle handle);
-			void remove(componentHandle handle);
-			void clear();
+			virtual void remove(componentHandle handle);
+			virtual void clear();
 			bool isEmpty();
-			void paintAll();
+
+			virtual void paintAll();
+
+			virtual void paintComponent();
 	};
 
 	class Frame : public Container

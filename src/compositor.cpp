@@ -291,4 +291,9 @@ namespace GUI
 		
 		glPopMatrix();
 	}
+	
+	void Component::layout()
+	{
+		
+	}
 }

@@ -34,57 +34,49 @@ namespace GUI
 {
 	namespace Widgets
 	{
-		class Button : public Component, public ThemeEngine::Info::SubComponent
+		class Button : public Component
 		{
 			public:
+				ThemeEngine::Info::SubComponent contents;
+				ThemeEngine::Info::Button button;
+
 				Button(std::string text);
 				Button(Component *comp);
-
-				void setText(std::string text);
-				void setContents(Component *comp);
 		};
 
-		class Label : public Component, public ThemeEngine::Info::Text
+		class Label : public Component
 		{
 			public:
+				ThemeEngine::Info::Text text;
 				Label(std::string text);
-
-				void setText(std::string text);
 		};
 
-		class TextBox : public Component, public ThemeEngine::Info::Text
+		class TextBox : public Component
 		{
 			private:
 				bool multiLine;
 			public:
+				ThemeEngine::Info::Text text;
 				TextBox(bool multiLine = false, std::string text = "");
 
 				void setText(std::string text);
 				std::string getText();
 		};
 
-		class ToggleButton : public Component, public ThemeEngine::Info::ToggleButton, public ThemeEngine::Info::Text
+		class ToggleButton : public Component
 		{
 			public:
-				ToggleButton(std::string text, bool checked, ThemeEngine::Info::ToggleButtonGroup* group = NULL);
+				ThemeEngine::Info::Text text;
+				ThemeEngine::Info::ToggleButton tButton;
 
-				void setText(std::string text);
-				
-				void setChecked(bool checked = true);
-				bool getChecked();
+				ToggleButton(std::string text, bool checked, ThemeEngine::Info::ToggleButtonGroup* group = NULL);
 		};
 
-		class Range : public Component, public ThemeEngine::Info::Range
+		class Range : public Component
 		{
 			public:
-				Range(ThemeEngine::Info::Direction direction, Style style, float low, float high);
-
-				void setPosition(float position);
-				float getPosition();
-
-				void setRange(float low, float high);
-				float getLow();
-				float getHigh();
+				ThemeEngine::Info::Range range;
+				Range(ThemeEngine::Info::Direction direction, ThemeEngine::Info::Range::Style style, float low, float high);
 		};
 
 		class List
@@ -97,22 +89,23 @@ namespace GUI
 			Component* get(int index);
 		};
 
-		class Image : public Component, public ThemeEngine::Info::Image
+		class Image : public Component
 		{
 			public:
-				Image(std::string filename, float width = 0, float height = 0);
+				ThemeEngine::Info::Image image;
+				ThemeEngine::Info::Borders borders;
 
-				void setImage(std::string filename);
+				Image(std::string filename, float width = 0, float height = 0);
 		};
 
-		class ToolTip : public Component, public ThemeEngine::Info::SubComponent
+		class ToolTip : public Component
 		{
 			public:
+				ThemeEngine::Info::SubComponent contents;
+				ThemeEngine::Info::Borders borders;
+
 				ToolTip(std::string text);
 				ToolTip(Component *comp);
-
-				void setText(std::string text);
-				void setContents(Component *comp);
 		};
 	}
 }

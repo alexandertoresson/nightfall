@@ -28,6 +28,7 @@
 #include "containers-pre.h"
 
 #include "compositor.h"
+#include "themeengine.h"
 
 namespace GUI
 {
@@ -35,10 +36,20 @@ namespace GUI
 	{
 		class TablePanel : public Container
 		{
+			private:
+				Component*** subComponents;
+				struct Position
+				{
+					int x, y;
+				};
+				std::map<componentHandle, Position> positions;
 			public:
 				TablePanel(int cols, int rows);
 
-				void add(Component* comp, int col, int row);
+				componentHandle add(Component* comp, int col, int row);
+			
+				virtual void remove(componentHandle handle);
+				virtual void clear();
 		};
 
 		class DockPanel : public Container
@@ -46,23 +57,33 @@ namespace GUI
 			public:
 				enum DockPosition
 				{
-					DOCK_MIDDLE,
+					DOCK_MIDDLE = 0,
 					DOCK_ABOVE,
 					DOCK_BELOW,
 					DOCK_LEFT,
-					DOCK_RIGHT
+					DOCK_RIGHT,
+					DOCK_NUM
 				};
 
 				DockPanel();
 
-				void add(Component* comp, DockPosition pos);
+				componentHandle add(Component* comp, DockPosition pos);
+
+				virtual void remove(componentHandle handle);
+				virtual void clear();
+			private:
+				Component* subComponents[DOCK_NUM];
+				std::map<componentHandle, DockPosition> positions;
 		};
 
 		class FlowPanel : public Container
 		{
 			public:
-				void insert(Component* comp, int position=-1);
-				void add(Component* comp);
+				componentHandle insert(Component* comp, int position);
+				componentHandle add(Component* comp);
+
+				virtual void remove(componentHandle handle);
+				virtual void clear();
 		};
 	}
 }

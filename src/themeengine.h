@@ -39,46 +39,9 @@ namespace GUI
 			{
 				protected:
 					Component *subComp;
-			};
-
-			class Text
-			{
-				protected:
-					std::string text;
-			};
-
-			struct ToggleButtonGroup
-			{
-				ToggleButton* checked;
-			};
-
-			class ToggleButton
-			{
-				protected:
-					bool checked;
-					ToggleButtonGroup* group;
-			};
-
-			class Range
-			{
 				public:
-					enum Style
-					{
-						STYLE_RANGE,
-						STYLE_SCROLLBAR,
-						STYLE_NUMBER
-					} style;
-				protected:
-					Direction direction;
-					float low, high;
-					float position;
-			};
-			
-			class Image
-			{
-				protected:
-					std::string filename;
-					float width, height;
+					void set(std::string text);
+					void set(Component *comp);
 			};
 		}
 	}
