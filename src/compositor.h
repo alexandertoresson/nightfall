@@ -315,6 +315,15 @@ namespace GUI
 				}
 			} min, max;
 
+			struct BorderSize
+			{
+				float top, right, bottom, left;
+				BorderSize() : top(0.0f), right(0.0f), bottom(0.0f), left(0.0f)
+				{
+					
+				}
+			} margin, padding;
+
 			float aspectRatio;
 
 			VerticalAdjustment vAdjustment;
@@ -358,6 +367,9 @@ namespace GUI
 			
 			void setAnchor(Anchor anchor, bool set);
 			
+			void setMargin(float top, float right, float bottom, float left);
+			void setPadding(float top, float right, float bottom, float left);
+
 			virtual void event(Core::MouseEvent evt, bool& handled);
 			virtual void event(Core::KeyboardEvent evt);
 			virtual void event(WindowEvent evt);
