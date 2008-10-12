@@ -287,6 +287,9 @@ namespace GUI
 
 		protected:
 			
+			Container* parent;
+			componentHandle containerHandle;
+
 			struct Bounds
 			{
 				float x;
@@ -363,9 +366,9 @@ namespace GUI
 			void setPosition(float x, float y);
 
 			void setVerticalAdjustment(VerticalAdjustment vAdjustment);
-			void setHorizontalAdjustment(VerticalAdjustment vAdjustment);
+			void setHorizontalAdjustment(HorizontalAdjustment vAdjustment);
 			
-			void setAnchor(Anchor anchor, bool set);
+			void setAnchor(Anchor anchor, bool enabled);
 			
 			void setMargin(float top, float right, float bottom, float left);
 			void setPadding(float top, float right, float bottom, float left);

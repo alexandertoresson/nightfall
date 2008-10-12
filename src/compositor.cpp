@@ -244,22 +244,90 @@ namespace GUI
 		return false;
 	}
 	
+	void Component::setVisible(bool state)
+	{
+		if (visible != state)
+		{
+			visible = state;
+			scheduleRelayout();
+		}
+	}
+
+	void Component::setMinSize(float w, float h)
+	{
+		this->min.w = w;
+		this->min.h = h;
+		scheduleRelayout();
+	}
+
+	void Component::setMaxSize(float w, float h)
+	{
+		this->max.w = w;
+		this->max.h = h;
+		scheduleRelayout();
+	}
+
 	void Component::setSize(float w, float h)
 	{
 		this->dimensions.w = w;
 		this->dimensions.h = h;
+		scheduleRelayout();
+	}
+
+	void Component::setAspectRatio(float r)
+	{
+		aspectRatio = r;
+		scheduleRelayout();
 	}
 
 	void Component::setPosition(float x, float y)
 	{
 		this->dimensions.x = x;
 		this->dimensions.y = y;
+		scheduleRelayout();
+	}
+
+	void Component::setVerticalAdjustment(VerticalAdjustment vAdjustment)
+	{
+		this->vAdjustment = vAdjustment;
+		scheduleRelayout();
 	}
 	
+	void Component::setHorizontalAdjustment(HorizontalAdjustment hAdjustment)
+	{
+		this->hAdjustment = hAdjustment;
+		scheduleRelayout();
+	}
+
+	void Component::setAnchor(Anchor anchor, bool enabled)
+	{
+		anchors[anchor] = enabled;
+		scheduleRelayout();
+	}
+
+	void Component::setMargin(float top, float right, float bottom, float left)
+	{
+		margin.top = top;
+		margin.right = right;
+		margin.bottom = bottom;
+		margin.left = left;
+		scheduleRelayout();
+	}
+
+	void Component::setPadding(float top, float right, float bottom, float left)
+	{
+		padding.top = top;
+		padding.right = right;
+		padding.bottom = bottom;
+		padding.left = left;
+		scheduleRelayout();
+	}
+
 	void Component::event(Core::MouseEvent evt, bool& handled)
 	{
 		handled = false;
 	}
+
 	void Component::event(Core::KeyboardEvent evt)
 	{
 		
@@ -268,14 +336,6 @@ namespace GUI
 	void Component::event(WindowEvent evt)
 	{
 		
-	}
-	
-	/** COMPONENT::CONTAINER ******************************************************/
-	componentHandle Container::add(Component* component)
-	{
-		components.push_back(component);
-		componentHandle last = components.end();
-		return --last;
 	}
 	
 	void Component::paintComponent()
@@ -304,6 +364,26 @@ namespace GUI
 	void Component::layout()
 	{
 		
+	}
+	
+	void Component::scheduleRelayout()
+	{
+		if (!needsRelayout)
+		{
+			needsRelayout = true;
+			if (parent)
+			{
+				parent->scheduleRelayout();
+			}
+		}
+	}
+
+	/** CONTAINER ******************************************************/
+	componentHandle Container::add(Component* component)
+	{
+		components.push_back(component);
+		componentHandle last = components.end();
+		return --last;
 	}
 	
 }

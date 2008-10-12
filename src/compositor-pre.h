@@ -33,6 +33,7 @@ namespace GUI
 	class Event;
 	class Window;
 	class Component;
+	class Container;
 
 	/**
 	 * Handles scaling calculations and proponanlity corrections. Handles all types of aspects and monitor resolution.
