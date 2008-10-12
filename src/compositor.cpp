@@ -206,8 +206,12 @@ namespace GUI
 	/*******************************************************************/
 	/** COMPONENT ******************************************************/
 	/*******************************************************************/
-	Component::Component()
+	Component::Component() : aspectRatio(0.0), vAdjustment(V_ADJUSTMENT_NONE), hAdjustment(H_ADJUSTMENT_NONE), visible(true), needsRelayout(true)
 	{
+		for (unsigned i = 0; i < ANCHOR_NUM; i++)
+		{
+			anchors[i] = false;
+		}
 	}
 	
 	Component::Component(float w, float h)

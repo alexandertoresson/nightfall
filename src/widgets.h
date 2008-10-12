@@ -76,10 +76,10 @@ namespace GUI
 		{
 			public:
 				ThemeEngine::Info::Range range;
-				Range(ThemeEngine::Info::Direction direction, ThemeEngine::Info::Range::Style style, float low, float high);
+				Range(ThemeEngine::Info::Range::Direction direction, ThemeEngine::Info::Range::Style style, float low, float high);
 		};
 
-		class List
+/*		class List
 		{
 			List(float itemWidth, float itemHeight, ThemeEngine::Info::Direction flowDirection, ThemeEngine::Info::Direction scrollDirection);
 
@@ -87,7 +87,7 @@ namespace GUI
 			void add(Component *comp);
 			void remove(int index);
 			Component* get(int index);
-		};
+		};*/
 
 		class Image : public Component
 		{

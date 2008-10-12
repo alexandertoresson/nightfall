@@ -79,6 +79,17 @@ namespace GUI
 		class FlowPanel : public Container
 		{
 			public:
+				enum Direction
+				{
+					DIRECTION_VERTICAL,
+					DIRECTION_HORIZONTAL,
+					DIRECTION_NONE
+				};
+			private:
+				Direction primaryDirection, secondaryDirection;
+			public:
+				FlowPanel(Direction primaryDirection, Direction secondaryDirection);
+
 				componentHandle insert(Component* comp, int position);
 				componentHandle add(Component* comp);
 

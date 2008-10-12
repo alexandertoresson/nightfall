@@ -258,6 +258,32 @@ namespace GUI
 	
 	class Component : public Event
 	{
+		public:
+			enum VerticalAdjustment
+			{
+				V_ADJUSTMENT_LEFT,
+				V_ADJUSTMENT_MIDDLE,
+				V_ADJUSTMENT_RIGHT,
+				V_ADJUSTMENT_NONE
+			};
+
+			enum HorizontalAdjustment
+			{
+				H_ADJUSTMENT_TOP,
+				H_ADJUSTMENT_MIDDLE,
+				H_ADJUSTMENT_BOTTOM,
+				H_ADJUSTMENT_NONE
+			};
+
+			enum Anchor
+			{
+				ANCHOR_TOP=0,
+				ANCHOR_RIGHT,
+				ANCHOR_BOTTOM,
+				ANCHOR_LEFT,
+				ANCHOR_NUM
+			};
+
 		protected:
 			
 			struct Bounds
@@ -275,6 +301,25 @@ namespace GUI
 					h = 1.0f;
 				}
 			} dimensions;
+
+			struct Size
+			{
+				float w;
+				float h;
+				
+				Size()
+				{
+					w = -1.0f;
+					h = -1.0f;
+				}
+			} min, max;
+
+			float aspectRatio;
+
+			VerticalAdjustment vAdjustment;
+			HorizontalAdjustment hAdjustment;
+
+			bool anchors[ANCHOR_NUM];
 	
 			Metrics* metrics;
 			
@@ -283,7 +328,14 @@ namespace GUI
 			bool needsRelayout;
 			
 			virtual void paint();
+			
+			virtual void layout();
+
+			void applyAnchors();
+			void applyAdjustment();
+			
 		public:
+
 			Component();
 			Component(float w, float h);
 			Component(float x, float y, float w, float h);
@@ -293,16 +345,23 @@ namespace GUI
 			
 			void setVisible(bool state);
 			
-			virtual void setSize(float w, float h);
-			virtual void setPosition(float x, float y);
+			void setMinSize(float w, float h);
+			void setMaxSize(float w, float h);
+			void setSize(float w, float h);
+			void setAspectRatio(float r);
+
+			void setPosition(float x, float y);
+
+			void setVerticalAdjustment(VerticalAdjustment vAdjustment);
+			void setHorizontalAdjustment(VerticalAdjustment vAdjustment);
+			
+			void setAnchor(Anchor anchor, bool set);
 			
 			virtual void event(Core::MouseEvent evt, bool& handled);
 			virtual void event(Core::KeyboardEvent evt);
 			virtual void event(WindowEvent evt);
 			
 			virtual void paintComponent();
-			
-			virtual void layout();
 			
 			void scheduleRelayout();
 			
@@ -312,8 +371,14 @@ namespace GUI
 	class Container : public Component
 	{
 		protected:
+			bool subAnchors[ANCHOR_NUM];
+	
 			std::list<Component*> components;
+
 			virtual void paint();
+			
+			virtual void layout();
+
 		public:
 			ThemeEngine::Info::Borders innerBorders;
 			ThemeEngine::Info::Borders outerBorders;
@@ -323,6 +388,8 @@ namespace GUI
 			virtual void remove(componentHandle handle);
 			virtual void clear();
 			bool isEmpty();
+
+			void setSubAnchor(Anchor anchor, bool set);
 
 			virtual void paintAll();
 

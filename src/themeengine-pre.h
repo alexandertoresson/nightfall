@@ -29,6 +29,8 @@
 
 namespace GUI
 {
+	class Component;
+
 	namespace ThemeEngine
 	{
 		namespace Info
@@ -46,6 +48,8 @@ namespace GUI
 			class Button;
 
 			class Borders;
+			
+			class FrameBorders;
 		}
 
 		/* Basic Drawer API:
@@ -105,6 +109,13 @@ namespace GUI
 				virtual void GetSize(Info::Borders* text, float cw, float ch, float& w, float& h);
 		};
 		
+		class FrameBordersDrawer
+		{
+			public:
+				virtual void Draw(Info::FrameBorders* text, float x, float y, float w, float h);
+				virtual void GetSize(Info::FrameBorders* text, float cw, float ch, float& w, float& h);
+		};
+		
 		class Theme
 		{
 			TextDrawer* textDrawer;
@@ -118,15 +129,17 @@ namespace GUI
 		
 		namespace Info
 		{
-			enum Direction
+			class InfoBase
 			{
-				DIRECTION_VERTICAL,
-				DIRECTION_HORIZONTAL
+				private:
+					Component* comp;
+				protected:
+					void setChanged();
 			};
 
 			class SubComponent;
 
-			class Text
+			class Text : InfoBase
 			{
 				private:
 					std::string text;
@@ -136,12 +149,12 @@ namespace GUI
 				friend class TextDrawer;
 			};
 
-			struct ToggleButtonGroup
+			struct ToggleButtonGroup : InfoBase
 			{
 				ToggleButton* checked;
 			};
 
-			class ToggleButton
+			class ToggleButton : InfoBase
 			{
 				private:
 					bool checked;
@@ -150,9 +163,15 @@ namespace GUI
 				friend class ToggleButtonDrawer;
 			};
 
-			class Range
+			class Range : InfoBase
 			{
 				public:
+					enum Direction
+					{
+						DIRECTION_VERTICAL,
+						DIRECTION_HORIZONTAL
+					};
+
 					enum Style
 					{
 						STYLE_RANGE,
@@ -178,7 +197,7 @@ namespace GUI
 				friend class RangeDrawer;
 			};
 			
-			class Image
+			class Image : InfoBase
 			{
 				private:
 					std::string filename;
@@ -190,7 +209,7 @@ namespace GUI
 				friend class ImageDrawer;
 			};
 			
-			class Button
+			class Button : InfoBase
 			{
 				public:
 					enum Style
@@ -205,7 +224,7 @@ namespace GUI
 				friend class ButtonDrawer;
 			};
 
-			class Borders
+			class Borders : InfoBase
 			{
 				public:
 					enum Style
@@ -221,6 +240,22 @@ namespace GUI
 					void setSize(float size);
 
 				friend class BordersDrawer;
+			};
+			
+			class FrameBorders : InfoBase
+			{
+				public:
+					enum Style
+					{
+						STYLE_NORMAL,
+						STYLE_SMALL
+					};
+					Text text;
+				private:
+					Style style;
+					void setStyle(Style style);
+
+				friend class FrameBordersDrawer;
 			};
 		}
 
