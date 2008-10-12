@@ -138,7 +138,7 @@ namespace Utilities
 
 		std::string raw;
 		TCPsocket socket;
-		SDLNet_SocketSet set;
+		SDLNet_SocketSet set = NULL;
 		int result;
 		std::string::size_type index, lastIndex;
 		std::string statusLine;

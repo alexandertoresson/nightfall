@@ -134,6 +134,8 @@ namespace Utilities
 		int targetIndex;
 
 		virtual void shade() const = 0;
+
+		virtual ~OgreAnimationTrack() {};
 	};
 
 	struct OgreVertexAnimation

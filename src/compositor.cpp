@@ -228,6 +228,11 @@ namespace GUI
 		dimensions.h = h;
 	}
 	
+	Component::~Component()
+	{
+		
+	}
+
 	bool Component::isInsideArea(float x, float y)
 	{
 		if(dimensions.x >= this->dimensions.x && x <= (this->dimensions.x + this->dimensions.w) &&
@@ -300,4 +305,5 @@ namespace GUI
 	{
 		
 	}
+	
 }

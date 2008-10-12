@@ -50,6 +50,8 @@ namespace Utilities
 
 			virtual void Handle() = 0;
 			virtual void Fail() = 0;
+
+			virtual ~HTTPRequest() {};
 	};
 }
 

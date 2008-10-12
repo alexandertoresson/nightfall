@@ -65,6 +65,7 @@ namespace GUI
 			public:
 				virtual void Draw(Info::Text* text, float x, float y, float w, float h);
 				virtual void GetSize(Info::Text* text, float cw, float ch, float& w, float& h);
+				virtual ~TextDrawer() {};
 		};
 		
 		class SubComponentDrawer
@@ -72,6 +73,7 @@ namespace GUI
 			public:
 				virtual void Draw(Info::SubComponent* text, float x, float y, float w, float h);
 				virtual void GetSize(Info::SubComponent* text, float cw, float ch, float& w, float& h);
+				virtual ~SubComponentDrawer() {};
 		};
 		
 		class ToggleButtonDrawer
@@ -79,6 +81,7 @@ namespace GUI
 			public:
 				virtual void Draw(Info::ToggleButton* text, float x, float y, float w, float h);
 				virtual void GetSize(Info::ToggleButton* text, float cw, float ch, float& w, float& h);
+				virtual ~ToggleButtonDrawer() {};
 		};
 		
 		class RangeDrawer
@@ -86,6 +89,7 @@ namespace GUI
 			public:
 				virtual void Draw(Info::Range* text, float x, float y, float w, float h);
 				virtual void GetSize(Info::Range* text, float cw, float ch, float& w, float& h);
+				virtual ~RangeDrawer() {};
 		};
 		
 		class ImageDrawer
@@ -93,6 +97,7 @@ namespace GUI
 			public:
 				virtual void Draw(Info::Image* text, float x, float y, float w, float h);
 				virtual void GetSize(Info::Image* text, float cw, float ch, float& w, float& h);
+				virtual ~ImageDrawer() {};
 		};
 		
 		class ButtonDrawer
@@ -100,6 +105,7 @@ namespace GUI
 			public:
 				virtual void Draw(Info::Button* text, float x, float y, float w, float h);
 				virtual void GetSize(Info::Button* text, float cw, float ch, float& w, float& h);
+				virtual ~ButtonDrawer() {};
 		};
 		
 		class BordersDrawer
@@ -107,6 +113,7 @@ namespace GUI
 			public:
 				virtual void Draw(Info::Borders* text, float x, float y, float w, float h);
 				virtual void GetSize(Info::Borders* text, float cw, float ch, float& w, float& h);
+				virtual ~BordersDrawer() {};
 		};
 		
 		class FrameBordersDrawer
@@ -114,6 +121,7 @@ namespace GUI
 			public:
 				virtual void Draw(Info::FrameBorders* text, float x, float y, float w, float h);
 				virtual void GetSize(Info::FrameBorders* text, float cw, float ch, float& w, float& h);
+				virtual ~FrameBordersDrawer() {};
 		};
 		
 		class Theme

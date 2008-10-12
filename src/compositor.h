@@ -204,7 +204,8 @@ namespace GUI
 			* @param evt WindowEvent structure that contains information about the window event.
 			 * @see Core::WindowEvent
 			 */
-			 
+			virtual ~Event() {};
+
 	};
 	
 	/*
@@ -339,7 +340,7 @@ namespace GUI
 			Component();
 			Component(float w, float h);
 			Component(float x, float y, float w, float h);
-			~Component();
+			virtual ~Component();
 			
 			virtual bool isInsideArea(float x, float y);
 			

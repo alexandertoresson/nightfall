@@ -111,6 +111,8 @@ namespace Core
 			}
 			
 			virtual EventType getType() { return UNKNOWN; }
+
+			virtual ~Listener() {};
 		};
 	
 	class KeyListener : public Listener
