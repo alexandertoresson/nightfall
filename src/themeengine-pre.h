@@ -30,11 +30,14 @@
 namespace GUI
 {
 	class Component;
+	class Metrics;
 
 	namespace ThemeEngine
 	{
 		namespace Info
 		{
+			class InfoBase;
+
 			class SubComponent;
 
 			class Text;
@@ -57,82 +60,42 @@ namespace GUI
 			virtual void Draw(Info::Foo* text, float x, float y, float w, float h);
 			// cw and ch is the size of the components inside this component.
 			// w and h are the calculated sizes of this component when it has to contain components of the specified size.
+			// Note that cw and ch only apply to things that can contain other stuff, like borders
 			virtual void GetSize(Info::Foo* text, float cw, float ch, float& w, float& h);
 		*/
 
-		class TextDrawer
+		template <typename T>
+		class Drawer
 		{
 			public:
-				virtual void Draw(Info::Text* text, float x, float y, float w, float h);
-				virtual void GetSize(Info::Text* text, float cw, float ch, float& w, float& h);
-				virtual ~TextDrawer() {};
+				virtual void Draw(const T& info, float x, float y, float w, float h);
+				virtual void GetSize(const T& info, float cw, float ch, float& w, float& h);
 		};
-		
-		class SubComponentDrawer
-		{
-			public:
-				virtual void Draw(Info::SubComponent* text, float x, float y, float w, float h);
-				virtual void GetSize(Info::SubComponent* text, float cw, float ch, float& w, float& h);
-				virtual ~SubComponentDrawer() {};
-		};
-		
-		class ToggleButtonDrawer
-		{
-			public:
-				virtual void Draw(Info::ToggleButton* text, float x, float y, float w, float h);
-				virtual void GetSize(Info::ToggleButton* text, float cw, float ch, float& w, float& h);
-				virtual ~ToggleButtonDrawer() {};
-		};
-		
-		class RangeDrawer
-		{
-			public:
-				virtual void Draw(Info::Range* text, float x, float y, float w, float h);
-				virtual void GetSize(Info::Range* text, float cw, float ch, float& w, float& h);
-				virtual ~RangeDrawer() {};
-		};
-		
-		class ImageDrawer
-		{
-			public:
-				virtual void Draw(Info::Image* text, float x, float y, float w, float h);
-				virtual void GetSize(Info::Image* text, float cw, float ch, float& w, float& h);
-				virtual ~ImageDrawer() {};
-		};
-		
-		class ButtonDrawer
-		{
-			public:
-				virtual void Draw(Info::Button* text, float x, float y, float w, float h);
-				virtual void GetSize(Info::Button* text, float cw, float ch, float& w, float& h);
-				virtual ~ButtonDrawer() {};
-		};
-		
-		class BordersDrawer
-		{
-			public:
-				virtual void Draw(Info::Borders* text, float x, float y, float w, float h);
-				virtual void GetSize(Info::Borders* text, float cw, float ch, float& w, float& h);
-				virtual ~BordersDrawer() {};
-		};
-		
-		class FrameBordersDrawer
-		{
-			public:
-				virtual void Draw(Info::FrameBorders* text, float x, float y, float w, float h);
-				virtual void GetSize(Info::FrameBorders* text, float cw, float ch, float& w, float& h);
-				virtual ~FrameBordersDrawer() {};
-		};
-		
+
 		class Theme
 		{
-			TextDrawer* textDrawer;
-			SubComponentDrawer* subComponentDrawer;
-			ToggleButtonDrawer* toggleButtonDrawer;
-			RangeDrawer* rangeDrawer;
-			ImageDrawer* imageDrawer;
-			ButtonDrawer* buttonDrawer;
-			BordersDrawer* bordersDrawer;
+			public:
+				Drawer<Info::Text>* textDrawer;
+				Drawer<Info::SubComponent>* subComponentDrawer;
+				Drawer<Info::ToggleButton>* toggleButtonDrawer;
+				Drawer<Info::Range>* rangeDrawer;
+				Drawer<Info::Image>* imageDrawer;
+				Drawer<Info::Button>* buttonDrawer;
+				Drawer<Info::Borders>* bordersDrawer;
+				Drawer<Info::FrameBorders>* frameBordersDrawer;
+
+				Theme() :
+					textDrawer(new Drawer<Info::Text>),
+					subComponentDrawer(new Drawer<Info::SubComponent>),
+					toggleButtonDrawer(new Drawer<Info::ToggleButton>),
+					rangeDrawer(new Drawer<Info::Range>),
+					imageDrawer(new Drawer<Info::Image>),
+					buttonDrawer(new Drawer<Info::Button>),
+					bordersDrawer(new Drawer<Info::Borders>),
+					frameBordersDrawer(new Drawer<Info::FrameBorders>)
+				{
+					
+				}
 		};
 		
 		namespace Info
@@ -142,36 +105,46 @@ namespace GUI
 				private:
 					Component* comp;
 				protected:
-					void setChanged();
+					void notifyChanged();
+				public:
+					InfoBase(Component* component);
+					Component* getComponent() const;
+					Metrics* getMetrics() const;
 			};
 
 			class SubComponent;
 
-			class Text : InfoBase
+			class Text : public InfoBase
 			{
 				private:
 					std::string text;
 				public:
-					void set(std::string text);
+					Text(Component* component, std::string text);
 
-				friend class TextDrawer;
+					void set(std::string text);
+					std::string get() const;
 			};
 
-			struct ToggleButtonGroup : InfoBase
+			struct ToggleButtonGroup
 			{
 				ToggleButton* checked;
 			};
 
-			class ToggleButton : InfoBase
+			class ToggleButton : public InfoBase
 			{
 				private:
 					bool checked;
 					ToggleButtonGroup* group;
 
-				friend class ToggleButtonDrawer;
+					ToggleButton(Component* component, bool checked, ToggleButtonGroup* group);
+
+					void setChecked(bool checked);
+					bool getChecked() const;
+
+					ToggleButtonGroup* getGroup();
 			};
 
-			class Range : InfoBase
+			class Range : public InfoBase
 			{
 				public:
 					enum Direction
@@ -193,31 +166,37 @@ namespace GUI
 					float position;
 				public:
 
-					void setStyle(Style style);
+					Range(Component* component, float low, float high, float position, Style style, Direction direction);
+
+					Style getStyle();
+
+					Direction getDirection();
 
 					void setPosition(float position);
-					float getPosition();
+					float getPosition() const;
 
 					void setRange(float low, float high);
-					float getLow();
-					float getHigh();
-
-				friend class RangeDrawer;
+					float getLow() const;
+					float getHigh() const;
 			};
 			
-			class Image : InfoBase
+			class Image : public InfoBase
 			{
 				private:
 					std::string filename;
 					float width, height;
 				public:
+					Image(Component* component, std::string file, float width, float height);
+
 					void setImage(std::string filename);
 					void setDimensions(float width, float height);
 
-				friend class ImageDrawer;
+					std::string getImage() const;
+					float getWidth() const;
+					float getHeight() const;
 			};
 			
-			class Button : InfoBase
+			class Button : public InfoBase
 			{
 				public:
 					enum Style
@@ -227,12 +206,14 @@ namespace GUI
 					};
 				private:
 					Style style;
-					void setStyle(Style style);
 
-				friend class ButtonDrawer;
+					Button(Component* component, Style style);
+
+					void setStyle(Style style);
+					Style getStyle();
 			};
 
-			class Borders : InfoBase
+			class Borders : public InfoBase
 			{
 				public:
 					enum Style
@@ -244,13 +225,17 @@ namespace GUI
 				private:
 					Style style;
 					float size;
+
+					Borders(Component* component, Style style, float size);
+
 					void setStyle(Style style);
 					void setSize(float size);
 
-				friend class BordersDrawer;
+					Style getStyle() const;
+					float getSize() const;
 			};
 			
-			class FrameBorders : InfoBase
+			class FrameBorders : public InfoBase
 			{
 				public:
 					enum Style
@@ -258,12 +243,13 @@ namespace GUI
 						STYLE_NORMAL,
 						STYLE_SMALL
 					};
-					Text text;
 				private:
 					Style style;
-					void setStyle(Style style);
 
-				friend class FrameBordersDrawer;
+					FrameBorders(Component* component, Style style);
+
+					void setStyle(Style style);
+					Style getStyle() const;
 			};
 		}
 

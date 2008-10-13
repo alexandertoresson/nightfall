@@ -325,7 +325,7 @@ namespace GUI
 				{
 					
 				}
-			} margin, padding;
+			} margin;
 
 			float aspectRatio;
 
@@ -344,9 +344,6 @@ namespace GUI
 			
 			virtual void layout();
 
-			void applyAnchors();
-			void applyAdjustment();
-			
 		public:
 
 			Component();
@@ -354,6 +351,8 @@ namespace GUI
 			Component(float x, float y, float w, float h);
 			virtual ~Component();
 			
+			Metrics* getMetrics();
+
 			virtual bool isInsideArea(float x, float y);
 			
 			void setVisible(bool state);
@@ -371,7 +370,6 @@ namespace GUI
 			void setAnchor(Anchor anchor, bool enabled);
 			
 			void setMargin(float top, float right, float bottom, float left);
-			void setPadding(float top, float right, float bottom, float left);
 
 			virtual void event(Core::MouseEvent evt, bool& handled);
 			virtual void event(Core::KeyboardEvent evt);
@@ -382,15 +380,21 @@ namespace GUI
 			void scheduleRelayout();
 			
 			friend class Workspace;
+			friend class Container;
 	};
 	
 	class Container : public Component
 	{
 		protected:
-			bool subAnchors[ANCHOR_NUM];
-	
 			std::list<Component*> components;
 
+			BorderSize padding;
+
+			bool subAnchors[ANCHOR_NUM];
+	
+			void applyAnchors();
+			void applyAdjustment();
+			
 			virtual void paint();
 			
 			virtual void layout();
@@ -405,6 +409,7 @@ namespace GUI
 			virtual void clear();
 			bool isEmpty();
 
+			void setPadding(float top, float right, float bottom, float left);
 			void setSubAnchor(Anchor anchor, bool set);
 
 			virtual void paintAll();
@@ -418,6 +423,9 @@ namespace GUI
 			virtual void paintBackground() {};
 			virtual void paintGlass() {};
 		protected:
+			ThemeEngine::Info::FrameBorders frameBorders;
+			ThemeEngine::Info::Text frameTitle;
+
 			typedef enum {
 				DEFAULT,
 				CENTERPARENT,
@@ -440,9 +448,9 @@ namespace GUI
 				Metrics* met;
 			};
 			
-			StartLocation	start;
+			StartLocation start;
 			WindowParameter parameters;
-			Bounds			windowDimensions;
+			Bounds windowDimensions;
 			
 			void paint();
 		public:

@@ -314,15 +314,6 @@ namespace GUI
 		scheduleRelayout();
 	}
 
-	void Component::setPadding(float top, float right, float bottom, float left)
-	{
-		padding.top = top;
-		padding.right = right;
-		padding.bottom = bottom;
-		padding.left = left;
-		scheduleRelayout();
-	}
-
 	void Component::event(Core::MouseEvent evt, bool& handled)
 	{
 		handled = false;
@@ -363,7 +354,17 @@ namespace GUI
 	
 	void Component::layout()
 	{
-		
+	}
+
+	Metrics* Component::getMetrics()
+	{
+		return metrics;
+	}
+	
+	void Container::layout()
+	{
+		applyAdjustment();
+		applyAnchors();
 	}
 	
 	void Component::scheduleRelayout()
@@ -376,6 +377,87 @@ namespace GUI
 				parent->scheduleRelayout();
 			}
 		}
+	}
+
+	void Container::applyAnchors()
+	{
+		
+	}
+
+	void Container::applyAdjustment()
+	{
+		float minX, minY, maxX, maxY;
+
+		if (vAdjustment == V_ADJUSTMENT_NONE && hAdjustment == H_ADJUSTMENT_NONE)
+		{
+			return;
+		}
+
+		minX = 10000.0f;
+		minY = 10000.0f;
+		maxX = -10000.0f;
+		maxY = -10000.0f;
+		for (componentHandle it = components.begin(); it != components.end(); it++)
+		{
+			if ((*it)->dimensions.x < minX)
+				minX = (*it)->dimensions.x;
+			if ((*it)->dimensions.y < minY)
+				minY = (*it)->dimensions.y;
+			if ((*it)->dimensions.x + (*it)->dimensions.w  > maxX)
+				maxX = (*it)->dimensions.x + (*it)->dimensions.w;
+			if ((*it)->dimensions.y + (*it)->dimensions.h  > maxX)
+				maxX = (*it)->dimensions.y + (*it)->dimensions.h;
+		}
+
+		float dX, dY;
+
+		switch (vAdjustment)
+		{
+			case V_ADJUSTMENT_LEFT:
+				dX = minX - padding.left;
+				break;
+			case V_ADJUSTMENT_MIDDLE:
+				dX = ((minX + maxX) - (padding.left + dimensions.w - padding.right)) / 2;
+				break;
+			case V_ADJUSTMENT_RIGHT:
+				dX = maxX - (dimensions.w - padding.right);
+				break;
+			case V_ADJUSTMENT_NONE:
+				dX = 0.0f;
+				break;
+		}
+		
+		switch (hAdjustment)
+		{
+			case H_ADJUSTMENT_TOP:
+				dY = minY - padding.top;
+				break;
+			case H_ADJUSTMENT_MIDDLE:
+				dY = ((minY + maxY) - (padding.top + dimensions.h - padding.bottom)) / 2;
+				break;
+			case H_ADJUSTMENT_BOTTOM:
+				dY = maxY - (dimensions.h - padding.bottom);
+				break;
+			case H_ADJUSTMENT_NONE:
+				dY = 0.0f;
+				break;
+		}
+		
+		for (componentHandle it = components.begin(); it != components.end(); it++)
+		{
+			(*it)->dimensions.x += dX;
+			(*it)->dimensions.y += dY;
+		}
+
+	}
+	
+	void Container::setPadding(float top, float right, float bottom, float left)
+	{
+		padding.top = top;
+		padding.right = right;
+		padding.bottom = bottom;
+		padding.left = left;
+		scheduleRelayout();
 	}
 
 	/** CONTAINER ******************************************************/

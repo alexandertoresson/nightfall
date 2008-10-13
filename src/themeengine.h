@@ -35,7 +35,7 @@ namespace GUI
 	{
 		namespace Info
 		{
-			class SubComponent : InfoBase
+			class SubComponent : public InfoBase
 			{
 				protected:
 					Component *subComp;
