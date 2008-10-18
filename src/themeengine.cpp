@@ -60,6 +60,11 @@ namespace GUI
 			return text;
 		}
 
+		Borders::Borders(Component* component, float size, Borders::Style style) : InfoBase(component), style(style), size(size)
+		{
+			
+		}
+
 		template <>
 		void Drawer<Text>::Draw(const Text& text, float x, float y, float w, float h)
 		{

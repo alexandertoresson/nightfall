@@ -395,14 +395,22 @@ namespace GUI
 			void applyAnchors();
 			void applyAdjustment();
 			
-			virtual void paint();
-			
 			virtual void layout();
+
+			virtual void layoutAll();
+			virtual void postLayout();
+			
+			void paintAll();
+
+			virtual void paintComponent();
 
 		public:
 			ThemeEngine::Borders innerBorders;
 			ThemeEngine::Borders outerBorders;
 
+			Container();
+
+			componentHandle insert(Component* component, int position);
 			componentHandle add(Component* component);
 			Component* get(componentHandle handle);
 			virtual void remove(componentHandle handle);
@@ -412,9 +420,8 @@ namespace GUI
 			void setPadding(float top, float right, float bottom, float left);
 			void setSubAnchor(Anchor anchor, bool set);
 
-			virtual void paintAll();
-
-			virtual void paintComponent();
+			virtual void paint();
+			
 	};
 
 	class Frame : public Container

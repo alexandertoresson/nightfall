@@ -77,6 +77,8 @@ namespace GUI
 				virtual void clear();
 
 				virtual void layout();
+			
+				virtual void paintComponent();
 		};
 
 		class DockPanel : public Container
@@ -99,6 +101,7 @@ namespace GUI
 				virtual void remove(componentHandle handle);
 				virtual void clear();
 				virtual void layout();
+				virtual void paintComponent();
 			private:
 				Component* subComponents[DOCK_NUM];
 				std::map<componentHandle, DockPosition> positions;
@@ -119,10 +122,7 @@ namespace GUI
 				FlowPanel(Direction primaryDirection, Direction secondaryDirection);
 
 				componentHandle insert(Component* comp, int position);
-				componentHandle add(Component* comp);
 
-				virtual void remove(componentHandle handle);
-				virtual void clear();
 				virtual void layout();
 		};
 	}

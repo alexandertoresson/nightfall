@@ -25,6 +25,28 @@ namespace GUI
 {
 	namespace Containers
 	{
-		
+		////////////////////////////////////////////
+		// FlowPanel
+
+		FlowPanel::FlowPanel(Direction primaryDirection, Direction secondaryDirection) : primaryDirection(primaryDirection), secondaryDirection(secondaryDirection)
+		{
+			
+		}
+
+		componentHandle FlowPanel::insert(Component* comp, int position)
+		{
+			return Container::insert(comp, position);
+		}
+
+		void FlowPanel::layout()
+		{
+			Container::layoutAll();
+			
+			{
+				
+			}
+
+			Container::postLayout();
+		}
 	}
 }

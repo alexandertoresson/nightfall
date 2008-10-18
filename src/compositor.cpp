@@ -361,10 +361,31 @@ namespace GUI
 		return metrics;
 	}
 	
-	void Container::layout()
+	/** CONTAINER ******************************************************/
+	
+	Container::Container() : innerBorders(this), outerBorders(this)
+	{
+		
+	}
+
+	void Container::layoutAll()
+	{
+		for (componentHandle it = components.begin(); it != components.end(); it++)
+		{
+			(*it)->layout();
+		}
+	}
+	
+	void Container::postLayout()
 	{
 		applyAdjustment();
 		applyAnchors();
+	}
+
+	void Container::layout()
+	{
+		layoutAll();
+		postLayout();
 	}
 	
 	void Component::scheduleRelayout()
@@ -460,12 +481,53 @@ namespace GUI
 		scheduleRelayout();
 	}
 
-	/** CONTAINER ******************************************************/
-	componentHandle Container::add(Component* component)
+	componentHandle Container::insert(Component* component, int position)
 	{
-		components.push_back(component);
-		componentHandle last = components.end();
-		return --last;
+		if (position >= 0 && position < (signed) components.size())
+		{
+			componentHandle it = components.begin();
+			for (int i = 0; i < position; i++, it++) ;
+			return components.insert(it, component);
+		}
+		else
+		{
+			components.push_back(component);
+			componentHandle last = components.end();
+			return --last;
+		}
 	}
 	
+	componentHandle Container::add(Component* component)
+	{
+		return insert(component, -1);
+	}
+	
+	void Container::remove(componentHandle handle)
+	{
+		components.erase(handle);
+	}
+
+	void Container::clear()
+	{
+		components.clear();
+	}
+
+	void Container::paint()
+	{
+		paintComponent();
+		paintAll();
+	}
+	
+	void Container::paintComponent()
+	{
+	}
+	
+	void Container::paintAll()
+	{
+		for (componentHandle it = components.begin(); it != components.end(); it++)
+		{
+			(*it)->paint();
+		}
+	}
+
 }

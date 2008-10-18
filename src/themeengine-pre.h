@@ -221,7 +221,8 @@ namespace GUI
 				Style style;
 				float size;
 
-				Borders(Component* component, Style style, float size);
+			public:
+				Borders(Component* component, float size = 0.1f, Style style = STYLE_FLAT);
 
 				void setStyle(Style style);
 				void setSize(float size);
