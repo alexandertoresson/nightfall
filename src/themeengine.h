@@ -33,17 +33,14 @@ namespace GUI
 {
 	namespace ThemeEngine
 	{
-		namespace Info
+		class SubComponent : public InfoBase
 		{
-			class SubComponent : public InfoBase
-			{
-				protected:
-					Component *subComp;
-				public:
-					void set(std::string text);
-					void set(Component *comp);
-			};
-		}
+			protected:
+				Component *subComp;
+			public:
+				void set(std::string text);
+				void set(Component *comp);
+		};
 	}
 }
 

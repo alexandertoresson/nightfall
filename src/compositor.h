@@ -400,8 +400,8 @@ namespace GUI
 			virtual void layout();
 
 		public:
-			ThemeEngine::Info::Borders innerBorders;
-			ThemeEngine::Info::Borders outerBorders;
+			ThemeEngine::Borders innerBorders;
+			ThemeEngine::Borders outerBorders;
 
 			componentHandle add(Component* component);
 			Component* get(componentHandle handle);
@@ -423,8 +423,8 @@ namespace GUI
 			virtual void paintBackground() {};
 			virtual void paintGlass() {};
 		protected:
-			ThemeEngine::Info::FrameBorders frameBorders;
-			ThemeEngine::Info::Text frameTitle;
+			ThemeEngine::FrameBorders frameBorders;
+			ThemeEngine::Text frameTitle;
 
 			typedef enum {
 				DEFAULT,

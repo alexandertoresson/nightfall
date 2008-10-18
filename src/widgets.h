@@ -37,8 +37,8 @@ namespace GUI
 		class Button : public Component
 		{
 			public:
-				ThemeEngine::Info::SubComponent contents;
-				ThemeEngine::Info::Button button;
+				ThemeEngine::SubComponent contents;
+				ThemeEngine::Button button;
 
 				Button(std::string text);
 				Button(Component *comp);
@@ -47,7 +47,7 @@ namespace GUI
 		class Label : public Component
 		{
 			public:
-				ThemeEngine::Info::Text text;
+				ThemeEngine::Text text;
 				Label(std::string text);
 		};
 
@@ -56,7 +56,7 @@ namespace GUI
 			private:
 				bool multiLine;
 			public:
-				ThemeEngine::Info::Text text;
+				ThemeEngine::Text text;
 				TextBox(bool multiLine = false, std::string text = "");
 
 				void setText(std::string text);
@@ -66,22 +66,22 @@ namespace GUI
 		class ToggleButton : public Component
 		{
 			public:
-				ThemeEngine::Info::Text text;
-				ThemeEngine::Info::ToggleButton tButton;
+				ThemeEngine::Text text;
+				ThemeEngine::ToggleButton tButton;
 
-				ToggleButton(std::string text, bool checked, ThemeEngine::Info::ToggleButtonGroup* group = NULL);
+				ToggleButton(std::string text, bool checked, ThemeEngine::ToggleButtonGroup* group = NULL);
 		};
 
 		class Range : public Component
 		{
 			public:
-				ThemeEngine::Info::Range range;
-				Range(ThemeEngine::Info::Range::Direction direction, ThemeEngine::Info::Range::Style style, float low, float high);
+				ThemeEngine::Range range;
+				Range(ThemeEngine::Range::Direction direction, ThemeEngine::Range::Style style, float low, float high);
 		};
 
 /*		class List
 		{
-			List(float itemWidth, float itemHeight, ThemeEngine::Info::Direction flowDirection, ThemeEngine::Info::Direction scrollDirection);
+			List(float itemWidth, float itemHeight, ThemeEngine::Direction flowDirection, ThemeEngine::Direction scrollDirection);
 
 			void add(std::string Text);
 			void add(Component *comp);
@@ -92,8 +92,8 @@ namespace GUI
 		class Image : public Component
 		{
 			public:
-				ThemeEngine::Info::Image image;
-				ThemeEngine::Info::Borders borders;
+				ThemeEngine::Image image;
+				ThemeEngine::Borders borders;
 
 				Image(std::string filename, float width = 0, float height = 0);
 		};
@@ -101,8 +101,8 @@ namespace GUI
 		class ToolTip : public Component
 		{
 			public:
-				ThemeEngine::Info::SubComponent contents;
-				ThemeEngine::Info::Borders borders;
+				ThemeEngine::SubComponent contents;
+				ThemeEngine::Borders borders;
 
 				ToolTip(std::string text);
 				ToolTip(Component *comp);

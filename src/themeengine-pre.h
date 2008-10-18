@@ -34,34 +34,31 @@ namespace GUI
 
 	namespace ThemeEngine
 	{
-		namespace Info
-		{
-			class InfoBase;
+		class InfoBase;
 
-			class SubComponent;
+		class SubComponent;
 
-			class Text;
+		class Text;
 
-			class ToggleButton;
+		class ToggleButton;
 
-			class Range;
-			
-			class Image;
-			
-			class Button;
+		class Range;
+		
+		class Image;
+		
+		class Button;
 
-			class Borders;
-			
-			class FrameBorders;
-		}
+		class Borders;
+		
+		class FrameBorders;
 
 		/* Basic Drawer API:
 			// Pass in Info object describing how the widget should be rendered, and position and width and height of it
-			virtual void Draw(Info::Foo* text, float x, float y, float w, float h);
+			virtual void Draw(Foo* text, float x, float y, float w, float h);
 			// cw and ch is the size of the components inside this component.
 			// w and h are the calculated sizes of this component when it has to contain components of the specified size.
 			// Note that cw and ch only apply to things that can contain other stuff, like borders
-			virtual void GetSize(Info::Foo* text, float cw, float ch, float& w, float& h);
+			virtual void GetSize(Foo* text, float cw, float ch, float& w, float& h);
 		*/
 
 		template <typename T>
@@ -75,183 +72,180 @@ namespace GUI
 		class Theme
 		{
 			public:
-				Drawer<Info::Text>* textDrawer;
-				Drawer<Info::SubComponent>* subComponentDrawer;
-				Drawer<Info::ToggleButton>* toggleButtonDrawer;
-				Drawer<Info::Range>* rangeDrawer;
-				Drawer<Info::Image>* imageDrawer;
-				Drawer<Info::Button>* buttonDrawer;
-				Drawer<Info::Borders>* bordersDrawer;
-				Drawer<Info::FrameBorders>* frameBordersDrawer;
+				Drawer<Text>* textDrawer;
+				Drawer<SubComponent>* subComponentDrawer;
+				Drawer<ToggleButton>* toggleButtonDrawer;
+				Drawer<Range>* rangeDrawer;
+				Drawer<Image>* imageDrawer;
+				Drawer<Button>* buttonDrawer;
+				Drawer<Borders>* bordersDrawer;
+				Drawer<FrameBorders>* frameBordersDrawer;
 
 				Theme() :
-					textDrawer(new Drawer<Info::Text>),
-					subComponentDrawer(new Drawer<Info::SubComponent>),
-					toggleButtonDrawer(new Drawer<Info::ToggleButton>),
-					rangeDrawer(new Drawer<Info::Range>),
-					imageDrawer(new Drawer<Info::Image>),
-					buttonDrawer(new Drawer<Info::Button>),
-					bordersDrawer(new Drawer<Info::Borders>),
-					frameBordersDrawer(new Drawer<Info::FrameBorders>)
+					textDrawer(new Drawer<Text>),
+					subComponentDrawer(new Drawer<SubComponent>),
+					toggleButtonDrawer(new Drawer<ToggleButton>),
+					rangeDrawer(new Drawer<Range>),
+					imageDrawer(new Drawer<Image>),
+					buttonDrawer(new Drawer<Button>),
+					bordersDrawer(new Drawer<Borders>),
+					frameBordersDrawer(new Drawer<FrameBorders>)
 				{
 					
 				}
 		};
 		
-		namespace Info
+		class InfoBase
 		{
-			class InfoBase
-			{
-				private:
-					Component* comp;
-				protected:
-					void notifyChanged();
-				public:
-					InfoBase(Component* component);
-					Component* getComponent() const;
-					Metrics* getMetrics() const;
-			};
+			private:
+				Component* comp;
+			protected:
+				void notifyChanged();
+			public:
+				InfoBase(Component* component);
+				Component* getComponent() const;
+				Metrics* getMetrics() const;
+		};
 
-			class SubComponent;
+		class SubComponent;
 
-			class Text : public InfoBase
-			{
-				private:
-					std::string text;
-				public:
-					Text(Component* component, std::string text);
+		class Text : public InfoBase
+		{
+			private:
+				std::string text;
+			public:
+				Text(Component* component, std::string text);
 
-					void set(std::string text);
-					std::string get() const;
-			};
+				void set(std::string text);
+				std::string get() const;
+		};
 
-			struct ToggleButtonGroup
-			{
-				ToggleButton* checked;
-			};
+		struct ToggleButtonGroup
+		{
+			ToggleButton* checked;
+		};
 
-			class ToggleButton : public InfoBase
-			{
-				private:
-					bool checked;
-					ToggleButtonGroup* group;
+		class ToggleButton : public InfoBase
+		{
+			private:
+				bool checked;
+				ToggleButtonGroup* group;
 
-					ToggleButton(Component* component, bool checked, ToggleButtonGroup* group);
+				ToggleButton(Component* component, bool checked, ToggleButtonGroup* group);
 
-					void setChecked(bool checked);
-					bool getChecked() const;
+				void setChecked(bool checked);
+				bool getChecked() const;
 
-					ToggleButtonGroup* getGroup();
-			};
+				ToggleButtonGroup* getGroup();
+		};
 
-			class Range : public InfoBase
-			{
-				public:
-					enum Direction
-					{
-						DIRECTION_VERTICAL,
-						DIRECTION_HORIZONTAL
-					};
+		class Range : public InfoBase
+		{
+			public:
+				enum Direction
+				{
+					DIRECTION_VERTICAL,
+					DIRECTION_HORIZONTAL
+				};
 
-					enum Style
-					{
-						STYLE_RANGE,
-						STYLE_SCROLLBAR,
-						STYLE_NUMBER
-					};
-				private:
-					Style style;
-					Direction direction;
-					float low, high;
-					float position;
-				public:
+				enum Style
+				{
+					STYLE_RANGE,
+					STYLE_SCROLLBAR,
+					STYLE_NUMBER
+				};
+			private:
+				Style style;
+				Direction direction;
+				float low, high;
+				float position;
+			public:
 
-					Range(Component* component, float low, float high, float position, Style style, Direction direction);
+				Range(Component* component, float low, float high, float position, Style style, Direction direction);
 
-					Style getStyle();
+				Style getStyle();
 
-					Direction getDirection();
+				Direction getDirection();
 
-					void setPosition(float position);
-					float getPosition() const;
+				void setPosition(float position);
+				float getPosition() const;
 
-					void setRange(float low, float high);
-					float getLow() const;
-					float getHigh() const;
-			};
-			
-			class Image : public InfoBase
-			{
-				private:
-					std::string filename;
-					float width, height;
-				public:
-					Image(Component* component, std::string file, float width, float height);
+				void setRange(float low, float high);
+				float getLow() const;
+				float getHigh() const;
+		};
+		
+		class Image : public InfoBase
+		{
+			private:
+				std::string filename;
+				float width, height;
+			public:
+				Image(Component* component, std::string file, float width, float height);
 
-					void setImage(std::string filename);
-					void setDimensions(float width, float height);
+				void setImage(std::string filename);
+				void setDimensions(float width, float height);
 
-					std::string getImage() const;
-					float getWidth() const;
-					float getHeight() const;
-			};
-			
-			class Button : public InfoBase
-			{
-				public:
-					enum Style
-					{
-						STYLE_NORMAL,
-						STYLE_FLAT
-					};
-				private:
-					Style style;
+				std::string getImage() const;
+				float getWidth() const;
+				float getHeight() const;
+		};
+		
+		class Button : public InfoBase
+		{
+			public:
+				enum Style
+				{
+					STYLE_NORMAL,
+					STYLE_FLAT
+				};
+			private:
+				Style style;
 
-					Button(Component* component, Style style);
+				Button(Component* component, Style style);
 
-					void setStyle(Style style);
-					Style getStyle();
-			};
+				void setStyle(Style style);
+				Style getStyle();
+		};
 
-			class Borders : public InfoBase
-			{
-				public:
-					enum Style
-					{
-						STYLE_UP,
-						STYLE_DOWN,
-						STYLE_FLAT
-					};
-				private:
-					Style style;
-					float size;
+		class Borders : public InfoBase
+		{
+			public:
+				enum Style
+				{
+					STYLE_UP,
+					STYLE_DOWN,
+					STYLE_FLAT
+				};
+			private:
+				Style style;
+				float size;
 
-					Borders(Component* component, Style style, float size);
+				Borders(Component* component, Style style, float size);
 
-					void setStyle(Style style);
-					void setSize(float size);
+				void setStyle(Style style);
+				void setSize(float size);
 
-					Style getStyle() const;
-					float getSize() const;
-			};
-			
-			class FrameBorders : public InfoBase
-			{
-				public:
-					enum Style
-					{
-						STYLE_NORMAL,
-						STYLE_SMALL
-					};
-				private:
-					Style style;
+				Style getStyle() const;
+				float getSize() const;
+		};
+		
+		class FrameBorders : public InfoBase
+		{
+			public:
+				enum Style
+				{
+					STYLE_NORMAL,
+					STYLE_SMALL
+				};
+			private:
+				Style style;
 
-					FrameBorders(Component* component, Style style);
+				FrameBorders(Component* component, Style style);
 
-					void setStyle(Style style);
-					Style getStyle() const;
-			};
-		}
+				void setStyle(Style style);
+				Style getStyle() const;
+		};
 
 	}
 }

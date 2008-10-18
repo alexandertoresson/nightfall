@@ -36,8 +36,30 @@ namespace GUI
 	{
 		class TablePanel : public Container
 		{
+			public:
+				class RowColStyle
+				{
+					public:
+						enum Style
+						{
+							PERCENT,
+							FIXED,
+							FILL,
+							CONTENTS
+						};
+
+					private:
+						Style style;
+						float size;
+					public:
+						RowColStyle(Style style, float size = 0.0f) : style(style), size(size) {}
+				};
+
 			private:
 				Component*** subComponents;
+				std::vector<RowColStyle> rowStyles;
+				std::vector<RowColStyle> colStyles;
+
 				struct Position
 				{
 					int x, y;
@@ -47,9 +69,14 @@ namespace GUI
 				TablePanel(int cols, int rows);
 
 				componentHandle add(Component* comp, int col, int row);
+
+				void setRowStyle(int row, RowColStyle rowStyle);
+				void setColStyle(int row, RowColStyle colStyle);
 			
 				virtual void remove(componentHandle handle);
 				virtual void clear();
+
+				virtual void layout();
 		};
 
 		class DockPanel : public Container
@@ -71,6 +98,7 @@ namespace GUI
 
 				virtual void remove(componentHandle handle);
 				virtual void clear();
+				virtual void layout();
 			private:
 				Component* subComponents[DOCK_NUM];
 				std::map<componentHandle, DockPosition> positions;
@@ -95,6 +123,7 @@ namespace GUI
 
 				virtual void remove(componentHandle handle);
 				virtual void clear();
+				virtual void layout();
 		};
 	}
 }

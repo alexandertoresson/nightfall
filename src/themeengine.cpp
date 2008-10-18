@@ -25,46 +25,43 @@ namespace GUI
 {
 	namespace ThemeEngine
 	{
-		namespace Info
+		InfoBase::InfoBase(Component* component) : comp(component)
 		{
-			InfoBase::InfoBase(Component* component) : comp(component)
-			{
-				
-			}
-
-			void InfoBase::notifyChanged()
-			{
-				comp->scheduleRelayout();
-			}
-
-			Component* InfoBase::getComponent() const
-			{
-				return comp;
-			}
 			
-			Metrics* InfoBase::getMetrics() const
-			{
-				return comp->getMetrics();
-			}
+		}
+
+		void InfoBase::notifyChanged()
+		{
+			comp->scheduleRelayout();
+		}
+
+		Component* InfoBase::getComponent() const
+		{
+			return comp;
+		}
+		
+		Metrics* InfoBase::getMetrics() const
+		{
+			return comp->getMetrics();
+		}
+		
+		Text::Text(Component* component, std::string text) : InfoBase(component), text(text)
+		{
 			
-			Text::Text(Component* component, std::string text) : InfoBase(component), text(text)
-			{
-				
-			}
+		}
 
-			void Text::set(std::string text)
-			{
-				this->text = text;
-			}
+		void Text::set(std::string text)
+		{
+			this->text = text;
+		}
 
-			std::string Text::get() const
-			{
-				return text;
-			}
+		std::string Text::get() const
+		{
+			return text;
 		}
 
 		template <>
-		void Drawer<Info::Text>::Draw(const Info::Text& text, float x, float y, float w, float h)
+		void Drawer<Text>::Draw(const Text& text, float x, float y, float w, float h)
 		{
 			::Window::GUI::FontCache::RenderedText RenderedInfo;
 			::Window::GUI::Fonts.SetFontType(2);
@@ -93,7 +90,7 @@ namespace GUI
 		}
 
 		template <>
-		void Drawer<Info::Text>::GetSize(const Info::Text& text, float cw, float ch, float& w, float& h)
+		void Drawer<Text>::GetSize(const Text& text, float cw, float ch, float& w, float& h)
 		{
 			::Window::GUI::FontCache::TextDimension dims;
 			::Window::GUI::Fonts.SetFontType(2);
