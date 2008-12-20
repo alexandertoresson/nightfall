@@ -2566,8 +2566,6 @@ namespace Game
 			return SUCCESS;
 		}
 		
-#define HEADERSIZE 4
-
 #define APPEND32BIT(dest, src) \
 	SDLNet_Write32(src, dest); \
 	dest += 4;

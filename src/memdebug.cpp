@@ -27,9 +27,9 @@
 #define RECORD_ALL
 
 #define HASH_SIZE 3331337
-#define HASH_FUNC(x) ((unsigned long)x % HASH_SIZE)
+/*#define HASH_FUNC(x) ((unsigned long)x % HASH_SIZE)
 
-#define HASH_SIZE_BY_POS 1337
+#define HASH_SIZE_BY_POS 1337*/
 
 struct hash_entry_by_pos
 {

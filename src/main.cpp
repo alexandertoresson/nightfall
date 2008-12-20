@@ -23,7 +23,7 @@
 #define USE_FONT 1
 //#define DEBUG_DEP // uncomment if you want to enable .h dependency debug output -- note: might only work with g++-ish compilers
 
-#if WIN32
+#ifdef WIN32
 	#include <sstream>
 	#include "win32/win32_console.h"
 	#include <SDL_syswm.h>
@@ -50,7 +50,6 @@
 #if USE_AUDIO == 1
 #include "audio.h"
 #endif
-#define USE_LUA
 #include "luawrapper.h"
 
 #include "sdlheader.h"

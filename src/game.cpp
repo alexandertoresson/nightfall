@@ -46,9 +46,6 @@
 #include <cassert>
 #include <sstream>
 
-#define OVERLAY 1
-#define SKYBOX 0
-
 using namespace Window::GUI;
 using namespace std;
 

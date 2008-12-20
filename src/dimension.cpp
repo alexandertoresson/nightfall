@@ -33,8 +33,6 @@
 #include <set>
 #include <iostream>
 
-#define OVERLAY 1
-
 using namespace std;
 
 namespace Game

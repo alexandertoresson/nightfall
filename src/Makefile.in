@@ -204,7 +204,7 @@ sysconfdir = @sysconfdir@
 target_alias = @target_alias@
 top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
-AM_CXXFLAGS = -Wall -Werror -Wextra -Wno-unused-parameter -Wpointer-arith -Wcast-align -pedantic -ansi -std=c++98 ${CFLAGS}
+AM_CXXFLAGS = -Wall -Werror -Wextra -Wno-unused-parameter -Wpointer-arith -Wcast-align -Wundef -pedantic -ansi -std=c++98 ${CFLAGS}
 nightfall_SOURCES = main.cpp window.cpp game.cpp utilities.cpp ogrexmlmodel.cpp audio.cpp terrain.cpp \
                     aibase.cpp dimension.cpp font.cpp unit.cpp aipathfinding.cpp vector3d.cpp luawrapper.cpp \
                     unitinterface.cpp gui.cpp environment.cpp console.cpp textures.cpp \
