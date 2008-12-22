@@ -430,7 +430,7 @@ namespace GUI
 				maxX = (*it)->dimensions.y + (*it)->dimensions.h;
 		}
 
-		float dX, dY;
+		float dX = 0.0f, dY = 0.0f;
 
 		switch (vAdjustment)
 		{
