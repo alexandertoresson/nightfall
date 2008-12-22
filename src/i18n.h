@@ -21,19 +21,26 @@
 #ifndef __I18N_H__
 #define __I18N_H__ 
 
+#include "sdlheader.h"
+
 #ifdef ENABLE_NLS
-
 #include "gettext.h"
-#define _(x) gettext(x)
-#define N_(s, p, n) ngettext(s, p, n)
+#endif
 
-#else
+#include <string>
 
-#define _(x) (x)
-#define N_(s, p, n) ((n) == 1 ? (s) : (p)) // Fallback
+#define N_(x) (x)
 
-#endif // ENABLE_NLS
+// pure translation
+std::string _(std::string x);
 
-#define M_(x) (x)
+// translation with plurals handlning
+std::string n_(std::string s, std::string p, int n);
+
+// translation with sprintf
+std::string s_(std::string x, ...);
+
+// translation with sprintf and plurals handling
+std::string sn_(std::string s, std::string p, int n, ...);
 
 #endif // __I18N_H__

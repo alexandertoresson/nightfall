@@ -335,17 +335,6 @@ namespace Utilities
 		return v1 * (2 * x3 - 3 * x2 + 1) + m1 * (x3 - 2 * x2 + x) + v2 * (-2 * x3 + 3 * x2) + m2 * (x3 - x2);
 	}
 
-	int StringToInt(std::string target, int no)
-	{
-		const char* letters = target.c_str();
-		
-		while (*letters++ != 0)
-			if (isalpha(*letters))
-				return no;
-			
-		return atoi(target.c_str());
-	}
-	
 	// Trims both start and end in a string ' ' and '\t' is removed.
 	void StringTrim(std::string target, std::string& result)
 	{	
@@ -546,5 +535,65 @@ namespace Utilities
 		}
 	}
 
+	#ifdef _MSC_VER
+		#define VSNPRINTF _vsnprintf
+	#else
+		#define VSNPRINTF vsnprintf
+	#endif
+
+	// vsprintf for std::string
+	std::string stdvsprintf(std::string format, va_list v)
+	{
+		char *buf = (char*) malloc(1);
+		int size = 1;
+		int length = VSNPRINTF(buf, 0, format.c_str(), v);
+		if (length == -1)
+		{
+			// Microsoft implementation detected; returns -1 if output didn't fit.
+			// Loop until it doesn't output -1.
+			while (length == -1)
+			{
+				size <<= 1;
+				buf = (char*) realloc(buf, size+1);
+				length = VSNPRINTF(buf, size, format.c_str(), v);
+			}
+		}
+		else if (length == 0)
+		{
+			// Old implementation detected; returns number of characters actually written.
+			// Loop until written characters is less than buffer size.
+			do
+			{
+				size <<= 1;
+				buf = (char*) realloc(buf, size+1);
+				length = VSNPRINTF(buf, size, format.c_str(), v);
+			}
+			while (length >= size);
+		}
+		else
+		{
+			// Conforming vsnprintf implementation; returns number of characters needed.
+			size = length+1;
+			buf = (char*) realloc(buf, size+1);
+			VSNPRINTF(buf, size, format.c_str(), v);
+		}
+		buf[size] = '\0'; // Make sure it *really* ends with \0 (if it doesn't, we're in trouble)
+
+		std::string str = std::string(buf);
+			
+		free(buf);
+
+		return str;
+	}
+
+	// sprintf for std::string
+	std::string stdsprintf(std::string format, ...)
+	{
+		va_list v;
+		va_start(v, format);
+		std::string str = stdvsprintf(format, v);
+		va_end(v);
+		return str;
+	}
 }
 

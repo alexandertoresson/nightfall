@@ -110,51 +110,51 @@ namespace Audio
 		// Make sure there's given a valid value
 		if (musicDirectory.length() == 0)
 		{
-			console << Console::err << "Invalid directory input for music." << Console::nl;
+			console << Console::err << _("No music directory specified.") << Console::nl;
 			return AUDIO_ERROR_INVALID_CONFIGURATION;
 		}
 
 		if (soundDirectory.length() == 0)
 		{
-			console << Console::err << "Invalid directory input for music." << Console::nl;
+			console << Console::err << _("No sound directory specified.") << Console::nl;
 			return AUDIO_ERROR_INVALID_CONFIGURATION;
 		}
 
 		// Enforces integer values. If a non-numeric symbol is found, the variable affected
 		// will be set to zero. . .
-		int rate       = Utilities::StringToInt(musicConfig.GetValue("audio rate"));
-		int setup      = Utilities::StringToInt(musicConfig.GetValue("audio setup"));
-		int channels   = Utilities::StringToInt(musicConfig.GetValue("audio channels"));
-		int chunksize  = Utilities::StringToInt(musicConfig.GetValue("audio chunksize"));
+		int rate       = Utilities::StringCast<int>(musicConfig.GetValue("audio rate"));
+		int setup      = Utilities::StringCast<int>(musicConfig.GetValue("audio setup"));
+		int channels   = Utilities::StringCast<int>(musicConfig.GetValue("audio channels"));
+		int chunksize  = Utilities::StringCast<int>(musicConfig.GetValue("audio chunksize"));
 
 		// . . . thus the following checks
 		if (rate <= 0)
 		{
-			console << Console::err <<  "Invalid bitrate" << Console::nl;
+			console << Console::err << s_("Invalid bitrate: %d", rate) << Console::nl;
 			return AUDIO_ERROR_INVALID_CONFIGURATION;
 		}
 
 		if (channels <= 0 ||
 			channels >= 1000 /* some number to prevent fools from crashing the application */)
 		{
-			console << Console::err << "Invalid amount of channels" << Console::nl;
+			console << Console::err << s_("Invalid number of channels: %d", channels) << Console::nl;
 			return AUDIO_ERROR_INVALID_CONFIGURATION;
 		}
 
 		if (setup <= 0 || setup > 2)
 		{
-			console << Console::err << "Invalid setup. 1 = mono, 2 = stereo" << Console::nl;
+			console << Console::err << _("Invalid setup. 1 = mono, 2 = stereo") << Console::nl;
 			return AUDIO_ERROR_INVALID_CONFIGURATION;
 		}
 
 		if (chunksize <= 0)
 		{
-			console << Console::err << "Invalid chunksize" << Console::nl;
+			console << Console::err << _("Invalid chunksize") << Console::nl;
 			return AUDIO_ERROR_INVALID_CONFIGURATION;
 		}
 
 		// Get the audio format
-		int format = (Uint16) Utilities::StringToInt(musicConfig.GetValue("audio format"));
+		int format = (Uint16) Utilities::StringCast<int>(musicConfig.GetValue("audio format"));
 		std::string formatType;
 		if (format == 0 || format < 0 || format > 8)
 		{
@@ -202,22 +202,22 @@ namespace Audio
 
 		if (Mix_OpenAudio(rate, (Uint16) format, setup, chunksize) < 0)
 		{
-			console << Console::err << "Audio Error: " << Mix_GetError() << Console::nl;
+			console << Console::err << _("Audio Error: ") << Mix_GetError() << Console::nl;
 			return ERROR_GENERAL;
 		}
 
 		Mix_AllocateChannels(channels);
 
 		// Output the results
-		console << "AUDIO PROPERTIES "                    << Console::nl
-			<< "Description -------- Value"           << Console::nl
-			<< "Rate: . . . . . . . . " << rate       << Console::nl
-			<< "Setup:  . . . . . . . " << (setup == 1 ? "mono" : "stereo") << Console::nl
-			<< "Channels: . . . . . . " << channels   << Console::nl
-			<< "Chunksize:  . . . . . " << chunksize  << Console::nl
-			<< "Format: . . . . . . . " << formatType << Console::nl
-			<< "Current music volume: " << GetMusicVolume() << Console::nl
-			<< "Current mix volume: . " << GetChannelVolume(-1) << Console::nl;		
+		console << _("AUDIO PROPERTIES ") << Console::nl
+			<< _("Description -------- Value") << Console::nl
+			<< s_("Rate: . . . . . . . . %d", rate) << Console::nl
+			<< s_("Setup:  . . . . . . . %s", (setup == 1 ? _("Mono") : _("Stereo")).c_str()) << Console::nl
+			<< s_("Channels: . . . . . . %d",  channels) << Console::nl
+			<< s_("Chunksize:  . . . . . %d", chunksize) << Console::nl
+			<< s_("Format: . . . . . . . %s", formatType.c_str()) << Console::nl
+			<< s_("Current music volume: %d", GetMusicVolume()) << Console::nl
+			<< s_("Current mix volume: . %d", GetChannelVolume(-1)) << Console::nl;		
 
 		// Create audio list?
 		std::string createAudioList = musicConfig.GetValue("create audio list");
@@ -227,12 +227,12 @@ namespace Audio
 			// Holds where the audio list is located
 			std::string audioListFile = musicConfig.GetValue("audio list");
 
-			console << "Loading audio from audio list " << audioListFile << "..." << Console::nl;
+			console << s_("Loading audio from audio list %s...",  audioListFile.c_str()) << Console::nl;
 
 			// Make sure no zero-string
 			if (audioListFile.length() == 0)
 			{
-				console << Console::err << "Audio list not defined" << Console::nl;
+				console << Console::err << _("Audio list not defined") << Console::nl;
 				return AUDIO_ERROR_INVALID_AUDIO_LIST;
 			}
 
@@ -278,14 +278,14 @@ namespace Audio
 							while (buffer.size() > 0)
 							{
 								file = (std::string) musicDirectory + buffer.front();
-								console << "Loading '" << file << "' as music. Result: ";
+								console << s_("Loading '%s' as music. Result: ", file.c_str());
 
 								Music* pNoice = Mix_LoadMUS(file.c_str());
 								if (pNoice == NULL)
-									console << "Failure. Error: " << Mix_GetError() << Console::nl;
+									console << _("Failure. Error: ") << Mix_GetError() << Console::nl;
 								else
 								{
-									console << "Success!" << Console::nl;
+									console << _("Success!") << Console::nl;
 									finalBuffer.push(pNoice);
 								}
 								buffer.pop();
@@ -312,14 +312,14 @@ namespace Audio
 							while (buffer.size() > 0)
 							{
 								file = (std::string) musicDirectory + buffer.front();
-								console << "Loading '" << file << "' as sound-FX. Result: ";
+								console << s_("Loading '%s' as sound effect. Result: ", file.c_str());
 
 								Sound* pNoice = Mix_LoadWAV(file.c_str());
 								if (pNoice == NULL)
-									console << "Failure. Error: " << Mix_GetError() << Console::nl;
+									console << _("Failure. Error: ") << Mix_GetError() << Console::nl;
 								else
 								{
-									console << "Success!" << Console::nl;
+									console << _("Success!") << Console::nl;
 									finalBuffer.push(pNoice);
 								}
 								buffer.pop();
@@ -338,7 +338,7 @@ namespace Audio
 						name = "";
 					}
 					else
-						console << Console::err << "Warning: null-pointer pList at save-param." << Console::nl;
+						console << Console::err << _("Warning: No play list created.") << Console::nl;
 				}
 				//
 				// Defines which list we wish to work with.
@@ -347,7 +347,7 @@ namespace Audio
 				{					
 					if (pList)
 					{
-						console << Console::err << "Warning: audio list not saved" << Console::nl;
+						console << Console::err << _("Warning: audio list not saved") << Console::nl;
 					}
 
 					pList = new AudioList;
@@ -482,7 +482,7 @@ namespace Audio
 
 			if (pAudioThread == NULL)
 			{
-				console << Console::err << "Failed to play list " << tag << " because of missing audio-thread." << Console::nl;
+				console << Console::err << s_("Failed to play list %s because of missing audio-thread.", tag.c_str()) << Console::nl;
 				return ERROR_GENERAL;
 			}
 

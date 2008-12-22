@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: nightfall 0.1\n"
 "Report-Msgid-Bugs-To: bugs@nightfall-rts.org\n"
-"POT-Creation-Date: 2008-10-02 22:46+0200\n"
+"POT-Creation-Date: 2008-12-22 00:56+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -16,35 +16,156 @@ msgstr ""
 "Content-Type: text/plain; charset=CHARSET\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-#: src/game.cpp:241
+#: src/audio.cpp:113
+msgid "No music directory specified."
+msgstr ""
+
+#: src/audio.cpp:119
+msgid "No sound directory specified."
+msgstr ""
+
+#: src/audio.cpp:133
+#, c-format
+msgid "Invalid bitrate: %d"
+msgstr ""
+
+#: src/audio.cpp:140
+#, c-format
+msgid "Invalid number of channels: %d"
+msgstr ""
+
+#: src/audio.cpp:146
+msgid "Invalid setup. 1 = mono, 2 = stereo"
+msgstr ""
+
+#: src/audio.cpp:152
+msgid "Invalid chunksize"
+msgstr ""
+
+#: src/audio.cpp:205
+msgid "Audio Error: "
+msgstr ""
+
+#: src/audio.cpp:212
+msgid "AUDIO PROPERTIES "
+msgstr ""
+
+#: src/audio.cpp:213
+msgid "Description -------- Value"
+msgstr ""
+
+#: src/audio.cpp:214
+#, c-format
+msgid "Rate: . . . . . . . . %d"
+msgstr ""
+
+#: src/audio.cpp:215
+msgid "Mono"
+msgstr ""
+
+#: src/audio.cpp:215
+msgid "Stereo"
+msgstr ""
+
+#: src/audio.cpp:215
+#, c-format
+msgid "Setup:  . . . . . . . %s"
+msgstr ""
+
+#: src/audio.cpp:216
+#, c-format
+msgid "Channels: . . . . . . %d"
+msgstr ""
+
+#: src/audio.cpp:217
+#, c-format
+msgid "Chunksize:  . . . . . %d"
+msgstr ""
+
+#: src/audio.cpp:218
+#, c-format
+msgid "Format: . . . . . . . %s"
+msgstr ""
+
+#: src/audio.cpp:219
+#, c-format
+msgid "Current music volume: %d"
+msgstr ""
+
+#: src/audio.cpp:220
+#, c-format
+msgid "Current mix volume: . %d"
+msgstr ""
+
+#: src/audio.cpp:230
+#, c-format
+msgid "Loading audio from audio list %s..."
+msgstr ""
+
+#: src/audio.cpp:235
+msgid "Audio list not defined"
+msgstr ""
+
+#: src/audio.cpp:281
+#, c-format
+msgid "Loading '%s' as music. Result: "
+msgstr ""
+
+#: src/audio.cpp:285 src/audio.cpp:319
+msgid "Failure. Error: "
+msgstr ""
+
+#: src/audio.cpp:288 src/audio.cpp:322
+msgid "Success!"
+msgstr ""
+
+#: src/audio.cpp:315
+#, c-format
+msgid "Loading '%s' as sound effect. Result: "
+msgstr ""
+
+#: src/audio.cpp:341
+msgid "Warning: No play list created."
+msgstr ""
+
+#: src/audio.cpp:350
+msgid "Warning: audio list not saved"
+msgstr ""
+
+#: src/audio.cpp:485
+#, c-format
+msgid "Failed to play list %s because of missing audio-thread."
+msgstr ""
+
+#: src/game.cpp:238
 msgid "Awaiting network..."
 msgstr ""
 
-#: src/game.cpp:326
+#: src/game.cpp:323
 msgid "Resource: Money"
 msgstr ""
 
-#: src/game.cpp:330
+#: src/game.cpp:327
 msgid "Resource: Power"
 msgstr ""
 
-#: src/game.cpp:334
+#: src/game.cpp:331
 msgid "Time"
 msgstr ""
 
-#: src/game.cpp:337
+#: src/game.cpp:334
 msgid "Sell"
 msgstr ""
 
-#: src/game.cpp:366
+#: src/game.cpp:363
 msgid "Nightfall (Codename Twilight)"
 msgstr ""
 
-#: src/game.cpp:409 src/game.cpp:427
+#: src/game.cpp:406 src/game.cpp:424
 msgid "Loading..."
 msgstr ""
 
-#: src/game.cpp:414 src/game.cpp:434
+#: src/game.cpp:411 src/game.cpp:431
 msgid "Failed to start game, see errors above to find out why."
 msgstr ""
 
@@ -197,54 +318,54 @@ msgstr ""
 msgid "Number of players: "
 msgstr ""
 
-#: src/main.cpp:79
+#: src/main.cpp:78
 msgid "Welcome to Nightfall!"
 msgstr ""
 
-#: src/main.cpp:92
+#: src/main.cpp:91
 msgid "Failed to initialize SDL!"
 msgstr ""
 
-#: src/main.cpp:92 src/main.cpp:124 src/main.cpp:135
+#: src/main.cpp:91 src/main.cpp:123 src/main.cpp:134
 msgid "An error occurred"
 msgstr ""
 
-#: src/main.cpp:94
+#: src/main.cpp:93
 msgid "Failed to initialize SDL: "
 msgstr ""
 
-#: src/main.cpp:99
+#: src/main.cpp:98
 msgid "One instance of SDL has already been initialized."
 msgstr ""
 
-#: src/main.cpp:115
+#: src/main.cpp:114
 msgid "config.txt could not be parsed!"
 msgstr ""
 
-#: src/main.cpp:124 src/main.cpp:126
+#: src/main.cpp:123 src/main.cpp:125
 msgid "Window subsystem could not be initialized!"
 msgstr ""
 
-#: src/main.cpp:135 src/main.cpp:137
+#: src/main.cpp:134 src/main.cpp:136
 msgid "Font Init Error."
 msgstr ""
 
-#: src/main.cpp:142
+#: src/main.cpp:141
 msgid "Initializing Soundsytem"
 msgstr ""
 
-#: src/main.cpp:153
+#: src/main.cpp:152
 msgid "SDLNet_Init Error: "
 msgstr ""
 
-#: src/main.cpp:158
+#: src/main.cpp:157
 msgid "Loading World"
 msgstr ""
 
-#: src/main.cpp:186
+#: src/main.cpp:185
 msgid "Loading main game..."
 msgstr ""
 
-#: src/main.cpp:380
+#: src/main.cpp:379
 msgid "Goodbye!"
 msgstr ""

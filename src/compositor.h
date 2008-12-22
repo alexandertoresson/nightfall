@@ -89,19 +89,19 @@ namespace GUI
 				switch(standard)
 				{
 					case B_OK:
-						names.push_back("OK");
+						names.push_back(_("OK"));
 						focused = 0;
 						type = B_OK;
 						break;
 					case B_OKCANCEL:
-						names.push_back("OK");
-						names.push_back("Cancel");
+						names.push_back(_("OK"));
+						names.push_back(_("Cancel"));
 						focused = 1;
 						type = B_OKCANCEL;
 						break;
 					case B_YESNO:
-						names.push_back("Yes");
-						names.push_back("No");
+						names.push_back(_("Yes"));
+						names.push_back(_("No"));
 						focused = 1;
 						type = B_YESNO;
 						break;

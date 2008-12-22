@@ -52,4 +52,6 @@
      ../src/vector3d.cpp \
      ../src/widgets.cpp \
      ../src/window.cpp \
-     ../src/themeengine.cpp
+     ../src/themeengine.cpp \
+     ../src/i18n.h \
+     ../src/i18n.cpp
