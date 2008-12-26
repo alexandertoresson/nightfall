@@ -67,6 +67,7 @@ namespace GUI
 			public:
 				virtual void Draw(const T& info, float x, float y, float w, float h);
 				virtual void GetSize(const T& info, float cw, float ch, float& w, float& h);
+				virtual ~Drawer() {}
 		};
 
 		class Theme

@@ -171,7 +171,7 @@ namespace Utilities
 		}
 
 		// send request
-		result = SDLNet_TCP_Send(socket, req->request.c_str(), req->request.length());
+		result = SDLNet_TCP_Send(socket, (void*) req->request.c_str(), req->request.length());
 
 		// result is the number of bytes sent; if it is less than what we wanted there has been an error
 		if (result < (signed) req->request.length()) 
