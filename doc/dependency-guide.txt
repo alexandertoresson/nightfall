@@ -1,0 +1,112 @@
+Introduction
+------------
+
+This project uses a kind of dependency system to make sure that the .h files
+and their contents are included in the right order when compiling. It makes heavy
+use of the preprocessor. I think it's best explained with an example, so here
+goes with an example for an imaginary foo.h:
+
+Example: foo.h and foo-pre.h
+----------------------------
+
+// Here comes the contents of foo-pre.h, contains everything that doesn't
+// need access to declarations in other headers
+#ifndef __FOO_H_PRE__
+
+	#define __FOO_H_PRE__ // make sure the pre section isn't included again
+
+	#ifdef DEBUG_DEP
+		#warning "foo.h-pre" // output a warning when the pre section of this file
+		                     // is included; this is useful for debug purposes
+	#endif
+
+	namespace Foo
+	{
+		struct Foo_struct;
+		class Foo_class;
+		// And declarations for anything else that doesn't need declarations from
+		// other headers.
+	}
+
+#endif
+
+// Here comes the contents of foo.h, contains stuff that needs access to stuff in other headers
+#ifndef __FOO_H__
+
+	#define __FOO_H__  // make sure the main section isn't included again
+
+	#ifdef DEBUG_DEP
+		#warning "foo.h" // emit debug info
+	#endif
+
+	#include "foo-pre.h" // Include pre version
+
+	#include "bar.h" // Need full bar header
+	#include "baz-pre.h" // Need pre section of baz header
+
+	namespace Foo
+	{
+		...    // actually define the classes, structs and their contents and everything else you might have
+	}
+
+	#ifdef DEBUG_DEP
+		#warning "foo.h-end" // emit debug info
+	#endif
+
+#endif
+
+Common Actions
+--------------
+
+A: The .cpp file needs a .h file, but the .h itself doesn't need it.
+S: Include the .h file in .cpp source file.
+
+Circular dependencies
+---------------------
+
+Accidently creating circular dependencies is easy. Even I did it ;)
+Anyway, what happens when you happen to create one, is that neither of the files
+that are affected by it will be included. You will thus very likely get errors
+from your .cpp file telling you that some symbols in any of the .h files
+aren't defined. The solution is to find out which files are involved in the
+circular dependency and break the circular dependency at any of the steps.
+Usually this involves finding the one of the dependencies that doesn't need to
+be on the main section, and make it depend on the pre section instead.
+Defining DEBUG_DEP may be useful for debugging this.
+
+Current dependencies as of 061204
+---------------------------------
+
+These have changed a lot since 061204, but I'm lazy enough to not update the list
+
+dimension: aibase, vector3d, vrmlparser_pre
+aipathfinding: dimension, unit_pre
+aibase: unit_pre
+vector3d: terrain_pre
+utilities: window
+unit: aipathfinding_pre, aibase_pre, dimension, vector3d, game, terrain
+terrain: vector3d, unit_pre
+window: utilities_pre
+audio: vector3d
+vrmlparser: unit_pre
+game: terrain
+lua: none
+
+Possible order they might be included in:
+aibase_pre
+utilities_pre
+window
+aipathfinding_pre
+terrain_pre
+unit_pre
+vector3d
+terrain
+vrmlparser_end
+aibase
+dimension
+game
+unit
+aipathfinding
+utilities
+audio
+lua
