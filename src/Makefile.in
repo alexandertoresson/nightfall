@@ -68,7 +68,8 @@ am_nightfall_OBJECTS = main.$(OBJEXT) window.$(OBJEXT) game.$(OBJEXT) \
 	selectorxml.$(OBJEXT) gc_ptr.$(OBJEXT) action.$(OBJEXT) \
 	tracker.$(OBJEXT) compositor.$(OBJEXT) core.$(OBJEXT) \
 	guitest.$(OBJEXT) widgets.$(OBJEXT) containers.$(OBJEXT) \
-	httprequest.$(OBJEXT) themeengine.$(OBJEXT) i18n.$(OBJEXT)
+	httprequest.$(OBJEXT) themeengine.$(OBJEXT) vfs.$(OBJEXT) \
+	i18n.$(OBJEXT)
 nightfall_OBJECTS = $(am_nightfall_OBJECTS)
 nightfall_LDADD = $(LDADD)
 nightfall_LINK = $(CXXLD) $(AM_CXXFLAGS) $(CXXFLAGS) \
@@ -213,7 +214,7 @@ nightfall_SOURCES = main.cpp window.cpp game.cpp utilities.cpp ogrexmlmodel.cpp 
                     unitrender.cpp scenegraph.cpp matrix4x4.cpp lockchecker.cpp memdebug.cpp render.cpp \
                     festring.cpp materialxml.cpp configuration.cpp extensions.cpp selectorxml.cpp \
                     gc_ptr.cpp action.cpp tracker.cpp compositor.cpp core.cpp guitest.cpp widgets.cpp \
-                    containers.cpp httprequest.cpp themeengine.cpp i18n.cpp
+                    containers.cpp httprequest.cpp themeengine.cpp vfs.cpp i18n.cpp
 
 nightfall_LDFLAGS = $(LIBINTL)
 all: config.h
@@ -351,6 +352,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/unittype.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/utilities.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/vector3d.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/vfs.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/widgets.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/window.Po@am__quote@
 
