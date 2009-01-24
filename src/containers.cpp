@@ -28,7 +28,14 @@ namespace GUI
 		////////////////////////////////////////////
 		// FlowPanel
 
-		FlowPanel::FlowPanel(Direction primaryDirection, Direction secondaryDirection) : primaryDirection(primaryDirection), secondaryDirection(secondaryDirection)
+		FlowPanel::FlowPanel(Direction primaryDirection,
+		                     Direction secondaryDirection,
+		                     VerticalAdjustment individualVAdjustment,
+		                     HorizontalAdjustment individualHAdjustment) :
+		                     primaryDirection(primaryDirection),
+		                     secondaryDirection(secondaryDirection),
+		                     individualVAdjustment(individualVAdjustment),
+		                     individualHAdjustment(individualHAdjustment)
 		{
 			
 		}
@@ -43,7 +50,30 @@ namespace GUI
 			Container::layoutAll();
 			
 			{
-				
+				float posX = 0.0f;
+				float posY = 0.0f;
+				switch (primaryDirection)
+				{
+					case DIRECTION_VERTICAL_REVERSED:
+						posY = dimensions.h;
+					case DIRECTION_VERTICAL:
+						if (secondaryDirection == DIRECTION_HORIZONTAL_REVERSED)
+						{
+							posX = dimensions.w;
+						}
+						break;
+					
+					case DIRECTION_HORIZONTAL_REVERSED:
+						posX = dimensions.w;
+					case DIRECTION_HORIZONTAL:
+						if (secondaryDirection == DIRECTION_VERTICAL_REVERSED)
+						{
+							posY = dimensions.h;
+						}
+						break;
+					default:
+						break;
+				}
 			}
 
 			Container::postLayout();

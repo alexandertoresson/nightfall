@@ -114,12 +114,19 @@ namespace GUI
 				{
 					DIRECTION_VERTICAL,
 					DIRECTION_HORIZONTAL,
+					DIRECTION_VERTICAL_REVERSED,
+					DIRECTION_HORIZONTAL_REVERSED,
 					DIRECTION_NONE
 				};
 			private:
 				Direction primaryDirection, secondaryDirection;
+				VerticalAdjustment individualVAdjustment;
+				HorizontalAdjustment individualHAdjustment;
 			public:
-				FlowPanel(Direction primaryDirection, Direction secondaryDirection);
+				FlowPanel(Direction primaryDirection = DIRECTION_VERTICAL,
+				          Direction secondaryDirection = DIRECTION_HORIZONTAL,
+				          VerticalAdjustment individualVAdjustment = V_ADJUSTMENT_LEFT,
+				          HorizontalAdjustment individualHAdjustment = H_ADJUSTMENT_TOP);
 
 				componentHandle insert(Component* comp, int position);
 

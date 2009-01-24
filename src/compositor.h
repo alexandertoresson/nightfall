@@ -381,6 +381,8 @@ namespace GUI
 			
 			friend class Workspace;
 			friend class Container;
+
+			friend class ThemeEngine::Drawer<Component>;
 	};
 	
 	class Container : public Component

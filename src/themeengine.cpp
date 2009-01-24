@@ -103,5 +103,18 @@ namespace GUI
 			w = dims.w;
 			h = dims.h;
 		}
+		
+		template <>
+		void Drawer<Component>::Draw(const Component& component, float x, float y, float w, float h)
+		{
+			
+		}
+		
+		template <>
+		void Drawer<Component>::GetSize(const Component& comp, float cw, float ch, float& w, float& h)
+		{
+			w = comp.dimensions.w + comp.margin.right + comp.margin.left;
+			h = comp.dimensions.h + comp.margin.top + comp.margin.bottom;
+		}
 	}
 }
