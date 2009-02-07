@@ -29,7 +29,6 @@ namespace Utilities
 	Matrix4x4::Matrix4x4()
 	{
 		Identity();
-		nothingelsehasthisname = 1;
 	}
 	
 	Matrix4x4::Matrix4x4(float matrix[4][4])
@@ -41,7 +40,6 @@ namespace Utilities
 				this->matrix[i][j] = matrix[i][j];
 			}
 		}
-		nothingelsehasthisname = 1;
 	}
 	
 	Matrix4x4::~Matrix4x4()

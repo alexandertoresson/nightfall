@@ -33,7 +33,6 @@ namespace Utilities
 	{
 		public:
 			float matrix[4][4];
-			float nothingelsehasthisname;
 
 			//! Creates a new 4x4 matrix and loads it with the identity matrix
 			Matrix4x4();
