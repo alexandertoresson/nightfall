@@ -559,9 +559,10 @@ namespace Utilities
 				length = VSNPRINTF(buf, size, format.c_str(), v);
 			}
 		}
-		else if (length == 0)
+		else if (length <= 1)
 		{
 			// Old implementation detected; returns number of characters actually written.
+			// If it wrote one \0 character, allow that too...
 			// Loop until written characters is less than buffer size.
 			// Note that if the format string is "" or if it evaluates to "",
 			// this branch will be entered on the Windows platform, but it will do
