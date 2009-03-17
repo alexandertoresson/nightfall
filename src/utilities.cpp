@@ -544,17 +544,18 @@ namespace Utilities
 	// vsprintf for std::string
 	std::string stdvsprintf(std::string format, va_list v)
 	{
-		char *buf = (char*) malloc(1);
+		char *buf = (char*) malloc(1); // malloc(0) is undefined behaviour, and also the implementation MAY write one \0.
 		int size = 1;
 		int length = VSNPRINTF(buf, 0, format.c_str(), v);
-		if (length == -1)
+		if (length < 0)
 		{
-			// Microsoft implementation detected; returns -1 if output didn't fit.
-			// Loop until it doesn't output -1.
-			while (length == -1)
+			// Microsoft implementation detected; returns a negative integer if output didn't fit.
+			// Loop until it doesn't return a negative integer.
+			while (length < 0)
 			{
 				size <<= 1;
-				buf = (char*) realloc(buf, size+1);
+				buf = (char*) realloc(buf, size+1); // Allow implementation to either write size or
+				                                    // size+1 characters
 				length = VSNPRINTF(buf, size, format.c_str(), v);
 			}
 		}
@@ -562,6 +563,9 @@ namespace Utilities
 		{
 			// Old implementation detected; returns number of characters actually written.
 			// Loop until written characters is less than buffer size.
+			// Note that if the format string is "" or if it evaluates to "",
+			// this branch will be entered on the Windows platform, but it will do
+			// no harm.
 			do
 			{
 				size <<= 1;
@@ -572,12 +576,13 @@ namespace Utilities
 		}
 		else
 		{
-			// Conforming vsnprintf implementation; returns number of characters needed.
+			// Appears we have a conforming vsnprintf implementation; returns number of characters needed.
 			size = length+1;
 			buf = (char*) realloc(buf, size+1);
 			VSNPRINTF(buf, size, format.c_str(), v);
 		}
 		buf[size] = '\0'; // Make sure it *really* ends with \0 (if it doesn't, we're in trouble)
+		                  // At least Windows MAY not write an ending \0.
 
 		std::string str = std::string(buf);
 			
