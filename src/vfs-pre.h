@@ -33,11 +33,13 @@ namespace Utilities
 {
 	namespace VFS
 	{
-		std::string Resolve(std::string filename);
+		std::string ResolveReadable(const std::string& filename);
+		std::string ResolveWritable(const std::string& filename);
 
-		bool FileExists(std::string filename);
+		bool FileIsReadable(const std::string& filename);
+		bool FileIsWriteable(const std::string& filename);
 
-		void Mount(std::string path, std::string mountpoint);
+		void Mount(const std::string& path, const std::string& mountPoint);
 
 		void PushState();
 		void PopState();

@@ -10,8 +10,8 @@
 # As what is written above, changing these two variables
 # is very unwise. The application will refuse to start up
 # if not all files defined in the audio list below are found!
-music directory			resources/music/
-sound directory			resources/sound/
+music directory			/data/music/
+sound directory			/data/sound/
 
 # 44100 (CD-quality) recommended. Set to half 22050 if
 # you do experience a significant performance loss.
@@ -51,4 +51,4 @@ audio format			0
 # Lists the different default music for
 # different game states.
 create audio list		yes
-audio list			resources/configuration/audioList.txt
+audio list			audioList.txt

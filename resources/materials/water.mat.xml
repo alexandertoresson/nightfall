@@ -6,7 +6,7 @@
 		<specular r="0.0" g="0.0" b="0.0" a="1.0" />
 		<emission r="0.0" g="0.0" b="0.0" a="1.0" />
 		<shininess value="10.0" />
-		<shader vertex_shader="shaders/water.vert"
-	        	fragment_shader="shaders/water.frag" />
+		<shader vertex_shader="water"
+	        	fragment_shader="water" />
 	</material>
 </materials>

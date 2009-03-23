@@ -18,6 +18,6 @@ ut.powerIncrement = 10.0
 ut.powerType = PowerType.TwentyFourSeven
 ut.powerUsage = 2.0
 	
-ut.model = "models/cube"
+ut.model = "cube"
 
 CreateUnitType(ut)

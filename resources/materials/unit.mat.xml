@@ -7,10 +7,10 @@
 		<emission r="0.0" g="0.0" b="0.0" a="1.0" />
 		<shininess value="10.0" />
 		<textures>
-			<texture filename="models/textures/generic.png" name="mainTexture" />
-			<texture filename="models/textures/generic.png" name="colourTexture" />
+			<texture filename="models/generic.png" name="mainTexture" />
+			<texture filename="models/generic.png" name="colourTexture" />
 		</textures>
-		<shader vertex_shader="shaders/test.vert"
-	        	fragment_shader="shaders/test.frag" />
+		<shader vertex_shader="test"
+	        	fragment_shader="test" />
 	</material>
 </materials>

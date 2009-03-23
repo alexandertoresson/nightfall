@@ -32,11 +32,11 @@ ut.powerUsage = 4.0
 ut.movePowerUsage = 2.0
 ut.attackPowerUsage = 3.0
 	
-ut.model = "models/smallTank"
+ut.model = "smallTank"
 
 ut.projectileType =
 	{
-		model = "models/missile",
+		model = "missile",
 		areaOfEffect = 2.0,
 		startPos = {1.0, 0.0, 0.0},
 		speed = 8.0,

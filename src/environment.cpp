@@ -32,7 +32,7 @@
 #include "environment.h"
 #include "dimension.h"
 #include "console.h"
-#include "paths.h"
+#include "vfs.h"
 #include "filesystem.h"
 #include "utilities.h"
 #include "unit.h"
@@ -451,7 +451,7 @@ namespace Game
 			
 			bool FourthDimension::LoadSkyboxes(std::string config_file)
 			{
-				std::string filename = Utilities::GetConfigFile(config_file);
+				std::string filename = Utilities::VFS::ResolveReadable("/config/" + config_file);
 				std::ifstream     file;
 				std::string       buffer;
 				
@@ -502,17 +502,7 @@ namespace Game
 						continue;
 					}
 					
-					std::ostringstream orig_file;
-					orig_file << "textures/";
-					orig_file << buffer;
-					
-					if (!Utilities::FileExists(Utilities::GetDataFile(orig_file.str())))
-					{
-						console << Console::err << "[SKYBOX] " << orig_file.str() << " is missing!" << Console::nl;
-						return false;
-					}
-					
-					int ret = LoadSkyBox(orig_file.str());
+					int ret = LoadSkyBox(buffer);
 					if (ret > -1)
 					{
 						size_t pos = buffer.find_last_of('.');

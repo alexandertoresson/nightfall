@@ -18,8 +18,8 @@ ut.researchCost = 200
 ut.powerIncrement = 8.0
 ut.powerType = PowerType.DayLight
 
-ut.symbol = "textures/sunpanel.png"
+ut.symbol = "sunpanel.png"
 
-ut.model = "models/solarPanel"
+ut.model = "solarPanel"
 
 CreateUnitType(ut)

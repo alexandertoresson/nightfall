@@ -19,8 +19,8 @@ ut.lightRange = 12.0
 ut.powerUsage = 2.0
 ut.lightPowerUsage = 3.0
 	
-ut.symbol = "textures/lighttower_bigger.png"
+ut.symbol = "lighttower_bigger.png"
 
-ut.model = "models/mediumLightTower"
+ut.model = "mediumLightTower"
 
 CreateUnitType(ut)

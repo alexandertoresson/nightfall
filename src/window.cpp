@@ -22,7 +22,8 @@
 
 #include "errors.h"
 #include "configuration.h"
-#include "paths.h"
+#include "filesystem.h"
+#include "vfs.h"
 #include "utilities.h"
 #include "extensions.h"
 #include <iostream>
@@ -310,11 +311,10 @@ namespace Window
 		std::string filename;
 		while (true)
 		{
-			bool exists;
 			std::stringstream ss;
-			ss << "screenshots/SCR" << screenshotCount << ".bmp";
+			ss << "/data/screenshots/SCR" << screenshotCount << ".bmp";
 
-			filename = Utilities::GetWritableDataFile(ss.str(), exists);
+			filename = Utilities::VFS::ResolveWritable(ss.str());
 
 			if (!filename.length())
 			{
@@ -322,7 +322,7 @@ namespace Window
 				return;
 			}
 
-			if (!exists)
+			if (!Utilities::FileIsReadable(filename))
 			{
 				break;
 			}

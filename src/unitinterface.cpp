@@ -27,7 +27,7 @@
 #include "aipathfinding.h"
 #include "environment.h"
 #include "networking.h"
-#include "paths.h"
+#include "vfs.h"
 #include "dimension.h"
 #include "aibase.h"
 #include "camera.h"
@@ -1663,8 +1663,8 @@ namespace UnitLuaInterface
 			LUA_FAILURE("LLoadTerrain: First argument not string")
 		}
 	
-		std::string filename = "maps/" + (std::string) lua_tostring(pVM, 1);
-		int ret = Game::Dimension::LoadTerrainXML(filename);
+		std::string name = std::string(lua_tostring(pVM, 1));
+		int ret = Game::Dimension::LoadTerrainXML(name);
 		if (ret)
 		{
 			LUA_SUCCESS
@@ -2356,7 +2356,7 @@ namespace UnitLuaInterface
 		{
 			LUA_FAILURE("Invalid String")
 		}
-		std::string filepath = Utilities::GetDataFile("scripts/" + (std::string) filename);
+		std::string filepath = Utilities::VFS::ResolveReadable("/data/scripts/" + std::string(filename));
 
 		if (!filepath.length())
 		{
@@ -2367,48 +2367,22 @@ namespace UnitLuaInterface
 		return 1;
 	}
 
-	int LGetDataFile(lua_State* pVM)
+	int LResolveReadable(lua_State* pVM)
 	{
 		const char* filename = lua_tostring(pVM, 1);
-		std::string filepath = Utilities::GetDataFile(filename);
-
-		if (!filepath.length())
-		{
-			LUA_FAILURE("File not found")
-		}
+		std::string filepath = Utilities::VFS::ResolveReadable(filename);
 
 		lua_pushstring(pVM, filepath.c_str());
 		return 1;
 	}
 
-	int LGetConfigFile(lua_State* pVM)
+	int LResolveWritable(lua_State* pVM)
 	{
 		const char* filename = lua_tostring(pVM, 1);
-		std::string filepath = Utilities::GetConfigFile(filename);
-
-		if (!filepath.length())
-		{
-			LUA_FAILURE("File not found")
-		}
+		std::string filepath = Utilities::VFS::ResolveWritable(filename);
 
 		lua_pushstring(pVM, filepath.c_str());
 		return 1;
-	}
-
-	int LGetWritableConfigFile(lua_State* pVM)
-	{
-		const char* filename = lua_tostring(pVM, 1);
-		bool exists;
-		std::string filepath = Utilities::GetWritableConfigFile(filename, exists);
-
-		if (!filepath.length())
-		{
-			LUA_FAILURE("Could not find a directory to write in")
-		}
-
-		lua_pushstring(pVM, filepath.c_str());
-		lua_pushboolean(pVM, exists);
-		return 2;
 	}
 
 	int LLoadLuaScript(lua_State* pVM)
@@ -3333,9 +3307,8 @@ else \
 		pVM->RegisterFunction("ZoomCamera", LZoomCamera);
 
 		pVM->RegisterFunction("GetLUAScript", LGetLUAScript);
-		pVM->RegisterFunction("GetDataFile", LGetDataFile);
-		pVM->RegisterFunction("GetConfigFile", LGetConfigFile);
-		pVM->RegisterFunction("GetWritableConfigFile", LGetWritableConfigFile);
+		pVM->RegisterFunction("ResolveReadable", LResolveReadable);
+		pVM->RegisterFunction("ResolveWritable", LResolveWritable);
 		
 		pVM->RegisterFunction("LoadLuaScript", LLoadLuaScript);
 		pVM->RegisterFunction("UnloadUnitType", LUnloadUnitType);

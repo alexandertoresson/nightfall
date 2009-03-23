@@ -31,8 +31,8 @@ ut.movePowerUsage = 0.5
 ut.attackPowerUsage = 0.5
 ut.buildPowerUsage = 2.0
 
-ut.model = "models/builder"
-ut.symbol = "textures/builder.png"
+ut.model = "builder"
+ut.symbol = "builder.png"
 
 --ut.sound = { "action=move,strength=10.0,sound=unitTest,index=0" }
 

@@ -24,6 +24,6 @@ ut.attackSpeed = 1.0
 ut.size = 1.0
 ut.height = 1.0
 	
-ut.model = "models/monster"
+ut.model = "monster"
 	
 CreateUnitType(ut)

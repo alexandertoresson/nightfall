@@ -22,29 +22,99 @@
 
 #include "filesystem.h"
 
+#include <stack>
+
 namespace Utilities
 {
 	namespace VFS
 	{
-		typedef std::vector<std::pair<std::string, std::string> > MountVector;
+		typedef std::pair<std::string, std::string> MountType;
+		typedef std::vector<MountType> MountVector;
+		std::stack<MountVector> stateStack;
 		MountVector mounts;
 
-		std::string Resolve(std::string filename)
+		enum ResolveType
 		{
-			for (MountVector::reverse_iterator it = mounts.rbegin(); it != mounts.rend(); it++)
-			{
-				unsigned len = it->second.length();
-				if (len <= filename.length() && it->second == filename.substr(0, len))
-				{
-					filename = it->second + filename.substr(len);
-				}
-			}
-			return filename;
+			RESOLVE_READABLE,
+			RESOLVE_WRITABLE
+		};
+
+		// TODO: Support archives
+		bool FileExists(const std::string& filename, ResolveType rType)
+		{
+			return rType == RESOLVE_READABLE ? Utilities::FileIsReadable(filename) : Utilities::FileIsWritable(filename);
 		}
 
-		bool FileExists(std::string filename)
+		std::string Resolve(const std::string& filename, ResolveType rType = RESOLVE_READABLE, int i = -1)
 		{
-			return Utilities::FileExists(filename);
+			if (i == -1)
+				i = mounts.size()-1;
+			
+			MountType& cur = mounts[i];
+			unsigned len = cur.first.length();
+			std::string newfn = filename;
+
+			if (len <= filename.length() && cur.first == filename.substr(0, len))
+			{
+				newfn = cur.second + newfn.substr(len);
+			}
+			if (i == 0)
+			{
+				return FileExists(newfn, rType) ? newfn : "";
+			}
+			else
+			{
+				newfn = Resolve(newfn, rType, i-1);
+				if (newfn.length())
+				{
+					return newfn;
+				}
+				else
+				{
+					return Resolve(filename, rType, i-1);
+				}
+			}
+		}
+
+		std::string ResolveReadable(const std::string& filename)
+		{
+			return Resolve(filename, RESOLVE_READABLE);
+		}
+
+		std::string ResolveWritable(const std::string& filename)
+		{
+			return Resolve(filename, RESOLVE_WRITABLE);
+		}
+
+		bool FileIsReadable(const std::string& filename)
+		{
+			return Resolve(filename, RESOLVE_READABLE).length();
+		}
+
+		bool FileIsWritable(const std::string& filename)
+		{
+			return Resolve(filename, RESOLVE_WRITABLE).length();
+		}
+
+		void PushState()
+		{
+			stateStack.push(mounts);
+		}
+		
+		void PopState()
+		{
+			if (stateStack.empty())
+			{
+				std::cout << "[VFS] Error: attempted to pop with an empty stack" << std::endl;
+				return;
+			}
+			mounts = stateStack.top();
+			stateStack.pop();
+		}
+
+		void Mount(const std::string& path, const std::string& mountPoint)
+		{
+			mounts.push_back(std::make_pair(mountPoint, path));
 		}
 	}
 }

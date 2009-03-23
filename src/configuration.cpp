@@ -20,7 +20,7 @@
  */
 #include "configuration.h"
 #include "errors.h"
-#include "paths.h"
+#include "vfs.h"
 #include "utilities.h"
 #include <cassert>
 #include <fstream>
@@ -69,7 +69,7 @@ namespace Utilities
 			return WINDOW_ERROR_NO_CONFIG_FILE;
 	
 		std::ifstream file;
-		std::string filename = GetConfigFile(mFile);
+		std::string filename = VFS::ResolveReadable(mFile);
 
 		if (!filename.length())
 		{

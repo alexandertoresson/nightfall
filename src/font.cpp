@@ -23,7 +23,7 @@
 #include "utilities.h"
 #include "errors.h"
 #include "game.h"
-#include "paths.h"
+#include "vfs.h"
 #include "window.h"
 #include <sstream>
 #include <cmath>
@@ -75,7 +75,7 @@ namespace Window
 
 		int FontCache::LoadFont(string filename)
 		{
-			std::string path = Utilities::GetDataFile(filename);
+			std::string path = Utilities::VFS::ResolveReadable("/data/fonts/" + filename);
 
 			if (!path.length())
 			{

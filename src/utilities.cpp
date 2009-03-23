@@ -25,7 +25,7 @@
 #include "vector3d.h"
 #include "sdlheader.h"
 #include "networking.h"
-#include "paths.h"
+#include "vfs.h"
 #include "errors.h"
 #include "game.h"
 #include "console.h"
@@ -428,7 +428,7 @@ namespace Utilities
 	
 	SDL_Surface *LoadImage(std::string path)
 	{
-		std::string filename = GetDataFile(path);
+		std::string filename = VFS::ResolveReadable(path);
 
 		if (!filename.length())
 		{
@@ -452,7 +452,7 @@ namespace Utilities
 		if (Game::Rules::noGraphics)
 			return 0;
 		
-		std::string filename = GetDataFile(path);
+		std::string filename = VFS::ResolveReadable("/data/textures/" + path);
 
 		if (!filename.length())
 		{

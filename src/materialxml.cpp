@@ -20,7 +20,7 @@
  */
 #include "materialxml.h"
 #include "minixml.h"
-#include "paths.h"
+#include "vfs.h"
 #include "console.h"
 #include "configuration.h"
 #include <map>
@@ -31,7 +31,7 @@ namespace Utilities
 {
 	TextureImageData::TextureImageData(std::string filename) : image(NULL), buffer(0)
 	{
-		std::string path = GetDataFile(filename);
+		std::string path = VFS::ResolveReadable("/data/textures/" + filename);
 		
 		if (!path.length())
 		{
@@ -216,7 +216,7 @@ namespace Utilities
 	void ParseShader(Utilities::XMLElement *elem)
 	{
 		std::string vertFilename = elem->GetAttribute("vertex_shader");
-		char* vdata = ReadFile(GetDataFile(vertFilename));
+		char* vdata = ReadFile(VFS::ResolveReadable("/data/shaders/" + vertFilename + ".vert"));
 		if (vdata)
 		{
 			const GLcharARB** d = (const GLcharARB**) &vdata;
@@ -237,7 +237,7 @@ namespace Utilities
 		}
 
 		std::string fragFilename = elem->GetAttribute("fragment_shader");
-		char* fdata = ReadFile(GetDataFile(fragFilename));
+		char* fdata = ReadFile(VFS::ResolveReadable("/data/shaders/" + fragFilename + ".frag"));
 		if (fdata)
 		{
 			const GLcharARB** d = (const GLcharARB**) &fdata;
@@ -337,7 +337,7 @@ namespace Utilities
 	gc_ptr<Material> LoadSpecificMaterialXML(std::string name)
 	{
 		XMLReader xmlReader;
-		std::string filename = Utilities::GetDataFile(name + ".mat.xml");
+		std::string filename = VFS::ResolveReadable("/data/materials/" + name + ".mat.xml");
 
 		material = filenameToMaterial[name];
 

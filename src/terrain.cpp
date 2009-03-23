@@ -23,7 +23,7 @@
 #include "unit.h"
 #include "game.h"
 #include "networking.h"
-#include "paths.h"
+#include "vfs.h"
 #include "utilities.h"
 #include "window.h"
 #include "materialxml.h"
@@ -595,7 +595,7 @@ namespace Game
 		int LoadHeightmap(std::string filename)
 		{
 			int width = 0, height = 0, temp;
-			std::string filepath = Utilities::GetDataFile("maps/" + filename);
+			std::string filepath = Utilities::VFS::ResolveReadable("/data/maps/" + filename);
 			std::ifstream file;
 
 			if (!filepath.length())
@@ -777,7 +777,7 @@ namespace Game
 
 			heightMap = NULL;
 			
-			std::string filename = Utilities::GetDataFile(name + ".ter.xml");
+			std::string filename = Utilities::VFS::ResolveReadable("/data/maps/" + name + ".ter.xml");
 
 			if (filename.length() && xmlReader.Read(filename))
 			{

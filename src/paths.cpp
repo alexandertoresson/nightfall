@@ -20,36 +20,42 @@
  */
 #include "paths.h"
 #include "filesystem.h"
+#include "vfs-pre.h"
 #include <vector>
 
 namespace Utilities
 {
-#if defined(__unix__)
-	std::vector<std::string> xdg_data_dirs_split;
-	std::vector<std::string> xdg_config_dirs_split;
-#endif
 	
-	std::string path_from_argv0;
-
 	void InitPaths(std::string programpath)
 	{
-		path_from_argv0 = GetDirectoryInPath(programpath);
+		std::string path_from_argv0 = GetDirectoryInPath(programpath);
+
 		if (path_from_argv0.size() >= 4)
 		{
 			std::string last_4_chars = path_from_argv0.substr(path_from_argv0.size()-4);
+
+			// Handle special case of running the binary when it is in the src directory
+			// when not being in the src directory.
+			//
 			if (last_4_chars == "src/" || last_4_chars == "src\\")
 			{
 				path_from_argv0 = path_from_argv0.substr(0, path_from_argv0.size()-4);
 			}
 		}
+
+		// Allow executing the program from the src directory (./nightfall) and still have it find all its files;
+		// ./ will still be checked by other means, so check in ../ too.
 		if (path_from_argv0 == "" || path_from_argv0 == "./" || path_from_argv0 == ".\\")
 		{
 			path_from_argv0 = "../";
 		}
 
 #if defined(__unix__)
+		std::vector<std::string> xdg_data_dirs_split;
+		std::vector<std::string> xdg_config_dirs_split;
 		const char* xdg_data_dirs = getenv("XDG_DATA_DIRS");
 
+		// TODO: Needs some refactoring?
 		if (xdg_data_dirs)
 		{
 
@@ -98,188 +104,46 @@ namespace Utilities
 			}
 		}
 #endif
-	}
+		std::string home = getenv("HOME");
+#ifdef WIN32
+		VFS::Mount(path_from_argv0 + "resources\\configuration\\", "/config/");
+		VFS::Mount("resources\\configuration\\", "/config/");
 
-	std::string GetFile(PathType type, std::string file)
-	{
-		std::string path;
-		int path_index = 0;
-		while ((path = GetPath(type, path_index++)).length())
+		VFS::Mount(path_from_argv0 + "resources\\", "/data/");
+		VFS::Mount("resources\\", "/data/");
+#elif defined(MAC)
+		VFS::Mount(path_from_argv0 + "resources/configuration/", "/config/");
+		VFS::Mount("resources/configuration/", "/config/");
+		VFS::Mount(home + "/Library/Application Support/Nightfall/configuration/", "/config/");
+
+		VFS::Mount(path_from_argv0 + "resources/", "/data/");
+		VFS::Mount("resources/", "/data/");
+		VFS::Mount(home + "/Library/Application Support/Nightfall/", "/data/");
+#elif defined(__unix__)
+		VFS::Mount("/etc/nightfall/", "/config/");
+		VFS::Mount(path_from_argv0 + "resources/configuration/", "/config/");
+		VFS::Mount("resources/configuration/", "/config/");
+		VFS::Mount(home + "/.config/nightfall/", "/config/");
+		for (std::vector<std::string>::reverse_iterator it = xdg_config_dirs_split.rbegin(); it != xdg_config_dirs_split.rend(); it++)
 		{
-			if (FileExists(path + file))
-			{
-				return path + file;
-			}
+			VFS::Mount(*it, "/config/");
 		}
-		return "";
-	}
 
-	std::string GetConfigFile(std::string file)
-	{
-		return GetFile(PATHTYPE_CONFIG, file);
-	}
-
-	std::string GetDataFile(std::string file)
-	{
-		return GetFile(PATHTYPE_DATA, file);
-	}
-
-	std::string GetWritableFile(PathType type, std::string file, bool &exists)
-	{
-		std::string path;
-		int path_index = 0;
-		while ((path = GetPath(type, path_index++)).length())
+		VFS::Mount(path_from_argv0 + "resources/", "/data/");
+		VFS::Mount("resources/", "/data/");
+		VFS::Mount(home + "/.config/nightfall/", "/data/");
+		for (std::vector<std::string>::reverse_iterator it = xdg_data_dirs_split.rbegin(); it != xdg_data_dirs_split.rend(); it++)
 		{
-			exists = false;
-			if (FileExists(path + file))
-			{
-				exists = true;
-			}
-			if (exists || CanOpenForWriting(path + file))
-			{
-				return (path + file).c_str();
-			}
-			else
-			{
-				CreateDirectory(GetDirectoryInPath(path + file));
-				if (CanOpenForWriting(path + file))
-				{
-					return (path + file).c_str();
-				}
-			}
+			VFS::Mount(*it, "/data/");
 		}
-		return "";
+#else
+		VFS::Mount(path_from_argv0 + "resources/configuration/", "/config/");
+		VFS::Mount("resources/configuration/", "/config/");
+
+		VFS::Mount(path_from_argv0 + "resources/", "/data/");
+		VFS::Mount("resources/", "/data/");
+#endif
 	}
 
-	std::string GetWritableConfigFile(std::string file, bool &exists)
-	{
-		return GetWritableFile(PATHTYPE_CONFIG, file, exists);
-	}
-
-	std::string GetWritableDataFile(std::string file, bool &exists)
-	{
-		return GetWritableFile(PATHTYPE_DATA, file, exists);
-	}
-
-	std::string GetPath(PathType type, unsigned num)
-	{
-	#ifdef WIN32
-		switch (type)
-		{
-			case PATHTYPE_CONFIG:
-				switch (num)
-				{
-					case 0:
-						return "resources\\configuration\\";
-					case 1:
-						return path_from_argv0 + "resources\\configuration\\";
-					default:
-						return "";
-				}
-			case PATHTYPE_DATA:
-				switch (num)
-				{
-					case 0:
-						return "resources\\";
-					case 1:
-						return path_from_argv0 + "resources\\";
-					default:
-						return "";
-				}
-		}
-	#elif defined(MAC)
-		switch (type)
-		{
-			case PATHTYPE_CONFIG:
-				switch (num)
-				{
-					case 0:
-						return "resources/configuration/";
-					case 1:
-						return path_from_argv0 + "resources/configuration/";
-					default:
-						return "";
-				}
-			case PATHTYPE_DATA:
-				switch (num)
-				{
-					case 0:
-						return "resources/";
-					case 1:
-						return path_from_argv0 + "resources/";
-					default:
-						return "";
-				}
-		}
-	#elif defined(__unix__)
-		switch (type)
-		{
-			case PATHTYPE_CONFIG:
-				switch (num)
-				{
-					case 0:
-						return (std::string) getenv("HOME") + "/.config/nightfall/";
-					case 1:
-						return "resources/configuration/";
-					case 2:
-						return path_from_argv0 + "resources/configuration/";
-					case 3:
-						return "/etc/nightfall/";
-					default:
-						
-						if (num - 4 < xdg_config_dirs_split.size())
-						{
-							return xdg_config_dirs_split[num-4];
-						}
-
-						return "";
-				}
-			case PATHTYPE_DATA:
-				switch (num)
-				{
-					case 0:
-						return (std::string) getenv("HOME") + "/.nightfall/";
-					case 1:
-						return "resources/";
-					case 2:
-						return path_from_argv0 + "resources/";
-					default:
-
-						if (num - 3 < xdg_data_dirs_split.size())
-						{
-							return xdg_data_dirs_split[num-3];
-						}
-
-						return "";
-				}
-			default:
-				return "";
-		}
-	#else
-		switch (type)
-		{
-			case PATHTYPE_CONFIG:
-				switch (num)
-				{
-					case 0:
-						return "resources/configuration/";
-					case 1:
-						return path_from_argv0 + "resources/configuration/";
-					default:
-						return "";
-				}
-			case PATHTYPE_DATA:
-				switch (num)
-				{
-					case 0:
-						return "resources/";
-					case 1:
-						return path_from_argv0 + "resources/";
-					default:
-						return "";
-				}
-		}
-	#endif
-	}
 }
 

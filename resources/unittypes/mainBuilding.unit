@@ -21,8 +21,8 @@ ut.powerUsage = 2.0
 ut.lightPowerUsage = 3.0
 ut.buildPowerUsage = 1.0
 
-ut.model = "models/mainBuilding"
-ut.symbol = "textures/mainbuilding.png"
+ut.model = "mainBuilding"
+ut.symbol = "mainbuilding.png"
 
 ut.canBuild = {"Builder",
                "Explorer"}

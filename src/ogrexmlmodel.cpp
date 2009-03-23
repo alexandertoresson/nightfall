@@ -23,7 +23,7 @@
 #include "unit.h"
 #include "minixml.h"
 #include "render-pre.h"
-#include "paths.h"
+#include "vfs.h"
 #include "materialxml.h"
 #include "utilities.h"
 #include <cassert>
@@ -447,7 +447,7 @@ namespace Utilities
 	{
 		Utilities::XMLReader xmlReader;
 		
-		std::string filename = Utilities::GetDataFile(name + ".mesh.xml");
+		std::string filename = VFS::ResolveReadable("/data/models/" + name + ".mesh.xml");
 
 		mesh = filenameToMesh[filename];
 
@@ -457,7 +457,7 @@ namespace Utilities
 			{
 				xmlReader.root->Iterate("mesh", ParseMesh);
 
-				std::string modFilename = Utilities::GetDataFile(name + ".mod.xml");
+				std::string modFilename = VFS::ResolveReadable("/data/models/" + name + ".mod.xml");
 
 				Utilities::XMLReader modXmlReader;
 

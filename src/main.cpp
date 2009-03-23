@@ -204,7 +204,7 @@ int InitMainConfig()
 	
 	// As the following are type restrictions to std::string they don't really restrict anything.
 	// Instead, their use is to provide a default value.
-	Utilities::mainConfig.SetRestriction("default font", new Utilities::ConfigurationFile::TypeRestriction<std::string>("fonts/vera.ttf"));
+	Utilities::mainConfig.SetRestriction("default font", new Utilities::ConfigurationFile::TypeRestriction<std::string>("vera.ttf"));
 	Utilities::mainConfig.SetRestriction("application header", new Utilities::ConfigurationFile::TypeRestriction<std::string>("Nightfall (Codename Twilight)"));
 	Utilities::mainConfig.SetRestriction("audio config", new Utilities::ConfigurationFile::TypeRestriction<std::string>("audio.txt"));
 	

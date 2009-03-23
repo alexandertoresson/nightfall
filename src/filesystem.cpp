@@ -113,36 +113,22 @@ namespace Utilities
 		return SUCCESS;
 	}
 	
-	bool FileExists(std::string file)
+	bool FileIsReadable(const std::string& file)
 	{
-		std::fstream test(file.c_str(), std::fstream::in);
-		
-		if (!test.good())
-		{
-			test.close();
-		
-			return false;
-		}
-		
-		test.close();
-		
-		return true;
+		return std::ifstream(file.c_str()).good();
 	}
 
-	bool CanOpenForWriting(std::string file)
+	bool FileIsWritable(const std::string& file)
 	{
-		std::ofstream test(file.c_str());
-		
-		if (!test.good())
+		if (std::ofstream(file.c_str()).good())
 		{
-			test.close();
-		
-			return false;
+			return true;
 		}
-		
-		test.close();
-		
-		return true;
+		else
+		{
+			CreateDirectory(GetDirectoryInPath(file));
+			return std::ofstream(file.c_str()).good();
+		}
 	}
 	
 	void DeallocateFSData(FSData* ptr)
@@ -178,8 +164,9 @@ namespace Utilities
 #endif
 	}
 
-	std::string GetDirectoryInPath(std::string path)
+	std::string GetDirectoryInPath(const std::string& path)
 	{
+		//TODO: Use find_last_of()
 		for (int i = path.size()-1; i >= 0; i--)
 		{
 			if (path[i] == '/' || path[i] == '\\')
@@ -190,7 +177,7 @@ namespace Utilities
 		return "";
 	}
 
-	void CreateDirectory(std::string directory)
+	void CreateDirectory(const std::string& directory)
 	{
 #ifdef WIN32
 		system(("MKDIR " + directory).c_str());

@@ -24,7 +24,7 @@
 #include "materialxml.h"
 #include "configuration.h"
 #include "minixml.h"
-#include "paths.h"
+#include "vfs.h"
 #include "game.h"
 #include <cassert>
 
@@ -180,7 +180,7 @@ namespace Utilities
 	{
 		Utilities::XMLReader xmlReader;
 		
-		std::string filename = Utilities::GetDataFile(name + ".sel.xml");
+		std::string filename = VFS::ResolveReadable("/data/models/" + name + ".sel.xml");
 
 		if (filename.length() && xmlReader.Read(filename))
 		{
@@ -221,7 +221,7 @@ namespace Utilities
 	{
 		Utilities::XMLReader xmlReader;
 		
-		std::string filename = Utilities::GetDataFile(name + ".sel.xml");
+		std::string filename = VFS::ResolveReadable("/data/materials/" + name + ".sel.xml");
 
 		if (filename.length() && xmlReader.Read(filename))
 		{

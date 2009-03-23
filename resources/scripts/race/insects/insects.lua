@@ -21,6 +21,6 @@
 
 function InitRace()
 
-	LoadLuaScript("unittypes/monster.unit")
+	LoadLuaScript("/data/unittypes/monster.unit")
 
 end

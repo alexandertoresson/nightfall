@@ -34,10 +34,10 @@ ut.powerUsage = 1.0
 ut.movePowerUsage = 0.5
 ut.attackPowerUsage = 1.0
 	
-ut.model = "models/smallAttackRobot"
+ut.model = "smallAttackRobot"
 	
 ut.projectileType = { 
-                      model = "models/missile",
+                      model = "missile",
                       areaOfEffect = 1.0,
                       startPos = {1.0, 0.0, 0.0},
                       speed = 16.0,

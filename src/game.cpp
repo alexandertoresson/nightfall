@@ -34,7 +34,7 @@
 #include "textures.h"
 #include "aipathfinding.h"
 #include "saveandload.h"
-#include "paths.h"
+#include "vfs.h"
 #include "camera.h"
 #include "effect.h"
 #include "unitrender.h"
@@ -458,10 +458,15 @@ namespace Game
 			delete this->input;
 			delete FX::pParticleSystems;
 			gameRunning = false;
+
+			Utilities::VFS::PopState();
 		}
 
 		int GameWindow::InitGame(bool is_new_game, bool isNetworked, Networking::NETWORKTYPE ntype)
 		{
+			Utilities::VFS::PushState();
+			Utilities::VFS::Mount("/data/levels/" + CurrentLevel + "/", "/data/");
+			
 			input = new Dimension::InputController();
 			float increment = 0.9f / 13.0f; //0.9 (90%) divided on 13 updates...
 			Dimension::pWorld = new Dimension::World;
@@ -488,9 +493,9 @@ namespace Game
 			////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 			Utilities::InitTextures(256);
 			pLoading->Increment(increment);
-			
+
 			////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-			CurrentLevelScript = "levels/" + CurrentLevel + "_level.lua";
+			CurrentLevelScript = "/data/scripts/level.lua";
 			if (pVM.DoFile(CurrentLevelScript) != SUCCESS)
 			{
 				return ERROR_GENERAL;

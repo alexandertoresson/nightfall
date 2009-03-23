@@ -21,7 +21,7 @@
 #include "textures.h"
 
 #include "networking.h"
-#include "paths.h"
+#include "vfs.h"
 #include "game.h"
 #include "unit.h"
 
@@ -53,7 +53,7 @@ namespace Utilities
 			return 0;
 		}
 
-		std::string filename = GetDataFile(file);
+		std::string filename = VFS::ResolveReadable(file);
 
 		if (!filename.length())
 		{

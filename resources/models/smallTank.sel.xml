@@ -1,4 +1,4 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <modelselector version="1.0">
-	<mesh material="materials/unit" mesh="models/smallTank" />
+	<mesh material="unit" mesh="smallTank" />
 </modelselector>

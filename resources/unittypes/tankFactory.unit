@@ -17,7 +17,7 @@ ut.researchCost = 500
 
 ut.powerUsage = 4.0
 	
-ut.model = "models/cube"
+ut.model = "cube"
 ut.canBuild = {"SmallTank",
 	          "LargeTank"}
 ut.canResearch = {"SmallTank",

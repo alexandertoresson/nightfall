@@ -25,7 +25,7 @@
 #include "unitsquares.h"
 #include "dimension.h"
 #include "aibase.h"
-#include "paths.h"
+#include "vfs.h"
 #include "unitinterface.h"
 #include "console.h"
 #include "game.h"
@@ -175,7 +175,7 @@ namespace Utilities
 		{
 			if (m_pState == NULL)
 				return 1;
-			std::string filepath = Utilities::GetDataFile(file);
+			std::string filepath = VFS::ResolveReadable(file);
 
 			if (!filepath.length())
 			{
@@ -273,8 +273,8 @@ namespace Utilities
 				if (!player->isRemote)
 				{
 					std::cout << "Initializing LUA states for player " << i++ << std::endl;
-					player->aiState->DoFile("scripts/race/" + player->raceScript + "/" + player->raceScript + ".lua");
-					player->aiState->DoFile("scripts/race/" + player->raceScript + "/" + player->aiScript + "/" + player->aiScript + ".lua");
+					player->aiState->DoFile("/data/scripts/race/" + player->raceScript + "/" + player->raceScript + ".lua");
+					player->aiState->DoFile("/data/scripts/race/" + player->raceScript + "/" + player->aiScript + "/" + player->aiScript + ".lua");
 					player->aiState->DoFile(Game::Rules::CurrentLevelScript);
 				}
 			}

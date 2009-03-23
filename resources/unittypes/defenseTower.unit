@@ -27,11 +27,11 @@ ut.researchCost = 200
 ut.powerUsage = 3.0
 ut.attackPowerUsage = 3.0
 	
-ut.model = "models/smallLightTower"
+ut.model = "smallLightTower"
 
 ut.projectileType =
 	{
-		model = "models/missile",
+		model = "missile",
 		areaOfEffect = 1.0,
 		startPos = {1.0, 0.0, 0.0},
 		speed = 8.0,

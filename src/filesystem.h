@@ -63,10 +63,10 @@ namespace Utilities
 	typedef std::vector< FSData* > FSDataList;
 	
 	int  ListFilesInDirectory(std::string directory, FSDataList*);
-	bool FileExists(std::string file);
-	bool CanOpenForWriting(std::string file);
-	std::string GetDirectoryInPath(std::string path);
-	void CreateDirectory(std::string directory);
+	bool FileIsReadable(const std::string& file);
+	bool FileIsWritable(const std::string& file);
+	std::string GetDirectoryInPath(const std::string& path);
+	void CreateDirectory(const std::string& directory);
 	
 	void DeallocateFSData(FSData*);
 	void DeallocateFSDataList(FSDataList*);
