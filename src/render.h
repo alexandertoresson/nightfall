@@ -18,8 +18,8 @@
  * You should have received a copy of the GNU General Public License
  * along with Nightfall.  If not, see <http://www.gnu.org/licenses/>.
  */
-#ifndef __RENDER_H__
-#define __RENDER_H__
+#ifndef RENDER_H
+#define RENDER_H
 
 #ifdef DEBUG_DEP
 #warning "render.h"

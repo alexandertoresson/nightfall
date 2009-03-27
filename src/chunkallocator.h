@@ -18,8 +18,8 @@
  * You should have received a copy of the GNU General Public License
  * along with Nightfall.  If not, see <http://www.gnu.org/licenses/>.
  */
-#ifndef __CHUNKALLOCATOR_H__
-#define __CHUNKALLOCATOR_H__
+#ifndef CHUNKALLOCATOR_H
+#define CHUNKALLOCATOR_H
 
 #include <stack>
 #include <iostream>

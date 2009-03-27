@@ -18,8 +18,8 @@
  * You should have received a copy of the GNU General Public License
  * along with Nightfall.  If not, see <http://www.gnu.org/licenses/>.
  */
-#ifndef __EFFECT_H__
-#define __EFFECT_H__
+#ifndef EFFECT_H
+#define EFFECT_H
 
 #ifdef DEBUG_DEP
 #warning "effect.h"

@@ -18,8 +18,8 @@
  * You should have received a copy of the GNU General Public License
  * along with Nightfall.  If not, see <http://www.gnu.org/licenses/>.
  */
-#ifndef __HTTPREQUEST_H__
-#define __HTTPREQUEST_H__
+#ifndef HTTPREQUEST_H
+#define HTTPREQUEST_H
 
 #ifdef DEBUG_DEP
 #warning "httprequest.h"

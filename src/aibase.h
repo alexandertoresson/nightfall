@@ -20,8 +20,8 @@
  */
 #include "unit-pre.h"
 
-#ifndef __AIBASE_H__
-#define __AIBASE_H__
+#ifndef AIBASE_H
+#define AIBASE_H
 
 #ifdef DEBUG_DEP
 #warning "aibase.h"

@@ -18,8 +18,8 @@
  * You should have received a copy of the GNU General Public License
  * along with Nightfall.  If not, see <http://www.gnu.org/licenses/>.
  */
-#ifndef __MINIXML_H__
-#define __MINIXML_H__
+#ifndef MINIXML_H
+#define MINIXML_H
 
 #include "sdlheader.h"
 #include "chunkallocator.h"

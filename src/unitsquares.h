@@ -18,8 +18,8 @@
  * You should have received a copy of the GNU General Public License
  * along with Nightfall.  If not, see <http://www.gnu.org/licenses/>.
  */
-#ifndef __UNITSQUARES_H__
-#define __UNITSQUARES_H__
+#ifndef UNITSQUARES_H
+#define UNITSQUARES_H
 
 #ifdef DEBUG_DEP
 #warning "unitsquares.h"

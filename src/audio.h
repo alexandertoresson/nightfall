@@ -20,8 +20,8 @@
  */
 #include "vector3d-pre.h"
 
-#ifndef __AUDIO_H__
-#define __AUDIO_H__
+#ifndef AUDIO_H
+#define AUDIO_H
 
 #ifdef DEBUG_DEP
 #warning "audio.h"

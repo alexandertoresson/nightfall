@@ -18,8 +18,8 @@
  * You should have received a copy of the GNU General Public License
  * along with Nightfall.  If not, see <http://www.gnu.org/licenses/>.
  */
-#ifndef __GUITEST_H__
-#define __GUITEST_H__
+#ifndef GUITEST_H
+#define GUITEST_H
 
 #ifdef DEBUG_DEP
 #warning "guitest.h"

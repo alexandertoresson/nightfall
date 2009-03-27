@@ -18,8 +18,8 @@
  * You should have received a copy of the GNU General Public License
  * along with Nightfall.  If not, see <http://www.gnu.org/licenses/>.
  */
-#ifndef __ACTION_H__
-#define __ACTION_H__
+#ifndef ACTION_H
+#define ACTION_H
 
 #ifdef DEBUG_DEP
 #warning "action.h"

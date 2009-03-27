@@ -18,8 +18,8 @@
  * You should have received a copy of the GNU General Public License
  * along with Nightfall.  If not, see <http://www.gnu.org/licenses/>.
  */
-#ifndef __LOCKFREEQUEUE_H__
-#define __LOCKFREEQUEUE_H__
+#ifndef LOCKFREEQUEUE_H
+#define LOCKFREEQUEUE_H
 
 #include "gc_ptr.h"
 

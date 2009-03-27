@@ -18,8 +18,8 @@
  * You should have received a copy of the GNU General Public License
  * along with Nightfall.  If not, see <http://www.gnu.org/licenses/>.
  */
-#ifndef __THEMEENGINE_H_PRE__
-#define __THEMEENGINE_H_PRE__ 
+#ifndef THEMEENGINE_H_PRE
+#define THEMEENGINE_H_PRE 
 
 #ifdef DEBUG_DEP
 	#warning "themeengine.h-pre"

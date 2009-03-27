@@ -18,8 +18,8 @@
  * You should have received a copy of the GNU General Public License
  * along with Nightfall.  If not, see <http://www.gnu.org/licenses/>.
  */
-#ifndef __DIMENSION_H__
-#define __DIMENSION_H__
+#ifndef DIMENSION_H
+#define DIMENSION_H
 
 #ifdef DEBUG_DEP
 #warning "dimension.h"

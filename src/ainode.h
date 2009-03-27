@@ -18,8 +18,8 @@
  * You should have received a copy of the GNU General Public License
  * along with Nightfall.  If not, see <http://www.gnu.org/licenses/>.
  */
-#ifndef __AINODE_H__
-#define __AINODE_H__
+#ifndef AINODE_H
+#define AINODE_H
 namespace Game
 {
 	namespace AI

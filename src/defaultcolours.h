@@ -19,8 +19,8 @@
  * along with Nightfall.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef __DEFAULT_COLORS_H__
-#define __DEFAULT_COLORS_H__
+#ifndef DEFAULT_COLORS_H
+#define DEFAULT_COLORS_H
 
 #include "materialxml-pre.h"
 

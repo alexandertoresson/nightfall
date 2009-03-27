@@ -18,8 +18,8 @@
  * You should have received a copy of the GNU General Public License
  * along with Nightfall.  If not, see <http://www.gnu.org/licenses/>.
  */
-#ifndef __UNITINTERFACE_H__
-#define __UNITINTERFACE_H__
+#ifndef UNITINTERFACE_H
+#define UNITINTERFACE_H
 
 #ifdef DEBUG_DEP
 #warning "unitinterface.h"

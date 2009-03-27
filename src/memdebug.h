@@ -18,8 +18,8 @@
  * You should have received a copy of the GNU General Public License
  * along with Nightfall.  If not, see <http://www.gnu.org/licenses/>.
  */
-#ifndef __MEMDEBUG_H__
-#define __MEMDEBUG_H__
+#ifndef MEMDEBUG_H
+#define MEMDEBUG_H
 
 #include <set>
 #include <exception> // for std::bad_alloc

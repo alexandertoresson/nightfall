@@ -19,8 +19,8 @@
  * along with Nightfall.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef __LOCKCHECKER_H__
-#define __LOCKCHECKER_H__
+#ifndef LOCKCHECKER_H
+#define LOCKCHECKER_H
 
 #ifdef SDL_LockMutex
 #undef SDL_LockMutex

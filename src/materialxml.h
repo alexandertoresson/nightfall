@@ -19,8 +19,8 @@
  * along with Nightfall.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef __MATERIALXML_H__
-#define __MATERIALXML_H__
+#ifndef MATERIALXML_H
+#define MATERIALXML_H
 
 #ifdef DEBUG_DEP
 #warning "materialxml.h"

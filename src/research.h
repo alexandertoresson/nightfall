@@ -18,8 +18,8 @@
  * You should have received a copy of the GNU General Public License
  * along with Nightfall.  If not, see <http://www.gnu.org/licenses/>.
  */
-#ifndef __RESEARCH_H__
-#define __RESEARCH_H__
+#ifndef RESEARCH_H
+#define RESEARCH_H
 
 #include "handle.h"
 #include "requirements.h"

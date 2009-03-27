@@ -19,8 +19,8 @@
  * along with Nightfall.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef __FESTRING_H__
-#define __FESTRING_H__
+#ifndef FESTRING_H
+#define FESTRING_H
 
 #include <map>
 #include <string>

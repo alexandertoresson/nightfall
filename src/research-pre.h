@@ -18,8 +18,8 @@
  * You should have received a copy of the GNU General Public License
  * along with Nightfall.  If not, see <http://www.gnu.org/licenses/>.
  */
-#ifndef __RESEARCH_PRE_H__
-#define __RESEARCH_PRE_H__
+#ifndef RESEARCH_PRE_H
+#define RESEARCH_PRE_H
 
 namespace Game
 {

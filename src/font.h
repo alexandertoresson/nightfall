@@ -18,8 +18,8 @@
  * You should have received a copy of the GNU General Public License
  * along with Nightfall.  If not, see <http://www.gnu.org/licenses/>.
  */
-#ifndef __FONT_H__
-#define __FONT_H__
+#ifndef FONT_H
+#define FONT_H
 
 #ifdef DEBUG_DEP
 #warning "font.h"

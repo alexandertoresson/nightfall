@@ -19,8 +19,8 @@
  * along with Nightfall.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef __VFS_H_PRE__
-#define __VFS_H_PRE__ 
+#ifndef VFS_H_PRE
+#define VFS_H_PRE 
 
 #ifdef DEBUG_DEP
 	#warning "vfs.h-pre"

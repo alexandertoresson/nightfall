@@ -18,8 +18,8 @@
  * You should have received a copy of the GNU General Public License
  * along with Nightfall.  If not, see <http://www.gnu.org/licenses/>.
  */
-#ifndef __GAMEGUI_H__
-#define __GAMEGUI_H__
+#ifndef GAMEGUI_H
+#define GAMEGUI_H
 
 #ifdef DEBUG_DEP
 #warning "gamegui.h"

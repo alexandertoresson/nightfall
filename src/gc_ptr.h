@@ -19,8 +19,8 @@
  * along with Nightfall.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef __GC_PTR_H__
-#define __GC_PTR_H__
+#ifndef GC_PTR_H
+#define GC_PTR_H
 
 #include "sdlheader.h"
 #include "type_traits.h"

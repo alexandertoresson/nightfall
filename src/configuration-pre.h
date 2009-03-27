@@ -19,8 +19,8 @@
  * along with Nightfall.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef __CONFIGURATION_H_PRE__
-#define __CONFIGURATION_H_PRE__
+#ifndef CONFIGURATION_H_PRE
+#define CONFIGURATION_H_PRE
 
 #ifdef DEBUG_DEP
 #warning "configuration.h-pre"

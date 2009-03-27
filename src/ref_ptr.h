@@ -18,8 +18,8 @@
  * You should have received a copy of the GNU General Public License
  * along with Nightfall.  If not, see <http://www.gnu.org/licenses/>.
  */
-#ifndef __REF_PTR_H__
-#define __REF_PTR_H__
+#ifndef REF_PTR_H
+#define REF_PTR_H
 
 #include <cstdlib>
 #include <iostream>

@@ -18,8 +18,8 @@
  * You should have received a copy of the GNU General Public License
  * along with Nightfall.  If not, see <http://www.gnu.org/licenses/>.
  */
-#ifndef __NETWORKING_H__
-#define __NETWORKING_H__
+#ifndef NETWORKING_H
+#define NETWORKING_H
 
 #ifdef DEBUG_DEP
 #warning "networking.h"

@@ -19,8 +19,8 @@
  * along with Nightfall.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef __MATERIALXML_H_PRE__
-#define __MATERIALXML_H_PRE__
+#ifndef MATERIALXML_H_PRE
+#define MATERIALXML_H_PRE
 
 #ifdef DEBUG_DEP
 #warning "materialxml.h-pre"

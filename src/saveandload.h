@@ -18,8 +18,8 @@
  * You should have received a copy of the GNU General Public License
  * along with Nightfall.  If not, see <http://www.gnu.org/licenses/>.
  */
-#ifndef __SAVEANDLOAD_H__
-#define __SAVEANDLOAD_H__
+#ifndef SAVEANDLOAD_H
+#define SAVEANDLOAD_H
 
 #ifdef DEBUG_DEP
 #warning "saveandload.h"

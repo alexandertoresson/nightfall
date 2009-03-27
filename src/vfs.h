@@ -18,8 +18,8 @@
  * You should have received a copy of the GNU General Public License
  * along with Nightfall.  If not, see <http://www.gnu.org/licenses/>.
  */
-#ifndef __VFS_H__
-#define __VFS_H__ 
+#ifndef VFS_H
+#define VFS_H 
 
 #ifdef DEBUG_DEP
 	#warning "vfs.h"

@@ -18,8 +18,8 @@
  * You should have received a copy of the GNU General Public License
  * along with Nightfall.  If not, see <http://www.gnu.org/licenses/>.
  */
-#ifndef __MATRIX4X4_H__
-#define __MATRIX4X4_H__
+#ifndef MATRIX4X4_H
+#define MATRIX4X4_H
 
 #ifdef DEBUG_DEP
 #warning "matrix4x4.h"

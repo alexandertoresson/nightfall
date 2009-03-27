@@ -18,8 +18,8 @@
  * You should have received a copy of the GNU General Public License
  * along with Nightfall.  If not, see <http://www.gnu.org/licenses/>.
  */
-#ifndef __VECTOR3D_H_PRE__
-#define __VECTOR3D_H_PRE__
+#ifndef VECTOR3D_H_PRE
+#define VECTOR3D_H_PRE
 
 #ifdef DEBUG_DEP
 #warning "vector3d.h-pre"

@@ -20,8 +20,8 @@
  */
 #include "unit-pre.h"
 
-#ifndef __CAMERA_H__
-#define __CAMERA_H__
+#ifndef CAMERA_H
+#define CAMERA_H
 
 #ifdef DEBUG_DEP
 #warning "camera.h"

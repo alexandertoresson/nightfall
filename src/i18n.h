@@ -18,8 +18,8 @@
  * You should have received a copy of the GNU General Public License
  * along with Nightfall.  If not, see <http://www.gnu.org/licenses/>.
  */
-#ifndef __I18N_H__
-#define __I18N_H__ 
+#ifndef I18N_H
+#define I18N_H 
 
 #include "sdlheader.h"
 
@@ -43,4 +43,4 @@ std::string s_(std::string x, ...);
 // translation with sprintf and plurals handling
 std::string sn_(std::string s, std::string p, int n, ...);
 
-#endif // __I18N_H__
+#endif // I18N_H

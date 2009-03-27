@@ -19,8 +19,8 @@
  * along with Nightfall.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef __COMPOSITOR_H_PRE__
-#define __COMPOSITOR_H_PRE__ 
+#ifndef COMPOSITOR_H_PRE
+#define COMPOSITOR_H_PRE 
 
 #ifdef DEBUG_DEP
 	#warning "compositor.h-pre"

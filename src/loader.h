@@ -18,8 +18,8 @@
  * You should have received a copy of the GNU General Public License
  * along with Nightfall.  If not, see <http://www.gnu.org/licenses/>.
  */
-#ifndef __LOADER_H__
-#define __LOADER_H__
+#ifndef LOADER_H
+#define LOADER_H
 
 #ifdef DEBUG_DEP
 #warning "loader.h"

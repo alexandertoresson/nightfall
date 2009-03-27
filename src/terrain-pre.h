@@ -18,8 +18,8 @@
  * You should have received a copy of the GNU General Public License
  * along with Nightfall.  If not, see <http://www.gnu.org/licenses/>.
  */
-#ifndef __TERRAIN_H_PRE__
-#define __TERRAIN_H_PRE__
+#ifndef TERRAIN_H_PRE
+#define TERRAIN_H_PRE
 
 #define TERRAIN_HIGH_QUALITY
 

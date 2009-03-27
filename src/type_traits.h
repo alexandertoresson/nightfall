@@ -18,8 +18,8 @@
  * You should have received a copy of the GNU General Public License
  * along with Nightfall.  If not, see <http://www.gnu.org/licenses/>.
  */
-#ifndef __TYPE_TRAITS_H__
-#define __TYPE_TRAITS_H__
+#ifndef TYPE_TRAITS_H
+#define TYPE_TRAITS_H
 
 struct true_type {};
 struct false_type {};

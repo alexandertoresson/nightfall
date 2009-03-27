@@ -19,8 +19,8 @@
  * along with Nightfall.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef __WINDOW_H_PRE__
-#define __WINDOW_H_PRE__
+#ifndef WINDOW_H_PRE
+#define WINDOW_H_PRE
 
 #ifdef DEBUG_DEP
 #warning "window.h-pre"

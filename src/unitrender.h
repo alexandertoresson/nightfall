@@ -18,8 +18,8 @@
  * You should have received a copy of the GNU General Public License
  * along with Nightfall.  If not, see <http://www.gnu.org/licenses/>.
  */
-#ifndef __UNITRENDER_H__
-#define __UNITRENDER_H__
+#ifndef UNITRENDER_H
+#define UNITRENDER_H
 
 #ifdef DEBUG_DEP
 #warning "unitrender.h"

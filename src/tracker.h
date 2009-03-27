@@ -18,8 +18,8 @@
  * You should have received a copy of the GNU General Public License
  * along with Nightfall.  If not, see <http://www.gnu.org/licenses/>.
  */
-#ifndef __TRACKER_H__
-#define __TRACKER_H__
+#ifndef TRACKER_H
+#define TRACKER_H
 
 #ifdef DEBUG_DEP
 #warning "tracker.h"

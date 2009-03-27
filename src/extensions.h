@@ -19,8 +19,8 @@
  * along with Nightfall.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef __EXTENSIONS_H__
-#define __EXTENSIONS_H__
+#ifndef EXTENSIONS_H
+#define EXTENSIONS_H
 
 #include "sdlheader.h"
 

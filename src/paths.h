@@ -19,8 +19,8 @@
  * along with Nightfall.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef __PATHS_H__
-#define __PATHS_H__
+#ifndef PATHS_H
+#define PATHS_H
 
 #ifdef DEBUG_DEP
 #warning "paths.h"

@@ -18,8 +18,8 @@
  * You should have received a copy of the GNU General Public License
  * along with Nightfall.  If not, see <http://www.gnu.org/licenses/>.
  */
-#ifndef __AIPATHFINDING_H__
-#define __AIPATHFINDING_H__
+#ifndef AIPATHFINDING_H
+#define AIPATHFINDING_H
 
 #ifdef DEBUG_DEP
 #warning "aipathfinding.h"
@@ -294,6 +294,6 @@ namespace Game
 #warning "aipathfinding.h-end"
 #endif
 
-#define __AIPATHFINDING_H_END__
+#define AIPATHFINDING_H_END
 
 #endif

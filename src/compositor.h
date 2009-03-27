@@ -18,8 +18,8 @@
  * You should have received a copy of the GNU General Public License
  * along with Nightfall.  If not, see <http://www.gnu.org/licenses/>.
  */
-#ifndef __COMPOSITOR_H__
-#define __COMPOSITOR_H__ 
+#ifndef COMPOSITOR_H
+#define COMPOSITOR_H 
 
 #ifdef DEBUG_DEP
 	#warning "compositor.h"

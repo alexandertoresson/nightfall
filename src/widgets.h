@@ -18,8 +18,8 @@
  * You should have received a copy of the GNU General Public License
  * along with Nightfall.  If not, see <http://www.gnu.org/licenses/>.
  */
-#ifndef __WIDGETS_H__
-#define __WIDGETS_H__ 
+#ifndef WIDGETS_H
+#define WIDGETS_H 
 
 #ifdef DEBUG_DEP
 	#warning "widgets.h"

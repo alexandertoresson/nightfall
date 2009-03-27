@@ -18,8 +18,8 @@
  * You should have received a copy of the GNU General Public License
  * along with Nightfall.  If not, see <http://www.gnu.org/licenses/>.
  */
-#ifndef __UTILITIES_H__
-#define __UTILITIES_H__
+#ifndef UTILITIES_H
+#define UTILITIES_H
 
 #ifdef DEBUG_DEP
 #warning "utilities.h"
@@ -83,6 +83,6 @@ namespace Utilities
 #warning "utilities.h-end"
 #endif
 
-#define __UTILITIES_H_END__
+#define UTILITIES_H_END
 
 #endif

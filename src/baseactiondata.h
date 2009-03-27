@@ -18,8 +18,8 @@
  * You should have received a copy of the GNU General Public License
  * along with Nightfall.  If not, see <http://www.gnu.org/licenses/>.
  */
-#ifndef __BASEACTIONDATA_H__
-#define __BASEACTIONDATA_H__
+#ifndef BASEACTIONDATA_H
+#define BASEACTIONDATA_H
 
 #ifdef DEBUG_DEP
 #warning "baseactiondata.h"

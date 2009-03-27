@@ -18,9 +18,9 @@
  * You should have received a copy of the GNU General Public License
  * along with Nightfall.  If not, see <http://www.gnu.org/licenses/>.
  */
-#ifndef __GUICON_H__
+#ifndef GUICON_H
 
-#define __GUICON_H__
+#define GUICON_H
 
 void RedirectIOToConsole();
 

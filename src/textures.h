@@ -18,8 +18,8 @@
  * You should have received a copy of the GNU General Public License
  * along with Nightfall.  If not, see <http://www.gnu.org/licenses/>.
  */
-#ifndef __TEXTURES_H__
-#define __TEXTURES_H__
+#ifndef TEXTURES_H
+#define TEXTURES_H
 #include "sdlheader.h"
 #include "console.h"
 namespace Utilities

@@ -19,8 +19,8 @@
  * along with Nightfall.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef __CONTAINERS_H_PRE__
-#define __CONTAINERS_H_PRE__ 
+#ifndef CONTAINERS_H_PRE
+#define CONTAINERS_H_PRE 
 
 #ifdef DEBUG_DEP
 	#warning "containers.h-pre"

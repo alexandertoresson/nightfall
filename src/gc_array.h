@@ -18,8 +18,8 @@
  * You should have received a copy of the GNU General Public License
  * along with Nightfall.  If not, see <http://www.gnu.org/licenses/>.
  */
-#ifndef __GC_ARRAY_H__
-#define __GC_ARRAY_H__
+#ifndef GC_ARRAY_H
+#define GC_ARRAY_H
 
 #include "gc_ptr.h"
 #include "type_traits.h"

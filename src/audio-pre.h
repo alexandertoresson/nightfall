@@ -18,8 +18,8 @@
  * You should have received a copy of the GNU General Public License
  * along with Nightfall.  If not, see <http://www.gnu.org/licenses/>.
  */
-#ifndef __AUDIO_H_PRE__
-#define __AUDIO_H_PRE__
+#ifndef AUDIO_H_PRE
+#define AUDIO_H_PRE
 
 #ifdef DEBUG_DEP
 #warning "audio.h-pre"

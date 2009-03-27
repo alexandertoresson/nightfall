@@ -18,8 +18,8 @@
  * You should have received a copy of the GNU General Public License
  * along with Nightfall.  If not, see <http://www.gnu.org/licenses/>.
  */
-#ifndef __UNIT_H__
-#define __UNIT_H__
+#ifndef UNIT_H
+#define UNIT_H
 
 #ifdef DEBUG_DEP
 #warning "unit.h"

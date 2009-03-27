@@ -18,8 +18,8 @@
  * You should have received a copy of the GNU General Public License
  * along with Nightfall.  If not, see <http://www.gnu.org/licenses/>.
  */
-#ifndef __CONTAINERS_H__
-#define __CONTAINERS_H__ 
+#ifndef CONTAINERS_H
+#define CONTAINERS_H 
 
 #ifdef DEBUG_DEP
 	#warning "containers.h"

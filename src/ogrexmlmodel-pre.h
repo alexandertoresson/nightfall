@@ -18,8 +18,8 @@
  * You should have received a copy of the GNU General Public License
  * along with Nightfall.  If not, see <http://www.gnu.org/licenses/>.
  */
-#ifndef __OGREXMLMODEL_H_PRE__
-#define __OGREXMLMODEL_H_PRE__
+#ifndef OGREXMLMODEL_H_PRE
+#define OGREXMLMODEL_H_PRE
 
 #ifdef DEBUG_DEP
 #warning "model.h-pre"

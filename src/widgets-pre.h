@@ -19,8 +19,8 @@
  * along with Nightfall.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef __WIDGETS_H_PRE__
-#define __WIDGETS_H_PRE__ 
+#ifndef WIDGETS_H_PRE
+#define WIDGETS_H_PRE 
 
 #ifdef DEBUG_DEP
 	#warning "widgets.h-pre"
