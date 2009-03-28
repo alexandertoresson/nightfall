@@ -26,6 +26,7 @@
 #endif
 
 #include <string>
+#include <vector>
 #include <map>
 
 namespace Utilities
@@ -41,6 +42,9 @@ namespace Utilities
 	
 	std::string stdvsprintf(std::string format, va_list v);
 	std::string stdsprintf(std::string format, ...);
+	
+	std::vector<std::string> &split(const std::string &s, char delim, std::vector<std::string> &elems);
+	std::vector<std::string> split(const std::string &s, char delim);
 }
 
 #endif

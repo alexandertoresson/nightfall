@@ -20,7 +20,8 @@
  */
 #include "paths.h"
 #include "filesystem.h"
-#include "vfs-pre.h"
+#include "vfs.h"
+#include "utilities.h"
 #include <vector>
 
 namespace Utilities
@@ -35,7 +36,7 @@ namespace Utilities
 			std::string last_4_chars = path_from_argv0.substr(path_from_argv0.size()-4);
 
 			// Handle special case of running the binary when it is in the src directory
-			// when not being in the src directory.
+			// when not being in the src directory. Just chop of src[/\].
 			//
 			if (last_4_chars == "src/" || last_4_chars == "src\\")
 			{
@@ -55,53 +56,16 @@ namespace Utilities
 		std::vector<std::string> xdg_config_dirs_split;
 		const char* xdg_data_dirs = getenv("XDG_DATA_DIRS");
 
-		// TODO: Needs some refactoring?
 		if (xdg_data_dirs)
 		{
-
-			xdg_data_dirs_split.push_back("");
-
-			for (unsigned i = 0; i < strlen(xdg_data_dirs); i++)
-			{
-				if (xdg_data_dirs[i] == ':')
-				{
-					xdg_data_dirs_split.push_back("");
-				}
-				else
-				{
-					xdg_data_dirs_split.back().push_back(xdg_data_dirs[i]);
-				}
-			}
-
-			for (unsigned i = 0; i < xdg_data_dirs_split.size(); i++)
-			{
-				xdg_data_dirs_split[i] += "/nightfall/";
-			}
+			Utilities::split(std::string(xdg_data_dirs), ':', xdg_data_dirs_split);
 		}
 		
 		const char* xdg_config_dirs = getenv("XDG_CONFIG_DIRS");
 
 		if (xdg_config_dirs)
 		{
-
-			xdg_config_dirs_split.push_back("");
-
-			for (unsigned i = 0; i < strlen(xdg_config_dirs); i++)
-			{
-				if (xdg_config_dirs[i] == ':')
-				{
-					xdg_config_dirs_split.push_back("");
-				}
-				else
-				{
-					xdg_config_dirs_split.back().push_back(xdg_config_dirs[i]);
-				}
-			}
-
-			for (unsigned i = 0; i < xdg_config_dirs_split.size(); i++)
-			{
-				xdg_config_dirs_split[i] += "/nightfall/";
-			}
+			Utilities::split(std::string(xdg_config_dirs), ':', xdg_config_dirs_split);
 		}
 #endif
 		std::string home = getenv("HOME");
@@ -123,19 +87,19 @@ namespace Utilities
 		VFS::Mount("/etc/nightfall/", "/config/");
 		VFS::Mount(path_from_argv0 + "resources/configuration/", "/config/");
 		VFS::Mount("resources/configuration/", "/config/");
-		VFS::Mount(home + "/.config/nightfall/", "/config/");
 		for (std::vector<std::string>::reverse_iterator it = xdg_config_dirs_split.rbegin(); it != xdg_config_dirs_split.rend(); it++)
 		{
 			VFS::Mount(*it, "/config/");
 		}
+		VFS::Mount(home + "/.config/nightfall/", "/config/");
 
 		VFS::Mount(path_from_argv0 + "resources/", "/data/");
 		VFS::Mount("resources/", "/data/");
-		VFS::Mount(home + "/.config/nightfall/", "/data/");
 		for (std::vector<std::string>::reverse_iterator it = xdg_data_dirs_split.rbegin(); it != xdg_data_dirs_split.rend(); it++)
 		{
 			VFS::Mount(*it, "/data/");
 		}
+		VFS::Mount(home + "/.local/share/nightfall/", "/data/");
 #else
 		VFS::Mount(path_from_argv0 + "resources/configuration/", "/config/");
 		VFS::Mount("resources/configuration/", "/config/");
