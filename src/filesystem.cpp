@@ -180,7 +180,19 @@ namespace Utilities
 	void CreateDirectory(const std::string& directory)
 	{
 #ifdef WIN32
-		system(("MKDIR " + directory).c_str());
+		// Attempt to create directories recursively
+		if (!::CreateDirectory(directory.c_str(), NULL))
+		{
+			if (GetLastError() == ERROR_PATH_NOT_FOUND) // Parent directory does not exist, attempt to create it too
+			{
+				size_t pos = std::string.find_last_of("/\\");
+				if (pos != std::string::npos)
+				{
+					CreateDirectory(directory.substr(0, pos));
+					::CreateDirectory(directory.c_str(), NULL);
+				}
+			}
+		}
 #else
 		system(("mkdir -p " + directory).c_str());
 #endif
