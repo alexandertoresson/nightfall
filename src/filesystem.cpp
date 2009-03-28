@@ -37,8 +37,8 @@ namespace Utilities
 		strcat_s(search, "*");
 		
 		// Warning: not tested!
-		WIN32_FIND_DATAA fd;
-		HANDLE hFile = FindFirstFileA(search, &fd);
+		WIN32_FIND_DATA fd;
+		HANDLE hFile = FindFirstFile(search, &fd);
 		do
 		{
 			// Do some magic...
@@ -56,7 +56,7 @@ namespace Utilities
 			 if (fd.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)
 				entry->isDirectory = true;
 			 
-		} while (FindNextFileA(hFile, &fd));
+		} while (FindNextFile(hFile, &fd));
 		
 		FindClose(hFile);
 #else
