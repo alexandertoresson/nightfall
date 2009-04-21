@@ -94,11 +94,6 @@ namespace Scene
 			node->parent = GetRef();
 			children.push_back(node);
 			node->pos_it = --children.end();
-			if (node != *node->pos_it)
-			{
-				std::cout << node << " " << *node->pos_it << std::endl;
-				*(int*)0 = 0;
-			}
 		}
 
 		void Node::RemoveChild(gc_ptr<Node> node)

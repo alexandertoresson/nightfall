@@ -64,21 +64,21 @@ namespace GUI
 				{
 					int x, y;
 				};
-				std::map<componentHandle, Position> positions;
+				std::map<gc_ptr<Component>, Position> positions;
 			public:
 				TablePanel(int cols, int rows);
 
-				componentHandle add(Component* comp, int col, int row);
+				void AddChild(gc_ptr<Component> comp, int col, int row);
 
 				void setRowStyle(int row, RowColStyle rowStyle);
 				void setColStyle(int row, RowColStyle colStyle);
 			
-				virtual void remove(componentHandle handle);
-				virtual void clear();
+				virtual void RemoveChild();
+				virtual void Clear();
 
-				virtual void layout();
+				virtual void Layout();
 			
-				virtual void paintComponent();
+				virtual void PaintComponent();
 		
 				// No need for shade() as Container will shade the Components that were added
 		};
@@ -98,15 +98,15 @@ namespace GUI
 
 				DockPanel();
 
-				componentHandle add(gc_ptr<Component> comp, DockPosition pos);
+				void Add(gc_ptr<Component> comp, DockPosition pos);
 
-				virtual void remove(componentHandle handle);
-				virtual void clear();
-				virtual void layout();
-				virtual void paintComponent();
+				virtual void Remove(gc_ptr<Component> comp);
+				virtual void Clear();
+				virtual void Layout();
+				virtual void PaintComponent();
 			private:
 				gc_ptr<Component> subComponents[DOCK_NUM];
-				std::map<componentHandle, DockPosition> positions;
+				std::map<gc_ptr<Component>, DockPosition> positions;
 				
 		};
 
@@ -131,9 +131,7 @@ namespace GUI
 				          VerticalAdjustment individualVAdjustment = V_ADJUSTMENT_LEFT,
 				          HorizontalAdjustment individualHAdjustment = H_ADJUSTMENT_TOP);
 
-				componentHandle insert(gc_ptr<Component> comp, int position);
-
-				virtual void layout();
+				virtual void Layout();
 		};
 	}
 }

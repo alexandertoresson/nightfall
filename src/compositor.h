@@ -50,20 +50,21 @@ namespace GUI
 	
 	namespace Helper
 	{
-		typedef enum {
+		enum DialogType
+		{
 			INFORMATION,
 			EXCLAMATION,
 			CRITICAL,
 			QUESTION
-		} DialogType;  /**< Dialog types */
+		};  /**< Dialog types */
 		
-		typedef enum
+		enum DialogStandardButton
 		{
 			B_OK,
 			B_OKCANCEL,
 			B_YESNO,
 			B_USERDEFINED  /**< Let's user decide labels */
-		} DialogStandardButton; 
+		}; 
 	
 		struct DialogButtons
 		{
@@ -162,12 +163,12 @@ namespace GUI
 			
 		};
 	
-		int createTooltip(int id, std::string text, float x, float y);
-		int createTooltipEx(int id, gc_ptr<Component> comp, float x, float y);
-		void removeTooltip(int id);
-		void moveTooltip(int id, float x, float y);
+		int CreateTooltip(int id, std::string text, float x, float y);
+		int CreateTooltipEx(int id, gc_ptr<Component> comp, float x, float y);
+		void RemoveTooltip(int id);
+		void MoveTooltip(int id, float x, float y);
 		
-		void createDialog(DialogParameters paramDiag, universalCallback callback);
+		void CreateDialog(DialogParameters paramDiag, universalCallback callback);
 	}
 	
 	/**
@@ -183,29 +184,22 @@ namespace GUI
 			 * @param handled This notifies the calling function if the mouse event is handled or not (if the mouse point is within bounds)
 			 * @see Core::KeyboardEvent
 			 */
-			virtual void event(Core::MouseEvent evt, bool& handled) { handled = false; }
+			virtual bool Handle(Core::MouseEvent evt) { return false; }
 			
 			/**
 			 * Keyboard event
 			 * @param evt KeyboardEvent structure that contains the keyboard event information
 			 * @see Core::KeyboardEvent
 			 */
-			virtual void event(Core::KeyboardEvent evt) {}
+			virtual bool Handle(Core::KeyboardEvent evt) { return false; }
 			
 			/**
 			 * Window event
 			 * @param evt WindowEvent structure that contains information about the window event.
 			 * @see Core::WindowEvent
 			 */
-			virtual void event(WindowEvent evt) {}
+			virtual bool Handle(WindowEvent evt) { return false; }
 			
-			/**
-			 * Window event
-			* @param evt WindowEvent structure that contains information about the window event.
-			 * @see Core::WindowEvent
-			 */
-			virtual ~Event() {};
-
 	};
 	
 	/*
@@ -255,8 +249,6 @@ namespace GUI
 	/*
 					Component
 											*/
-	typedef std::list<gc_ptr<Component> >::iterator componentHandle;
-	
 	class Component : public Event
 	{
 		public:
@@ -287,8 +279,9 @@ namespace GUI
 
 		protected:
 			
-			gc_ptr<Container> parent;
-			componentHandle containerHandle;
+			typedef std::list<gc_ptr<Component> >::iterator ComponentHandle;
+
+			ComponentHandle handle;
 
 			struct Bounds
 			{
@@ -332,42 +325,38 @@ namespace GUI
 
 			bool needsRelayout;
 			
-			virtual void paint();
+			virtual void Paint();
 			
-			virtual void layout();
+			virtual void Layout();
 
 		public:
 
 			Component(float x = 0.0f, float y = 0.0f, float w = 1.0f, float h = 1.0f);
 			virtual ~Component();
 			
-			gc_ptr<Metrics> getMetrics();
+			gc_ptr<Metrics> GetMetrics();
 
-			virtual bool isInsideArea(float x, float y);
+			virtual bool IsInsideArea(float x, float y);
 			
-			void setVisible(bool state);
+			void SetVisible(bool state);
 			
-			void setMinSize(float w, float h);
-			void setMaxSize(float w, float h);
-			void setSize(float w, float h);
-			void setAspectRatio(float r);
+			void SetMinSize(float w, float h);
+			void SetMaxSize(float w, float h);
+			void SetSize(float w, float h);
+			void SetAspectRatio(float r);
 
-			void setPosition(float x, float y);
+			void SetPosition(float x, float y);
 
-			void setVerticalAdjustment(VerticalAdjustment vAdjustment);
-			void setHorizontalAdjustment(HorizontalAdjustment vAdjustment);
+			void SetVerticalAdjustment(VerticalAdjustment vAdjustment);
+			void SetHorizontalAdjustment(HorizontalAdjustment vAdjustment);
 			
-			void setAnchor(Anchor anchor, bool enabled);
+			void SetAnchor(Anchor anchor, bool enabled);
 			
-			void setMargin(float top, float right, float bottom, float left);
+			void SetMargin(float top, float right, float bottom, float left);
 
-			virtual void event(Core::MouseEvent evt, bool& handled);
-			virtual void event(Core::KeyboardEvent evt);
-			virtual void event(WindowEvent evt);
+			virtual void PaintComponent();
 			
-			virtual void paintComponent();
-			
-			void scheduleRelayout();
+			void ScheduleRelayout();
 			
 			friend class Workspace;
 			friend class Container;
@@ -376,7 +365,6 @@ namespace GUI
 			
 			virtual void shade()
 			{
-				parent.shade();
 				metrics.shade();
 			}
 
@@ -391,17 +379,17 @@ namespace GUI
 
 			bool subAnchors[ANCHOR_NUM];
 	
-			void applyAnchors();
-			void applyAdjustment();
+			void ApplyAnchors();
+			void ApplyAdjustment();
 			
-			virtual void layout();
+			virtual void Layout();
 
-			virtual void layoutAll();
-			virtual void postLayout();
+			virtual void LayoutAll();
+			virtual void PostLayout();
 			
-			void paintAll();
+			void PaintAll();
 
-			virtual void paintComponent();
+			virtual void PaintComponent();
 
 		public:
 			ThemeEngine::Borders innerBorders;
@@ -409,19 +397,18 @@ namespace GUI
 
 			Container();
 
-			componentHandle insert(gc_ptr<Component> component, int position);
-			componentHandle add(gc_ptr<Component> component);
-			gc_ptr<Component> get(componentHandle handle);
-			virtual void remove(componentHandle handle);
-			virtual void clear();
-			bool isEmpty();
+			void Insert(gc_ptr<Component> component, int position);
+			void Add(gc_ptr<Component> component);
+			virtual void Remove(gc_ptr<Component> component);
+			virtual void Clear();
+			bool IsEmpty();
 
-			void setPadding(float top, float right, float bottom, float left);
-			void setSubAnchor(Anchor anchor, bool set);
+			void SetPadding(float top, float right, float bottom, float left);
+			void SetSubAnchor(Anchor anchor, bool set);
 
-			virtual void paint();
+			virtual void Paint();
 			
-			virtual void shade()
+			virtual void Shade()
 			{
 				Component::shade();
 				gc_shade_container(components);
@@ -431,25 +418,27 @@ namespace GUI
 	class Frame : public Container
 	{
 		private:
-			virtual void paintBackground() {};
-			virtual void paintGlass() {};
+			virtual void PaintBackground() {};
+			virtual void PaintGlass() {};
 		protected:
 			ThemeEngine::FrameBorders frameBorders;
 			ThemeEngine::Text frameTitle;
 
-			typedef enum {
+			enum StartLocation
+			{
 				DEFAULT,
 				CENTERPARENT,
 				CENTERSCREEN,
 				USERDEFINED
-			} StartLocation;
+			};
 			
-			typedef enum {
+			enum LayerIndex
+			{
 					BOTTOM = 0,
 					STANDARD = 1,
 					POPUP = 2,
 					END = 3
-			} LayerIndex;
+			};
 		
 			struct WindowParameter
 			{
@@ -463,7 +452,7 @@ namespace GUI
 			WindowParameter parameters;
 			Bounds windowDimensions;
 			
-			void paint();
+			void Paint();
 		public:
 			Frame(float x, float y, float w, float h, WindowParameter param);
 			Frame(float w, float h, WindowParameter param);
@@ -473,10 +462,8 @@ namespace GUI
 			friend class Workspace;
 	};
 	
-	typedef std::list<gc_ptr<Frame> >::iterator windowHandle;
-	
 	/* Window-Management */	
-	class Workspace : Event
+	class Workspace : public Event 
 	{
 		private:
 			std::list<gc_ptr<Frame> > win;
@@ -494,12 +481,11 @@ namespace GUI
 		public:
 			Workspace(int native_w, int native_h, float monitorsize, bool streched);
 			
-			void paint();
+			void Paint();
 			
-			windowHandle add(gc_ptr<Frame> elem);
-			void remove(windowHandle elem);
-			void remove(gc_ptr<Frame> elem); /* SLOW! use remove(windowHandle) */
-			void positionate(windowHandle elem, Frame::LayerIndex z);
+			void Add(gc_ptr<Frame> elem);
+			void Remove(gc_ptr<Frame> elem);
+			void Position(gc_ptr<Frame> elem, Frame::LayerIndex z);
 	};
 }
 

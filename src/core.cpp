@@ -30,7 +30,7 @@ namespace Core
 	int mouseX = 0;
 	int mouseY = 0;
 	
-	void processEvents()
+	void ProcessEvents()
 	{
 		SDL_Event event;
 		while(SDL_PollEvent(&event))
@@ -56,7 +56,7 @@ namespace Core
 					
 					if(keyListeners::ls.size())
 					{
-						for(keyListenerHandle iter = keyListeners::ls.begin(); iter != keyListeners::ls.end(); iter++)
+						for(KeyListenerHandle iter = keyListeners::ls.begin(); iter != keyListeners::ls.end(); iter++)
 						{
 							gc_ptr<KeyListener> keyListen = *iter;
 							
@@ -70,7 +70,7 @@ namespace Core
 					
 					if(!caught)
 					{
-						//call induvidual attached key with possible mods.
+						//call individual attached keys with possible mods.
 						gc_ptr<KeyAttachment> attachedKey = keymaps[event.key.keysym.sym];
 						if(attachedKey)
 						{
@@ -121,7 +121,7 @@ namespace Core
 							break;
 					}
 					
-					for(mouseListenerHandle iter = mouseListeners::ls.begin(); iter != mouseListeners::ls.end(); iter++)
+					for(MouseListenerHandle iter = mouseListeners::ls.begin(); iter != mouseListeners::ls.end(); iter++)
 					{
 						gc_ptr<MouseListener> mouseListen = *iter;
 						if(mouseListen->call(mouseEvent))
@@ -142,7 +142,7 @@ namespace Core
 	}
 	
 	//Binds special keys i.e. CTRL+A to a listener.
-	bool bindKey( SDLKey key, SDLMod mod, eventKeyboard listener)
+	bool BindKey( SDLKey key, SDLMod mod, eventKeyboard listener)
 	{
 		if(keymaps[key])
 		{
@@ -177,7 +177,7 @@ namespace Core
 	}
 	
 	//Unbinds a special key.
-	void unbindKey(SDLKey key, SDLMod mod)
+	void UnbindKey(SDLKey key, SDLMod mod)
 	{
 		if(keymaps[key])
 		{
@@ -208,25 +208,25 @@ namespace Core
 		}
 	}
 	
-	void preFrameAll(float time_diff)
+	void PreFrameAll(float time_diff)
 	{
-		for(preFrameListenerHandle iter = preFrameListeners::ls.begin(); iter != preFrameListeners::ls.end(); iter++)
+		for(PreFrameListenerHandle iter = preFrameListeners::ls.begin(); iter != preFrameListeners::ls.end(); iter++)
 		{
 			gc_ptr<PreFrameListener> listener = *iter;
 			listener->call(time_diff);
 		}
 	}
 	
-	void paintAll(float time_diff)
+	void PaintAll(float time_diff)
 	{
-		for(paintListenerHandle iter = paintListeners::ls.begin(); iter != paintListeners::ls.end(); iter++)
+		for(PaintListenerHandle iter = paintListeners::ls.begin(); iter != paintListeners::ls.end(); iter++)
 		{
 			gc_ptr<PaintListener> listener = *iter;
 			listener->call(time_diff);
 		}
 	}
 	
-	void mainLoop()
+	void MainLoop()
 	{
 		int last_time = SDL_GetTicks();
 		int frames = 0;
@@ -238,13 +238,13 @@ namespace Core
 		while(go)
 		{
 			//Process events
-			processEvents();
+			ProcessEvents();
 			
 			//run preframes
-			preFrameAll(time_diff);
+			PreFrameAll(time_diff);
 			
 			//paint all
-			paintAll(time_diff);
+			PaintAll(time_diff);
 			
 			frames++;
 			if(SDL_GetTicks() - last_time >= 1000)

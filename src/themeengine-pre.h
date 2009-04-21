@@ -35,7 +35,7 @@ namespace GUI
 	class Metrics;
 
 	namespace ThemeEngine
-	{
+{
 		class InfoBase;
 
 		class SubComponent;
@@ -104,11 +104,11 @@ namespace GUI
 			private:
 				gc_ptr<Component> comp;
 			protected:
-				void notifyChanged();
+				void NotifyChanged();
 			public:
 				InfoBase(gc_ptr<Component> component);
-				gc_ptr<Component> getComponent() const;
-				gc_ptr<Metrics> getMetrics() const;
+				gc_ptr<Component> GetComponent() const;
+				gc_ptr<Metrics> GetMetrics() const;
 
 				virtual void shade()
 				{
@@ -125,8 +125,8 @@ namespace GUI
 			public:
 				Text(gc_ptr<Component> component, std::string text);
 
-				void set(std::string text);
-				std::string get() const;
+				void Set(std::string text);
+				std::string Get() const;
 		};
 
 		struct ToggleButtonGroup
@@ -147,10 +147,10 @@ namespace GUI
 
 				ToggleButton(gc_ptr<Component> component, bool checked, gc_ptr<ToggleButtonGroup> group);
 
-				void setChecked(bool checked);
-				bool getChecked() const;
+				void SetChecked(bool checked);
+				bool GetChecked() const;
 
-				gc_ptr<ToggleButtonGroup> getGroup();
+				gc_ptr<ToggleButtonGroup> GetGroup();
 				
 				void shade()
 				{
@@ -183,16 +183,16 @@ namespace GUI
 
 				Range(gc_ptr<Component> component, float low, float high, float position, Style style, Direction direction);
 
-				Style getStyle();
+				Style GetStyle();
 
-				Direction getDirection();
+				Direction GetDirection();
 
-				void setPosition(float position);
-				float getPosition() const;
+				void GetPosition(float position);
+				float GetPosition() const;
 
-				void setRange(float low, float high);
-				float getLow() const;
-				float getHigh() const;
+				void SetRange(float low, float high);
+				float GetLow() const;
+				float GetHigh() const;
 		};
 		
 		class Image : public InfoBase
@@ -203,12 +203,12 @@ namespace GUI
 			public:
 				Image(gc_ptr<Component> component, std::string file, float width, float height);
 
-				void setImage(std::string filename);
-				void setDimensions(float width, float height);
+				void SetImage(std::string filename);
+				void SetDimensions(float width, float height);
 
-				std::string getImage() const;
-				float getWidth() const;
-				float getHeight() const;
+				std::string GetImage() const;
+				float GetWidth() const;
+				float GetHeight() const;
 		};
 		
 		class Button : public InfoBase
@@ -224,8 +224,8 @@ namespace GUI
 
 				Button(gc_ptr<Component> component, Style style);
 
-				void setStyle(Style style);
-				Style getStyle();
+				void SetStyle(Style style);
+				Style GetStyle();
 		};
 
 		class Borders : public InfoBase
@@ -244,11 +244,11 @@ namespace GUI
 			public:
 				Borders(gc_ptr<Component> component, float size = 0.1f, Style style = STYLE_FLAT);
 
-				void setStyle(Style style);
-				void setSize(float size);
+				void SetStyle(Style style);
+				void SetSize(float size);
 
-				Style getStyle() const;
-				float getSize() const;
+				Style GetStyle() const;
+				float GetSize() const;
 		};
 		
 		class FrameBorders : public InfoBase
@@ -264,8 +264,8 @@ namespace GUI
 
 				FrameBorders(gc_ptr<Component> component, Style style);
 
-				void setStyle(Style style);
-				Style getStyle() const;
+				void SetStyle(Style style);
+				Style GetStyle() const;
 		};
 
 	}

@@ -202,8 +202,9 @@ namespace Core
 	/**
 	 * The main loop of the program, handles state execution, termination and SDL event-loop, also paint scheduling.
 	 */
-	void mainLoop();
+	void MainLoop();
 	
+	//Listeners
 	template <typename T>
 	struct listeners
 	{
@@ -213,21 +214,20 @@ namespace Core
 	template <typename T>
 	std::list<T> listeners<T>::ls;
 
-	//Listeners
 	template <typename T>
-	typename std::list<gc_ptr<T> >::iterator addListener(gc_ptr<T> listener)
+	typename std::list<gc_ptr<T> >::iterator AddListener(gc_ptr<T> listener)
 	{
 		return listeners<gc_ptr<T> >::ls.insert(listeners<gc_ptr<T> >::ls.end(), listener);
 	}
 	
 	template <typename T>
-	typename std::list<gc_ptr<T> >::iterator addListener(T* listener)
+	typename std::list<gc_ptr<T> >::iterator AddListener(T* listener)
 	{
-		return addListener(gc_ptr<T>(listener));
+		return AddListener(gc_ptr<T>(listener));
 	}
 	
 	template <typename T>
-	void removeListener(T it)
+	void RemoveListener(T it)
 	{
 		listeners<typename T::value_type>::ls.erase(it);
 	}
@@ -237,15 +237,15 @@ namespace Core
 	typedef listeners<gc_ptr<PreFrameListener> > preFrameListeners;
 	typedef listeners<gc_ptr<PaintListener> > paintListeners;
 
-	typedef std::list<gc_ptr<KeyListener> >::iterator keyListenerHandle;
-	typedef std::list<gc_ptr<MouseListener> >::iterator mouseListenerHandle;
-	typedef std::list<gc_ptr<PreFrameListener> >::iterator preFrameListenerHandle;
-	typedef std::list<gc_ptr<PaintListener> >::iterator paintListenerHandle;
+	typedef std::list<gc_ptr<KeyListener> >::iterator KeyListenerHandle;
+	typedef std::list<gc_ptr<MouseListener> >::iterator MouseListenerHandle;
+	typedef std::list<gc_ptr<PreFrameListener> >::iterator PreFrameListenerHandle;
+	typedef std::list<gc_ptr<PaintListener> >::iterator PaintListenerHandle;
 	
 	/**
 	 * Bind specific keys
 	 */
-	bool bindKey( SDLKey key, SDLMod mod, eventKeyboard listener);
-	void unbindKey(SDLKey key, SDLMod mod);
+	bool BindKey( SDLKey key, SDLMod mod, eventKeyboard listener);
+	void UnbindKey(SDLKey key, SDLMod mod);
 }
 #endif

@@ -30,19 +30,19 @@ namespace GUI
 			
 		}
 
-		void InfoBase::notifyChanged()
+		void InfoBase::NotifyChanged()
 		{
-			comp->scheduleRelayout();
+			comp->ScheduleRelayout();
 		}
 
-		gc_ptr<Component> InfoBase::getComponent() const
+		gc_ptr<Component> InfoBase::GetComponent() const
 		{
 			return comp;
 		}
 		
-		gc_ptr<Metrics> InfoBase::getMetrics() const
+		gc_ptr<Metrics> InfoBase::GetMetrics() const
 		{
-			return comp->getMetrics();
+			return comp->GetMetrics();
 		}
 		
 		Text::Text(gc_ptr<Component> component, std::string text) : InfoBase(component), text(text)
@@ -50,12 +50,12 @@ namespace GUI
 			
 		}
 
-		void Text::set(std::string text)
+		void Text::Set(std::string text)
 		{
 			this->text = text;
 		}
 
-		std::string Text::get() const
+		std::string Text::Get() const
 		{
 			return text;
 		}
@@ -70,7 +70,7 @@ namespace GUI
 		{
 			::Window::GUI::FontCache::RenderedText RenderedInfo;
 			::Window::GUI::Fonts.SetFontType(2);
-			::Window::GUI::Fonts.RenderText(text.get(), RenderedInfo, text.getMetrics()->getDPI());
+			::Window::GUI::Fonts.RenderText(text.Get(), RenderedInfo, text.GetMetrics()->GetDPI());
 			
 			glEnable(GL_TEXTURE_2D);
 			glBindTexture(GL_TEXTURE_2D, RenderedInfo.Texture);
@@ -99,7 +99,7 @@ namespace GUI
 		{
 			::Window::GUI::FontCache::TextDimension dims;
 			::Window::GUI::Fonts.SetFontType(2);
-			dims = ::Window::GUI::Fonts.GetTextSize(text.get(), text.getMetrics()->getDPI());
+			dims = ::Window::GUI::Fonts.GetTextSize(text.Get(), text.GetMetrics()->GetDPI());
 			w = dims.w;
 			h = dims.h;
 		}

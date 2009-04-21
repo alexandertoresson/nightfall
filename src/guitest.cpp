@@ -56,7 +56,7 @@ namespace GUI
 			
 			glPopMatrix();
 			*/
-			testComponent->paintComponent();
+			testComponent->PaintComponent();
 			
 			glFlush();
 			SDL_GL_SwapBuffers();
@@ -122,24 +122,24 @@ namespace GUI
 		
 		void start()
 		{
-			Core::addListener(new Core::PaintListener(&paint));
-			Core::addListener(new Core::MouseListener(&mousehandling));
-			Core::addListener(new Core::KeyListener(&keyhandling));
-			Core::bindKey(SDLK_a, (SDLMod)KMOD_CTRL, &handlespecific);
-			Core::bindKey(SDLK_q, KMOD_NONE, &handlespecificexit);
-			Core::bindKey(SDLK_ESCAPE, KMOD_NONE, &handlespecificexit);
+			Core::AddListener(new Core::PaintListener(&paint));
+			Core::AddListener(new Core::MouseListener(&mousehandling));
+			Core::AddListener(new Core::KeyListener(&keyhandling));
+			Core::BindKey(SDLK_a, (SDLMod)KMOD_CTRL, &handlespecific);
+			Core::BindKey(SDLK_q, KMOD_NONE, &handlespecificexit);
+			Core::BindKey(SDLK_ESCAPE, KMOD_NONE, &handlespecificexit);
 			
 			Utilities::SwitchTo2DViewport(1.0f,1.0f);
 			met = new GUI::Metrics(1440, 900, 800, 600, true, 15.4f, false);
-			met->scale();
+			met->Scale();
 			
 			float w = 10.0f;
 			float h = 2.0f;
-			met->scaleFactorCM(w, h);
+			met->ScaleFactorCM(w, h);
 			
 			testComponent = new Component(0.0f, 0.0f, w, h);
 			
-			Core::mainLoop();
+			Core::MainLoop();
 		}
 	}
 }

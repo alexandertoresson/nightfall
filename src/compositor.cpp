@@ -37,11 +37,11 @@ namespace GUI
 		
 		if(fullscreen)
 		{
-			calculateCoordinateSystem(monitorsize, monitoraspect, streched);
+			CalculateCoordinateSystem(monitorsize, monitoraspect, streched);
 		}
 		else
 		{
-			calculateCoordinateSystem();
+			CalculateCoordinateSystem();
 		}
 	}
 	
@@ -50,7 +50,7 @@ namespace GUI
 	 * @param monitorsize	Holds the monitor inch size
 	 * @param monitoraspect Holds the monitor aspect, this to correct errors imposed by non-native incorrect aspect scaling, viewing 800x600 in 1280x768 screen.
 	 */
-	void Metrics::calculateCoordinateSystem(float monitorsize, float monitoraspect, bool streched)
+	void Metrics::CalculateCoordinateSystem(float monitorsize, float monitoraspect, bool streched)
 	{
 		//monitorsize.
 		double w = (monitoraspect * monitorsize) / sqrt(1 + monitoraspect * monitoraspect);
@@ -77,7 +77,7 @@ namespace GUI
 	 * @param monitorsize	Holds the monitor inch size
 	 * @param monitoraspect Holds the monitor aspect, this to correct errors imposed by non-native incorrect aspect scaling, viewing 800x600 in 1280x768 screen.
 	 */
-	void Metrics::calculateCoordinateSystem(float dpi, float monitorsize, float monitoraspect)
+	void Metrics::CalculateCoordinateSystem(float dpi, float monitorsize, float monitoraspect)
 	{
 		//monitorsize.
 		double w = (monitoraspect * monitorsize) / sqrt(1 + monitoraspect * monitoraspect);
@@ -97,7 +97,7 @@ namespace GUI
 	 * @param monitor_px_width	monitor native pixel x-axis resolution
 	 * @param monitor_px_height monitor native pixel y-axis resolution
 	 */
-	void Metrics::calculateCoordinateSystem()
+	void Metrics::CalculateCoordinateSystem()
 	{
 		//reference 15" at 1024x768.
 		double monitoraspect = 4.0 / 3.0;
@@ -121,7 +121,7 @@ namespace GUI
 	 * @param monitor_px_width	monitor native pixel x-axis resolution
 	 * @param monitor_px_height monitor native pixel y-axis resolution
 	 */
-	void Metrics::calculateCoordinateSystem(float dpi)
+	void Metrics::CalculateCoordinateSystem(float dpi)
 	{
 		//reference 15" at 1024x768.
 		double monitoraspect = 4.0 / 3.0;
@@ -141,64 +141,64 @@ namespace GUI
 	/**
 	 *	from the given coordinatesyste, assumes surface to be 1 wide and 1 high
 	 */
-	void Metrics::scale()
+	void Metrics::Scale()
 	{
 		glScalef(1.0f / this->dotsperwidth, 1.0f / this->dotsperheight, 0.0f);
 		glPushMatrix();
 	}
 	
-	void Metrics::revert()
+	void Metrics::Revert()
 	{
 		glPopMatrix();
 	}
 
-	float Metrics::getDPI()
+	float Metrics::GetDPI()
 	{
 		return this->dpi;
 	}
 	
-	void Metrics::setDPI(float dpi)
+	void Metrics::SetDPI(float dpi)
 	{
 		this->dpi = dpi;
 	}
 	
 	/* Conversion method for getting the pixel at the point coordinate */
-	void Metrics::translatePointToPixel(float& pt_x, float& pt_y)
+	void Metrics::TranslatePointToPixel(float& pt_x, float& pt_y)
 	{
 		pt_x = floor(((pt_x / this->dotsperwidth) / this->monitor_w * this->current_w) + 0.5);
 		pt_y = floor(((pt_y / this->dotsperheight) / this->monitor_h * this->current_h) + 0.5);
 	}
 
 	/* Conversion method for getting the pixel at the pixel coordinate */
-	void Metrics::translatePixelToPoint(float& px_x, float& px_y)
+	void Metrics::TranslatePixelToPoint(float& px_x, float& px_y)
 	{
 		px_x = (px_x / this->current_w) * this->monitor_w * this->dotsperwidth;
 		px_y = (px_y / this->current_h) * this->monitor_h * this->dotsperheight;
 	}
 	
 	/* Conversion method for translating point coordinate into the real world inch coordinate */
-	void Metrics::scaleFactorInch(float& w, float& h)
+	void Metrics::ScaleFactorInch(float& w, float& h)
 	{
 		w = w * this->dpi;
 		h = h * this->dpi;
 	}
 
 	/* Conversion method for translating point coordinate into the real world centimeter coordinate */
-	void Metrics::scaleFactorCM(float& w, float& h)
+	void Metrics::ScaleFactorCM(float& w, float& h)
 	{
 		w = (w / 2.54f) * this->dpi;
 		h = (h / 2.54f) * this->dpi;
 	}
 	
 	/* alignment to the closest pixel */
-	void Metrics::alignToPixel(float& x, float& y)
+	void Metrics::AlignToPixel(float& x, float& y)
 	{
-		translatePointToPixel(x,y);
-		translatePixelToPoint(x,y);
+		TranslatePointToPixel(x,y);
+		TranslatePixelToPoint(x,y);
 	}
 	
 	/* a way to copy the settings of an existing Metrics */
-	void Metrics::setMetrics(gc_ptr<Metrics> met)
+	void Metrics::SetMetrics(gc_ptr<Metrics> met)
 	{
 		
 	}
@@ -219,7 +219,7 @@ namespace GUI
 		
 	}
 
-	bool Component::isInsideArea(float x, float y)
+	bool Component::IsInsideArea(float x, float y)
 	{
 		if(dimensions.x >= this->dimensions.x && x <= (this->dimensions.x + this->dimensions.w) &&
 		   dimensions.y >= this->dimensions.y && dimensions.y <= (this->dimensions.y + this->dimensions.h) )
@@ -230,99 +230,82 @@ namespace GUI
 		return false;
 	}
 	
-	void Component::setVisible(bool state)
+	void Component::SetVisible(bool state)
 	{
 		if (visible != state)
 		{
 			visible = state;
-			scheduleRelayout();
+			ScheduleRelayout();
 		}
 	}
 
-	void Component::setMinSize(float w, float h)
+	void Component::SetMinSize(float w, float h)
 	{
 		this->min.w = w;
 		this->min.h = h;
-		scheduleRelayout();
+		ScheduleRelayout();
 	}
 
-	void Component::setMaxSize(float w, float h)
+	void Component::SetMaxSize(float w, float h)
 	{
 		this->max.w = w;
 		this->max.h = h;
-		scheduleRelayout();
+		ScheduleRelayout();
 	}
 
-	void Component::setSize(float w, float h)
+	void Component::SetSize(float w, float h)
 	{
 		this->dimensions.w = w;
 		this->dimensions.h = h;
-		scheduleRelayout();
+		ScheduleRelayout();
 	}
 
-	void Component::setAspectRatio(float r)
+	void Component::SetAspectRatio(float r)
 	{
 		aspectRatio = r;
-		scheduleRelayout();
+		ScheduleRelayout();
 	}
 
-	void Component::setPosition(float x, float y)
+	void Component::SetPosition(float x, float y)
 	{
 		this->dimensions.x = x;
 		this->dimensions.y = y;
-		scheduleRelayout();
+		ScheduleRelayout();
 	}
 
-	void Component::setVerticalAdjustment(VerticalAdjustment vAdjustment)
+	void Component::SetVerticalAdjustment(VerticalAdjustment vAdjustment)
 	{
 		this->vAdjustment = vAdjustment;
-		scheduleRelayout();
+		ScheduleRelayout();
 	}
 	
-	void Component::setHorizontalAdjustment(HorizontalAdjustment hAdjustment)
+	void Component::SetHorizontalAdjustment(HorizontalAdjustment hAdjustment)
 	{
 		this->hAdjustment = hAdjustment;
-		scheduleRelayout();
+		ScheduleRelayout();
 	}
 
-	void Component::setAnchor(Anchor anchor, bool enabled)
+	void Component::SetAnchor(Anchor anchor, bool enabled)
 	{
 		anchors[anchor] = enabled;
-		scheduleRelayout();
+		ScheduleRelayout();
 	}
 
-	void Component::setMargin(float top, float right, float bottom, float left)
+	void Component::SetMargin(float top, float right, float bottom, float left)
 	{
 		margin.top = top;
 		margin.right = right;
 		margin.bottom = bottom;
 		margin.left = left;
-		scheduleRelayout();
+		ScheduleRelayout();
 	}
 
-	void Component::event(Core::MouseEvent evt, bool& handled)
+	void Component::PaintComponent()
 	{
-		handled = false;
-	}
-
-	void Component::event(Core::KeyboardEvent evt)
-	{
-		
+		Paint();
 	}
 	
-	void Component::event(WindowEvent evt)
-	{
-		
-	}
-	
-	void Component::paintComponent()
-	{
-		//1. paint itself
-		paint();
-		//2. paint all controls in it.
-	}
-	
-	void Component::paint()
+	void Component::Paint()
 	{
 		glPushMatrix();
 		glScalef(this->dimensions.w, this->dimensions.h,0.0f);
@@ -338,11 +321,11 @@ namespace GUI
 		glPopMatrix();
 	}
 	
-	void Component::layout()
+	void Component::Layout()
 	{
 	}
 
-	gc_ptr<Metrics> Component::getMetrics()
+	gc_ptr<Metrics> Component::GetMetrics()
 	{
 		return metrics;
 	}
@@ -354,44 +337,44 @@ namespace GUI
 		
 	}
 
-	void Container::layoutAll()
+	void Container::LayoutAll()
 	{
-		for (componentHandle it = components.begin(); it != components.end(); it++)
+		for (ComponentHandle it = components.begin(); it != components.end(); it++)
 		{
-			(*it)->layout();
+			(*it)->Layout();
 		}
 	}
 	
-	void Container::postLayout()
+	void Container::PostLayout()
 	{
-		applyAdjustment();
-		applyAnchors();
+		ApplyAdjustment();
+		ApplyAnchors();
 	}
 
-	void Container::layout()
+	void Container::Layout()
 	{
-		layoutAll();
-		postLayout();
+		LayoutAll();
+		PostLayout();
 	}
 	
-	void Component::scheduleRelayout()
+	void Component::ScheduleRelayout()
 	{
 		if (!needsRelayout)
 		{
 			needsRelayout = true;
-			if (parent)
+/*			if (parent)
 			{
-				parent->scheduleRelayout();
-			}
+				parent->ScheduleRelayout();
+			}*/
 		}
 	}
 
-	void Container::applyAnchors()
+	void Container::ApplyAnchors()
 	{
 		
 	}
 
-	void Container::applyAdjustment()
+	void Container::ApplyAdjustment()
 	{
 		float minX, minY, maxX, maxY;
 
@@ -404,7 +387,7 @@ namespace GUI
 		minY = 10000.0f;
 		maxX = -10000.0f;
 		maxY = -10000.0f;
-		for (componentHandle it = components.begin(); it != components.end(); it++)
+		for (ComponentHandle it = components.begin(); it != components.end(); it++)
 		{
 			if ((*it)->dimensions.x < minX)
 				minX = (*it)->dimensions.x;
@@ -450,7 +433,7 @@ namespace GUI
 				break;
 		}
 		
-		for (componentHandle it = components.begin(); it != components.end(); it++)
+		for (ComponentHandle it = components.begin(); it != components.end(); it++)
 		{
 			(*it)->dimensions.x += dX;
 			(*it)->dimensions.y += dY;
@@ -458,61 +441,63 @@ namespace GUI
 
 	}
 	
-	void Container::setPadding(float top, float right, float bottom, float left)
+	void Container::SetPadding(float top, float right, float bottom, float left)
 	{
 		padding.top = top;
 		padding.right = right;
 		padding.bottom = bottom;
 		padding.left = left;
-		scheduleRelayout();
+		ScheduleRelayout();
 	}
 
-	componentHandle Container::insert(gc_ptr<Component> component, int position)
+	void Container::Insert(gc_ptr<Component> component, int position)
 	{
 		if (position >= 0 && position < (signed) components.size())
 		{
-			componentHandle it = components.begin();
+			ComponentHandle it = components.begin();
 			for (int i = 0; i < position; i++, it++) ;
-			return components.insert(it, component);
+			component->handle = components.insert(it, component);
 		}
 		else
 		{
 			components.push_back(component);
-			componentHandle last = components.end();
-			return --last;
+			component->handle = components.end();
 		}
 	}
 	
-	componentHandle Container::add(gc_ptr<Component> component)
+	void Container::Add(gc_ptr<Component> component)
 	{
-		return insert(component, -1);
+		Insert(component, -1);
 	}
 	
-	void Container::remove(componentHandle handle)
+	void Container::Remove(gc_ptr<Component> component)
 	{
-		components.erase(handle);
+		components.erase(component->handle);
 	}
 
-	void Container::clear()
+	void Container::Clear()
 	{
-		components.clear();
-	}
-
-	void Container::paint()
-	{
-		paintComponent();
-		paintAll();
-	}
-	
-	void Container::paintComponent()
-	{
-	}
-	
-	void Container::paintAll()
-	{
-		for (componentHandle it = components.begin(); it != components.end(); it++)
+		while (components.size())
 		{
-			(*it)->paint();
+			Remove(components.front());
+		}
+	}
+
+	void Container::Paint()
+	{
+		PaintComponent();
+		PaintAll();
+	}
+	
+	void Container::PaintComponent()
+	{
+	}
+	
+	void Container::PaintAll()
+	{
+		for (ComponentHandle it = components.begin(); it != components.end(); it++)
+		{
+			(*it)->Paint();
 		}
 	}
 

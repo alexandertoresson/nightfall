@@ -40,14 +40,9 @@ namespace GUI
 			
 		}
 
-		componentHandle FlowPanel::insert(gc_ptr<Component> comp, int position)
+		void FlowPanel::Layout()
 		{
-			return Container::insert(comp, position);
-		}
-
-		void FlowPanel::layout()
-		{
-			Container::layoutAll();
+			Container::LayoutAll();
 			
 			{
 				float posX = 0.0f;
@@ -76,7 +71,7 @@ namespace GUI
 				}
 			}
 
-			Container::postLayout();
+			Container::PostLayout();
 		}
 	}
 }

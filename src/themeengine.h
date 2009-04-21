@@ -38,8 +38,8 @@ namespace GUI
 			protected:
 				gc_ptr<Component> subComp;
 			public:
-				void set(std::string text);
-				void set(gc_ptr<Component> comp);
+				void Set(std::string text);
+				void Set(gc_ptr<Component> comp);
 		};
 	}
 }
