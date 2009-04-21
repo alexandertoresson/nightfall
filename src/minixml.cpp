@@ -24,10 +24,8 @@
 
 namespace Utilities
 {
-	XMLWriter::XMLWriter()
+	XMLWriter::XMLWriter() : last_was_push(false), deferred_tag_ending(false)
 	{
-		last_was_push = false;
-		deferred_tag_ending = false;
 	}
 
 	bool XMLWriter::Open(std::string filename)
@@ -155,11 +153,8 @@ namespace Utilities
 		last_was_push = false;
 	}
 	
-	XMLReader::XMLReader()
+	XMLReader::XMLReader() : xmlElementAlloc(new ChunkAllocator<XMLElement>(1024)), xmlTextNodeAlloc(new ChunkAllocator<XMLTextNode>(1024)), root(NULL)
 	{
-		xmlElementAlloc = new ChunkAllocator<XMLElement>(1024);
-		xmlTextNodeAlloc = new ChunkAllocator<XMLTextNode>(1024);
-		root = NULL;
 	}
 
 	XMLReader::~XMLReader()

@@ -81,9 +81,8 @@ namespace Utilities
 	struct XMLNode
 	{
 		XMLNode* parent;
-		XMLNode()
+		XMLNode() : parent(NULL)
 		{
-			parent = NULL;
 		}
 		virtual void Apply(const TagFuncMap& tag_funcs, const TextFunc& text_func);
 		virtual void Apply(const Utilities::FEString& tag, const TagFunc& tag_func);
@@ -108,9 +107,8 @@ namespace Utilities
 		AttrList attributes;
 
 		std::vector<XMLNode*> children;
-		XMLElement()
+		XMLElement() : index(0)
 		{
-			index = 0;
 		}
 		
 		void Iterate(const TagFuncMap& tag_funcs, const TextFunc& text_func);
