@@ -29,8 +29,8 @@ namespace GUI
 {
 	namespace Testing
 	{
-		Metrics* met = NULL;
-		Component* testComponent = NULL;
+		gc_ptr<Metrics> met;
+		gc_ptr<Component> testComponent;
 	
 		void paint(float time_diff)
 		{
@@ -101,7 +101,7 @@ namespace GUI
 		
 		bool handlespecificexit(Core::KeyboardEvent e)
 		{
-			Core::go = false;
+//			Core::go = false;
 			return true;
 		}
 		

@@ -36,10 +36,10 @@ namespace GUI
 		class SubComponent : public InfoBase
 		{
 			protected:
-				Component *subComp;
+				gc_ptr<Component> subComp;
 			public:
 				void set(std::string text);
-				void set(Component *comp);
+				void set(gc_ptr<Component> comp);
 		};
 	}
 }

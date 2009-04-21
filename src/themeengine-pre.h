@@ -25,6 +25,8 @@
 	#warning "themeengine.h-pre"
 #endif
 
+#include "gc_ptr.h"
+
 #include <string>
 
 namespace GUI
@@ -68,19 +70,20 @@ namespace GUI
 				virtual void Draw(const T& info, float x, float y, float w, float h);
 				virtual void GetSize(const T& info, float cw, float ch, float& w, float& h);
 				virtual ~Drawer() {}
+				virtual void shade() {}
 		};
 
 		class Theme
 		{
 			public:
-				Drawer<Text>* textDrawer;
-				Drawer<SubComponent>* subComponentDrawer;
-				Drawer<ToggleButton>* toggleButtonDrawer;
-				Drawer<Range>* rangeDrawer;
-				Drawer<Image>* imageDrawer;
-				Drawer<Button>* buttonDrawer;
-				Drawer<Borders>* bordersDrawer;
-				Drawer<FrameBorders>* frameBordersDrawer;
+				gc_ptr<Drawer<Text> > textDrawer;
+				gc_ptr<Drawer<SubComponent> > subComponentDrawer;
+				gc_ptr<Drawer<ToggleButton> > toggleButtonDrawer;
+				gc_ptr<Drawer<Range> > rangeDrawer;
+				gc_ptr<Drawer<Image> > imageDrawer;
+				gc_ptr<Drawer<Button> > buttonDrawer;
+				gc_ptr<Drawer<Borders> > bordersDrawer;
+				gc_ptr<Drawer<FrameBorders> > frameBordersDrawer;
 
 				Theme() :
 					textDrawer(new Drawer<Text>),
@@ -99,13 +102,18 @@ namespace GUI
 		class InfoBase
 		{
 			private:
-				Component* comp;
+				gc_ptr<Component> comp;
 			protected:
 				void notifyChanged();
 			public:
-				InfoBase(Component* component);
-				Component* getComponent() const;
-				Metrics* getMetrics() const;
+				InfoBase(gc_ptr<Component> component);
+				gc_ptr<Component> getComponent() const;
+				gc_ptr<Metrics> getMetrics() const;
+
+				virtual void shade()
+				{
+					comp.shade();
+				}
 		};
 
 		class SubComponent;
@@ -115,7 +123,7 @@ namespace GUI
 			private:
 				std::string text;
 			public:
-				Text(Component* component, std::string text);
+				Text(gc_ptr<Component> component, std::string text);
 
 				void set(std::string text);
 				std::string get() const;
@@ -123,21 +131,32 @@ namespace GUI
 
 		struct ToggleButtonGroup
 		{
-			ToggleButton* checked;
+			gc_ptr<ToggleButton> checked;
+
+			void shade()
+			{
+				checked.shade();
+			}
 		};
 
 		class ToggleButton : public InfoBase
 		{
 			private:
 				bool checked;
-				ToggleButtonGroup* group;
+				gc_ptr<ToggleButtonGroup> group;
 
-				ToggleButton(Component* component, bool checked, ToggleButtonGroup* group);
+				ToggleButton(gc_ptr<Component> component, bool checked, gc_ptr<ToggleButtonGroup> group);
 
 				void setChecked(bool checked);
 				bool getChecked() const;
 
-				ToggleButtonGroup* getGroup();
+				gc_ptr<ToggleButtonGroup> getGroup();
+				
+				void shade()
+				{
+					InfoBase::shade();
+					group.shade();
+				}
 		};
 
 		class Range : public InfoBase
@@ -162,7 +181,7 @@ namespace GUI
 				float position;
 			public:
 
-				Range(Component* component, float low, float high, float position, Style style, Direction direction);
+				Range(gc_ptr<Component> component, float low, float high, float position, Style style, Direction direction);
 
 				Style getStyle();
 
@@ -182,7 +201,7 @@ namespace GUI
 				std::string filename;
 				float width, height;
 			public:
-				Image(Component* component, std::string file, float width, float height);
+				Image(gc_ptr<Component> component, std::string file, float width, float height);
 
 				void setImage(std::string filename);
 				void setDimensions(float width, float height);
@@ -203,7 +222,7 @@ namespace GUI
 			private:
 				Style style;
 
-				Button(Component* component, Style style);
+				Button(gc_ptr<Component> component, Style style);
 
 				void setStyle(Style style);
 				Style getStyle();
@@ -223,7 +242,7 @@ namespace GUI
 				float size;
 
 			public:
-				Borders(Component* component, float size = 0.1f, Style style = STYLE_FLAT);
+				Borders(gc_ptr<Component> component, float size = 0.1f, Style style = STYLE_FLAT);
 
 				void setStyle(Style style);
 				void setSize(float size);
@@ -243,7 +262,7 @@ namespace GUI
 			private:
 				Style style;
 
-				FrameBorders(Component* component, Style style);
+				FrameBorders(gc_ptr<Component> component, Style style);
 
 				void setStyle(Style style);
 				Style getStyle() const;

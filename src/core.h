@@ -101,22 +101,14 @@ namespace Core
 	 *	Handles the standard callback convention
 	 */
 	class Listener
-		{
+	{
 		public:
-			void* tag;  /**< standard parameter */
-			
-			Listener()
-			{
-				this->tag = NULL;
-			}
-			
 			virtual EventType getType() { return UNKNOWN; }
-
-			virtual ~Listener() {};
-		};
+			void shade() {}
+	};
 	
 	class KeyListener : public Listener
-		{
+	{
 		public:
 			eventKeyboard fptr;
 			
@@ -131,10 +123,10 @@ namespace Core
 			}
 			
 			virtual EventType getType() { return KEY; }
-		};
+	};
 	
 	class MouseListener : public Listener
-		{
+	{
 		public:
 			eventMouse fptr;
 			
@@ -149,10 +141,10 @@ namespace Core
 			}
 			
 			virtual EventType getType() { return MOUSE; }
-		};
+	};
 	
 	class PaintListener : public Listener
-		{
+	{
 		public:
 			eventPaint fptr;
 			
@@ -167,10 +159,10 @@ namespace Core
 			}
 			
 			virtual EventType getType() { return PAINT; }
-		};
+	};
 	
-	class PreFrameListener : protected Listener
-		{
+	class PreFrameListener : public Listener
+	{
 		public:
 			eventPreFrame fptr;
 			
@@ -185,14 +177,14 @@ namespace Core
 			}
 			
 			virtual EventType getType() { return PREFRAME; }
-		};
+	};
 	
 	
 	struct KeyAttachment
 	{
 		SDLMod modifier;
 		eventKeyboard fptr;
-		KeyAttachment* next;
+		gc_ptr<KeyAttachment> next;
 		
 		KeyAttachment(eventKeyboard fptr, SDLMod modifier)
 		{
@@ -200,34 +192,55 @@ namespace Core
 			this->modifier = modifier;
 			this->next = NULL;
 		}
+
+		void shade()
+		{
+			next.shade();
+		}
 	};
-	
-	extern KeyAttachment*		keymaps[SDLK_LAST];
-	extern std::list<Listener*>	mouseListener;
-	extern std::list<Listener*>	keyListener;
-	extern std::list<Listener*>	paintListener;
-	extern std::list<Listener*>	preFrameListener;
-	
-	extern bool go;
-	extern bool keyState[SDLK_LAST];
-	extern int mouseX;
-	extern int mouseY;
 	
 	/**
 	 * The main loop of the program, handles state execution, termination and SDL event-loop, also paint scheduling.
 	 */
 	void mainLoop();
 	
-	//Listeners
-	std::list<Listener*>::iterator addStdListener(Listener* listener);
-	
-	template<class T>
-	std::list<Listener*>::iterator addListener( T* listener)
+	template <typename T>
+	struct listeners
 	{
-		return addStdListener(dynamic_cast<Listener*> (listener));
+		static std::list<T> ls;
+	};
+
+	template <typename T>
+	std::list<T> listeners<T>::ls;
+
+	//Listeners
+	template <typename T>
+	typename std::list<gc_ptr<T> >::iterator addListener(gc_ptr<T> listener)
+	{
+		return listeners<gc_ptr<T> >::ls.insert(listeners<gc_ptr<T> >::ls.end(), listener);
 	}
 	
-	void removeListener(std::list<Listener*>::iterator ptr);
+	template <typename T>
+	typename std::list<gc_ptr<T> >::iterator addListener(T* listener)
+	{
+		return addListener(gc_ptr<T>(listener));
+	}
+	
+	template <typename T>
+	void removeListener(T it)
+	{
+		listeners<typename T::value_type>::ls.erase(it);
+	}
+
+	typedef listeners<gc_ptr<KeyListener> > keyListeners;
+	typedef listeners<gc_ptr<MouseListener> > mouseListeners;
+	typedef listeners<gc_ptr<PreFrameListener> > preFrameListeners;
+	typedef listeners<gc_ptr<PaintListener> > paintListeners;
+
+	typedef std::list<gc_ptr<KeyListener> >::iterator keyListenerHandle;
+	typedef std::list<gc_ptr<MouseListener> >::iterator mouseListenerHandle;
+	typedef std::list<gc_ptr<PreFrameListener> >::iterator preFrameListenerHandle;
+	typedef std::list<gc_ptr<PaintListener> >::iterator paintListenerHandle;
 	
 	/**
 	 * Bind specific keys

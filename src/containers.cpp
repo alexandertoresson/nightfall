@@ -40,7 +40,7 @@ namespace GUI
 			
 		}
 
-		componentHandle FlowPanel::insert(Component* comp, int position)
+		componentHandle FlowPanel::insert(gc_ptr<Component> comp, int position)
 		{
 			return Container::insert(comp, position);
 		}

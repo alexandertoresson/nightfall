@@ -56,7 +56,7 @@ namespace GUI
 				};
 
 			private:
-				Component*** subComponents;
+				gc_array<Component, 2> subComponents;
 				std::vector<RowColStyle> rowStyles;
 				std::vector<RowColStyle> colStyles;
 
@@ -79,6 +79,8 @@ namespace GUI
 				virtual void layout();
 			
 				virtual void paintComponent();
+		
+				// No need for shade() as Container will shade the Components that were added
 		};
 
 		class DockPanel : public Container
@@ -96,15 +98,16 @@ namespace GUI
 
 				DockPanel();
 
-				componentHandle add(Component* comp, DockPosition pos);
+				componentHandle add(gc_ptr<Component> comp, DockPosition pos);
 
 				virtual void remove(componentHandle handle);
 				virtual void clear();
 				virtual void layout();
 				virtual void paintComponent();
 			private:
-				Component* subComponents[DOCK_NUM];
+				gc_ptr<Component> subComponents[DOCK_NUM];
 				std::map<componentHandle, DockPosition> positions;
+				
 		};
 
 		class FlowPanel : public Container
@@ -128,7 +131,7 @@ namespace GUI
 				          VerticalAdjustment individualVAdjustment = V_ADJUSTMENT_LEFT,
 				          HorizontalAdjustment individualHAdjustment = H_ADJUSTMENT_TOP);
 
-				componentHandle insert(Component* comp, int position);
+				componentHandle insert(gc_ptr<Component> comp, int position);
 
 				virtual void layout();
 		};

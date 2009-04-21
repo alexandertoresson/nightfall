@@ -22,11 +22,7 @@
 
 namespace Core
 {
-	KeyAttachment*			keymaps[SDLK_LAST];
-	std::list<Listener*>	mouseListener;
-	std::list<Listener*>	keyListener;
-	std::list<Listener*>	paintListener;
-	std::list<Listener*>	preFrameListener;
+	gc_ptr<KeyAttachment> keymaps[SDLK_LAST];
 	
 	bool keyState[SDLK_LAST];
 	
@@ -58,11 +54,11 @@ namespace Core
 					
 					bool caught = false;  //signal that globallistener has caught the event and no further listner shall have it.
 					
-					if(keyListener.size())
+					if(keyListeners::ls.size())
 					{
-						for(std::list<Listener*>::iterator iter = keyListener.begin(); iter != keyListener.end(); iter++)
+						for(keyListenerHandle iter = keyListeners::ls.begin(); iter != keyListeners::ls.end(); iter++)
 						{
-							KeyListener* keyListen = (KeyListener*)(*iter);
+							gc_ptr<KeyListener> keyListen = *iter;
 							
 							if(keyListen->call(keyEvent))
 							{
@@ -75,7 +71,7 @@ namespace Core
 					if(!caught)
 					{
 						//call induvidual attached key with possible mods.
-						KeyAttachment* attachedKey = keymaps[event.key.keysym.sym];
+						gc_ptr<KeyAttachment> attachedKey = keymaps[event.key.keysym.sym];
 						if(attachedKey)
 						{
 							while(attachedKey)
@@ -125,9 +121,9 @@ namespace Core
 							break;
 					}
 					
-					for(std::list<Listener*>::iterator iter = mouseListener.begin(); iter != mouseListener.end(); iter++)
+					for(mouseListenerHandle iter = mouseListeners::ls.begin(); iter != mouseListeners::ls.end(); iter++)
 					{
-						MouseListener* mouseListen = (MouseListener*)(*iter);
+						gc_ptr<MouseListener> mouseListen = *iter;
 						if(mouseListen->call(mouseEvent))
 							break;
 					}
@@ -150,8 +146,8 @@ namespace Core
 	{
 		if(keymaps[key])
 		{
-			KeyAttachment* current = keymaps[key];
-			KeyAttachment* next    = current->next;
+			gc_ptr<KeyAttachment> current = keymaps[key];
+			gc_ptr<KeyAttachment> next    = current->next;
 			
 			//If the current mod and key exists, it's a duplicate and will be considerd an error, duplicated binds is not supported.
 			if(current->modifier == mod)
@@ -185,24 +181,22 @@ namespace Core
 	{
 		if(keymaps[key])
 		{
-			KeyAttachment* prev = keymaps[key];
-			KeyAttachment* current = keymaps[key];
+			gc_ptr<KeyAttachment> prev = keymaps[key];
+			gc_ptr<KeyAttachment> current = keymaps[key];
 			
 			while(current)
 			{
 				if(current->modifier == mod)
 				{
-					if(current->next == NULL) //Final or middle attachment or the only one
+					if(!current->next) //Final or middle attachment or the only one
 					{
 						if(current == prev) //The first attachment
 						{
 							keymaps[key] = NULL;
-							delete current;
 						}
 						else
 						{
 							prev->next = current->next;
-							delete current;
 						}
 					}
 					break;
@@ -214,63 +208,20 @@ namespace Core
 		}
 	}
 	
-	std::list<Listener*>::iterator addStdListener( Listener* listener)
-	{
-		switch(listener->getType())
-		{
-			case MOUSE:
-				mouseListener.push_back(listener);
-				return mouseListener.end();
-			case KEY:
-				keyListener.push_back(listener);
-				return keyListener.end();
-			case PAINT:
-				paintListener.push_back(listener);
-				return paintListener.end();
-			case PREFRAME:
-				preFrameListener.push_back(listener);
-				return preFrameListener.end();
-			default:
-				return std::list<Listener*>::iterator();
-		}
-	}
-	
-	void removeListener(const std::list<Listener*>::iterator ptr)
-	{
-		Listener* listener = (*ptr);
-		switch(listener->getType())
-		{
-			case MOUSE:
-				mouseListener.erase(ptr);
-				break;
-			case KEY:
-				keyListener.erase(ptr);
-				break;
-			case PAINT:
-				paintListener.erase(ptr);
-				break;
-			case PREFRAME:
-				preFrameListener.erase(ptr);
-				break;
-			default:
-				break;
-		}
-	}
-	
 	void preFrameAll(float time_diff)
 	{
-		for(std::list<Listener*>::iterator iter = preFrameListener.begin(); iter != preFrameListener.end(); iter++)
+		for(preFrameListenerHandle iter = preFrameListeners::ls.begin(); iter != preFrameListeners::ls.end(); iter++)
 		{
-			PreFrameListener* listener = (PreFrameListener*)(*iter);
+			gc_ptr<PreFrameListener> listener = *iter;
 			listener->call(time_diff);
 		}
 	}
 	
 	void paintAll(float time_diff)
 	{
-		for(std::list<Listener*>::iterator iter = paintListener.begin(); iter != paintListener.end(); iter++)
+		for(paintListenerHandle iter = paintListeners::ls.begin(); iter != paintListeners::ls.end(); iter++)
 		{
-			PaintListener* listener = (PaintListener*)(*iter);
+			gc_ptr<PaintListener> listener = *iter;
 			listener->call(time_diff);
 		}
 	}

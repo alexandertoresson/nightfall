@@ -42,6 +42,7 @@
 #include "camera.h"
 #include "aipathfinding.h"
 #include "unit.h"
+#include "guitest.h"
 
 #if USE_FONT == 1
 #include "font.h"
@@ -186,7 +187,8 @@ int main(int argc, char** argv)
 		loading->Update();
 	}
 
-	Game::Rules::GameMain();
+	GUI::Testing::start();
+//	Game::Rules::GameMain();
 	
 	return SUCCESS;
 }

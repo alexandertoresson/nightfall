@@ -116,7 +116,7 @@ namespace GUI
 		{
 			DialogType diagtype;
 			
-			Window* parent; /**< if this is NULL it is considered to be free, and will behave as a normal window. */
+			gc_ptr<Frame> parent; /**< if this is NULL it is considered to be free, and will behave as a normal window. */
 			bool critical;  /**< if this is true, this window will be always on top and no other windows can be touched. only one at a time. */
 			
 			std::string title;
@@ -150,7 +150,7 @@ namespace GUI
 				this->button = button;
 			}
 			
-			DialogParameters(Window* parent, DialogType diagType, std::string message, std::string title, DialogButtons button)
+			DialogParameters(gc_ptr<Frame> parent, DialogType diagType, std::string message, std::string title, DialogButtons button)
 			{
 				this->parent = parent;
 				this->critical = false;
@@ -163,7 +163,7 @@ namespace GUI
 		};
 	
 		int createTooltip(int id, std::string text, float x, float y);
-		int createTooltipEx(int id, Component* comp, float x, float y);
+		int createTooltipEx(int id, gc_ptr<Component> comp, float x, float y);
 		void removeTooltip(int id);
 		void moveTooltip(int id, float x, float y);
 		
@@ -255,7 +255,7 @@ namespace GUI
 	/*
 					Component
 											*/
-	typedef std::list<Component*>::iterator componentHandle;
+	typedef std::list<gc_ptr<Component> >::iterator componentHandle;
 	
 	class Component : public Event
 	{
@@ -287,7 +287,7 @@ namespace GUI
 
 		protected:
 			
-			Container* parent;
+			gc_ptr<Container> parent;
 			componentHandle containerHandle;
 
 			struct Bounds
@@ -297,12 +297,8 @@ namespace GUI
 				float w;
 				float h;
 				
-				Bounds()
+				Bounds(float x, float y, float w, float h) : x(x), y(y), w(w), h(h)
 				{
-					x = 0.0f;
-					y = 0.0f;
-					w = 1.0f;
-					h = 1.0f;
 				}
 			} dimensions;
 
@@ -311,11 +307,7 @@ namespace GUI
 				float w;
 				float h;
 				
-				Size()
-				{
-					w = -1.0f;
-					h = -1.0f;
-				}
+				Size(float w, float h) : w(w), h(h) {}
 			} min, max;
 
 			struct BorderSize
@@ -334,7 +326,7 @@ namespace GUI
 
 			bool anchors[ANCHOR_NUM];
 	
-			Metrics* metrics;
+			gc_ptr<Metrics> metrics;
 			
 			bool visible;
 
@@ -346,12 +338,10 @@ namespace GUI
 
 		public:
 
-			Component();
-			Component(float w, float h);
-			Component(float x, float y, float w, float h);
+			Component(float x = 0.0f, float y = 0.0f, float w = 1.0f, float h = 1.0f);
 			virtual ~Component();
 			
-			Metrics* getMetrics();
+			gc_ptr<Metrics> getMetrics();
 
 			virtual bool isInsideArea(float x, float y);
 			
@@ -383,12 +373,19 @@ namespace GUI
 			friend class Container;
 
 			friend class ThemeEngine::Drawer<Component>;
+			
+			virtual void shade()
+			{
+				parent.shade();
+				metrics.shade();
+			}
+
 	};
 	
 	class Container : public Component
 	{
 		protected:
-			std::list<Component*> components;
+			std::list<gc_ptr<Component> > components;
 
 			BorderSize padding;
 
@@ -412,9 +409,9 @@ namespace GUI
 
 			Container();
 
-			componentHandle insert(Component* component, int position);
-			componentHandle add(Component* component);
-			Component* get(componentHandle handle);
+			componentHandle insert(gc_ptr<Component> component, int position);
+			componentHandle add(gc_ptr<Component> component);
+			gc_ptr<Component> get(componentHandle handle);
 			virtual void remove(componentHandle handle);
 			virtual void clear();
 			bool isEmpty();
@@ -424,6 +421,11 @@ namespace GUI
 
 			virtual void paint();
 			
+			virtual void shade()
+			{
+				Component::shade();
+				gc_shade_container(components);
+			}
 	};
 
 	class Frame : public Container
@@ -453,8 +455,8 @@ namespace GUI
 			{
 				LayerIndex layer;
 				StartLocation location;
-				Frame* parent;
-				Metrics* met;
+				gc_ptr<Frame> parent;
+				gc_ptr<Metrics> met;
 			};
 			
 			StartLocation start;
@@ -471,19 +473,19 @@ namespace GUI
 			friend class Workspace;
 	};
 	
-	typedef std::list<Frame*>::iterator windowHandle;
+	typedef std::list<gc_ptr<Frame> >::iterator windowHandle;
 	
 	/* Window-Management */	
 	class Workspace : Event
 	{
 		private:
-			std::list<Frame*> win;
-			std::list<Frame*>::iterator bottom; /* layer-pointers */
-			std::list<Frame*>::iterator standard;
-			std::list<Frame*>::iterator popup;
+			std::list<gc_ptr<Frame> > win;
+			std::list<gc_ptr<Frame> >::iterator bottom; /* layer-pointers */
+			std::list<gc_ptr<Frame> >::iterator standard;
+			std::list<gc_ptr<Frame> >::iterator popup;
 			
 		protected:
-			Metrics* met;
+			gc_ptr<Metrics> met;
 		
 			void paintWindows(Frame::LayerIndex layer);
 			void paintTooltips();
@@ -494,9 +496,9 @@ namespace GUI
 			
 			void paint();
 			
-			windowHandle add(Frame* elem);
+			windowHandle add(gc_ptr<Frame> elem);
 			void remove(windowHandle elem);
-			void remove(Frame* elem); /* SLOW! use remove(windowHandle) */
+			void remove(gc_ptr<Frame> elem); /* SLOW! use remove(windowHandle) */
 			void positionate(windowHandle elem, Frame::LayerIndex z);
 	};
 }

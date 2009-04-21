@@ -26,12 +26,14 @@
 	#warning "compositor.h-pre"
 #endif
 
+#include "gc_ptr.h"
+
 namespace GUI
 {	
 	typedef void(*universalCallback)(void*);
 	
 	class Event;
-	class Window;
+	class Frame;
 	class Component;
 	class Container;
 
@@ -108,7 +110,9 @@ namespace GUI
 			void scale();
 			void revert();
 			
-			void setMetrics(Metrics* met);
+			void setMetrics(gc_ptr<Metrics> met);
+
+			void shade() {}
 	};
 	
 	/**
@@ -125,7 +129,7 @@ namespace GUI
 			NOFOCUS, /**< Window/Controll has lost focus     */
 			RESIZE,  /**< Resize event, call LayoutManager   */
 			CLOSED,  /**< Window has been closed             */
-			DROPED   /**< Drag and drop performed            */
+			DROPPED  /**< Drag and drop performed            */
 		};
 		
 		windowEventType type;

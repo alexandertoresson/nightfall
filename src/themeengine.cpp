@@ -25,7 +25,7 @@ namespace GUI
 {
 	namespace ThemeEngine
 	{
-		InfoBase::InfoBase(Component* component) : comp(component)
+		InfoBase::InfoBase(gc_ptr<Component> component) : comp(component)
 		{
 			
 		}
@@ -35,17 +35,17 @@ namespace GUI
 			comp->scheduleRelayout();
 		}
 
-		Component* InfoBase::getComponent() const
+		gc_ptr<Component> InfoBase::getComponent() const
 		{
 			return comp;
 		}
 		
-		Metrics* InfoBase::getMetrics() const
+		gc_ptr<Metrics> InfoBase::getMetrics() const
 		{
 			return comp->getMetrics();
 		}
 		
-		Text::Text(Component* component, std::string text) : InfoBase(component), text(text)
+		Text::Text(gc_ptr<Component> component, std::string text) : InfoBase(component), text(text)
 		{
 			
 		}
@@ -60,7 +60,7 @@ namespace GUI
 			return text;
 		}
 
-		Borders::Borders(Component* component, float size, Borders::Style style) : InfoBase(component), style(style), size(size)
+		Borders::Borders(gc_ptr<Component> component, float size, Borders::Style style) : InfoBase(component), style(style), size(size)
 		{
 			
 		}

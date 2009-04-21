@@ -40,8 +40,6 @@ namespace Scene
 
 		class SwitchNode;
 		class IndependentSwitchNode;
-
-/*		class GUINode;*/
 	}
 }
 

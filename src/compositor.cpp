@@ -198,7 +198,7 @@ namespace GUI
 	}
 	
 	/* a way to copy the settings of an existing Metrics */
-	void Metrics::setMetrics(Metrics* met)
+	void Metrics::setMetrics(gc_ptr<Metrics> met)
 	{
 		
 	}
@@ -206,26 +206,12 @@ namespace GUI
 	/*******************************************************************/
 	/** COMPONENT ******************************************************/
 	/*******************************************************************/
-	Component::Component() : aspectRatio(0.0), vAdjustment(V_ADJUSTMENT_NONE), hAdjustment(H_ADJUSTMENT_NONE), visible(true), needsRelayout(true)
+	Component::Component(float x, float y, float w, float h) : dimensions(x, y, w, h), min(0.0f, 0.0f), max(1.0f, 1.0f), aspectRatio(0.0), vAdjustment(V_ADJUSTMENT_NONE), hAdjustment(H_ADJUSTMENT_NONE), visible(true), needsRelayout(true)
 	{
 		for (unsigned i = 0; i < ANCHOR_NUM; i++)
 		{
 			anchors[i] = false;
 		}
-	}
-	
-	Component::Component(float w, float h)
-	{
-		dimensions.w = w;
-		dimensions.h = h; 
-	}
-	
-	Component::Component(float x, float y, float w, float h)
-	{
-		dimensions.x = x;
-		dimensions.y = y; 
-		dimensions.w = w;
-		dimensions.h = h;
 	}
 	
 	Component::~Component()
@@ -356,7 +342,7 @@ namespace GUI
 	{
 	}
 
-	Metrics* Component::getMetrics()
+	gc_ptr<Metrics> Component::getMetrics()
 	{
 		return metrics;
 	}
@@ -481,7 +467,7 @@ namespace GUI
 		scheduleRelayout();
 	}
 
-	componentHandle Container::insert(Component* component, int position)
+	componentHandle Container::insert(gc_ptr<Component> component, int position)
 	{
 		if (position >= 0 && position < (signed) components.size())
 		{
@@ -497,7 +483,7 @@ namespace GUI
 		}
 	}
 	
-	componentHandle Container::add(Component* component)
+	componentHandle Container::add(gc_ptr<Component> component)
 	{
 		return insert(component, -1);
 	}
