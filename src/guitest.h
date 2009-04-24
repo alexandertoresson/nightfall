@@ -29,7 +29,7 @@ namespace GUI
 {
 	namespace Testing
 	{
-		void start();
+		void Start();
 	}
 }
 

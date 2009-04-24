@@ -76,117 +76,51 @@ namespace Core
 		/**
 		 *	Keyboard event types
 		 */
-		Uint8 type; /**< Keydown or keyup, corresponding SDL_KEYUP, SDL_KEYDOWN */
+		KeyboardEventType type; /**< Keydown or keyup, corresponding SDL_KEYUP, SDL_KEYDOWN */
 		int code;    /**< Charcode      */
 		SDLKey key;  /**< Keycode       */
 		SDLMod mod;  /**< Modifier hash */
 	};
 	
 	/* Function pointer typedefs */
-	typedef bool(*eventKeyboard)(KeyboardEvent e);
-	typedef bool(*eventMouse)(MouseEvent e);
-	typedef void(*eventPaint)(float time_diff);
-	typedef void(*eventPreFrame)(float time_diff);
-	
-	enum EventType
-	{
-		MOUSE,
-		KEY,
-		PAINT,
-		PREFRAME,
-		UNKNOWN
-	};
+	typedef bool(*EventKeyboard)(KeyboardEvent e);
+	typedef bool(*EventMouse)(MouseEvent e);
+	typedef void(*EventPaint)(float time_diff);
+	typedef void(*EventPreFrame)(float time_diff);
 	
 	/**
 	 *	Handles the standard callback convention
 	 */
-	class Listener
+	
+	template <typename _Ev, typename _Arg, typename _Ret>
+	class Listener : public gc_null_shader<Listener<_Ev, _Arg, _Ret> >
 	{
+		private:
+			_Ev fptr;
 		public:
-			virtual EventType getType() { return UNKNOWN; }
-			void shade() {}
+			
+			Listener(_Ev fptr) : fptr(fptr)
+			{
+			}
+			
+			_Ret operator () (_Arg arg)
+			{
+				return fptr(arg);
+			}
 	};
-	
-	class KeyListener : public Listener
-	{
-		public:
-			eventKeyboard fptr;
-			
-			KeyListener(eventKeyboard fptr)
-			{
-				this->fptr = fptr;
-			}
-			
-			bool call(KeyboardEvent e)
-			{
-				return fptr(e);
-			}
-			
-			virtual EventType getType() { return KEY; }
-	};
-	
-	class MouseListener : public Listener
-	{
-		public:
-			eventMouse fptr;
-			
-			MouseListener(eventMouse fptr) : fptr(fptr)
-			{
-				this->fptr = fptr;
-			}
-			
-			bool call(MouseEvent e)
-			{
-				return fptr(e);
-			}
-			
-			virtual EventType getType() { return MOUSE; }
-	};
-	
-	class PaintListener : public Listener
-	{
-		public:
-			eventPaint fptr;
-			
-			PaintListener(eventPaint fptr)
-			{
-				this->fptr = fptr;
-			}
-			
-			void call(float time_diff)
-			{
-				fptr(time_diff);
-			}
-			
-			virtual EventType getType() { return PAINT; }
-	};
-	
-	class PreFrameListener : public Listener
-	{
-		public:
-			eventPreFrame fptr;
-			
-			PreFrameListener(eventPreFrame fptr)
-			{
-				this->fptr = fptr;
-			}
-			
-			void call(float time_diff)
-			{
-				fptr(time_diff);
-			}
-			
-			virtual EventType getType() { return PREFRAME; }
-	};
-	
-	
+
+	typedef Listener<EventKeyboard, KeyboardEvent, bool> KeyListener;
+	typedef Listener<EventMouse, MouseEvent, bool> MouseListener;
+	typedef Listener<EventPaint, float, void> PaintListener;
+	typedef Listener<EventPreFrame, float, void> PreFrameListener;
+
 	struct KeyAttachment
 	{
 		SDLMod modifier;
-		eventKeyboard fptr;
+		EventKeyboard fptr;
 		gc_ptr<KeyAttachment> next;
 		
-		KeyAttachment(eventKeyboard fptr, SDLMod modifier)
+		KeyAttachment(EventKeyboard fptr, SDLMod modifier)
 		{
 			this->fptr = fptr;
 			this->modifier = modifier;
@@ -245,7 +179,7 @@ namespace Core
 	/**
 	 * Bind specific keys
 	 */
-	bool BindKey( SDLKey key, SDLMod mod, eventKeyboard listener);
+	bool BindKey( SDLKey key, SDLMod mod, EventKeyboard listener);
 	void UnbindKey(SDLKey key, SDLMod mod);
 }
 #endif

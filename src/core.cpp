@@ -40,49 +40,47 @@ namespace Core
 				case SDL_KEYDOWN:
 				case SDL_KEYUP:
 				{
-					bool down = false;
-					if(event.key.type == SDL_KEYDOWN)
-						down = true;
-					
 					//Create the KeyEvent structure
 					KeyboardEvent keyEvent;
 					
-					keyEvent.type = event.key.type;            //Keyup or Keydown
+					keyEvent.type = static_cast<KeyboardEvent::KeyboardEventType>(event.key.type); //Keyup or Keydown
 					keyEvent.code = event.key.keysym.unicode;  //Translated unicode char
 					keyEvent.key  = event.key.keysym.sym;      //SDLKey
 					keyEvent.mod  = event.key.keysym.mod;      //SDLMod i.e. CTRL + ALT + ...
 					
-					bool caught = false;  //signal that globallistener has caught the event and no further listner shall have it.
+					bool caught = false;  //signal that a listener has caught the signal
 					
-					if(keyListeners::ls.size())
+					//call individual attached keys with possible mods.
+					gc_ptr<KeyAttachment> attachedKey = keymaps[event.key.keysym.sym];
+					if(attachedKey)
 					{
-						for(KeyListenerHandle iter = keyListeners::ls.begin(); iter != keyListeners::ls.end(); iter++)
+						while(attachedKey)
 						{
-							gc_ptr<KeyListener> keyListen = *iter;
-							
-							if(keyListen->call(keyEvent))
+							//Must have both tests because if modifier is KMOD_NONE then it will always be false.
+							if(keyEvent.mod & attachedKey->modifier || attachedKey->modifier == keyEvent.mod)
 							{
+								attachedKey->fptr(keyEvent);
 								caught = true;
 								break;
 							}
+							
+							attachedKey = attachedKey->next;
 						}
 					}
-					
+
 					if(!caught)
 					{
-						//call individual attached keys with possible mods.
-						gc_ptr<KeyAttachment> attachedKey = keymaps[event.key.keysym.sym];
-						if(attachedKey)
+						if(keyListeners::ls.size())
 						{
-							while(attachedKey)
+							for(KeyListenerHandle iter = keyListeners::ls.begin(); iter != keyListeners::ls.end(); iter++)
 							{
-								if(keyEvent.mod & attachedKey->modifier || attachedKey->modifier == keyEvent.mod) //Must be both because if modifer is KMOD_NONE then it will always be false.
+								gc_ptr<KeyListener> keyListen = *iter;
+								
+								if((*keyListen)(keyEvent))
 								{
-									attachedKey->fptr(keyEvent);
+									caught = true;
 									break;
 								}
-								
-								attachedKey = attachedKey->next;
 							}
 						}
 					}
@@ -124,7 +122,7 @@ namespace Core
 					for(MouseListenerHandle iter = mouseListeners::ls.begin(); iter != mouseListeners::ls.end(); iter++)
 					{
 						gc_ptr<MouseListener> mouseListen = *iter;
-						if(mouseListen->call(mouseEvent))
+						if((*mouseListen)(mouseEvent))
 							break;
 					}
 					break;
@@ -142,7 +140,7 @@ namespace Core
 	}
 	
 	//Binds special keys i.e. CTRL+A to a listener.
-	bool BindKey( SDLKey key, SDLMod mod, eventKeyboard listener)
+	bool BindKey( SDLKey key, SDLMod mod, EventKeyboard listener)
 	{
 		if(keymaps[key])
 		{
@@ -213,7 +211,7 @@ namespace Core
 		for(PreFrameListenerHandle iter = preFrameListeners::ls.begin(); iter != preFrameListeners::ls.end(); iter++)
 		{
 			gc_ptr<PreFrameListener> listener = *iter;
-			listener->call(time_diff);
+			(*listener)(time_diff);
 		}
 	}
 	
@@ -222,7 +220,7 @@ namespace Core
 		for(PaintListenerHandle iter = paintListeners::ls.begin(); iter != paintListeners::ls.end(); iter++)
 		{
 			gc_ptr<PaintListener> listener = *iter;
-			listener->call(time_diff);
+			(*listener)(time_diff);
 		}
 	}
 	

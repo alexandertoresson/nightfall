@@ -32,7 +32,7 @@ namespace GUI
 		gc_ptr<Metrics> met;
 		gc_ptr<Component> testComponent;
 	
-		void paint(float time_diff)
+		void Paint(float time_diff)
 		{
 			glClear(GL_COLOR_BUFFER_BIT);
 			/*
@@ -62,7 +62,7 @@ namespace GUI
 			SDL_GL_SwapBuffers();
 		}
 		
-		bool mousehandling(Core::MouseEvent e)
+		bool MouseHandling(Core::MouseEvent e)
 		{
 			switch(e.type)
 			{
@@ -85,7 +85,7 @@ namespace GUI
 			return false;
 		}
 		
-		bool handlespecific(Core::KeyboardEvent e)
+		bool HandleSpecific(Core::KeyboardEvent e)
 		{
 			switch(e.type)
 			{
@@ -99,13 +99,13 @@ namespace GUI
 			return false;
 		}
 		
-		bool handlespecificexit(Core::KeyboardEvent e)
+		bool HandleSpecificExit(Core::KeyboardEvent e)
 		{
 //			Core::go = false;
 			return true;
 		}
 		
-		bool keyhandling(Core::KeyboardEvent e)
+		bool KeyHandling(Core::KeyboardEvent e)
 		{
 			switch(e.type)
 			{
@@ -120,14 +120,14 @@ namespace GUI
 			return false;
 		}
 		
-		void start()
+		void Start()
 		{
-			Core::AddListener(new Core::PaintListener(&paint));
-			Core::AddListener(new Core::MouseListener(&mousehandling));
-			Core::AddListener(new Core::KeyListener(&keyhandling));
-			Core::BindKey(SDLK_a, (SDLMod)KMOD_CTRL, &handlespecific);
-			Core::BindKey(SDLK_q, KMOD_NONE, &handlespecificexit);
-			Core::BindKey(SDLK_ESCAPE, KMOD_NONE, &handlespecificexit);
+			Core::AddListener(new Core::PaintListener(&Paint));
+			Core::AddListener(new Core::MouseListener(&MouseHandling));
+			Core::AddListener(new Core::KeyListener(&KeyHandling));
+			Core::BindKey(SDLK_a, (SDLMod)KMOD_CTRL, &HandleSpecific);
+			Core::BindKey(SDLK_q, KMOD_NONE, &HandleSpecificExit);
+			Core::BindKey(SDLK_ESCAPE, KMOD_NONE, &HandleSpecificExit);
 			
 			Utilities::SwitchTo2DViewport(1.0f,1.0f);
 			met = new GUI::Metrics(1440, 900, 800, 600, true, 15.4f, false);

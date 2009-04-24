@@ -187,7 +187,7 @@ int main(int argc, char** argv)
 		loading->Update();
 	}
 
-	GUI::Testing::start();
+	GUI::Testing::Start();
 //	Game::Rules::GameMain();
 	
 	return SUCCESS;
