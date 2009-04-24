@@ -97,7 +97,7 @@ namespace GUI
 		template <>
 		void Drawer<Text>::GetInnerSize(const Text& text, float w, float h, float& iw, float& ih)
 		{
-			
+			iw = ih = 0;
 		}
 
 		template <>
@@ -111,22 +111,22 @@ namespace GUI
 		}
 		
 		template <>
-		void Drawer<Component>::Draw(const Component& component, float x, float y, float w, float h)
+		void Drawer<Component>::Draw(const Component& comp, float x, float y, float w, float h)
 		{
-			
 		}
 		
 		template <>
-		void Drawer<Component>::GetInnerSize(const Component& component, float w, float h, float& iw, float& ih)
+		void Drawer<Component>::GetInnerSize(const Component& comp, float w, float h, float& iw, float& ih)
 		{
-			
+			iw = w - comp.margin.right - comp.margin.left;
+			ih = h - comp.margin.top - comp.margin.bottom;
 		}
 
 		template <>
 		void Drawer<Component>::GetOuterSize(const Component& comp, float cw, float ch, float& w, float& h)
 		{
-			w = comp.dimensions.w + comp.margin.right + comp.margin.left;
-			h = comp.dimensions.h + comp.margin.top + comp.margin.bottom;
+			w = cw + comp.margin.right + comp.margin.left;
+			h = ch + comp.margin.top + comp.margin.bottom;
 		}
 		
 		template class Drawer<ToggleButton>;
@@ -144,19 +144,13 @@ namespace GUI
 		template class Drawer<FrameBorders>;
 		
 		template <typename T>
-		void Drawer<T>::Draw(const T& info, float x, float y, float w, float h)
-		{
-		}
+		void Drawer<T>::Draw(const T& info, float x, float y, float w, float h) {}
 
 		template <typename T>
-		void Drawer<T>::GetOuterSize(const T& info, float cw, float ch, float& w, float& h)
-		{
-		}
+		void Drawer<T>::GetOuterSize(const T& info, float cw, float ch, float& w, float& h) {}
 		
 		template <typename T>
-		void Drawer<T>::GetInnerSize(const T& info, float w, float h, float& iw, float& ih)
-		{
-		}
+		void Drawer<T>::GetInnerSize(const T& info, float w, float h, float& iw, float& ih) {}
 
 	}
 }
