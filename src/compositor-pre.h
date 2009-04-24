@@ -63,7 +63,7 @@ namespace GUI
 			 * @param monitorsize	Holds the monitor inch size
 			 * @param monitoraspect Holds the monitor aspect, this to correct errors imposed by non-native incorrect aspect scaling, viewing 800x600 in 1280x768 screen.
 			 */
-			void CalculateCoordinateSystem(float monitorsize, float monitoraspect, bool streched = false);
+			void CalculateCoordinateSystem(float monitorsize, float monitoraspect, bool stretched = false);
 			
 			/**
 			 * Coordinate-system calculation.
@@ -91,7 +91,7 @@ namespace GUI
 			void CalculateCoordinateSystem(float dpi);
 			
 		public:
-			Metrics(int native_w, int native_h, int current_w, int current_h, bool fullscreen, float monitorsize, bool streched = false);
+			Metrics(int native_w, int native_h, int current_w, int current_h, bool fullscreen, float monitorsize, bool stretched = false);
 		
 			float GetDPI();
 			void SetDPI(float dpi);

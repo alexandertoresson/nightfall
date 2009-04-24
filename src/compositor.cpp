@@ -26,7 +26,7 @@ namespace GUI
 	/*******************************************************************/
 	/** METRICS ********************************************************/
 	/*******************************************************************/
-	Metrics::Metrics(int native_w, int native_h, int current_w, int current_h, bool fullscreen, float monitorsize, bool streched)
+	Metrics::Metrics(int native_w, int native_h, int current_w, int current_h, bool fullscreen, float monitorsize, bool stretched)
 	{
 		this->native_w = native_w;
 		this->native_h = native_h;
@@ -37,7 +37,7 @@ namespace GUI
 		
 		if(fullscreen)
 		{
-			CalculateCoordinateSystem(monitorsize, monitoraspect, streched);
+			CalculateCoordinateSystem(monitorsize, monitoraspect, stretched);
 		}
 		else
 		{
@@ -50,7 +50,7 @@ namespace GUI
 	 * @param monitorsize	Holds the monitor inch size
 	 * @param monitoraspect Holds the monitor aspect, this to correct errors imposed by non-native incorrect aspect scaling, viewing 800x600 in 1280x768 screen.
 	 */
-	void Metrics::CalculateCoordinateSystem(float monitorsize, float monitoraspect, bool streched)
+	void Metrics::CalculateCoordinateSystem(float monitorsize, float monitoraspect, bool stretched)
 	{
 		//monitorsize.
 		double w = (monitoraspect * monitorsize) / sqrt(1 + monitoraspect * monitoraspect);
@@ -62,7 +62,7 @@ namespace GUI
 		this->monitor_w = (float)w;
 		this->monitor_h = (float)h;
 		
-		if(!streched)
+		if(!stretched)
 			this->dpi = window_width / w;
 		else
 			this->dpi = this->native_w / w; //this can be based on the accurate description.
@@ -325,14 +325,9 @@ namespace GUI
 	{
 	}
 
-	gc_ptr<Metrics> Component::GetMetrics()
-	{
-		return metrics;
-	}
-	
 	/** CONTAINER ******************************************************/
 	
-	Container::Container() : innerBorders(this), outerBorders(this)
+	Container::Container(float x, float y, float w, float h) : Component(x, y, w, h), innerBorders(GetRef()), outerBorders(GetRef())
 	{
 		
 	}
@@ -452,6 +447,10 @@ namespace GUI
 
 	void Container::Insert(gc_ptr<Component> component, int position)
 	{
+		if (component->parent)
+		{
+			component->parent->Remove(component);
+		}
 		if (position >= 0 && position < (signed) components.size())
 		{
 			ComponentHandle it = components.begin();
@@ -461,8 +460,9 @@ namespace GUI
 		else
 		{
 			components.push_back(component);
-			component->handle = components.end();
+			component->handle = --components.end();
 		}
+		component->parent = GetRef();
 	}
 	
 	void Container::Add(gc_ptr<Component> component)
@@ -473,6 +473,7 @@ namespace GUI
 	void Container::Remove(gc_ptr<Component> component)
 	{
 		components.erase(component->handle);
+		component->parent = NULL;
 	}
 
 	void Container::Clear()
@@ -501,4 +502,47 @@ namespace GUI
 		}
 	}
 
+	Frame::Frame(float x, float y, float w, float h, StartLocation location, LayerIndex layer) : Container(x, y, w, h), frameBorders(GetRef(), ThemeEngine::FrameBorders::STYLE_NORMAL), frameTitle(GetRef(), ""), layer(layer), location(location)
+	{
+		
+	}
+
+	Workspace::Workspace()
+	{
+	}
+	
+	void Workspace::Add(gc_ptr<Frame> elem)
+	{
+		if (elem->parent)
+		{
+			elem->parent->Remove(elem);
+		}
+		frames[elem->layer].push_back(elem);
+		elem->handle = --frames[elem->layer].end();
+		elem->parent = GetRef();
+	}
+	
+	void Workspace::Remove(gc_ptr<Frame> elem)
+	{
+		frames[elem->layer].erase(elem->handle);
+		elem->parent = NULL;
+	}
+
+	void Workspace::shade()
+	{
+		for (int i = 0; i < Frame::LAYER_END; ++i)
+		{
+			gc_shade_container(frames[i]);
+		}
+	}
+
+	void Workspace::InitializeWorkspaces(int native_w, int native_h, float monitorsize, bool stretched)
+	{
+		Workspace::metrics = GUI::Metrics(native_w, native_h, 1024, 768, true, monitorsize, stretched);
+		Workspace::theme = ThemeEngine::Theme();
+	}
+	
+	Metrics Workspace::metrics(1024, 768, 1024, 768, true, 17.0f, false);
+	ThemeEngine::Theme Workspace::theme;
+		
 }

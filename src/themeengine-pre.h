@@ -32,10 +32,9 @@
 namespace GUI
 {
 	class Component;
-	class Metrics;
 
 	namespace ThemeEngine
-{
+	{
 		class InfoBase;
 
 		class SubComponent;
@@ -56,11 +55,14 @@ namespace GUI
 
 		/* Basic Drawer API:
 			// Pass in Info object describing how the widget should be rendered, and position and width and height of it
-			virtual void Draw(Foo* text, float x, float y, float w, float h);
+			virtual void Draw(Foo* into, float x, float y, float w, float h);
 			// cw and ch is the size of the components inside this component.
 			// w and h are the calculated sizes of this component when it has to contain components of the specified size.
 			// Note that cw and ch only apply to things that can contain other stuff, like borders
-			virtual void GetSize(Foo* text, float cw, float ch, float& w, float& h);
+			virtual void GetOuterSize(Foo* info, float cw, float ch, float& w, float& h);
+			// w and h is the size of the component.
+			// iw and ih are the calculated width and height when the component has the specified size.
+			virtual void GetInnerSize(Foo* info, float w, float h, float& iw, float& ih);
 		*/
 
 		template <typename T>
@@ -68,7 +70,8 @@ namespace GUI
 		{
 			public:
 				virtual void Draw(const T& info, float x, float y, float w, float h);
-				virtual void GetSize(const T& info, float cw, float ch, float& w, float& h);
+				virtual void GetOuterSize(const T& info, float cw, float ch, float& w, float& h);
+				virtual void GetInnerSize(const T& info, float w, float h, float& iw, float& ih);
 				virtual ~Drawer() {}
 				virtual void shade() {}
 		};
@@ -108,7 +111,6 @@ namespace GUI
 			public:
 				InfoBase(gc_ptr<Component> component);
 				gc_ptr<Component> GetComponent() const;
-				gc_ptr<Metrics> GetMetrics() const;
 
 				virtual void shade()
 				{
@@ -262,6 +264,7 @@ namespace GUI
 			private:
 				Style style;
 
+			public:
 				FrameBorders(gc_ptr<Component> component, Style style);
 
 				void SetStyle(Style style);

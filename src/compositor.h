@@ -283,6 +283,8 @@ namespace GUI
 
 			ComponentHandle handle;
 
+			gc_ptr<Container> parent;
+
 			struct Bounds
 			{
 				float x;
@@ -319,8 +321,6 @@ namespace GUI
 
 			bool anchors[ANCHOR_NUM];
 	
-			gc_ptr<Metrics> metrics;
-			
 			bool visible;
 
 			bool needsRelayout;
@@ -334,8 +334,6 @@ namespace GUI
 			Component(float x = 0.0f, float y = 0.0f, float w = 1.0f, float h = 1.0f);
 			virtual ~Component();
 			
-			gc_ptr<Metrics> GetMetrics();
-
 			virtual bool IsInsideArea(float x, float y);
 			
 			void SetVisible(bool state);
@@ -363,14 +361,11 @@ namespace GUI
 
 			friend class ThemeEngine::Drawer<Component>;
 			
-			virtual void shade()
-			{
-				metrics.shade();
-			}
+			virtual void shade() {}
 
 	};
 	
-	class Container : public Component
+	class Container : public Component, public gc_ptr_from_this<Container>
 	{
 		protected:
 			std::list<gc_ptr<Component> > components;
@@ -395,7 +390,7 @@ namespace GUI
 			ThemeEngine::Borders innerBorders;
 			ThemeEngine::Borders outerBorders;
 
-			Container();
+			Container(float x = 0.0f, float y = 0.0f, float w = 1.0f, float h = 1.0f);
 
 			void Insert(gc_ptr<Component> component, int position);
 			void Add(gc_ptr<Component> component);
@@ -415,78 +410,73 @@ namespace GUI
 			}
 	};
 
+	class Workspace;
+
 	class Frame : public Container
 	{
 		private:
-			virtual void PaintBackground() {};
-			virtual void PaintGlass() {};
+//			virtual void PaintBackground() {};
+//			virtual void PaintGlass() {};
+			
+			typedef std::list<gc_ptr<Frame> >::iterator FrameHandle;
+
+			FrameHandle handle;
+			
+			gc_ptr<Workspace> parent;
+
 		protected:
 			ThemeEngine::FrameBorders frameBorders;
 			ThemeEngine::Text frameTitle;
 
 			enum StartLocation
 			{
-				DEFAULT,
-				CENTERPARENT,
-				CENTERSCREEN,
-				USERDEFINED
+				LOCATION_DEFAULT,
+				LOCATION_CENTERSCREEN,
+				LOCATION_USERDEFINED
 			};
 			
 			enum LayerIndex
 			{
-					BOTTOM = 0,
-					STANDARD = 1,
-					POPUP = 2,
-					END = 3
+				LAYER_BOTTOM = 0,
+				LAYER_STANDARD = 1,
+				LAYER_POPUP = 2,
+				LAYER_END = 3
 			};
 		
-			struct WindowParameter
-			{
-				LayerIndex layer;
-				StartLocation location;
-				gc_ptr<Frame> parent;
-				gc_ptr<Metrics> met;
-			};
-			
-			StartLocation start;
-			WindowParameter parameters;
-			Bounds windowDimensions;
-			
-			void Paint();
+			LayerIndex layer;
+			StartLocation location;
+
+//			void Paint();
 		public:
-			Frame(float x, float y, float w, float h, WindowParameter param);
-			Frame(float w, float h, WindowParameter param);
-			Frame(WindowParameter param);
-			~Frame();
+			Frame(float x = 0.0f, float y = 0.0f, float w = 1.0f, float h = 1.0f, StartLocation location = LOCATION_DEFAULT, LayerIndex layer = LAYER_STANDARD);
 			
 			friend class Workspace;
 	};
 	
 	/* Window-Management */	
-	class Workspace : public Event 
+	class Workspace : public Event, public gc_ptr_from_this<Workspace>
 	{
 		private:
-			std::list<gc_ptr<Frame> > win;
-			std::list<gc_ptr<Frame> >::iterator bottom; /* layer-pointers */
-			std::list<gc_ptr<Frame> >::iterator standard;
-			std::list<gc_ptr<Frame> >::iterator popup;
-			
-		protected:
-			gc_ptr<Metrics> met;
-		
-			void paintWindows(Frame::LayerIndex layer);
-			void paintTooltips();
-			void paintDialogs();
+			std::vector<std::list<gc_ptr<Frame> > > frames;
 			
 		public:
-			Workspace(int native_w, int native_h, float monitorsize, bool streched);
+			Workspace();
 			
 			void Paint();
 			
 			void Add(gc_ptr<Frame> elem);
 			void Remove(gc_ptr<Frame> elem);
 			void Position(gc_ptr<Frame> elem, Frame::LayerIndex z);
+
+			void shade();
+			
+		public:
+			static Metrics metrics;
+			static ThemeEngine::Theme theme;
+		
+			static void InitializeWorkspaces(int native_w, int native_h, float monitorsize, bool stretched);
 	};
+
 }
 
 #ifdef DEBUG_DEP

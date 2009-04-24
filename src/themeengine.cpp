@@ -40,11 +40,6 @@ namespace GUI
 			return comp;
 		}
 		
-		gc_ptr<Metrics> InfoBase::GetMetrics() const
-		{
-			return comp->GetMetrics();
-		}
-		
 		Text::Text(gc_ptr<Component> component, std::string text) : InfoBase(component), text(text)
 		{
 			
@@ -65,12 +60,17 @@ namespace GUI
 			
 		}
 
+		FrameBorders::FrameBorders(gc_ptr<Component> component, FrameBorders::Style style) : InfoBase(component), style(style)
+		{
+			
+		}
+
 		template <>
 		void Drawer<Text>::Draw(const Text& text, float x, float y, float w, float h)
 		{
 			::Window::GUI::FontCache::RenderedText RenderedInfo;
 			::Window::GUI::Fonts.SetFontType(2);
-			::Window::GUI::Fonts.RenderText(text.Get(), RenderedInfo, text.GetMetrics()->GetDPI());
+			::Window::GUI::Fonts.RenderText(text.Get(), RenderedInfo, Workspace::metrics.GetDPI());
 			
 			glEnable(GL_TEXTURE_2D);
 			glBindTexture(GL_TEXTURE_2D, RenderedInfo.Texture);
@@ -95,11 +95,17 @@ namespace GUI
 		}
 
 		template <>
-		void Drawer<Text>::GetSize(const Text& text, float cw, float ch, float& w, float& h)
+		void Drawer<Text>::GetInnerSize(const Text& text, float w, float h, float& iw, float& ih)
+		{
+			
+		}
+
+		template <>
+		void Drawer<Text>::GetOuterSize(const Text& text, float cw, float ch, float& w, float& h)
 		{
 			::Window::GUI::FontCache::TextDimension dims;
 			::Window::GUI::Fonts.SetFontType(2);
-			dims = ::Window::GUI::Fonts.GetTextSize(text.Get(), text.GetMetrics()->GetDPI());
+			dims = ::Window::GUI::Fonts.GetTextSize(text.Get(), Workspace::metrics.GetDPI());
 			w = dims.w;
 			h = dims.h;
 		}
@@ -111,10 +117,46 @@ namespace GUI
 		}
 		
 		template <>
-		void Drawer<Component>::GetSize(const Component& comp, float cw, float ch, float& w, float& h)
+		void Drawer<Component>::GetInnerSize(const Component& component, float w, float h, float& iw, float& ih)
+		{
+			
+		}
+
+		template <>
+		void Drawer<Component>::GetOuterSize(const Component& comp, float cw, float ch, float& w, float& h)
 		{
 			w = comp.dimensions.w + comp.margin.right + comp.margin.left;
 			h = comp.dimensions.h + comp.margin.top + comp.margin.bottom;
 		}
+		
+		template class Drawer<ToggleButton>;
+		
+		template class Drawer<SubComponent>;
+		
+		template class Drawer<Range>;
+		
+		template class Drawer<Image>;
+		
+		template class Drawer<Button>;
+		
+		template class Drawer<Borders>;
+		
+		template class Drawer<FrameBorders>;
+		
+		template <typename T>
+		void Drawer<T>::Draw(const T& info, float x, float y, float w, float h)
+		{
+		}
+
+		template <typename T>
+		void Drawer<T>::GetOuterSize(const T& info, float cw, float ch, float& w, float& h)
+		{
+		}
+		
+		template <typename T>
+		void Drawer<T>::GetInnerSize(const T& info, float w, float h, float& iw, float& ih)
+		{
+		}
+
 	}
 }
