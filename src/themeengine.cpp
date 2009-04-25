@@ -30,7 +30,7 @@ namespace GUI
 			
 		}
 
-		void InfoBase::NotifyChanged()
+		void InfoBase::NotifyChanged() const
 		{
 			comp->ScheduleRelayout();
 		}
