@@ -105,7 +105,7 @@ namespace GUI
 			private:
 				gc_ptr<Component> comp;
 			protected:
-				void NotifyChanged();
+				void NotifyChanged() const;
 			public:
 				InfoBase(gc_ptr<Component> component);
 				gc_ptr<Component> GetComponent() const;
@@ -209,7 +209,7 @@ namespace GUI
 				void GetPosition(float& posLow, float& posHigh) const;
 
 				void SetShowAlways(bool showAlways);
-				bool GetShowAlways();
+				bool GetShowAlways() const;
 		};
 		
 		class Image : public InfoBase
@@ -242,7 +242,7 @@ namespace GUI
 				Button(gc_ptr<Component> component, Style style);
 
 				void SetStyle(Style style);
-				Style GetStyle();
+				Style GetStyle() const;
 		};
 
 		class Borders : public InfoBase
