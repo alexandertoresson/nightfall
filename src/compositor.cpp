@@ -509,10 +509,10 @@ namespace GUI
 
 	Frame::Frame(float x, float y, float w, float h, StartLocation location, LayerIndex layer) :
 		Container(x, y, w, h),
-		frameBorders(GetRef(), ThemeEngine::FrameBorders::STYLE_NONE),
-		frameTitle(GetRef(), ""),
 		layer(layer),
-		location(location)
+		location(location),
+		frameBorders(GetRef(), ThemeEngine::FrameBorders::STYLE_NONE),
+		frameTitle(GetRef(), "")
 	{
 		
 	}

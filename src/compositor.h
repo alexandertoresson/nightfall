@@ -425,9 +425,6 @@ namespace GUI
 			gc_ptr<Workspace> parent;
 
 		protected:
-			ThemeEngine::FrameBorders frameBorders;
-			ThemeEngine::Text frameTitle;
-
 			enum StartLocation
 			{
 				LOCATION_DEFAULT,
@@ -448,6 +445,9 @@ namespace GUI
 
 //			void Paint();
 		public:
+			ThemeEngine::FrameBorders frameBorders;
+			ThemeEngine::Text frameTitle;
+
 			Frame(float x = 0.0f, float y = 0.0f, float w = 1.0f, float h = 1.0f, StartLocation location = LOCATION_DEFAULT, LayerIndex layer = LAYER_STANDARD);
 			
 			friend class Workspace;
