@@ -65,6 +65,16 @@ namespace GUI
 			
 		}
 
+		void FrameBorders::SetStyle(Style style)
+		{
+			this->style = style;
+		}
+
+		FrameBorders::Style FrameBorders::GetStyle() const
+		{
+			return style;
+		}
+
 		RangeBase::RangeBase(gc_ptr<Component> component, float low, float high, Direction direction) : InfoBase(component), direction(direction), low(low), high(high)
 		{
 			
