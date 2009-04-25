@@ -36,23 +36,17 @@ namespace GUI
 	namespace ThemeEngine
 	{
 		class InfoBase;
-
 		class SubComponent;
-
 		class Text;
-
 		class ToggleButton;
-
-		class Range;
-		
 		class Image;
-		
 		class Button;
-
 		class Borders;
-		
 		class FrameBorders;
-
+		class Range;
+		class ScrollBar;
+		class UpDown;
+		
 		/* Basic Drawer API:
 			// Pass in Info object describing how the widget should be rendered, and position and width and height of it
 			virtual void Draw(Foo* into, float x, float y, float w, float h);
@@ -82,21 +76,25 @@ namespace GUI
 				gc_ptr<Drawer<Text> > textDrawer;
 				gc_ptr<Drawer<SubComponent> > subComponentDrawer;
 				gc_ptr<Drawer<ToggleButton> > toggleButtonDrawer;
-				gc_ptr<Drawer<Range> > rangeDrawer;
 				gc_ptr<Drawer<Image> > imageDrawer;
 				gc_ptr<Drawer<Button> > buttonDrawer;
 				gc_ptr<Drawer<Borders> > bordersDrawer;
 				gc_ptr<Drawer<FrameBorders> > frameBordersDrawer;
+				gc_ptr<Drawer<Range> > rangeDrawer;
+				gc_ptr<Drawer<ScrollBar> > scrollBarDrawer;
+				gc_ptr<Drawer<UpDown> > upDownDrawer;
 
 				Theme() :
 					textDrawer(new Drawer<Text>),
 					subComponentDrawer(new Drawer<SubComponent>),
 					toggleButtonDrawer(new Drawer<ToggleButton>),
-					rangeDrawer(new Drawer<Range>),
 					imageDrawer(new Drawer<Image>),
 					buttonDrawer(new Drawer<Button>),
 					bordersDrawer(new Drawer<Borders>),
-					frameBordersDrawer(new Drawer<FrameBorders>)
+					frameBordersDrawer(new Drawer<FrameBorders>),
+					rangeDrawer(new Drawer<Range>),
+					scrollBarDrawer(new Drawer<ScrollBar>),
+					upDownDrawer(new Drawer<UpDown>)
 				{
 					
 				}
@@ -161,7 +159,7 @@ namespace GUI
 				}
 		};
 
-		class Range : public InfoBase
+		class RangeBase : public InfoBase
 		{
 			public:
 				enum Direction
@@ -170,31 +168,48 @@ namespace GUI
 					DIRECTION_HORIZONTAL
 				};
 
-				enum Style
-				{
-					STYLE_RANGE,
-					STYLE_SCROLLBAR,
-					STYLE_NUMBER
-				};
 			private:
-				Style style;
 				Direction direction;
 				float low, high;
-				float position;
 			public:
 
-				Range(gc_ptr<Component> component, float low, float high, float position, Style style, Direction direction);
-
-				Style GetStyle();
+				RangeBase(gc_ptr<Component> component, float low, float high, Direction direction);
 
 				Direction GetDirection();
-
-				void GetPosition(float position);
-				float GetPosition() const;
 
 				void SetRange(float low, float high);
 				float GetLow() const;
 				float GetHigh() const;
+		};
+
+		class Range : public RangeBase
+		{
+			private:
+				float position;
+			public:
+				Range(gc_ptr<Component> component, float low, float high, float position, Direction direction);
+		};
+		
+		class UpDown : public Range
+		{
+			public:
+				UpDown(gc_ptr<Component> component, float low, float high, float position, Direction direction) : Range(component, low, high, position, direction) {}
+		};
+
+		class ScrollBar : public RangeBase
+		{
+			private:
+				float posLow, posHigh;
+				bool showAlways; // Even if unnecessary?
+			public:
+
+				ScrollBar(gc_ptr<Component> component, float low, float high, float posLow, float posHigh, bool showAlways, Direction direction);
+
+				void SetPosition(float posLow, float posHigh);
+				void GetPosition(float& posLow, float& posHigh) const;
+
+				void SetShowAlways(bool showAlways);
+				bool GetShowAlways();
 		};
 		
 		class Image : public InfoBase
@@ -258,6 +273,7 @@ namespace GUI
 			public:
 				enum Style
 				{
+					STYLE_NONE,
 					STYLE_NORMAL,
 					STYLE_SMALL
 				};

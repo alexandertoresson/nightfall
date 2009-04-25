@@ -76,7 +76,21 @@ namespace GUI
 		{
 			public:
 				ThemeEngine::Range range;
-				Range(ThemeEngine::Range::Direction direction, ThemeEngine::Range::Style style, float low, float high);
+				Range(ThemeEngine::RangeBase::Direction direction, float low, float high);
+		};
+
+		class ScrollBar : public Component
+		{
+			public:
+				ThemeEngine::ScrollBar scrollBar;
+				ScrollBar(ThemeEngine::RangeBase::Direction direction, float low, float high);
+		};
+
+		class UpDown : public Component
+		{
+			public:
+				ThemeEngine::UpDown upDown;
+				UpDown(ThemeEngine::RangeBase::Direction direction, float low, float high);
 		};
 
 /*		class List

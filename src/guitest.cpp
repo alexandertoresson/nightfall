@@ -29,34 +29,12 @@ namespace GUI
 {
 	namespace Testing
 	{
-		gc_ptr<Metrics> met;
-		gc_ptr<Component> testComponent;
+		gc_ptr<Workspace> workspace;
 	
 		void Paint(float time_diff)
 		{
 			glClear(GL_COLOR_BUFFER_BIT);
-			/*
-			glPushMatrix();
-			glColor3f(1.0f, 1.0f, 1.0f);
-			
-			float w = 10.0f;
-			float h = 10.0f;
-			
-			met->scaleFactorCM(w,h);
-			met->alignToPixel(w,h);
-			
-			glScalef(w, h, 0.0f);
-			
-			glBegin(GL_QUADS);
-			glVertex2f(0.0f, 0.0f);
-			glVertex2f(1.0f, 0.0f);
-			glVertex2f(1.0f, 1.0f);
-			glVertex2f(0.0f, 1.0f);
-			glEnd();
-			
-			glPopMatrix();
-			*/
-			testComponent->PaintComponent();
+			workspace->Paint();
 			
 			glFlush();
 			SDL_GL_SwapBuffers();
@@ -130,15 +108,20 @@ namespace GUI
 			Core::BindKey(SDLK_ESCAPE, KMOD_NONE, &HandleSpecificExit);
 			
 			Utilities::SwitchTo2DViewport(1.0f,1.0f);
-			met = new GUI::Metrics(1440, 900, 800, 600, true, 15.4f, false);
-			met->Scale();
+
+			Workspace::InitializeWorkspaces(1024, 768, 17.0f, false);
 			
 			float w = 10.0f;
 			float h = 2.0f;
-			met->ScaleFactorCM(w, h);
 			
-			testComponent = new Component(0.0f, 0.0f, w, h);
+			workspace = new Workspace();
+
+			gc_ptr<Frame> frame = new Frame();
+
+			workspace->Add(frame);
 			
+			frame->Add(new Component(0.0f, 0.0f, w, h));
+
 			Core::MainLoop();
 		}
 	}

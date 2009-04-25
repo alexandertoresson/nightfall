@@ -130,19 +130,16 @@ namespace GUI
 		}
 		
 		template class Drawer<ToggleButton>;
-		
 		template class Drawer<SubComponent>;
-		
-		template class Drawer<Range>;
-		
 		template class Drawer<Image>;
-		
 		template class Drawer<Button>;
-		
 		template class Drawer<Borders>;
-		
 		template class Drawer<FrameBorders>;
+		template class Drawer<Range>;
+		template class Drawer<ScrollBar>;
+		template class Drawer<UpDown>;
 		
+		// Default null implementations used for unimplemented default drawers
 		template <typename T>
 		void Drawer<T>::Draw(const T& info, float x, float y, float w, float h) {}
 

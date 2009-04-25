@@ -389,6 +389,8 @@ namespace GUI
 		public:
 			ThemeEngine::Borders innerBorders;
 			ThemeEngine::Borders outerBorders;
+/*			ThemeEngine::ScrollBar vertScrollBar;
+			ThemeEngine::ScrollBar horizScrollBar;*/
 
 			Container(float x = 0.0f, float y = 0.0f, float w = 1.0f, float h = 1.0f);
 
@@ -415,8 +417,6 @@ namespace GUI
 	class Frame : public Container
 	{
 		private:
-//			virtual void PaintBackground() {};
-//			virtual void PaintGlass() {};
 			
 			typedef std::list<gc_ptr<Frame> >::iterator FrameHandle;
 

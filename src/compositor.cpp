@@ -502,12 +502,12 @@ namespace GUI
 		}
 	}
 
-	Frame::Frame(float x, float y, float w, float h, StartLocation location, LayerIndex layer) : Container(x, y, w, h), frameBorders(GetRef(), ThemeEngine::FrameBorders::STYLE_NORMAL), frameTitle(GetRef(), ""), layer(layer), location(location)
+	Frame::Frame(float x, float y, float w, float h, StartLocation location, LayerIndex layer) : Container(x, y, w, h), frameBorders(GetRef(), ThemeEngine::FrameBorders::STYLE_NONE), frameTitle(GetRef(), ""), layer(layer), location(location)
 	{
 		
 	}
 
-	Workspace::Workspace()
+	Workspace::Workspace() : frames(Frame::LAYER_END)
 	{
 	}
 	
@@ -526,6 +526,17 @@ namespace GUI
 	{
 		frames[elem->layer].erase(elem->handle);
 		elem->parent = NULL;
+	}
+
+	void Workspace::Paint()
+	{
+		for (std::vector<std::list<gc_ptr<Frame> > >::iterator it = frames.begin(); it != frames.end(); ++it)
+		{
+			for (std::list<gc_ptr<Frame> >::iterator it2 = it->begin(); it2 != it->end(); ++it2)
+			{
+				(*it2)->Paint();
+			}
+		}
 	}
 
 	void Workspace::shade()
