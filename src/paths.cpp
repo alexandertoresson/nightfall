@@ -55,6 +55,7 @@ namespace Utilities
 		std::vector<std::string> xdg_data_dirs_split;
 		std::vector<std::string> xdg_config_dirs_split;
 		const char* xdg_data_dirs = getenv("XDG_DATA_DIRS");
+		const char* xdg_data_home = getenv("XDG_DATA_HOME");
 
 		if (xdg_data_dirs)
 		{
@@ -62,6 +63,7 @@ namespace Utilities
 		}
 		
 		const char* xdg_config_dirs = getenv("XDG_CONFIG_DIRS");
+		const char* xdg_config_home = getenv("XDG_CONFIG_HOME");
 
 		if (xdg_config_dirs)
 		{
@@ -91,7 +93,7 @@ namespace Utilities
 		{
 			VFS::Mount(*it, "/config/");
 		}
-		VFS::Mount(home + "/.config/nightfall/", "/config/");
+		VFS::Mount((xdg_config_home ? std::string(xdg_config_home) : home + "/.config") +  "/nightfall/", "/config/");
 
 		VFS::Mount(path_from_argv0 + "resources/", "/data/");
 		VFS::Mount("resources/", "/data/");
@@ -99,7 +101,7 @@ namespace Utilities
 		{
 			VFS::Mount(*it, "/data/");
 		}
-		VFS::Mount(home + "/.local/share/nightfall/", "/data/");
+		VFS::Mount((xdg_data_home ? std::string(xdg_data_home) : home + "/.local/share") +  "/nightfall/", "/data/");
 #else
 		VFS::Mount(path_from_argv0 + "resources/configuration/", "/config/");
 		VFS::Mount("resources/configuration/", "/config/");
