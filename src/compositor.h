@@ -389,8 +389,8 @@ namespace GUI
 		public:
 			ThemeEngine::Borders innerBorders;
 			ThemeEngine::Borders outerBorders;
-/*			ThemeEngine::ScrollBar vertScrollBar;
-			ThemeEngine::ScrollBar horizScrollBar;*/
+			ThemeEngine::ScrollBar vertScrollBar;
+			ThemeEngine::ScrollBar horizScrollBar;
 
 			Container(float x = 0.0f, float y = 0.0f, float w = 1.0f, float h = 1.0f);
 

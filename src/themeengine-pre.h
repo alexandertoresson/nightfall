@@ -193,7 +193,7 @@ namespace GUI
 		class UpDown : public Range
 		{
 			public:
-				UpDown(gc_ptr<Component> component, float low, float high, float position, Direction direction) : Range(component, low, high, position, direction) {}
+				UpDown(gc_ptr<Component> component, float low, float high, float position, Direction direction);
 		};
 
 		class ScrollBar : public RangeBase

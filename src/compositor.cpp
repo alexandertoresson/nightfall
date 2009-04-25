@@ -327,7 +327,12 @@ namespace GUI
 
 	/** CONTAINER ******************************************************/
 	
-	Container::Container(float x, float y, float w, float h) : Component(x, y, w, h), innerBorders(GetRef()), outerBorders(GetRef())
+	Container::Container(float x, float y, float w, float h) :
+		Component(x, y, w, h),
+		innerBorders(GetRef()),
+		outerBorders(GetRef()),
+		vertScrollBar(GetRef(), 0.0f, 1.0f, 0.0f, 1.0f, false, ThemeEngine::ScrollBar::DIRECTION_VERTICAL),
+		horizScrollBar(GetRef(), 0.0f, 1.0f, 0.0f, 1.0f, false, ThemeEngine::ScrollBar::DIRECTION_HORIZONTAL)
 	{
 		
 	}
@@ -502,7 +507,12 @@ namespace GUI
 		}
 	}
 
-	Frame::Frame(float x, float y, float w, float h, StartLocation location, LayerIndex layer) : Container(x, y, w, h), frameBorders(GetRef(), ThemeEngine::FrameBorders::STYLE_NONE), frameTitle(GetRef(), ""), layer(layer), location(location)
+	Frame::Frame(float x, float y, float w, float h, StartLocation location, LayerIndex layer) :
+		Container(x, y, w, h),
+		frameBorders(GetRef(), ThemeEngine::FrameBorders::STYLE_NONE),
+		frameTitle(GetRef(), ""),
+		layer(layer),
+		location(location)
 	{
 		
 	}

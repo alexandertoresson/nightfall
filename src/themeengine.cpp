@@ -65,6 +65,17 @@ namespace GUI
 			
 		}
 
+		RangeBase::RangeBase(gc_ptr<Component> component, float low, float high, Direction direction) : InfoBase(component), direction(direction), low(low), high(high)
+		{
+			
+		}
+
+		ScrollBar::ScrollBar(gc_ptr<Component> component, float low, float high, float posLow, float posHigh, bool showAlways, Direction direction) :
+			RangeBase(component, low, high, direction), posLow(posLow), posHigh(posHigh), showAlways(showAlways)
+		{
+			
+		}
+
 		template <>
 		void Drawer<Text>::Draw(const Text& text, float x, float y, float w, float h)
 		{
