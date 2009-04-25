@@ -517,6 +517,12 @@ namespace GUI
 		
 	}
 
+	void Frame::Paint()
+	{
+		float iw, ih;
+		Workspace::theme.frameBordersDrawer.GetInnerSize(frameBorders, dimensions.w, dimensions.h, iw, ih);
+	}
+
 	Workspace::Workspace() : frames(Frame::LAYER_END)
 	{
 	}
@@ -560,7 +566,7 @@ namespace GUI
 	void Workspace::InitializeWorkspaces(int native_w, int native_h, float monitorsize, bool stretched)
 	{
 		Workspace::metrics = GUI::Metrics(native_w, native_h, 1024, 768, true, monitorsize, stretched);
-		Workspace::theme = ThemeEngine::Theme();
+//		Workspace::theme = ThemeEngine::Theme();
 	}
 	
 	Metrics Workspace::metrics(1024, 768, 1024, 768, true, 17.0f, false);

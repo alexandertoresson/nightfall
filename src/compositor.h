@@ -443,7 +443,7 @@ namespace GUI
 			LayerIndex layer;
 			StartLocation location;
 
-//			void Paint();
+			void Paint();
 		public:
 			ThemeEngine::FrameBorders frameBorders;
 			ThemeEngine::Text frameTitle;

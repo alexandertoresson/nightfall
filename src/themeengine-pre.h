@@ -53,48 +53,66 @@ namespace GUI
 			// cw and ch is the size of the components inside this component.
 			// w and h are the calculated sizes of this component when it has to contain components of the specified size.
 			// Note that cw and ch only apply to things that can contain other stuff, like borders
-			virtual void GetOuterSize(Foo* info, float cw, float ch, float& w, float& h);
+			virtual void GetOuterSize(const Foo& info, float cw, float ch, float& w, float& h);
 			// w and h is the size of the component.
-			// iw and ih are the calculated width and height when the component has the specified size.
-			virtual void GetInnerSize(Foo* info, float w, float h, float& iw, float& ih);
+			// iw and ih are the calculated inner width and height when the container has the specified size.
+			virtual void GetInnerSize(const Foo& info, float w, float h, float& iw, float& ih);
 		*/
 
 		template <typename T>
 		class Drawer
 		{
 			public:
-				virtual void Draw(const T& info, float x, float y, float w, float h);
-				virtual void GetOuterSize(const T& info, float cw, float ch, float& w, float& h);
-				virtual void GetInnerSize(const T& info, float w, float h, float& iw, float& ih);
-				virtual ~Drawer() {}
-				virtual void shade() {}
+				virtual void Draw(const T& info, float x, float y, float w, float h) const;
+				virtual void GetOuterSize(const T& info, float cw, float ch, float& w, float& h) const;
+				virtual void GetInnerSize(const T& info, float w, float h, float& iw, float& ih) const;
 		};
 
 		class Theme
 		{
+			private:
+				static Drawer<Text> defaultTextDrawer;
+				static Drawer<SubComponent> defaultSubComponentDrawer;
+				static Drawer<ToggleButton> defaultToggleButtonDrawer;
+				static Drawer<Image> defaultImageDrawer;
+				static Drawer<Button> defaultButtonDrawer;
+				static Drawer<Borders> defaultBordersDrawer;
+				static Drawer<FrameBorders> defaultFrameBordersDrawer;
+				static Drawer<Range> defaultRangeDrawer;
+				static Drawer<ScrollBar> defaultScrollBarDrawer;
+				static Drawer<UpDown> defaultUpDownDrawer;
 			public:
-				gc_ptr<Drawer<Text> > textDrawer;
-				gc_ptr<Drawer<SubComponent> > subComponentDrawer;
-				gc_ptr<Drawer<ToggleButton> > toggleButtonDrawer;
-				gc_ptr<Drawer<Image> > imageDrawer;
-				gc_ptr<Drawer<Button> > buttonDrawer;
-				gc_ptr<Drawer<Borders> > bordersDrawer;
-				gc_ptr<Drawer<FrameBorders> > frameBordersDrawer;
-				gc_ptr<Drawer<Range> > rangeDrawer;
-				gc_ptr<Drawer<ScrollBar> > scrollBarDrawer;
-				gc_ptr<Drawer<UpDown> > upDownDrawer;
+				const Drawer<Text>& textDrawer;
+				const Drawer<SubComponent>& subComponentDrawer;
+				const Drawer<ToggleButton>& toggleButtonDrawer;
+				const Drawer<Image>& imageDrawer;
+				const Drawer<Button>& buttonDrawer;
+				const Drawer<Borders>& bordersDrawer;
+				const Drawer<FrameBorders>& frameBordersDrawer;
+				const Drawer<Range>& rangeDrawer;
+				const Drawer<ScrollBar>& scrollBarDrawer;
+				const Drawer<UpDown>& upDownDrawer;
 
-				Theme() :
-					textDrawer(new Drawer<Text>),
-					subComponentDrawer(new Drawer<SubComponent>),
-					toggleButtonDrawer(new Drawer<ToggleButton>),
-					imageDrawer(new Drawer<Image>),
-					buttonDrawer(new Drawer<Button>),
-					bordersDrawer(new Drawer<Borders>),
-					frameBordersDrawer(new Drawer<FrameBorders>),
-					rangeDrawer(new Drawer<Range>),
-					scrollBarDrawer(new Drawer<ScrollBar>),
-					upDownDrawer(new Drawer<UpDown>)
+				Theme(const Drawer<Text>&         textDrawer = defaultTextDrawer,
+				      const Drawer<SubComponent>& subComponentDrawer = defaultSubComponentDrawer,
+				      const Drawer<ToggleButton>& toggleButtonDrawer = defaultToggleButtonDrawer,
+				      const Drawer<Image>&        imageDrawer = defaultImageDrawer,
+				      const Drawer<Button>&       buttonDrawer = defaultButtonDrawer,
+				      const Drawer<Borders>&      bordersDrawer = defaultBordersDrawer,
+				      const Drawer<FrameBorders>& frameBordersDrawer = defaultFrameBordersDrawer,
+				      const Drawer<Range>&        rangeDrawer = defaultRangeDrawer,
+				      const Drawer<ScrollBar>&    scrollBarDrawer = defaultScrollBarDrawer,
+				      const Drawer<UpDown>&       upDownDrawer = defaultUpDownDrawer) :
+					textDrawer(textDrawer),
+					subComponentDrawer(subComponentDrawer),
+					toggleButtonDrawer(toggleButtonDrawer),
+					imageDrawer(imageDrawer),
+					buttonDrawer(buttonDrawer),
+					bordersDrawer(bordersDrawer),
+					frameBordersDrawer(frameBordersDrawer),
+					rangeDrawer(rangeDrawer),
+					scrollBarDrawer(scrollBarDrawer),
+					upDownDrawer(upDownDrawer)
 				{
 					
 				}

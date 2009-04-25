@@ -87,7 +87,7 @@ namespace GUI
 		}
 
 		template <>
-		void Drawer<Text>::Draw(const Text& text, float x, float y, float w, float h)
+		void Drawer<Text>::Draw(const Text& text, float x, float y, float w, float h) const
 		{
 			::Window::GUI::FontCache::RenderedText RenderedInfo;
 			::Window::GUI::Fonts.SetFontType(2);
@@ -116,13 +116,13 @@ namespace GUI
 		}
 
 		template <>
-		void Drawer<Text>::GetInnerSize(const Text& text, float w, float h, float& iw, float& ih)
+		void Drawer<Text>::GetInnerSize(const Text& text, float w, float h, float& iw, float& ih) const
 		{
 			iw = ih = 0;
 		}
 
 		template <>
-		void Drawer<Text>::GetOuterSize(const Text& text, float cw, float ch, float& w, float& h)
+		void Drawer<Text>::GetOuterSize(const Text& text, float cw, float ch, float& w, float& h) const
 		{
 			::Window::GUI::FontCache::TextDimension dims;
 			::Window::GUI::Fonts.SetFontType(2);
@@ -132,19 +132,19 @@ namespace GUI
 		}
 		
 		template <>
-		void Drawer<Component>::Draw(const Component& comp, float x, float y, float w, float h)
+		void Drawer<Component>::Draw(const Component& comp, float x, float y, float w, float h) const
 		{
 		}
 		
 		template <>
-		void Drawer<Component>::GetInnerSize(const Component& comp, float w, float h, float& iw, float& ih)
+		void Drawer<Component>::GetInnerSize(const Component& comp, float w, float h, float& iw, float& ih) const
 		{
 			iw = w - comp.margin.right - comp.margin.left;
 			ih = h - comp.margin.top - comp.margin.bottom;
 		}
 
 		template <>
-		void Drawer<Component>::GetOuterSize(const Component& comp, float cw, float ch, float& w, float& h)
+		void Drawer<Component>::GetOuterSize(const Component& comp, float cw, float ch, float& w, float& h) const
 		{
 			w = cw + comp.margin.right + comp.margin.left;
 			h = ch + comp.margin.top + comp.margin.bottom;
@@ -162,13 +162,23 @@ namespace GUI
 		
 		// Default null implementations used for unimplemented default drawers
 		template <typename T>
-		void Drawer<T>::Draw(const T& info, float x, float y, float w, float h) {}
+		void Drawer<T>::Draw(const T& info, float x, float y, float w, float h) const {}
 
 		template <typename T>
-		void Drawer<T>::GetOuterSize(const T& info, float cw, float ch, float& w, float& h) {}
+		void Drawer<T>::GetOuterSize(const T& info, float cw, float ch, float& w, float& h) const {w = cw; h = ch;}
 		
 		template <typename T>
-		void Drawer<T>::GetInnerSize(const T& info, float w, float h, float& iw, float& ih) {}
+		void Drawer<T>::GetInnerSize(const T& info, float w, float h, float& iw, float& ih) const {iw = w; ih = h;}
 
+		Drawer<Text> Theme::defaultTextDrawer;
+		Drawer<SubComponent> Theme::defaultSubComponentDrawer;
+		Drawer<ToggleButton> Theme::defaultToggleButtonDrawer;
+		Drawer<Image> Theme::defaultImageDrawer;
+		Drawer<Button> Theme::defaultButtonDrawer;
+		Drawer<Borders> Theme::defaultBordersDrawer;
+		Drawer<FrameBorders> Theme::defaultFrameBordersDrawer;
+		Drawer<Range> Theme::defaultRangeDrawer;
+		Drawer<ScrollBar> Theme::defaultScrollBarDrawer;
+		Drawer<UpDown> Theme::defaultUpDownDrawer;
 	}
 }
