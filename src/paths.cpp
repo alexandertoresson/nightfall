@@ -61,6 +61,11 @@ namespace Utilities
 		{
 			Utilities::split(std::string(xdg_data_dirs), ':', xdg_data_dirs_split);
 		}
+		else
+		{
+			xdg_data_dirs_split.push_back("/usr/local/share/");
+			xdg_data_dirs_split.push_back("/usr/share/");
+		}
 		
 		const char* xdg_config_dirs = getenv("XDG_CONFIG_DIRS");
 		const char* xdg_config_home = getenv("XDG_CONFIG_HOME");
@@ -68,6 +73,10 @@ namespace Utilities
 		if (xdg_config_dirs)
 		{
 			Utilities::split(std::string(xdg_config_dirs), ':', xdg_config_dirs_split);
+		}
+		else
+		{
+			xdg_config_dirs_split.push_back("/etc/xdg/");
 		}
 #endif
 		std::string home = getenv("HOME");
@@ -88,7 +97,6 @@ namespace Utilities
 		VFS::Mount("/Library/Application Support/Nightfall/", "/data/");
 		VFS::Mount(home + "/Library/Application Support/Nightfall/", "/data/");
 #elif defined(__unix__)
-		VFS::Mount("/etc/nightfall/", "/config/");
 		VFS::Mount(path_from_argv0 + "resources/configuration/", "/config/");
 		VFS::Mount("resources/configuration/", "/config/");
 		for (std::vector<std::string>::reverse_iterator it = xdg_config_dirs_split.rbegin(); it != xdg_config_dirs_split.rend(); it++)
