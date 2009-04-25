@@ -80,10 +80,12 @@ namespace Utilities
 #elif defined(MAC)
 		VFS::Mount(path_from_argv0 + "resources/configuration/", "/config/");
 		VFS::Mount("resources/configuration/", "/config/");
+		VFS::Mount("/Library/Application Support/Nightfall/configuration/", "/config/");
 		VFS::Mount(home + "/Library/Application Support/Nightfall/configuration/", "/config/");
 
 		VFS::Mount(path_from_argv0 + "resources/", "/data/");
 		VFS::Mount("resources/", "/data/");
+		VFS::Mount("/Library/Application Support/Nightfall/", "/data/");
 		VFS::Mount(home + "/Library/Application Support/Nightfall/", "/data/");
 #elif defined(__unix__)
 		VFS::Mount("/etc/nightfall/", "/config/");
