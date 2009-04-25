@@ -114,25 +114,6 @@ namespace Core
 	typedef Listener<EventPaint, float, void> PaintListener;
 	typedef Listener<EventPreFrame, float, void> PreFrameListener;
 
-	struct KeyAttachment
-	{
-		SDLMod modifier;
-		EventKeyboard fptr;
-		gc_ptr<KeyAttachment> next;
-		
-		KeyAttachment(EventKeyboard fptr, SDLMod modifier)
-		{
-			this->fptr = fptr;
-			this->modifier = modifier;
-			this->next = NULL;
-		}
-
-		void shade()
-		{
-			next.shade();
-		}
-	};
-	
 	/**
 	 * The main loop of the program, handles state execution, termination and SDL event-loop, also paint scheduling.
 	 */

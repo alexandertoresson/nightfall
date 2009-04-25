@@ -22,7 +22,19 @@
 
 namespace Core
 {
-	gc_ptr<KeyAttachment> keymaps[SDLK_LAST];
+	struct KeyAttachment
+	{
+		SDLMod modifier;
+		EventKeyboard fptr;
+		
+		KeyAttachment(EventKeyboard fptr, SDLMod modifier) : modifier(modifier), fptr(fptr)
+		{
+			this->fptr = fptr;
+			this->modifier = modifier;
+		}
+	};
+	
+	std::list<KeyAttachment> keymaps[SDLK_LAST];
 	
 	bool keyState[SDLK_LAST];
 	
@@ -51,20 +63,15 @@ namespace Core
 					bool caught = false;  //signal that a listener has caught the signal
 					
 					//call individual attached keys with possible mods.
-					gc_ptr<KeyAttachment> attachedKey = keymaps[event.key.keysym.sym];
-					if(attachedKey)
+					std::list<KeyAttachment>& attachedKeys = keymaps[event.key.keysym.sym];
+					for (std::list<KeyAttachment>::iterator it = attachedKeys.begin(); it != attachedKeys.end(); ++it)
 					{
-						while(attachedKey)
+						//Must have both tests because if modifier is KMOD_NONE then it will always be false.
+						if(keyEvent.mod & it->modifier || keyEvent.mod == it->modifier)
 						{
-							//Must have both tests because if modifier is KMOD_NONE then it will always be false.
-							if(keyEvent.mod & attachedKey->modifier || attachedKey->modifier == keyEvent.mod)
-							{
-								attachedKey->fptr(keyEvent);
-								caught = true;
-								break;
-							}
-							
-							attachedKey = attachedKey->next;
+							it->fptr(keyEvent);
+							caught = true;
+							break;
 						}
 					}
 
@@ -74,9 +81,7 @@ namespace Core
 						{
 							for(KeyListenerHandle iter = keyListeners::ls.begin(); iter != keyListeners::ls.end(); iter++)
 							{
-								gc_ptr<KeyListener> keyListen = *iter;
-								
-								if((*keyListen)(keyEvent))
+								if((**iter)(keyEvent))
 								{
 									caught = true;
 									break;
@@ -121,8 +126,7 @@ namespace Core
 					
 					for(MouseListenerHandle iter = mouseListeners::ls.begin(); iter != mouseListeners::ls.end(); iter++)
 					{
-						gc_ptr<MouseListener> mouseListen = *iter;
-						if((*mouseListen)(mouseEvent))
+						if((**iter)(mouseEvent))
 							break;
 					}
 					break;
@@ -142,66 +146,29 @@ namespace Core
 	//Binds special keys i.e. CTRL+A to a listener.
 	bool BindKey( SDLKey key, SDLMod mod, EventKeyboard listener)
 	{
-		if(keymaps[key])
+		std::list<KeyAttachment>& attachedKeys = keymaps[key];
+		for (std::list<KeyAttachment>::iterator it = attachedKeys.begin(); it != attachedKeys.end(); ++it)
 		{
-			gc_ptr<KeyAttachment> current = keymaps[key];
-			gc_ptr<KeyAttachment> next    = current->next;
-			
-			//If the current mod and key exists, it's a duplicate and will be considerd an error, duplicated binds is not supported.
-			if(current->modifier == mod)
-				return false;
-			
-			//The goal is to append the binding to the last item in the linked-list.
-			if(next)
+			if(it->modifier == mod)
 			{
-				while(next)
-				{
-					if(next->modifier == mod)
-						return false;
-					
-					current = current->next;
-					next = next->next;
-				}
+				return false;
 			}
-			
-			current->next = new KeyAttachment(listener, mod);
-			return true;
 		}
-		else
-		{
-			keymaps[key] = new KeyAttachment(listener, mod);
-			return true;
-		}
+
+		keymaps[key].push_back(KeyAttachment(listener, mod));
+		return true;
 	}
 	
 	//Unbinds a special key.
 	void UnbindKey(SDLKey key, SDLMod mod)
 	{
-		if(keymaps[key])
+		std::list<KeyAttachment>& attachedKeys = keymaps[key];
+		for (std::list<KeyAttachment>::iterator it = attachedKeys.begin(); it != attachedKeys.end(); ++it)
 		{
-			gc_ptr<KeyAttachment> prev = keymaps[key];
-			gc_ptr<KeyAttachment> current = keymaps[key];
-			
-			while(current)
+			if(it->modifier == mod)
 			{
-				if(current->modifier == mod)
-				{
-					if(!current->next) //Final or middle attachment or the only one
-					{
-						if(current == prev) //The first attachment
-						{
-							keymaps[key] = NULL;
-						}
-						else
-						{
-							prev->next = current->next;
-						}
-					}
-					break;
-				}
-				
-				prev = current;
-				current = current->next;
+				attachedKeys.erase(it);
+				return;
 			}
 		}
 	}
@@ -210,8 +177,7 @@ namespace Core
 	{
 		for(PreFrameListenerHandle iter = preFrameListeners::ls.begin(); iter != preFrameListeners::ls.end(); iter++)
 		{
-			gc_ptr<PreFrameListener> listener = *iter;
-			(*listener)(time_diff);
+			(**iter)(time_diff);
 		}
 	}
 	
@@ -219,8 +185,7 @@ namespace Core
 	{
 		for(PaintListenerHandle iter = paintListeners::ls.begin(); iter != paintListeners::ls.end(); iter++)
 		{
-			gc_ptr<PaintListener> listener = *iter;
-			(*listener)(time_diff);
+			(**iter)(time_diff);
 		}
 	}
 	
