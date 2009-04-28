@@ -472,7 +472,7 @@ namespace GUI
 			
 		public:
 			static Metrics metrics;
-			static ThemeEngine::Theme theme;
+			static gc_ptr<ThemeEngine::Theme> theme;
 		
 			static void InitializeWorkspaces(int native_w, int native_h, float monitorsize, bool stretched);
 	};

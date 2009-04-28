@@ -169,16 +169,5 @@ namespace GUI
 		
 		template <typename T>
 		void Drawer<T>::GetInnerSize(const T& info, float w, float h, float& iw, float& ih) const {iw = w; ih = h;}
-
-		Drawer<Text> Theme::defaultTextDrawer;
-		Drawer<SubComponent> Theme::defaultSubComponentDrawer;
-		Drawer<ToggleButton> Theme::defaultToggleButtonDrawer;
-		Drawer<Image> Theme::defaultImageDrawer;
-		Drawer<Button> Theme::defaultButtonDrawer;
-		Drawer<Borders> Theme::defaultBordersDrawer;
-		Drawer<FrameBorders> Theme::defaultFrameBordersDrawer;
-		Drawer<Range> Theme::defaultRangeDrawer;
-		Drawer<ScrollBar> Theme::defaultScrollBarDrawer;
-		Drawer<UpDown> Theme::defaultUpDownDrawer;
 	}
 }

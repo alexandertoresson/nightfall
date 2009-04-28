@@ -66,43 +66,33 @@ namespace GUI
 				virtual void Draw(const T& info, float x, float y, float w, float h) const;
 				virtual void GetOuterSize(const T& info, float cw, float ch, float& w, float& h) const;
 				virtual void GetInnerSize(const T& info, float w, float h, float& iw, float& ih) const;
+				virtual void shade() {}
 		};
 
 		class Theme
 		{
-			private:
-				static Drawer<Text> defaultTextDrawer;
-				static Drawer<SubComponent> defaultSubComponentDrawer;
-				static Drawer<ToggleButton> defaultToggleButtonDrawer;
-				static Drawer<Image> defaultImageDrawer;
-				static Drawer<Button> defaultButtonDrawer;
-				static Drawer<Borders> defaultBordersDrawer;
-				static Drawer<FrameBorders> defaultFrameBordersDrawer;
-				static Drawer<Range> defaultRangeDrawer;
-				static Drawer<ScrollBar> defaultScrollBarDrawer;
-				static Drawer<UpDown> defaultUpDownDrawer;
 			public:
-				const Drawer<Text>& textDrawer;
-				const Drawer<SubComponent>& subComponentDrawer;
-				const Drawer<ToggleButton>& toggleButtonDrawer;
-				const Drawer<Image>& imageDrawer;
-				const Drawer<Button>& buttonDrawer;
-				const Drawer<Borders>& bordersDrawer;
-				const Drawer<FrameBorders>& frameBordersDrawer;
-				const Drawer<Range>& rangeDrawer;
-				const Drawer<ScrollBar>& scrollBarDrawer;
-				const Drawer<UpDown>& upDownDrawer;
+				const gc_ptr<Drawer<Text> > textDrawer;
+				const gc_ptr<Drawer<SubComponent> > subComponentDrawer;
+				const gc_ptr<Drawer<ToggleButton> > toggleButtonDrawer;
+				const gc_ptr<Drawer<Image> > imageDrawer;
+				const gc_ptr<Drawer<Button> > buttonDrawer;
+				const gc_ptr<Drawer<Borders> > bordersDrawer;
+				const gc_ptr<Drawer<FrameBorders> > frameBordersDrawer;
+				const gc_ptr<Drawer<Range> > rangeDrawer;
+				const gc_ptr<Drawer<ScrollBar> > scrollBarDrawer;
+				const gc_ptr<Drawer<UpDown> > upDownDrawer;
 
-				Theme(const Drawer<Text>&         textDrawer = defaultTextDrawer,
-				      const Drawer<SubComponent>& subComponentDrawer = defaultSubComponentDrawer,
-				      const Drawer<ToggleButton>& toggleButtonDrawer = defaultToggleButtonDrawer,
-				      const Drawer<Image>&        imageDrawer = defaultImageDrawer,
-				      const Drawer<Button>&       buttonDrawer = defaultButtonDrawer,
-				      const Drawer<Borders>&      bordersDrawer = defaultBordersDrawer,
-				      const Drawer<FrameBorders>& frameBordersDrawer = defaultFrameBordersDrawer,
-				      const Drawer<Range>&        rangeDrawer = defaultRangeDrawer,
-				      const Drawer<ScrollBar>&    scrollBarDrawer = defaultScrollBarDrawer,
-				      const Drawer<UpDown>&       upDownDrawer = defaultUpDownDrawer) :
+				Theme(const gc_ptr<Drawer<Text> >         textDrawer = new Drawer<Text>,
+				      const gc_ptr<Drawer<SubComponent> > subComponentDrawer = new Drawer<SubComponent>,
+				      const gc_ptr<Drawer<ToggleButton> > toggleButtonDrawer = new Drawer<ToggleButton>,
+				      const gc_ptr<Drawer<Image> >        imageDrawer = new Drawer<Image>,
+				      const gc_ptr<Drawer<Button> >       buttonDrawer = new Drawer<Button>,
+				      const gc_ptr<Drawer<Borders> >      bordersDrawer = new Drawer<Borders>,
+				      const gc_ptr<Drawer<FrameBorders> > frameBordersDrawer = new Drawer<FrameBorders>,
+				      const gc_ptr<Drawer<Range> >        rangeDrawer = new Drawer<Range>,
+				      const gc_ptr<Drawer<ScrollBar> >    scrollBarDrawer = new Drawer<ScrollBar>,
+				      const gc_ptr<Drawer<UpDown> >       upDownDrawer = new Drawer<UpDown>) :
 					textDrawer(textDrawer),
 					subComponentDrawer(subComponentDrawer),
 					toggleButtonDrawer(toggleButtonDrawer),
@@ -115,6 +105,20 @@ namespace GUI
 					upDownDrawer(upDownDrawer)
 				{
 					
+				}
+
+				void shade()
+				{
+					textDrawer.shade();
+					subComponentDrawer.shade();
+					toggleButtonDrawer.shade();
+					imageDrawer.shade();
+					buttonDrawer.shade();
+					bordersDrawer.shade();
+					frameBordersDrawer.shade();
+					rangeDrawer.shade();
+					scrollBarDrawer.shade();
+					upDownDrawer.shade();
 				}
 		};
 		
