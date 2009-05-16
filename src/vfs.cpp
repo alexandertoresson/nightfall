@@ -54,9 +54,19 @@ namespace Utilities
 			unsigned len = cur.first.length();
 			std::string newfn = filename;
 
-			if (len <= filename.length() && cur.first == filename.substr(0, len))
+			if (cur.first.find_last_of("\\/") == cur.first.size()-1)
 			{
-				newfn = cur.second + newfn.substr(len);
+				if (len <= filename.length() && cur.first == filename.substr(0, len))
+				{
+					newfn = cur.second + filename.substr(len);
+				}
+			}
+			else
+			{
+				if (cur.first == filename)
+				{
+					newfn = cur.second;
+				}
 			}
 			if (i == 0)
 			{
