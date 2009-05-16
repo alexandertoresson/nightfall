@@ -21,6 +21,11 @@
 
 #include "gc_ptr.h"
 
+void gc_marker_base::register_static_shader(StaticShader staticShader)
+{
+	staticShaders.push_back(staticShader);
+}
+
 void gc_marker_base::insert()
 {
 	// This is so gc_ptrs can be constructed before initgc() has been run.
@@ -107,6 +112,11 @@ void gc_marker_base::sweep()
 		(*it)->tempMark = MARK_WHITE;
 	}
 
+	for (StaticShaderVector::iterator it = staticShaders.begin(); it != staticShaders.end(); it++)
+	{
+		(*it)();
+	}
+
 	MarkerSet& gray = marked_temp[MARK_GRAY];
 	while (gray.size())
 	{
@@ -164,6 +174,7 @@ void gc_marker_base::initgc()
 	mutex = SDL_CreateMutex();
 }
 
+std::vector<gc_marker_base::StaticShader> gc_marker_base::staticShaders;
 gc_marker_base::MarkerSet *(gc_marker_base::marked[2]) = {NULL, NULL};
 gc_marker_base::MarkerSet gc_marker_base::marked_temp[2];
 

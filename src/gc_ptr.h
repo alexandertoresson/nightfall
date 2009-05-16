@@ -26,6 +26,7 @@
 #include "type_traits.h"
 #include <map>
 #include <set>
+#include <vector>
 #include <typeinfo>
 #include <iostream>
 #include <cassert>
@@ -74,6 +75,9 @@ class gc_marker_base
 	private:
 		Mark mark;
 
+		typedef void (*StaticShader)();
+		typedef std::vector<StaticShader> StaticShaderVector;
+		static StaticShaderVector staticShaders;
 		typedef std::set<gc_marker_base*> MarkerSet;
 		static MarkerSet *(marked[2]);
 		static MarkerSet marked_temp[2];
@@ -95,6 +99,8 @@ class gc_marker_base
 		void shade();
 
 	public:
+
+		static void register_static_shader(StaticShader staticShader);
 
 		gc_marker_base(Mark mark, int refs);
 

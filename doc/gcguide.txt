@@ -99,6 +99,22 @@ will construct a gc_ptr<T> from this!
 So, if you need to access the this pointer in an object, do instead use
 gc_ptr_from_this as described below to obtain a gc_ptr<T>.
 
+Static shaders
+++++++++++++++
+
+If you have static data of some kind, an alternative to using gc_root_ptr is
+to use static shaders. You use gc_marker_base::register_static_shader(func) to
+add one, where func is a void (*func)(). Example:
+
+gc_ptr<FOO> a;
+
+void static_shade()
+{
+	a.shade();
+}
+
+gc_marker_base::register_static_shader(static_shade);
+
 Utility methods
 +++++++++++++++
 
