@@ -1062,34 +1062,34 @@ namespace Window
 		{
 			glEnable(GL_TEXTURE_2D);
 
-			Window::GUI::FontCache::RenderedText RenderedInfo;
-			Window::GUI::Fonts.SetFontType(this->type);
-			Window::GUI::Fonts.RenderText(this->text , RenderedInfo, xUnit);
+			Window::GUI::TextRenderer::RenderedText RenderedInfo;
+			Window::GUI::defaultFonts[type].RenderText(text , RenderedInfo, xUnit);
 			float xPos = floor((w / 2.0f - RenderedInfo.w / 2.0f) / xUnit + 0.5f) * xUnit;
 			float yPos = floor((0.5f - RenderedInfo.h / 2.0f) / yUnit + 0.5f) * yUnit;
 			
 			PaintLabel(RenderedInfo, xPos, yPos);
 		}
 
-		void Label::PaintLabel(Window::GUI::FontCache::RenderedText RenderedInfo, float tx, float ty)
+		void Label::PaintLabel(Window::GUI::TextRenderer::RenderedText RenderedInfo, float tx, float ty)
 		{
 			glEnable(GL_TEXTURE_2D);
-			glBindTexture(GL_TEXTURE_2D, RenderedInfo.Texture);
+			glBindTexture(GL_TEXTURE_2D, RenderedInfo.texture);
 			glPushMatrix();
 			glTranslatef(tx, ty, 0.0f);
 			glBegin(GL_QUADS);
 				glColor4f(1.0f,1.0f,1.0f,1.0f);
-				glTexCoord2f(RenderedInfo.texCoords[0], RenderedInfo.texCoords[1]);
-				glVertex2f(0.0f,0.0f);
+					glTexCoord2f(0.0f, 0.0f);
+					glVertex2f(0.0f, 0.0f);
 
-				glTexCoord2f(RenderedInfo.texCoords[2], RenderedInfo.texCoords[3]);
-				glVertex2f(RenderedInfo.w, 0.0f);
+					glTexCoord2f(RenderedInfo.maxX, 0.0f);
+					glVertex2f(RenderedInfo.w, 0.0f);
+				
+					glTexCoord2f(RenderedInfo.maxX, RenderedInfo.maxY);
+					glVertex2f(RenderedInfo.w, RenderedInfo.h);
 
-				glTexCoord2f(RenderedInfo.texCoords[4], RenderedInfo.texCoords[5]);
-				glVertex2f(RenderedInfo.w, RenderedInfo.h);
+					glTexCoord2f(0.0f, RenderedInfo.maxY);
+					glVertex2f(0.0f, RenderedInfo.h);
 
-				glTexCoord2f(RenderedInfo.texCoords[6], RenderedInfo.texCoords[7]);
-				glVertex2f(0.0f, RenderedInfo.h);
 			glEnd();
 			glPopMatrix();
 			glDisable(GL_TEXTURE_2D);
@@ -1152,28 +1152,28 @@ namespace Window
 				{
 					float notVisible = textSize.w - this->w;
 
-					FontCache::RenderedText rendered;
-					Fonts.RenderText(text, rendered, xUnit);
+					TextRenderer::RenderedText rendered;
+					defaultFonts[2].RenderText(text, rendered, xUnit);
 					glEnable(GL_TEXTURE_2D);
-					glBindTexture(GL_TEXTURE_2D, rendered.Texture);
+					glBindTexture(GL_TEXTURE_2D, rendered.texture);
 					glPushMatrix();
 
-					float min = (translateX / textSize.w) * rendered.texCoords[2];
-					float max = ((textSize.w + translateX - notVisible) / textSize.w) * rendered.texCoords[2];
+					float min = (translateX / textSize.w) * rendered.maxX;
+					float max = ((textSize.w + translateX - notVisible) / textSize.w) * rendered.maxX;
 
 					glTranslatef(0.0f, 0.0f, 0.0f);
 					glBegin(GL_QUADS);
 					glColor4f(1.0f,1.0f,1.0f,1.0f);
-						glTexCoord2f(min, rendered.texCoords[1]);
+						glTexCoord2f(min, 0.0f);
 						glVertex2f(0.0f,0.0f);
 
-						glTexCoord2f(max, rendered.texCoords[3]);
+						glTexCoord2f(max, 0.0f);
 						glVertex2f(this->w, 0.0f);
 
-						glTexCoord2f(max, rendered.texCoords[5]);
+						glTexCoord2f(max, rendered.maxY);
 						glVertex2f(this->w, rendered.h);
 
-						glTexCoord2f(min, rendered.texCoords[7]);
+						glTexCoord2f(min, rendered.maxY);
 						glVertex2f(0.0f, rendered.h);
 					glEnd();
 
@@ -1193,25 +1193,25 @@ namespace Window
 				}
 				else
 				{
-					FontCache::RenderedText rendered;
-					Fonts.RenderText(text, rendered, xUnit);				
+					TextRenderer::RenderedText rendered;
+					defaultFonts[2].RenderText(text, rendered, xUnit);				
 					glEnable(GL_TEXTURE_2D);
-					glBindTexture(GL_TEXTURE_2D, rendered.Texture);
+					glBindTexture(GL_TEXTURE_2D, rendered.texture);
 					glPushMatrix();
 
 					glTranslatef(0.0f, 0.0f, 0.0f);
 					glBegin(GL_QUADS);
 						glColor4f(1.0f,1.0f,1.0f,1.0f);
-						glTexCoord2f(rendered.texCoords[0], rendered.texCoords[1]);
-						glVertex2f(0.0f,0.0f);
-
-						glTexCoord2f(rendered.texCoords[2], rendered.texCoords[3]);
+						glTexCoord2f(0.0f, 0.0f);
+						glVertex2f(0.0f, 0.0f);
+	
+						glTexCoord2f(rendered.maxX, 0.0f);
 						glVertex2f(rendered.w, 0.0f);
-
-						glTexCoord2f(rendered.texCoords[4], rendered.texCoords[5]);
+					
+						glTexCoord2f(rendered.maxX, rendered.maxY);
 						glVertex2f(rendered.w, rendered.h);
-
-						glTexCoord2f(rendered.texCoords[6], rendered.texCoords[7]);
+	
+						glTexCoord2f(0.0f, rendered.maxY);
 						glVertex2f(0.0f, rendered.h);
 					glEnd();
 
@@ -1330,7 +1330,7 @@ namespace Window
 
 		void TextBox::UpdateGraphicalMarker()
 		{
-			FontCache::TextDimension dim = Fonts.GetTextSize(text.substr(0, markerbyte), xUnit);
+			TextRenderer::TextDimension dim = defaultFonts[2].GetTextSize(text.substr(0, markerbyte), xUnit);
 			markerX = dim.w;
 			if(dim.w > this->w)
 			{
@@ -1340,7 +1340,7 @@ namespace Window
 			{
 				translateX = 0.0f;
 			}
-			textSize = Fonts.GetTextSize(text, xUnit);
+			textSize = defaultFonts[2].GetTextSize(text, xUnit);
 		}
 
 		int TextBox::HandleEvent(EventType evtType, SDL_Event* evt, TranslatedMouse* mouseCoord)
@@ -1571,9 +1571,8 @@ namespace Window
 
 		void ConsoleBuffer::PrepareBuffer()
 		{
-			Fonts.SetFontType(this->type);
-			float lineHeight = Fonts.GetLineHeight(this->yUnit);
-			SetLineHeight(lineHeight, (int)(this->h / lineHeight));
+			float lineHeight = defaultFonts[type].GetLineHeight(yUnit);
+			SetLineHeight(lineHeight, (int)(h / lineHeight));
 		}
 		
 		void ConsoleBuffer::SetLineHeight(float value, int vlines)
@@ -1608,18 +1607,13 @@ namespace Window
 			{
 				if(console.GetLine(c + translate) != "")
 				{
-					Window::GUI::FontCache::RenderedText RenderedInfo;
-					Window::GUI::Fonts.SetFontType(this->type);
+					Window::GUI::TextRenderer::RenderedText RenderedInfo;
 					string output = console.GetLine(c + translate);
 					bool revert = false;
 					char first = output.at(0);
 					char* print;
 					if (first == Console::err || first == Console::imp)
 					{
-						if (first == Console::err)
-							Fonts.SetColor(CONSOLE_COLOR_ERROR);
-						else
-							Fonts.SetColor(CONSOLE_COLOR_IMPORTANT);
 						revert = true;
 						print = (char*)output.c_str();
 						print++;
@@ -1627,13 +1621,10 @@ namespace Window
 					else
 						print = (char*)output.c_str();
 
-					Window::GUI::Fonts.RenderText(print, RenderedInfo, xUnit);
+					Window::GUI::defaultFonts[2].RenderText(print, RenderedInfo, xUnit);
 					float xPos = 0.0f;
 					float yPos = y;
 					PaintLabel(RenderedInfo, xPos, yPos);
-
-					if (revert)
-						Fonts.SetColor(255, 255, 255);
 				}
 
 				y += floor(lineHeight / yUnit + 0.5f) * yUnit;
@@ -1726,9 +1717,8 @@ namespace Window
 				{
 					glEnable(GL_TEXTURE_2D);
 	
-					Window::GUI::FontCache::RenderedText RenderedInfo;
-					Window::GUI::Fonts.SetFontType(this->tooltiptype);
-					Window::GUI::Fonts.RenderText(this->tooltip , RenderedInfo, xUnit);
+					Window::GUI::TextRenderer::RenderedText RenderedInfo;
+					Window::GUI::defaultFonts[this->tooltiptype].RenderText(this->tooltip , RenderedInfo, xUnit);
 
 					float x = mx - RenderedInfo.w / 2;
 					float y = my - RenderedInfo.h;
@@ -1765,19 +1755,19 @@ namespace Window
 					glEnd();
 					glEnable(GL_TEXTURE_2D);
 
-					glBindTexture(GL_TEXTURE_2D, RenderedInfo.Texture);
+					glBindTexture(GL_TEXTURE_2D, RenderedInfo.texture);
 					glBegin(GL_QUADS);
 						glColor4f(1.0f,1.0f,1.0f,1.0f);
-						glTexCoord2f(RenderedInfo.texCoords[0], RenderedInfo.texCoords[1]);
+						glTexCoord2f(0.0f, 0.0f);
 						glVertex2f(0.0f,0.0f);
 	
-						glTexCoord2f(RenderedInfo.texCoords[2], RenderedInfo.texCoords[3]);
+						glTexCoord2f(RenderedInfo.maxX, 0.0f);
 						glVertex2f(RenderedInfo.w, 0.0f);
 					
-						glTexCoord2f(RenderedInfo.texCoords[4], RenderedInfo.texCoords[5]);
+						glTexCoord2f(RenderedInfo.maxX, RenderedInfo.maxY);
 						glVertex2f(RenderedInfo.w, RenderedInfo.h);
 	
-						glTexCoord2f(RenderedInfo.texCoords[6], RenderedInfo.texCoords[7]);
+						glTexCoord2f(0.0f, RenderedInfo.maxY);
 						glVertex2f(0.0f, RenderedInfo.h);
 					glEnd();
 					glDisable(GL_TEXTURE_2D);
@@ -1937,9 +1927,8 @@ namespace Window
 
 			glEnable(GL_TEXTURE_2D);
 
-			Window::GUI::FontCache::RenderedText RenderedInfo;
-			Window::GUI::Fonts.SetFontType(this->type);
-			Window::GUI::Fonts.RenderText(this->text , RenderedInfo, xUnit);
+			Window::GUI::TextRenderer::RenderedText RenderedInfo;
+			Window::GUI::defaultFonts[this->type].RenderText(this->text , RenderedInfo, xUnit);
 			float xPos = floor((w - RenderedInfo.w - 0.05f) / xUnit + 0.5f) * xUnit;
 			float yPos = floor((1.0f - RenderedInfo.h - 0.05f) / yUnit + 0.5f) * yUnit;
 			

@@ -29,7 +29,7 @@ namespace Window
 {
 	namespace GUI
 	{
-		class FontCache;
+		class TextRenderer;
 	}
 }
 

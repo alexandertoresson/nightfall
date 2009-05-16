@@ -276,7 +276,7 @@ namespace Window
 			protected:
 				std::string text;
 				int type;
-				void PaintLabel(Window::GUI::FontCache::RenderedText obj, float tx, float ty);
+				void PaintLabel(Window::GUI::TextRenderer::RenderedText obj, float tx, float ty);
 				void PaintLabel();
 			public:
 				Label();
@@ -327,7 +327,7 @@ namespace Window
 				unsigned maxSize;
 
 				float markerX;
-				FontCache::TextDimension textSize;
+				TextRenderer::TextDimension textSize;
 
 				bool drawMarker;
 

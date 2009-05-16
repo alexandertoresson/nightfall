@@ -29,92 +29,166 @@
 #include <cmath>
 #include <iostream>
 
-using namespace std;
-
 namespace Window
 {
 	namespace GUI
 	{
-		FontCache Fonts;
+		std::deque<gc_ptr<FontHandle> > FontHandle::LRUQueue;
+		int FontHandle::fontCacheAmount = 32;
+		int FontHandle::nextID = 0;
+		std::set<Font> Font::fontSet;
 
-		FontCache::FontCache()
+		FontHandle::FontHandle(const std::string& filename, int ptSize, int faceIndex) :
+		           filename(filename), ptSize(ptSize), faceIndex(faceIndex), failedLoading(false), font(NULL), id(nextID++)
 		{
-			if(TTF_Init() == -1) 
+		}
+
+		FontHandle::~FontHandle()
+		{
+			Unload();
+		}
+
+		void FontHandle::Unload()
+		{
+			if (font)
 			{
-				cout << "Font Init failure: \"" << TTF_GetError() << "\"" << endl;
-				exit(FONT_ERROR_INIT_FAILURE);
+				TTF_CloseFont(font);
+				font = NULL;
 			}
-//			atexit(TTF_Quit); << We're already using this function for Window::OnExit.
-			this->CacheAmount = 128;
-			this->textColor.r = 255;
-			this->textColor.g = 255;
-			this->textColor.b = 255;
-			this->textColor.unused = 0;
-			this->fontcolor = 255 << 16 | 255 << 8 | 255;
-			this->fonttype = 2;
-			this->font = new TTF_Font*[5];
 		}
 
-		FontCache::FontCache(int CacheAmount)
-		{
-			FontCache();
-			this->CacheAmount = CacheAmount;
-		}
-		
-		int FontCache::GetPointSize(float size)
+		int FontHandle::GetPointSize(float size)
 		{
 			float factor = (float)Window::windowHeight / 480.0f;
 			return (int)floor((factor * size) + 0.5f) + 1;
 		}
 		
-		float FontCache::GetLineHeight(float resolution)
+		TTF_Font* FontHandle::GetFont()
 		{
-			int height = TTF_FontHeight(this->font[this->fonttype]);
+			if (font)
+			{
+				return font;
+			}
+			else
+			{
+				if (failedLoading)
+					return NULL;
+
+				if (LRUQueue.size() == (unsigned) fontCacheAmount)
+				{
+					LRUQueue.front()->Unload();
+					LRUQueue.pop_front();
+				}
+
+				std::string path = Utilities::VFS::ResolveReadable("/data/fonts/" + filename);
+
+				if (!path.length())
+				{
+					std::cout << "Could not find font \"" << filename << "\"!" << std::endl;
+					failedLoading = true;
+					return NULL;
+				}
+
+				std::cout << "Loading font file \"" << path << "\"" << std::endl;
+			
+				if(!(font = TTF_OpenFontIndex(path.c_str(), GetPointSize(ptSize), faceIndex)))
+				{
+					std::cout << "Couldn't open font file \"" << path << "\". SDL_ttf Reports: \"" << TTF_GetError() << "\"" << std::endl;
+					failedLoading = true;
+				}
+
+				if (font)
+					LRUQueue.push_back(GetRef());
+
+				return font;
+			}
+		}
+
+		Font::Font(std::string filename, int ptSize, bool underlined, int faceIndex) : 
+	     	     filename(filename), ptSize(ptSize), underlined(underlined), faceIndex(faceIndex)
+		{
+			changed = true;
+		}
+
+		void Font::UpdateFontHandle()
+		{
+			if (changed)
+			{
+				std::set<Font>::iterator it = fontSet.find(*this);
+				if (it != fontSet.end())
+				{
+					fontHandle = it->fontHandle;
+				}
+				else
+				{
+					fontHandle = new FontHandle(filename, ptSize, faceIndex);
+					fontSet.insert(*this);
+				}
+				changed = false;
+			}
+		}
+
+		float Font::GetLineHeight(float resolution)
+		{
+			UpdateFontHandle();
+			return TextRenderer::textRenderer.GetLineHeight(fontHandle, resolution);
+		}
+
+		TextRenderer::TextDimension Font::GetTextSize(const std::string& text, float resolution)
+		{
+			UpdateFontHandle();
+			return TextRenderer::textRenderer.GetTextSize(fontHandle, text, resolution);
+		}
+
+		int Font::RenderText(const std::string& text, TextRenderer::RenderedText& fonten)
+		{
+			UpdateFontHandle();
+			return TextRenderer::textRenderer.RenderText(fontHandle, text, fonten);
+		}
+
+		int Font::RenderText(const std::string& text, TextRenderer::RenderedText& fonten, float resolution)
+		{
+			UpdateFontHandle();
+			return TextRenderer::textRenderer.RenderText(fontHandle, text, fonten, resolution);
+		}
+
+		TextRenderer TextRenderer::textRenderer;
+
+		TextRenderer::TextRenderer()
+		{
+			if(TTF_Init() == -1) 
+			{
+				std::cout << "Font Init failure: \"" << TTF_GetError() << "\"" << std::endl;
+				exit(FONT_ERROR_INIT_FAILURE);
+			}
+			this->textCacheAmount = 128;
+		}
+
+		TextRenderer::~TextRenderer()
+		{
+			if (!TTF_WasInit())
+				return;
+			
+			TTF_Quit();
+		}
+
+		float TextRenderer::GetLineHeight(gc_ptr<FontHandle> fontHandle, float resolution)
+		{
+			int height = TTF_FontHeight(fontHandle->GetFont());
 			return (float)height * resolution;
 		}
 
-		int FontCache::LoadFont(string filename)
-		{
-			std::string path = Utilities::VFS::ResolveReadable("/data/fonts/" + filename);
-
-			if (!path.length())
-			{
-				cout << "Could not find font \"" << filename << "\"!" << endl;
-				return FONT_ERROR_FILE_LOAD;
-			}
-
-			cout << "Loading font file \"" << path << "\"" << endl;
-			//10 pt at 640 x 480, relative font calculation
-//			float factor = (float)Window::windowHeight / 480.0f;
-//			int pt = (int)floor((factor * 14.0f) + 0.5f) + 1;
-
-			this->font[2] = TTF_OpenFont(path.c_str(), GetPointSize(14));
-
-			if(!this->font[2])
-			{
-				cout << path << endl;
-				cout << "Font Init failure: Couldn't open font file \"" << path << "\". SDL Reports: \"" << TTF_GetError() << "\"" << endl;
-				return FONT_ERROR_FILE_LOAD;
-			}
-
-			this->font[0] = TTF_OpenFont(path.c_str(), GetPointSize(10));
-			this->font[1] = TTF_OpenFont(path.c_str(), GetPointSize(12));
-			this->font[3] = TTF_OpenFont(path.c_str(), GetPointSize(16));
-			this->font[4] = TTF_OpenFont(path.c_str(), GetPointSize(20));
-			return SUCCESS;
-		}
-
 		//Fixes texture coordinates for GUI relative coordinate system
-		int FontCache::RenderText(string text, FontCache::RenderedText& Fonten)
+		int TextRenderer::RenderText(gc_ptr<FontHandle> fontHandle, const std::string& text, TextRenderer::RenderedText& fonten)
 		{
-			return RenderText(text, Fonten, 1.0f / (float)Window::windowHeight);
+			return RenderText(fontHandle, text, fonten, 1.0f / (float)Window::windowHeight);
 		}
 
-		FontCache::TextDimension FontCache::GetTextSize(string text, float resolution)
+		TextRenderer::TextDimension TextRenderer::GetTextSize(gc_ptr<FontHandle> fontHandle, const std::string& text, float resolution)
 		{
 			int w = 0;
 			int h = 0;
-			TTF_SizeUTF8(font[fonttype],text.c_str(), &w, &h);
+			TTF_SizeUTF8(fontHandle->GetFont(), text.c_str(), &w, &h);
 
 			TextDimension dim;
 			dim.w = (float) w * resolution;
@@ -122,88 +196,44 @@ namespace Window
 			return dim;
 		}
 
-		int FontCache::RenderText(string text, FontCache::RenderedText& Fonten, float resolution)
+		int TextRenderer::RenderText(gc_ptr<FontHandle> fontHandle, const std::string& text, TextRenderer::RenderedText& fonten, float resolution)
 		{
-			//Check so that it isn't cached
-			map<string, FontCache::FontContainer>::iterator location = CachedText.find(text);
-			if(location != CachedText.end())
+			SDL_Color color;
+			color.r = 0xFF;
+			color.g = 0xFF;
+			color.b = 0xFF;
+			color.unused = 0xFF;
+
+			//Check whether the text is already cached
+			std::map<TextKey, RenderedText>::iterator it = cachedText.find(TextKey(fontHandle, text));
+			if (it != cachedText.end())
 			{
-				FontTexture* Cached = (*location).second.first;
-				while(Cached != NULL)
-				{
-					if(Cached->fontcolor == fontcolor && Cached->fonttype == fonttype)
-					{
-//						FontCache::RenderedText FontTexten; <--- unused
-						Fonten.w = Cached->w;
-						Fonten.h = Cached->h;
-						Fonten.Texture = Cached->Texture;
-						Fonten.texCoords = Cached->texCoords;
-						return SUCCESS;
-					}
-					Cached = Cached->nxt;
-				}
+				fonten = it->second;
+				return SUCCESS;
 			}
 
-			SDL_Surface *text_surface = TTF_RenderUTF8_Blended(font[fonttype],text.c_str(),textColor);
-			if(!text_surface)
+			SDL_Surface *text_surface = TTF_RenderUTF8_Blended(fontHandle->GetFont(),text.c_str(),color);
+			if (!text_surface)
 			{
-				cout << "Render Text failed: " << TTF_GetError() << endl;
+				std::cout << "Render Text failed: " << TTF_GetError() << std::endl;
 				return ERROR_GENERAL;
 			} 
 			else 
 			{
-				if(CachedTexture.size() + 1 > (unsigned) this->CacheAmount)
+				if (LRUQueue.size() == (unsigned) textCacheAmount)
 				{
 					//Delete the oldest
-					FontTexture* data = (FontTexture*)(CachedTexture.front());
-					CachedTexture.pop();
-					map<string, FontCache::FontContainer>::iterator loc = CachedText.find(data->Text);
-					if(loc != CachedText.end())
-					{
-						if((*loc).second.first->nxt == NULL)
-						{
-							CachedText.erase(loc);
-						}
-						else
-						{
-							FontTexture *prev = (*loc).second.first;
-							FontTexture *ptr = prev;
-							while(ptr != NULL)
-							{
-								if(ptr == data)
-									break;
-							}
-							if(ptr == prev)
-							{
-								(*loc).second.first = ptr;
-							}
-							else
-							{
-								if(ptr->nxt != NULL)
-									prev->nxt = NULL;
-								else
-									prev->nxt = ptr->nxt;
-							}
-						}
-					}
-					glDeleteTextures(1, &data->Texture);
-					delete [] data->texCoords;
-					delete data;
+					const RenderedText& old = cachedText[LRUQueue.front()];
+					glDeleteTextures(1, &old.texture);
+					cachedText.erase(LRUQueue.front());
+					LRUQueue.pop_front();
 				}
-				FontCache::FontTexture *fonttexture = new FontCache::FontTexture;				
-				fonttexture->w = (float)text_surface->w * resolution;
-				fonttexture->h = (float)text_surface->h * resolution;	
-				fonttexture->Text = text;
-				fonttexture->fonttype = fonttype;
-				fonttexture->fontcolor = fontcolor;
-				fonttexture->nxt = NULL;
-				//int w = 0;
-				//int h = 0;
-				//TTF_SizeUTF8(font, text.c_str(), w&, h&)
+				fonten.w = (float)text_surface->w * resolution;
+				fonten.h = (float)text_surface->h * resolution;	
 				
 				int w2 = Utilities::power_of_two(text_surface->w);
 				int h2 = Utilities::power_of_two(text_surface->h);
-					/* Create a 32-bit surface with the bytes of each pixel in R,G,B,A order,
+				/* Create a 32-bit surface with the bytes of each pixel in R,G,B,A order,
 				   as expected by OpenGL for textures */
 				SDL_Surface *surface;
 				Uint32 rmask, gmask, bmask, amask;
@@ -222,21 +252,22 @@ namespace Window
 #endif
 
 				surface = SDL_CreateRGBSurface(SDL_SWSURFACE, w2, h2, 32, rmask, gmask, bmask, amask);
-				if(surface == NULL) {
-					cout << "Font creatation failure! Couldn't create SDL_Surface: " << SDL_GetError() << endl;
+				if (surface == NULL)
+				{
+					std::cout << "Font creation failure! Couldn't create SDL_Surface: " << SDL_GetError() << std::endl;
 					exit(ERROR_GENERAL);
 				}
 				SDL_SetAlpha(text_surface, 0, SDL_ALPHA_OPAQUE);
-				if(SDL_BlitSurface(text_surface, NULL, surface, NULL) == -1)
+				if (SDL_BlitSurface(text_surface, NULL, surface, NULL) == -1)
 				{
-					cout << "BLIT ERROR!!!" << endl;
+					std::cout << "BLIT ERROR!!!" << std::endl;
 				}
 					
 				GLuint texture;
 				glGenTextures(1, &texture);
 				glBindTexture(GL_TEXTURE_2D, texture);
 
-				// gl parameters	
+				// gl parameters
 				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);	
 
@@ -244,81 +275,33 @@ namespace Window
 
 				float maxX = (float)text_surface->w / (float)w2;
 				float maxY = (float)text_surface->h / (float)h2;
-				fonttexture->texCoords = new GLfloat[8];
-				fonttexture->texCoords[0] = 0.0f;
-				fonttexture->texCoords[1] = 0.0f;
+				fonten.maxX = maxX;
+				fonten.maxY = maxY;
 
-				fonttexture->texCoords[2] = maxX;
-				fonttexture->texCoords[3] = 0.0f;
+				fonten.texture = texture;
 
-				fonttexture->texCoords[4] = maxX;
-				fonttexture->texCoords[5] = maxY;
+				cachedText[TextKey(fontHandle, text)] = fonten;
+				LRUQueue.push_front(TextKey(fontHandle, text));
 
-				fonttexture->texCoords[6] = 0.0f;
-				fonttexture->texCoords[7] = maxY;
-
-				fonttexture->Texture = texture;
-
-				map<string, FontCache::FontContainer>::iterator newlocation = CachedText.find(text);
-				if(newlocation == CachedText.end())
-				{
-					FontContainer cont;
-					cont.first = fonttexture;
-					CachedText[text] = cont;
-				}
-				else
-				{
-					fonttexture->nxt = (*newlocation).second.first;
-					(*newlocation).second.first = fonttexture;
-				}
-				this->CachedTexture.push(fonttexture);
-					
 				//perhaps we can reuse it, but I assume not for simplicity.
 				SDL_FreeSurface(text_surface);
 				SDL_FreeSurface(surface);
-
-				Fonten.w = fonttexture->w;
-				Fonten.h = fonttexture->h;
-				Fonten.Texture = fonttexture->Texture;
-				Fonten.texCoords = fonttexture->texCoords;
 			}
 
 			return SUCCESS;
 		}
 
-		void FontCache::SetColor(Uint8 r, Uint8 g, Uint8 b)
+		int InitDefaultFont(std::string filename)
 		{
-			this->textColor.r = r;
-			this->textColor.g = g;
-			this->textColor.b = b;
-			this->textColor.unused = 0;
-			this->fontcolor = (int)r << 16 | (int)g << 8 | (int)b;
+			defaultFonts[0] = Font(filename, 10);
+			defaultFonts[1] = Font(filename, 12);
+			defaultFonts[3] = Font(filename, 16);
+			defaultFonts[4] = Font(filename, 20);
+			defaultFonts[2] = Font(filename, 14);
+			return SUCCESS;
 		}
-
-		void FontCache::SetFontType(int type)
-		{
-			this->fonttype = type;
-		}
-
-		FontCache::~FontCache()
-		{
-			//Deallocate all textures
-		}
-
-		int InitFont(std::string fontName)
-		{
-			if(Fonts.LoadFont(fontName) == SUCCESS)
-				return SUCCESS;
-			return FONT_ERROR_FILE_LOAD;
-		}
-
-		void KillFontSystem(void)
-		{
-			if (!TTF_WasInit())
-				return;
-			
-			TTF_Quit();
-		}
+		
+		Font defaultFonts[5];
 	}
 }
 

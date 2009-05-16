@@ -89,26 +89,25 @@ namespace GUI
 		template <>
 		void Drawer<Text>::Draw(const Text& text, float x, float y, float w, float h) const
 		{
-			::Window::GUI::FontCache::RenderedText RenderedInfo;
-			::Window::GUI::Fonts.SetFontType(2);
-			::Window::GUI::Fonts.RenderText(text.Get(), RenderedInfo, Workspace::metrics.GetDPI());
+			::Window::GUI::TextRenderer::RenderedText RenderedInfo;
+			::Window::GUI::defaultFonts[2].RenderText(text.Get(), RenderedInfo, Workspace::metrics.GetDPI());
 			
 			glEnable(GL_TEXTURE_2D);
-			glBindTexture(GL_TEXTURE_2D, RenderedInfo.Texture);
+			glBindTexture(GL_TEXTURE_2D, RenderedInfo.texture);
 			glPushMatrix();
 			glTranslatef(x, y, 0.0f);
 			glBegin(GL_QUADS);
 				glColor4f(1.0f,1.0f,1.0f,1.0f);
-				glTexCoord2f(RenderedInfo.texCoords[0], RenderedInfo.texCoords[1]);
-				glVertex2f(0.0f,0.0f);
+				glTexCoord2f(0.0f, 0.0f);
+				glVertex2f(0.0f, 0.0f);
 
-				glTexCoord2f(RenderedInfo.texCoords[2], RenderedInfo.texCoords[3]);
+				glTexCoord2f(RenderedInfo.maxX, 0.0f);
 				glVertex2f(RenderedInfo.w, 0.0f);
 
-				glTexCoord2f(RenderedInfo.texCoords[4], RenderedInfo.texCoords[5]);
+				glTexCoord2f(RenderedInfo.maxX, RenderedInfo.maxY);
 				glVertex2f(RenderedInfo.w, RenderedInfo.h);
 
-				glTexCoord2f(RenderedInfo.texCoords[6], RenderedInfo.texCoords[7]);
+				glTexCoord2f(0.0f, RenderedInfo.maxY);
 				glVertex2f(0.0f, RenderedInfo.h);
 			glEnd();
 			glPopMatrix();
@@ -124,9 +123,8 @@ namespace GUI
 		template <>
 		void Drawer<Text>::GetOuterSize(const Text& text, float cw, float ch, float& w, float& h) const
 		{
-			::Window::GUI::FontCache::TextDimension dims;
-			::Window::GUI::Fonts.SetFontType(2);
-			dims = ::Window::GUI::Fonts.GetTextSize(text.Get(), Workspace::metrics.GetDPI());
+			::Window::GUI::TextRenderer::TextDimension dims;
+			dims = ::Window::GUI::defaultFonts[2].GetTextSize(text.Get(), Workspace::metrics.GetDPI());
 			w = dims.w;
 			h = dims.h;
 		}

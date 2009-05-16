@@ -259,7 +259,7 @@ namespace Game
 			pExit->AttachHandler(&GameTest::ActionSelect);
 			pExit->SetTag(this);
 
-			pMainPanel->SetConstraint(textbox, 0.2f, 0.2f, 0.5f, Fonts.GetLineHeight(xUnit));
+			pMainPanel->SetConstraint(textbox, 0.2f, 0.2f, 0.5f, defaultFonts[2].GetLineHeight(xUnit));
 			pMainPanel->SetConstraint(button, 0.1f, 0.5f, this->w - 0.2f, 0.1f);
 
 			pExit->SetText(_("Exit"));
@@ -1796,9 +1796,8 @@ namespace Game
 			if(this->text != "")
 			{
 				glEnable(GL_TEXTURE_2D);
-				Window::GUI::FontCache::RenderedText RenderedInfo;
-				Window::GUI::Fonts.SetFontType(this->type);
-				Window::GUI::Fonts.RenderText(this->text , RenderedInfo, xUnit);
+				Window::GUI::TextRenderer::RenderedText RenderedInfo;
+				Window::GUI::defaultFonts[type].RenderText(text , RenderedInfo, xUnit);
 				float xPos = floor((w - RenderedInfo.w - 0.05f) / xUnit + 0.5f) * xUnit;
 				float yPos = floor((1.0f - RenderedInfo.h - 0.05f) / yUnit + 0.5f) * yUnit;
 
@@ -2169,11 +2168,11 @@ namespace Game
 
 			pStatus->SetText(_("Awaiting input..."));
 
-			pMainPanel->SetConstraintPercent(pMainPanel->Add(pIPAdress), 0.1, 0.1, 0.4, Fonts.GetLineHeight(xUnit));
-			pMainPanel->SetConstraintPercent(pMainPanel->Add(pIPText), 0.5, 0.1, 0.4, Fonts.GetLineHeight(xUnit));
+			pMainPanel->SetConstraintPercent(pMainPanel->Add(pIPAdress), 0.1, 0.1, 0.4, defaultFonts[2].GetLineHeight(xUnit));
+			pMainPanel->SetConstraintPercent(pMainPanel->Add(pIPText), 0.5, 0.1, 0.4, defaultFonts[2].GetLineHeight(xUnit));
 
 			pMainPanel->SetConstraintPercent(pMainPanel->Add(pConnect), 0.3 , 0.3, 0.4, 0.1);
-			pMainPanel->SetConstraintPercent(pMainPanel->Add(pStatus), 0.1 , 0.5, 0.8, Fonts.GetLineHeight(xUnit));
+			pMainPanel->SetConstraintPercent(pMainPanel->Add(pStatus), 0.1 , 0.5, 0.8, defaultFonts[2].GetLineHeight(xUnit));
 			pMainPanel->SetConstraintPercent(pMainPanel->Add(pQuit), 0.0, 0.9, 0.5, 0.1);
 
 			pIPAdress->SetText(_("Host:"));
@@ -2288,10 +2287,10 @@ namespace Game
 			pMainPanel->SetConstraintPercent(pMainPanel->Add(pJoin), 0.1, 0.1, 0.4, 0.1);
 			pMainPanel->SetConstraintPercent(pMainPanel->Add(pCreate), 0.5, 0.1, 0.4, 0.1);
 
-			pMainPanel->SetConstraintPercent(pMainPanel->Add(pPortText), 0.1f, 0.5, 0.35f, Fonts.GetLineHeight(xUnit));
-			pMainPanel->SetConstraintPercent(pMainPanel->Add(pPort), 0.45, 0.5, 0.1, Fonts.GetLineHeight(xUnit));
-			pMainPanel->SetConstraintPercent(pMainPanel->Add(pNickText), 0.1f, 0.525f + Fonts.GetLineHeight(xUnit), 0.2f, Fonts.GetLineHeight(xUnit));
-			pMainPanel->SetConstraintPercent(pMainPanel->Add(pNick), 0.3, 0.525f + Fonts.GetLineHeight(xUnit), 0.5, Fonts.GetLineHeight(xUnit));
+			pMainPanel->SetConstraintPercent(pMainPanel->Add(pPortText), 0.1f, 0.5, 0.35f, defaultFonts[2].GetLineHeight(xUnit));
+			pMainPanel->SetConstraintPercent(pMainPanel->Add(pPort), 0.45, 0.5, 0.1, defaultFonts[2].GetLineHeight(xUnit));
+			pMainPanel->SetConstraintPercent(pMainPanel->Add(pNickText), 0.1f, 0.525f + defaultFonts[2].GetLineHeight(xUnit), 0.2f, defaultFonts[2].GetLineHeight(xUnit));
+			pMainPanel->SetConstraintPercent(pMainPanel->Add(pNick), 0.3, 0.525f + defaultFonts[2].GetLineHeight(xUnit), 0.5, defaultFonts[2].GetLineHeight(xUnit));
 
 			pMainPanel->SetConstraintPercent(pMainPanel->Add(pQuit), 0.0, 0.9, 0.5, 0.1);
 
@@ -2349,7 +2348,7 @@ namespace Game
 			pQuit->AttachHandler(&Quit);
 			pQuit->SetTag(this);
 
-			pMainPanel->SetConstraintPercent(pMainPanel->Add(pStatus), 0.1, 0.1, 0.8, Fonts.GetLineHeight(xUnit));
+			pMainPanel->SetConstraintPercent(pMainPanel->Add(pStatus), 0.1, 0.1, 0.8, defaultFonts[2].GetLineHeight(xUnit));
 			pMainPanel->SetConstraintPercent(startGame = pMainPanel->Add(pStart), 0.4, 0.2, 0.2, 0.1);
 			pMainPanel->SetConstraintPercent(pMainPanel->Add(pQuit), 0.0, 0.9, 0.5, 0.1);
 

@@ -105,6 +105,9 @@ int main(int argc, char** argv)
 	Window::OnClose(KillAll);
 
 	gc_marker_base::initgc();
+	gc_marker_base::register_static_shader(Window::GUI::FontHandle::static_shade);
+	gc_marker_base::register_static_shader(Window::GUI::Font::static_shade);
+	gc_marker_base::register_static_shader(Window::GUI::TextRenderer::static_shade);
 
 
 	{
@@ -129,7 +132,7 @@ int main(int argc, char** argv)
 
 		Window::SetTitle(Utilities::mainConfig.GetValue("application header").c_str());
 
-		if(Window::GUI::InitFont(Utilities::mainConfig.GetValue("default font")) != SUCCESS)
+		if (Window::GUI::InitDefaultFont(Utilities::mainConfig.GetValue("default font")) != SUCCESS)
 		{
 #ifdef WIN32
 			MessageBoxA( NULL, _("Font Init Error."), _("An error occurred"), MB_OK | MB_ICONERROR);
@@ -355,10 +358,6 @@ void KillAll(void)
 
 #if USE_AUDIO == 1
 	Audio::Kill();
-#endif
-
-#if USE_FONT == 1
-	Window::GUI::KillFontSystem();
 #endif
 
 	if (Game::Rules::GameWindow::IsNull() == false)
