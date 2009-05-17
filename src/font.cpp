@@ -104,6 +104,11 @@ namespace Window
 			}
 		}
 
+		Font::Font()
+		{
+			*this = defaultFonts[2];
+		}
+
 		Font::Font(std::string filename, int ptSize, bool underlined, int faceIndex) : 
 	     	     filename(filename), ptSize(ptSize), underlined(underlined), faceIndex(faceIndex)
 		{

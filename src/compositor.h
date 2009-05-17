@@ -26,10 +26,10 @@
 #endif
 
 #include "compositor-pre.h"
-#include "themeengine-pre.h"
 
 #include "core.h"
 #include "window.h"
+#include "themeengine.h"
 
 #include <string>
 #include <sdlheader.h>

@@ -188,7 +188,8 @@ namespace Window
 				void UpdateFontHandle();
 
 			public:
-				Font(std::string filename = "", int ptSize = 10, bool underlined = false, int faceIndex = 0);
+				Font();
+				Font(std::string filename, int ptSize = 10, bool underlined = false, int faceIndex = 0);
 
 				void SetFilename(std::string fileName)
 				{

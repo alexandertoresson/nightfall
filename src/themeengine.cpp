@@ -19,7 +19,7 @@
  * along with Nightfall.  If not, see <http://www.gnu.org/licenses/>.
  */
 #include "themeengine.h"
-#include "font.h"
+#include "compositor.h"
 
 namespace GUI
 {
@@ -87,10 +87,10 @@ namespace GUI
 		}
 
 		template <>
-		void Drawer<Text>::Draw(const Text& text, float x, float y, float w, float h) const
+		void Drawer<Text>::Draw(Text& text, float x, float y, float w, float h)
 		{
 			::Window::GUI::TextRenderer::RenderedText RenderedInfo;
-			::Window::GUI::defaultFonts[2].RenderText(text.Get(), RenderedInfo, Workspace::metrics.GetDPI());
+			text.font.RenderText(text.Get(), RenderedInfo, Workspace::metrics.GetDPI());
 			
 			glEnable(GL_TEXTURE_2D);
 			glBindTexture(GL_TEXTURE_2D, RenderedInfo.texture);
@@ -115,34 +115,34 @@ namespace GUI
 		}
 
 		template <>
-		void Drawer<Text>::GetInnerSize(const Text& text, float w, float h, float& iw, float& ih) const
+		void Drawer<Text>::GetInnerSize(Text& text, float w, float h, float& iw, float& ih)
 		{
 			iw = ih = 0;
 		}
 
 		template <>
-		void Drawer<Text>::GetOuterSize(const Text& text, float cw, float ch, float& w, float& h) const
+		void Drawer<Text>::GetOuterSize(Text& text, float cw, float ch, float& w, float& h)
 		{
 			::Window::GUI::TextRenderer::TextDimension dims;
-			dims = ::Window::GUI::defaultFonts[2].GetTextSize(text.Get(), Workspace::metrics.GetDPI());
+			dims = text.font.GetTextSize(text.Get(), Workspace::metrics.GetDPI());
 			w = dims.w;
 			h = dims.h;
 		}
 		
 		template <>
-		void Drawer<Component>::Draw(const Component& comp, float x, float y, float w, float h) const
+		void Drawer<Component>::Draw(Component& comp, float x, float y, float w, float h)
 		{
 		}
 		
 		template <>
-		void Drawer<Component>::GetInnerSize(const Component& comp, float w, float h, float& iw, float& ih) const
+		void Drawer<Component>::GetInnerSize(Component& comp, float w, float h, float& iw, float& ih)
 		{
 			iw = w - comp.margin.right - comp.margin.left;
 			ih = h - comp.margin.top - comp.margin.bottom;
 		}
 
 		template <>
-		void Drawer<Component>::GetOuterSize(const Component& comp, float cw, float ch, float& w, float& h) const
+		void Drawer<Component>::GetOuterSize(Component& comp, float cw, float ch, float& w, float& h)
 		{
 			w = cw + comp.margin.right + comp.margin.left;
 			h = ch + comp.margin.top + comp.margin.bottom;
@@ -160,12 +160,12 @@ namespace GUI
 		
 		// Default null implementations used for unimplemented default drawers
 		template <typename T>
-		void Drawer<T>::Draw(const T& info, float x, float y, float w, float h) const {}
+		void Drawer<T>::Draw(T& info, float x, float y, float w, float h) {}
 
 		template <typename T>
-		void Drawer<T>::GetOuterSize(const T& info, float cw, float ch, float& w, float& h) const {w = cw; h = ch;}
+		void Drawer<T>::GetOuterSize(T& info, float cw, float ch, float& w, float& h) {w = cw; h = ch;}
 		
 		template <typename T>
-		void Drawer<T>::GetInnerSize(const T& info, float w, float h, float& iw, float& ih) const {iw = w; ih = h;}
+		void Drawer<T>::GetInnerSize(T& info, float w, float h, float& iw, float& ih) {iw = w; ih = h;}
 	}
 }

@@ -63,9 +63,9 @@ namespace GUI
 		class Drawer
 		{
 			public:
-				virtual void Draw(const T& info, float x, float y, float w, float h) const;
-				virtual void GetOuterSize(const T& info, float cw, float ch, float& w, float& h) const;
-				virtual void GetInnerSize(const T& info, float w, float h, float& iw, float& ih) const;
+				virtual void Draw(T& info, float x, float y, float w, float h);
+				virtual void GetOuterSize(T& info, float cw, float ch, float& w, float& h);
+				virtual void GetInnerSize(T& info, float w, float h, float& iw, float& ih);
 				virtual void shade() {}
 		};
 
@@ -140,16 +140,7 @@ namespace GUI
 
 		class SubComponent;
 
-		class Text : public InfoBase
-		{
-			private:
-				std::string text;
-			public:
-				Text(gc_ptr<Component> component, std::string text);
-
-				void Set(std::string text);
-				std::string Get() const;
-		};
+		class Text;
 
 		struct ToggleButtonGroup
 		{

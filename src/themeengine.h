@@ -26,8 +26,9 @@
 #endif
 
 #include "themeengine-pre.h"
+#include "compositor-pre.h"
 
-#include "compositor.h"
+#include "font.h"
 
 namespace GUI
 {
@@ -41,6 +42,20 @@ namespace GUI
 				void Set(std::string text);
 				void Set(gc_ptr<Component> comp);
 		};
+		
+		class Text : public InfoBase
+		{
+			private:
+				std::string text;
+			public:
+				Window::GUI::Font font;
+
+				Text(gc_ptr<Component> component, std::string text);
+
+				void Set(std::string text);
+				std::string Get() const;
+		};
+
 	}
 }
 
