@@ -49,7 +49,7 @@ namespace GUI
 		
 		/* Basic Drawer API:
 			// Pass in Info object describing how the widget should be rendered, and position and width and height of it
-			virtual void Draw(Foo* into, float x, float y, float w, float h);
+			virtual void Draw(Foo& into, float x, float y, float w, float h);
 			// cw and ch is the size of the components inside this component.
 			// w and h are the calculated sizes of this component when it has to contain components of the specified size.
 			// Note that cw and ch only apply to things that can contain other stuff, like borders
