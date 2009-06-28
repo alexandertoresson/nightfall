@@ -118,8 +118,7 @@ namespace GUI
 
 			gc_ptr<Frame> frame = new Frame();
 
-			frame->frameBorders.SetStyle(ThemeEngine::FrameBorders::STYLE_NORMAL);
-			frame->frameTitle.Set("Hello");
+			frame->borders.text.Set("Hello");
 
 			workspace->Add(frame);
 			

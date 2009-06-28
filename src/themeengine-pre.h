@@ -225,22 +225,6 @@ namespace GUI
 				bool GetShowAlways() const;
 		};
 		
-		class Image : public InfoBase
-		{
-			private:
-				std::string filename;
-				float width, height;
-			public:
-				Image(gc_ptr<Component> component, std::string file, float width, float height);
-
-				void SetImage(std::string filename);
-				void SetDimensions(float width, float height);
-
-				std::string GetImage() const;
-				float GetWidth() const;
-				float GetHeight() const;
-		};
-		
 		class Button : public InfoBase
 		{
 			public:
@@ -269,37 +253,15 @@ namespace GUI
 				};
 			private:
 				Style style;
-				float size;
 
 			public:
-				Borders(gc_ptr<Component> component, float size = 0.1f, Style style = STYLE_FLAT);
+				Borders(gc_ptr<Component> component, Style style = STYLE_FLAT);
 
 				void SetStyle(Style style);
-				void SetSize(float size);
 
 				Style GetStyle() const;
-				float GetSize() const;
 		};
 		
-		class FrameBorders : public InfoBase
-		{
-			public:
-				enum Style
-				{
-					STYLE_NONE,
-					STYLE_NORMAL,
-					STYLE_SMALL
-				};
-			private:
-				Style style;
-
-			public:
-				FrameBorders(gc_ptr<Component> component, Style style);
-
-				void SetStyle(Style style);
-				Style GetStyle() const;
-		};
-
 	}
 }
 

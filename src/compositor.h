@@ -445,8 +445,7 @@ namespace GUI
 
 			void Paint();
 		public:
-			ThemeEngine::FrameBorders frameBorders;
-			ThemeEngine::Text frameTitle;
+			ThemeEngine::FrameBorders borders;
 
 			Frame(float x = 0.0f, float y = 0.0f, float w = 1.0f, float h = 1.0f, StartLocation location = LOCATION_DEFAULT, LayerIndex layer = LAYER_STANDARD);
 			

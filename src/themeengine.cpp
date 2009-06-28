@@ -40,7 +40,7 @@ namespace GUI
 			return comp;
 		}
 		
-		Text::Text(gc_ptr<Component> component, std::string text) : InfoBase(component), text(text)
+		Text::Text(gc_ptr<Component> component, std::string text, Window::GUI::Font font) : InfoBase(component), text(text), font(font)
 		{
 			
 		}
@@ -55,24 +55,14 @@ namespace GUI
 			return text;
 		}
 
-		Borders::Borders(gc_ptr<Component> component, float size, Borders::Style style) : InfoBase(component), style(style), size(size)
+		Borders::Borders(gc_ptr<Component> component, Borders::Style style) : InfoBase(component), style(style)
 		{
 			
 		}
 
-		FrameBorders::FrameBorders(gc_ptr<Component> component, FrameBorders::Style style) : InfoBase(component), style(style)
+		FrameBorders::FrameBorders(gc_ptr<Component> component, bool hasTitle, std::string text, Window::GUI::Font font) : InfoBase(component), hasTitle(hasTitle), text(component, text, font)
 		{
 			
-		}
-
-		void FrameBorders::SetStyle(Style style)
-		{
-			this->style = style;
-		}
-
-		FrameBorders::Style FrameBorders::GetStyle() const
-		{
-			return style;
 		}
 
 		RangeBase::RangeBase(gc_ptr<Component> component, float low, float high, Direction direction) : InfoBase(component), direction(direction), low(low), high(high)
@@ -85,7 +75,7 @@ namespace GUI
 		{
 			
 		}
-
+		
 		template <>
 		void Drawer<Text>::Draw(Text& text, float x, float y, float w, float h)
 		{

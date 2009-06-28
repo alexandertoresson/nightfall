@@ -511,8 +511,7 @@ namespace GUI
 		Container(x, y, w, h),
 		layer(layer),
 		location(location),
-		frameBorders(GetRef(), ThemeEngine::FrameBorders::STYLE_NONE),
-		frameTitle(GetRef(), "")
+		borders(GetRef(), true, "", Window::GUI::defaultFonts[2])
 	{
 		
 	}
@@ -520,7 +519,7 @@ namespace GUI
 	void Frame::Paint()
 	{
 		float iw, ih;
-		Workspace::theme->frameBordersDrawer->GetInnerSize(frameBorders, dimensions.w, dimensions.h, iw, ih);
+		Workspace::theme->frameBordersDrawer->GetInnerSize(borders, dimensions.w, dimensions.h, iw, ih);
 	}
 
 	Workspace::Workspace() : frames(Frame::LAYER_END)
