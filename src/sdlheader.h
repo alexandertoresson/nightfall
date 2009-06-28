@@ -18,9 +18,10 @@
  * You should have received a copy of the GNU General Public License
  * along with Nightfall.  If not, see <http://www.gnu.org/licenses/>.
  */
+
 //#include "memfragdebug.h" // Enable for memory fragmentation debugging
 
-#define NO_LOCKCHECKER
+#define NO_LOCKCHECKER // Enable for mutex look debugging and statistics
 
 #ifdef HAVE_CONFIG_H
 #include "config.h"
@@ -85,6 +86,6 @@
 #endif
 
 #ifndef NO_LOCKCHECKER
-#include "lockchecker.h" // Enable for mutex look debugging and statistics
+#include "lockchecker.h"
 #endif
 
