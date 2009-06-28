@@ -286,6 +286,7 @@ namespace Game
 			atLeastOneFrameCalculated = false;
 
 			renderMutex = SDL_CreateMutex();
+			renderMutex2 = SDL_CreateMutex();
 			pauseRendering = false;
 
 		}
@@ -851,8 +852,7 @@ namespace Game
 
 				if (Game::Rules::noGraphics)
 					SDL_Delay(1);
-
-				if (!Game::Rules::noGraphics)
+				else
 					PaintAll();
 			
 				ProcessEvents();
@@ -861,9 +861,9 @@ namespace Game
 				{
 					SDL_UnlockMutex(renderMutex);
 
-					SDL_Delay(1); // Force a context switch; I found that just unlocking and locking didn't
-					              // guarantee at all that the other thread manages to lock the mutex
-					              
+					SDL_LockMutex(renderMutex2); // Force a context switch; renderMutex2 is locked
+					SDL_UnlockMutex(renderMutex2);
+
 					SDL_LockMutex(renderMutex);
 				}
 
@@ -931,6 +931,7 @@ namespace Game
 
 		void GameWindow::PauseRendering()
 		{
+			SDL_LockMutex(renderMutex2);
 			pauseRendering = true;
 			SDL_LockMutex(renderMutex);
 		}
@@ -939,8 +940,9 @@ namespace Game
 		{
 			pauseRendering = false;
 			SDL_UnlockMutex(renderMutex);
+			SDL_UnlockMutex(renderMutex2);
 		}
-		
+
 		GameWindow::GUINode::GUINode() : pMainPanel(NULL), w(0), h(0)
 		{
 

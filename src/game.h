@@ -98,6 +98,7 @@ namespace Game
 				bool atLeastOneFrameCalculated;
 
 				SDL_mutex* renderMutex;
+				SDL_mutex* renderMutex2;
 
 				bool pauseRendering;
 
