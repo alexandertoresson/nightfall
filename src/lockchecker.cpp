@@ -54,6 +54,7 @@ SDL_Thread *CreateThread(int (*fn)(void *), void *data)
 #include <fstream>
 #include <map>
 #include <vector>
+#include <list>
 
 struct LockItem
 {
@@ -123,16 +124,28 @@ class LockHash
 			return newItem;
 		}
 
+		static bool cmp_lockitems(LockItem* a, LockItem* b)
+		{
+			return a->totalLockTime + a->totalUnlockTime > b->totalLockTime + b->totalUnlockTime;
+		}
+
 		void Iterate(void (*callback)(LockItem*))
 		{
+			std::list<LockItem*> ls;
 			for (unsigned i = 0; i < numItems; i++)
 			{
 				LockItem* curItem = items[i];
 				while (curItem)
 				{
-					callback(curItem);
+					ls.push_back(curItem);
 					curItem = curItem->next;
 				}
+			}
+			ls.sort(cmp_lockitems);
+
+			for (std::list<LockItem*>::iterator it = ls.begin(); it != ls.end(); ++it)
+			{
+				callback(*it);
 			}
 		}
 };
