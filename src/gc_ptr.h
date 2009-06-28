@@ -122,6 +122,8 @@ class gc_marker_base
 
 		static void initgc();
 
+		virtual void (*get_func())(void*) = 0;
+
 	template <typename T, typename _Shader>
 	friend class gc_marker;
 	template <typename T, typename _Shader, typename _Counter>
@@ -159,6 +161,11 @@ class gc_marker : public gc_marker_base
 			{
 				_Shader::shade(ref);
 			}
+		}
+
+		void (*get_func())(void*)
+		{
+			return (void (*)(void*)) func;
 		}
 
 		int size()
@@ -355,6 +362,12 @@ class gc_ptr
 		T* get()
 		{
 			return ref;
+		}
+
+		gc_ptr<T, _Counter, _Shader> copy(void(*func)(T*) = NULL)
+		{
+			T* new_item = new T(*ref);
+			return gc_ptr<T, _Counter, _Shader>(new_item, func ? func : m->get_func());
 		}
 
 	
