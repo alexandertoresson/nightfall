@@ -1302,7 +1302,7 @@ namespace Game
 			myGLState->material = Utilities::LoadMaterialXML(material);
 		}
 
-		std::string TerrainNode::material = "materials/terrain";
+		std::string TerrainNode::material = "terrain";
 
 		void TerrainNode::Render()
 		{
@@ -1525,7 +1525,7 @@ namespace Game
 			myGLState->material = Utilities::LoadMaterialXML(material);
 		}
 
-		std::string WaterNode::material = "materials/water";
+		std::string WaterNode::material = "water";
 
 		void WaterNode::Render()
 		{
