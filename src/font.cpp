@@ -306,7 +306,7 @@ namespace Window
 			return SUCCESS;
 		}
 		
-		Font defaultFonts[5];
+		Font defaultFonts[5] = {Font(""), Font(""), Font(""), Font(""), Font("")};
 	}
 }
 
