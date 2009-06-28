@@ -894,7 +894,7 @@ namespace Game
 				t = SDL_GetTicks();
 
 				static int i = 0;
-				if (i % 100 == 0)
+				if (i % 1000 == 0)
 				{
 					Uint32 ticks = SDL_GetTicks();
 
@@ -908,33 +908,25 @@ namespace Game
 
 					GCTicks += SDL_GetTicks() - ticks;
 
-					static int j = 0;
-
-					if (j % 10 == 0)
+					std::cout << "gc " << GCTicks << " sat " << simpleAITicks << " tat " << totalAITicks;
+					
+					for (int i = 0; i < 8; i++)
 					{
-						std::cout << "gc " << GCTicks << " sat " << simpleAITicks << " tat " << totalAITicks;
-						
-						for (int i = 0; i < 8; i++)
-						{
-							std::cout << " pft" << i << " " << postFrameTicks[i];
-							postFrameTicks[i] = 0;
-						}
-
-						for (int i = 0; i < numLuaAIThreads; i++)
-						{
-							std::cout << " lua" << i << " " << luaAITicks[i];
-							luaAITicks[i] = 0;
-						}
-
-						std::cout << std::endl;
-
-						GCTicks = 0;
-						simpleAITicks = 0;
-						totalAITicks = 0;
-
+						std::cout << " pft" << i << " " << postFrameTicks[i];
+						postFrameTicks[i] = 0;
 					}
 
-					j++;
+					for (int i = 0; i < numLuaAIThreads; i++)
+					{
+						std::cout << " lua" << i << " " << luaAITicks[i];
+						luaAITicks[i] = 0;
+					}
+
+					std::cout << std::endl;
+
+					GCTicks = 0;
+					simpleAITicks = 0;
+					totalAITicks = 0;
 
 				}
 				i++;
