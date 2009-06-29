@@ -329,6 +329,11 @@ namespace GUI
 			
 			virtual void Layout();
 
+			void EnforceSizeRestrictions(float& w, float& h);
+		
+			virtual void GetInnerSize(float& w, float& h);
+			virtual void GetOuterSize(float& w, float& h);
+
 		public:
 
 			Component(float x = 0.0f, float y = 0.0f, float w = 1.0f, float h = 1.0f);
@@ -355,13 +360,18 @@ namespace GUI
 			virtual void PaintComponent();
 			
 			void ScheduleRelayout();
+
+			ThemeEngine::Style style;
 			
 			friend class Workspace;
 			friend class Container;
 
 			friend class ThemeEngine::Drawer<Component>;
 			
-			virtual void shade() {}
+			virtual void shade()
+			{
+				style.shade();
+			}
 
 	};
 	

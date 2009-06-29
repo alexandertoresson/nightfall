@@ -75,6 +75,21 @@ namespace GUI
 		{
 			
 		}
+	
+		template <>
+		void Drawer<FrameBorders>::Draw(FrameBorders& borders, float x, float y, float w, float h)
+		{
+		}
+
+		template <>
+		void Drawer<FrameBorders>::GetInnerSize(FrameBorders& borders, float& w, float& h)
+		{
+		}
+
+		template <>
+		void Drawer<FrameBorders>::GetOuterSize(FrameBorders& borders, float& w, float& h)
+		{
+		}
 		
 		template <>
 		void Drawer<Text>::Draw(Text& text, float x, float y, float w, float h)
@@ -105,37 +120,18 @@ namespace GUI
 		}
 
 		template <>
-		void Drawer<Text>::GetInnerSize(Text& text, float w, float h, float& iw, float& ih)
+		void Drawer<Text>::GetInnerSize(Text& text, float& w, float& h)
 		{
-			iw = ih = 0;
+			w = h = 0;
 		}
 
 		template <>
-		void Drawer<Text>::GetOuterSize(Text& text, float cw, float ch, float& w, float& h)
+		void Drawer<Text>::GetOuterSize(Text& text, float& w, float& h)
 		{
 			::Window::GUI::TextRenderer::TextDimension dims;
 			dims = text.font.GetTextSize(text.Get(), Workspace::metrics.GetDPI());
 			w = dims.w;
 			h = dims.h;
-		}
-		
-		template <>
-		void Drawer<Component>::Draw(Component& comp, float x, float y, float w, float h)
-		{
-		}
-		
-		template <>
-		void Drawer<Component>::GetInnerSize(Component& comp, float w, float h, float& iw, float& ih)
-		{
-			iw = w - comp.margin.right - comp.margin.left;
-			ih = h - comp.margin.top - comp.margin.bottom;
-		}
-
-		template <>
-		void Drawer<Component>::GetOuterSize(Component& comp, float cw, float ch, float& w, float& h)
-		{
-			w = cw + comp.margin.right + comp.margin.left;
-			h = ch + comp.margin.top + comp.margin.bottom;
 		}
 		
 		template class Drawer<ToggleButton>;
@@ -153,9 +149,9 @@ namespace GUI
 		void Drawer<T>::Draw(T& info, float x, float y, float w, float h) {}
 
 		template <typename T>
-		void Drawer<T>::GetOuterSize(T& info, float cw, float ch, float& w, float& h) {w = cw; h = ch;}
+		void Drawer<T>::GetOuterSize(T& info, float& w, float& h) {}
 		
 		template <typename T>
-		void Drawer<T>::GetInnerSize(T& info, float w, float h, float& iw, float& ih) {iw = w; ih = h;}
+		void Drawer<T>::GetInnerSize(T& info, float& w, float& h) {}
 	}
 }

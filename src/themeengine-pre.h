@@ -47,16 +47,19 @@ namespace GUI
 		class ScrollBar;
 		class UpDown;
 		
+		struct Style;
+
 		/* Basic Drawer API:
 			// Pass in Info object describing how the widget should be rendered, and position and width and height of it
 			virtual void Draw(Foo& into, float x, float y, float w, float h);
-			// cw and ch is the size of the components inside this component.
-			// w and h are the calculated sizes of this component when it has to contain components of the specified size.
-			// Note that cw and ch only apply to things that can contain other stuff, like borders
-			virtual void GetOuterSize(const Foo& info, float cw, float ch, float& w, float& h);
-			// w and h is the size of the component.
-			// iw and ih are the calculated inner width and height when the container has the specified size.
-			virtual void GetInnerSize(const Foo& info, float w, float h, float& iw, float& ih);
+			// incoming w and h are the size of the components inside this component.
+			// outgoing w and h are the calculated sizes of this component when it has to contain components of the specified size.
+			// Note that incoming w and h should be ignored for non-containers.
+			virtual void GetOuterSize(const Foo& info, float& w, float& h);
+			// incoming w and h are the size of the component.
+			// outgoing w and h are the calculated inner width and height when the container has the specified size.
+			// Outgoing w and h are 0 for non-containers.
+			virtual void GetInnerSize(const Foo& info, float& w, float& h);
 		*/
 
 		template <typename T>
@@ -64,8 +67,8 @@ namespace GUI
 		{
 			public:
 				virtual void Draw(T& info, float x, float y, float w, float h);
-				virtual void GetOuterSize(T& info, float cw, float ch, float& w, float& h);
-				virtual void GetInnerSize(T& info, float w, float h, float& iw, float& ih);
+				virtual void GetOuterSize(T& info, float& w, float& h);
+				virtual void GetInnerSize(T& info, float& w, float& h);
 				virtual void shade() {}
 		};
 

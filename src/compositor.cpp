@@ -20,6 +20,7 @@
  */
 #include "compositor.h"
 #include <cmath>
+#include <algorithm>
 
 namespace GUI
 {
@@ -206,7 +207,7 @@ namespace GUI
 	/*******************************************************************/
 	/** COMPONENT ******************************************************/
 	/*******************************************************************/
-	Component::Component(float x, float y, float w, float h) : dimensions(x, y, w, h), min(0.0f, 0.0f), max(1.0f, 1.0f), aspectRatio(0.0), vAdjustment(V_ADJUSTMENT_NONE), hAdjustment(H_ADJUSTMENT_NONE), visible(true), needsRelayout(true)
+	Component::Component(float x, float y, float w, float h) : dimensions(x, y, w, h), min(0.0f, 0.0f), max(0.0f, 0.0f), aspectRatio(0.0), vAdjustment(V_ADJUSTMENT_NONE), hAdjustment(H_ADJUSTMENT_NONE), visible(true), needsRelayout(true)
 	{
 		for (unsigned i = 0; i < ANCHOR_NUM; i++)
 		{
@@ -323,6 +324,31 @@ namespace GUI
 	
 	void Component::Layout()
 	{
+	}
+
+	void Component::EnforceSizeRestrictions(float& w, float& h)
+	{
+		if (max.w != 0.0f)
+			w = std::min(w, max.w);
+		if (max.h != 0.0f)
+			h = std::min(h, max.h);
+
+		w =  std::max(w, min.w);
+		h =  std::max(h, min.h);
+	}
+
+	void Component::GetInnerSize(float& w, float& h)
+	{
+		EnforceSizeRestrictions(w, h);
+		w -= margin.right + margin.left;
+		h -= margin.top + margin.bottom;
+	}
+
+	void Component::GetOuterSize(float& w, float& h)
+	{
+		w += margin.right + margin.left;
+		h += margin.top + margin.bottom;
+		EnforceSizeRestrictions(w, h);
 	}
 
 	/** CONTAINER ******************************************************/
@@ -518,8 +544,8 @@ namespace GUI
 
 	void Frame::Paint()
 	{
-		float iw, ih;
-		Workspace::theme->frameBordersDrawer->GetInnerSize(borders, dimensions.w, dimensions.h, iw, ih);
+/*		float iw, ih;
+		Workspace::theme->frameBordersDrawer->GetInnerSize(borders, dimensions.w, dimensions.h, iw, ih);*/
 	}
 
 	Workspace::Workspace() : frames(Frame::LAYER_END)
