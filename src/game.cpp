@@ -525,6 +525,8 @@ namespace Game
 			
 			////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 			
+			Dimension::UnitMainNode::Reset();
+
 			// Please adjust doc/rendertree.txt if you modify this
 
 			Scene::Graph::rootNode = new Scene::Graph::Node;
@@ -533,7 +535,7 @@ namespace Game
 			Dimension::Camera::instance.AddChild(gc_ptr<Dimension::Environment::SkyboxNode>(&Dimension::Environment::SkyboxNode::instance, null_deleter));
 			Dimension::Camera::instance.AddChild(new Dimension::TerrainNode);
 			Dimension::Camera::instance.AddChild(new Dimension::WaterNode);
-			Dimension::Camera::instance.AddChild(gc_ptr<Dimension::UnitMainNode>(&Dimension::UnitMainNode::instance, null_deleter));
+			Dimension::Camera::instance.AddChild(Dimension::UnitMainNode::GetInstance());
 			// cleanup node, for resetting stuff for fixed function stuff...
 			Dimension::Camera::instance.AddChild(new Scene::Render::GLStateNode(new Scene::Render::GLState()));
 			Dimension::Camera::instance.AddChild(gc_ptr<Dimension::BuildOutlineNode>(&Dimension::BuildOutlineNode::instance, null_deleter));

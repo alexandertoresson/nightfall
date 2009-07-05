@@ -35,6 +35,7 @@
 #include "unit.h"
 #include "lockfreequeue.h"
 #include <cmath>
+#include <map>
 
 using namespace std;
 
@@ -51,6 +52,11 @@ namespace Game
 		int paths = 0;
 
 		SDL_mutex* updateMutex = NULL;
+//		SDL_mutex* debugMutex = NULL;
+
+	
+		typedef std::map<gc_ptr<Dimension::Unit>, std::pair<UnitAction, int> > DebugType;
+//		DebugType debug;
 
 		using namespace Utilities::Scripting;
 
@@ -196,19 +202,110 @@ namespace Game
 			SDL_UnlockMutex(pUnit->owner->scheduleUnitEventMutex);
 		}
 
+		void EventError()
+		{
+			std::cout << "blah" << std::endl;
+			*(int*) 0 = 0;
+		}
+
 		void SendUnitEventToLua_CommandCompleted(const gc_ptr<Dimension::Unit>& pUnit)
 		{
+/*			SDL_LockMutex(debugMutex);
+//			std::cout << "complete " << pUnit << " " << pUnit->pMovementData->action.action << " " << pUnit->pMovementData->action.args.argHandle << std::endl;
+			if (pUnit->pMovementData->action.action == ACTION_NONE)
+			{
+				std::cout << "Invalid action!" << std::endl;
+				EventError();
+				return;
+			}
+			DebugType::iterator it = debug.find(pUnit);
+			if (it == debug.end())
+			{
+				std::cout << "Command not started!" << std::endl;
+				EventError();
+				return;
+			}
+			else if (it->second.first != pUnit->pMovementData->action.action)
+			{
+				UnitAction a = it->second.first;
+				std::cout << "Mismatch! " << a << std::endl;
+				EventError();
+				return;
+			}
+			else if (it->second.second != pUnit->pMovementData->action.args.argHandle)
+			{
+				int a = it->second.second;
+				std::cout << "Mismatch! " << a << std::endl;
+				EventError();
+				return;
+			}
+			else
+			{
+				debug.erase(it);
+			}*/
 			ScheduleActionUnitEvent(pUnit, &pUnit->unitAIFuncs.commandCompleted);
+//			SDL_UnlockMutex(debugMutex);
 		}
 
 		void SendUnitEventToLua_CommandCancelled(const gc_ptr<Dimension::Unit>& pUnit)
 		{
+/*			SDL_LockMutex(debugMutex);
+//			std::cout << "cancel " << pUnit << " " << pUnit->pMovementData->action.action << " " << pUnit->pMovementData->action.args.argHandle << std::endl;
+			if (pUnit->pMovementData->action.action == ACTION_NONE)
+			{
+				std::cout << "Invalid action!" << std::endl;
+				EventError();
+				return;
+			}
+			DebugType::iterator it = debug.find(pUnit);
+			if (it == debug.end())
+			{
+				std::cout << "Command not started!" << std::endl;
+				EventError();
+				return;
+			}
+			else if (it->second.first != pUnit->pMovementData->action.action)
+			{
+				UnitAction a = it->second.first;
+				std::cout << "Mismatch! " << a << std::endl;
+				EventError();
+				return;
+			}
+			else if (it->second.second != pUnit->pMovementData->action.args.argHandle)
+			{
+				int a = it->second.second;
+				std::cout << "Mismatch! " << a << std::endl;
+				EventError();
+				return;
+			}
+			else
+			{
+				debug.erase(it);
+			}*/
 			ScheduleActionUnitEvent(pUnit, &pUnit->unitAIFuncs.commandCancelled);
+//			SDL_UnlockMutex(debugMutex);
 		}
 
 		void SendUnitEventToLua_NewCommand(const gc_ptr<Dimension::Unit>& pUnit)
 		{
+/*			SDL_LockMutex(debugMutex);
+//			std::cout << "newcommand " << pUnit << " " << pUnit->pMovementData->action.action << " " << pUnit->pMovementData->action.args.argHandle << std::endl;
+			if (pUnit->pMovementData->action.action == ACTION_NONE)
+			{
+				std::cout << "Invalid action!" << std::endl;
+				EventError();
+				return;
+			}
+			DebugType::iterator it = debug.find(pUnit);
+			if (it != debug.end())
+			{
+				std::cout << "Command already started!" << std::endl;
+				EventError();
+				return;
+			}
+			debug[pUnit] = std::make_pair(pUnit->pMovementData->action.action, pUnit->pMovementData->action.args.argHandle);*/
 			ScheduleActionUnitEvent(pUnit, &pUnit->unitAIFuncs.newCommand);
+//			SDL_UnlockMutex(debugMutex);
 		}
 
 		void SendUnitEventToLua_BecomeIdle(const gc_ptr<Dimension::Unit>& pUnit)
@@ -223,7 +320,17 @@ namespace Game
 
 		void SendUnitEventToLua_UnitKilled(const gc_ptr<Dimension::Unit>& pUnit)
 		{
+/*			SDL_LockMutex(debugMutex);
+//			std::cout << "kill " << pUnit << std::endl;
+			DebugType::iterator it = debug.find(pUnit);
+			if (it != debug.end())
+			{
+				std::cout << "Command still running!" << std::endl;
+				EventError();
+				return;
+			}*/
 			ScheduleSimpleUnitEvent(pUnit, &pUnit->unitAIFuncs.unitKilled);
+//			SDL_UnlockMutex(debugMutex);
 		}
 
 		void SendUnitEventToLua_IsAttacked(const gc_ptr<Dimension::Unit>& pUnit, const gc_ptr<Dimension::Unit>& attacker)
@@ -621,6 +728,7 @@ namespace Game
 		void InitAIMiscMutexes()
 		{
 			updateMutex = SDL_CreateMutex();
+//			debugMutex = SDL_CreateMutex();
 		}
 
 		void InitAIThreads()
@@ -894,7 +1002,8 @@ namespace Game
 				t = SDL_GetTicks();
 
 				static int i = 0;
-				if (i % 1000 == 0)
+				static int lt = 0;
+				if (i % 1000 == 0 || SDL_GetTicks() - lt > 5000)
 				{
 					Uint32 ticks = SDL_GetTicks();
 
@@ -927,6 +1036,8 @@ namespace Game
 					GCTicks = 0;
 					simpleAITicks = 0;
 					totalAITicks = 0;
+
+					lt = SDL_GetTicks();
 
 				}
 				i++;
@@ -1117,6 +1228,12 @@ namespace Game
 				return;
 			}
 
+			if (pUnit->pMovementData->action.action == ACTION_NONE)
+			{
+				std::cout << "blah" << std::endl;
+				return;
+			}
+
 			if (pUnit->pMovementData->action.action == ACTION_BUILD)
 			{
 				Game::Dimension::CancelBuild(pUnit);
@@ -1126,6 +1243,8 @@ namespace Game
 				Game::Dimension::CancelResearch(pUnit);
 			}
 
+			AI::SendUnitEventToLua_CommandCancelled(pUnit);
+
 			pUnit->pMovementData->action.action = ACTION_NONE;
 			pUnit->pMovementData->action.goal.unit = NULL;
 			DeallocPathfindingNodes(pUnit);
@@ -1133,13 +1252,17 @@ namespace Game
 
 //			std::cout << "cancel" << std::endl;
 
-			AI::SendUnitEventToLua_CommandCancelled(pUnit);
 			IssueNextAction(pUnit);
 		}
 		
 		void CancelAllActions(const gc_ptr<Dimension::Unit>& pUnit)
 		{
 			if (pUnit->pMovementData->action.action == AI::ACTION_DIE)
+			{
+				return;
+			}
+
+			if (pUnit->pMovementData->action.action == ACTION_NONE)
 			{
 				return;
 			}
@@ -1164,6 +1287,12 @@ namespace Game
 		{
 			if (pUnit->pMovementData->action.action == AI::ACTION_DIE)
 			{
+				return;
+			}
+
+			if (pUnit->pMovementData->action.action == AI::ACTION_NONE)
+			{
+				std::cout << "blah" << std::endl;
 				return;
 			}
 

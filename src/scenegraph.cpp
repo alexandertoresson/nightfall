@@ -105,6 +105,12 @@ namespace Scene
 			}
 		}
 
+		void Node::Clear()
+		{
+			while (children.size())
+				RemoveChild(children.back());
+		}
+
 		void Node::TraverseAllChildren()
 		{
 			for (std::list<gc_ptr<Node> >::iterator it = children.begin(); it != children.end(); it++)

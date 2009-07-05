@@ -73,6 +73,9 @@ namespace Game
 
 				gc_ptr<UnitType> buildOutlineType;
 				IntPosition buildOutlinePosition;
+				
+				static gc_root_ptr<UnitMainNode>::type instance;
+
 			protected:
 				virtual void PreRender();
 			public:
@@ -90,7 +93,8 @@ namespace Game
 
 				const gc_ptr<UnitNode>& GetUnitNode(const gc_ptr<Unit>& unit);
 
-				static UnitMainNode instance;
+				static void Reset();
+				static gc_root_ptr<UnitMainNode>::type& GetInstance();
 
 				virtual void shade()
 				{

@@ -78,7 +78,7 @@ namespace Game
 
 			glPushMatrix();
 
-				const gc_ptr<UnitNode>& unitNode = UnitMainNode::instance.GetUnitNode(unit);
+				const gc_ptr<UnitNode>& unitNode = UnitMainNode::GetInstance()->GetUnitNode(unit);
 
 				if (unitNode)
 				{
@@ -100,7 +100,7 @@ namespace Game
 			Utilities::Vector3D win_vector(-1000, -1000, -1000);
 			glPushMatrix();
 
-				const gc_ptr<UnitNode>& unitNode = UnitMainNode::instance.GetUnitNode(unit);
+				const gc_ptr<UnitNode>& unitNode = UnitMainNode::GetInstance()->GetUnitNode(unit);
 
 				if (unitNode)
 				{
@@ -356,7 +356,17 @@ namespace Game
 			return unitToUnitNode[unit];
 		}
 
-		UnitMainNode UnitMainNode::instance;
+		void UnitMainNode::Reset()
+		{
+			instance = new UnitMainNode;
+		}
+
+		gc_root_ptr<UnitMainNode>::type& UnitMainNode::GetInstance()
+		{
+			return instance;
+		}
+
+		gc_root_ptr<UnitMainNode>::type UnitMainNode::instance;
 
 		void UnitNode::ApplyMatrix()
 		{

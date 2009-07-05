@@ -76,6 +76,8 @@ namespace Scene
 				void DeleteTree();
 				virtual void Traverse();
 
+				virtual void Clear();
+
 				void SetEnabled(bool enabled);
 
 				Utilities::Matrix4x4 GetMatrix(MatrixType type, gc_ptr<Node> baseNode = NULL);

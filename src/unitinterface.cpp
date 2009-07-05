@@ -2845,6 +2845,13 @@ else \
 		LUA_SUCCESS
 	}
 
+	int LError(lua_State* pVM)
+	{
+		std::cout << "LUA-detected Error!" << std::endl;
+		*(int*) 0 = 0;
+		LUA_SUCCESS
+	}
+
 	std::string GetReqStringSymbol(const char *&reqstring)
 	{
 		std::string symbol;
@@ -3320,5 +3327,9 @@ else \
 		pVM->RegisterFunction("SetEventHandler", LSetEventHandler);
 		pVM->RegisterFunction("SetRegularAIDelay", LSetRegularAIDelay);
 		pVM->RegisterFunction("SetRegularAIEnabled", LSetRegularAIEnabled);
+		
+		pVM->RegisterFunction("Error", LError);
 	}
+
+
 }

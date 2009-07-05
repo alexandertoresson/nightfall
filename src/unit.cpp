@@ -641,10 +641,7 @@ namespace Game
 				if (target->pMovementData->action.action != AI::ACTION_DIE)
 					AI::SendUnitEventToLua_IsAttacked(target, attacker);
 
-				if (Attack(target, CalcUnitDamage(target, attacker)))
-				{
-					AI::CompleteAction(attacker);
-				}
+				Attack(target, CalcUnitDamage(target, attacker));
 			}
 			else
 			{
@@ -654,7 +651,7 @@ namespace Game
 				gc_root_ptr<Projectile>::type proj = CreateProjectile(attacker->type->projectileType, Utilities::Vector3D(attacker->pos.x, attacker->pos.y, GetTerrainHeight(attacker->pos.x, attacker->pos.y)), goal_pos, attacker);
 				proj->goalUnit = target;
 				attacker->vProjectiles.push_back(proj);
-				UnitMainNode::instance.ScheduleProjectileAddition(proj);
+				UnitMainNode::GetInstance()->ScheduleProjectileAddition(proj);
 				PlayActionSound(attacker, Audio::SFX_ACT_FIRE_FNF);
 			}
 		}
@@ -744,15 +741,7 @@ namespace Game
 							if (target->pMovementData->action.action != AI::ACTION_DIE)
 								AI::SendUnitEventToLua_IsAttacked(target, proj->attacker);
 						}
-						if (Attack(target, CalcUnitDamage(target, proj->attacker)))
-						{
-							if (target == proj->goalUnit || proj->goalUnit)
-								AI::CompleteAction(proj->attacker);
-						}
-					}
-					else
-					{
-						AI::CompleteAction(proj->attacker);
+						Attack(target, CalcUnitDamage(target, proj->attacker));
 					}
 				}
 
@@ -761,7 +750,7 @@ namespace Game
 					FX::pParticleSystems->InitEffect(proj->pos.x, proj->pos.y, 0.0f, max_radius * 4, FX::PARTICLE_SPHERICAL_EXPLOSION);
 				}
 
-				UnitMainNode::instance.ScheduleProjectileDeletion(proj);
+				UnitMainNode::GetInstance()->ScheduleProjectileDeletion(proj);
 
 				return true;
 			}
@@ -1537,7 +1526,7 @@ namespace Game
 				if (unit == *it)
 				{
 					unitsSelected.erase(it);
-					UnitMainNode::instance.ScheduleDeselection(unit);
+					UnitMainNode::GetInstance()->ScheduleDeselection(unit);
 					return;
 				}
 			}
@@ -1580,7 +1569,7 @@ namespace Game
 				}
 			}
 			unitsSelected.push_back(unit);
-			UnitMainNode::instance.ScheduleSelection(unit);
+			UnitMainNode::GetInstance()->ScheduleSelection(unit);
 		}
 
 		const std::vector<gc_ptr<Unit> >& GetSelectedUnits()
@@ -1753,7 +1742,7 @@ namespace Game
 			AI::SendUnitEventToLua_UnitCreation(unit);
 			AI::SendUnitEventToLua_BecomeIdle(unit);
 
-			UnitMainNode::instance.ScheduleUnitNodeAddition(unit);
+			UnitMainNode::GetInstance()->ScheduleUnitNodeAddition(unit);
 
 			return true;
 		}
@@ -1942,7 +1931,7 @@ namespace Game
 				}
 			}
 
-			UnitMainNode::instance.ScheduleUnitNodeDeletion(unit);
+			UnitMainNode::GetInstance()->ScheduleUnitNodeDeletion(unit);
 
 			if (AI::IsUndergoingPathCalc(unit))
 			{

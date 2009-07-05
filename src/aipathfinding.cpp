@@ -715,6 +715,7 @@ namespace Game
 				{
 					cout << "Invalid unit target, fixing up action" << std::endl;
 					action = ACTION_GOTO;
+					*(int*) 0 = 0;
 				}
 			}
 
@@ -724,6 +725,7 @@ namespace Game
 				{
 					cout << "Invalid unit target and arg, fixing up action" << std::endl;
 					action = ACTION_GOTO;
+					*(int*) 0 = 0;
 				}
 			}
 			
@@ -733,12 +735,14 @@ namespace Game
 				{
 					cout << "Invalid action arg, fixing up action" << std::endl;
 					action = ACTION_GOTO;
+					*(int*) 0 = 0;
 				}
 			}
 
 			if (action == ACTION_NONE)
 			{
 				std::cout << "Invalid action; has action == none." << std::endl;
+				*(int*) 0 = 0;
 				return IPR_SUCCESS;
 			}
 
@@ -901,7 +905,7 @@ namespace Game
 				{
 					std::cout << "Invalid action, needs target. Fixing up action." << std::endl;
 					md->_action.action = ACTION_GOTO;
-//					*(int*) 0 = 0;
+					*(int*) 0 = 0;
 				}
 			}
 
@@ -911,7 +915,7 @@ namespace Game
 				{
 					std::cout << "Invalid action, needs target or arg. Fixing up action." << std::endl;
 					md->_action.action = ACTION_GOTO;
-//					*(int*) 0 = 0;
+					*(int*) 0 = 0;
 				}
 			}
 			
@@ -921,20 +925,20 @@ namespace Game
 				{
 					std::cout << "Invalid action, needs arg. Fixing up action." << std::endl;
 					md->_action.action = ACTION_GOTO;
-//					*(int*) 0 = 0;
+					*(int*) 0 = 0;
 				}
 			}
 			
 			if (md->_action.action == ACTION_NONE)
 			{
 				std::cout << "Invalid action; path with no action calculated." << std::endl;
-//				*(int*) 0 = 0;
+				*(int*) 0 = 0;
 			}
 
 			md->pStart = md->_start;
 			md->pGoal  = md->_goal;
 
-			md->action = md->_action;
+//			md->action = md->_action;
 
 			md->_start = NULL;
 			md->_goal = NULL;

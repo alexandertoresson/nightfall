@@ -307,6 +307,7 @@ namespace Game
 				else
 				{
 					OutputInt(xmlfile, "owner", proj->attacker->GetHandle());
+					OutputString(xmlfile, "unittype", proj->attacker->type->id);
 				}
 
 				if (proj->goalUnit)
@@ -425,12 +426,12 @@ namespace Game
 
 		void ParseFloat(const std::string& text)
 		{
-			f = (float) atof(text.c_str());
+			f = (float) Utilities::StringCast<double>(text);
 		}
 
 		void ParseDouble(const std::string& text)
 		{
-			d = atof(text.c_str());
+			d = Utilities::StringCast<double>(text);
 		}
 
 		void ParseString(const std::string& text)
@@ -592,7 +593,7 @@ namespace Game
 			bool isDisplayed, isCompleted;
 			int id;
 			gc_ptr<Player> owner;
-			gc_ptr<Dimension::UnitType> type;
+			gc_ptr<UnitType> type;
 
 			unit = NULL;
 
@@ -894,16 +895,35 @@ namespace Game
 		void ParseProjectile(Utilities::XMLElement *elem)
 		{
 			gc_ptr<Projectile> proj;
+			gc_ptr<UnitType> type;
+			gc_ptr<Player> player;
+
 			Utilities::Vector3D pos, direction, goalPos;
 
+			i = -1;
 			elem->Iterate("owner", ParseIntBlock);
 			const gc_ptr<Unit>& unit = GetUnitByID(i);
 
-			const gc_ptr<Player>& player = unit->owner;
-
+			i = -1;
 			elem->Iterate("goalUnit", ParseIntBlock);
 			const gc_ptr<Unit>& goalUnit = GetUnitByID(i);
-			
+
+			i = -1;
+			elem->Iterate("player", ParseIntBlock);
+
+			if ((unsigned) i < pWorld->vPlayers.size())
+			{
+				player = pWorld->vPlayers[i];
+			}
+
+			str = "";
+			elem->Iterate("unittype", ParseStringBlock);
+
+			if (player)
+			{
+				type = UnitLuaInterface::GetUnitTypeByID(player, str);
+			}
+
 			elem->Iterate("pos", ParseVector3D);
 			pos = vec;
 			
@@ -912,8 +932,27 @@ namespace Game
 			
 			elem->Iterate("goalPos", ParseVector3D);
 			goalPos = vec;
-			
-			proj = CreateProjectile(unit->type->projectileType, pos, goalPos, unit);
+
+			if (unit)
+			{
+				proj = CreateProjectile(unit->type->projectileType, pos, goalPos, unit);
+			}
+			else if (player && type)
+			{
+				proj = CreateProjectile(type->projectileType, pos, goalPos, NULL);
+			}
+			else
+			{
+				std::cout << "Projectile must have either unit or player and unit type in ParseProjectile()" << std::endl;
+				return;
+			}
+
+			if (!proj->type)
+			{
+				std::cout << "Projectile must have valid type in ParseProjectile()" << std::endl;
+				return;
+			}
+
 			proj->goalUnit = goalUnit;
 			proj->direction = direction;
 

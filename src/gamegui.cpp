@@ -358,7 +358,7 @@ namespace Game
 			if (pGame->build_type)
 			{
 				pGame->build_type.reset();
-				Dimension::UnitMainNode::instance.ScheduleBuildOutlineDeletion();
+				Dimension::UnitMainNode::GetInstance()->ScheduleBuildOutlineDeletion();
 				return;
 			}
 
@@ -527,7 +527,7 @@ namespace Game
 							AI::CommandUnits(unitsSelected, ter_x, ter_y, AI::ACTION_BUILD, Dimension::ActionArguments(pGame->build_type), true, false);
 						}
 						pGame->build_type.reset();
-						Dimension::UnitMainNode::instance.ScheduleBuildOutlineDeletion();
+						Dimension::UnitMainNode::GetInstance()->ScheduleBuildOutlineDeletion();
 					}
 				}
 			}
@@ -678,7 +678,7 @@ namespace Game
 							else
 							{
 								pGame->build_type.reset();
-								Dimension::UnitMainNode::instance.ScheduleBuildOutlineDeletion();
+								Dimension::UnitMainNode::GetInstance()->ScheduleBuildOutlineDeletion();
 							}
 
 							break;
@@ -976,7 +976,7 @@ namespace Game
 					{
 						Dimension::GetApproximateMapPosOfClick((*event).motion.x, (*event).motion.y, map_x, map_y);
 						Dimension::GetTerrainPosClicked((*event).button.x, (*event).button.y, map_x, map_y, pGame->build_x, pGame->build_y);
-						Dimension::UnitMainNode::instance.ScheduleBuildOutlineAddition(pGame->build_type, pGame->build_x, pGame->build_y);
+						Dimension::UnitMainNode::GetInstance()->ScheduleBuildOutlineAddition(pGame->build_type, pGame->build_x, pGame->build_y);
 					}
 					break;
 				}

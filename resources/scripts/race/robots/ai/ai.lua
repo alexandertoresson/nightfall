@@ -34,6 +34,16 @@ LastCommands = {}
 function GetPowerAtDawnCached()
 	if Cached_PowerAtDawn == nil then
 		Cached_PowerAtDawn = GetPowerAtDawn()
+--[[
+		Output(Cached_PowerAtDawn)
+		Output(" ")
+		Output(TempMoneyReserved)
+		Output(" ")
+		Output(TempNoonIncomeChanges)
+		Output(" ")
+		Output(TempNightIncomeChanges)
+		Output("\n")
+--]]
 	end
 	return Cached_PowerAtDawn
 end
@@ -374,20 +384,11 @@ function PerformAI_Player_AI()
 				CommandBuild(builder, x, y, UnitType)
 
 				Need[UnitType] = false
---					Output("Build ")
---					Output(GetUnitTypeName(UnitType))
---					Output("\n")
---					Output("Reserved: " .. TempMoneyReserved .. " " .. TempNoonIncomeChanges .. " " .. TempNightIncomeChanges .. "\n")
---					Output("General: " .. GetPowerAtDawnCached(Player) .. " " .. PowerQuote(Player) .. "\n")
 				break
 			else
 				CommandResearch(builder, GetUnitTypeResearch(UnitType))
 
 				Need[UnitType] = false
---					Output("Research ")
---					Output(GetUnitTypeName(UnitType))
---					Output("\n")
---					Output("Reserved: " .. TempMoneyReserved .. " " .. TempNoonIncomeChanges .. " " .. TempNightIncomeChanges .. "\n")
 				break
 			end
 			SendBackFirstInQueue()
@@ -482,6 +483,8 @@ function CommandUnit_AI(Unit, target, x, y, action, argument, rotation)
 	-- ignore received commands
 end
 
+--debug = {}
+
 function UnitEvent_UnitCreation_AI(Unit)
 	IncNumBuilt(GetUnitType(Unit))
 	if GetUnitCanBuild(Unit) then
@@ -490,6 +493,18 @@ function UnitEvent_UnitCreation_AI(Unit)
 end
 
 function UnitEvent_UnitKilled_AI(Unit)
+--[[
+	if debug[Unit] ~= nil then
+		Output("Unit killed with outstanding action!\n")
+		Output(debug[Unit].action)
+		Output("\n")
+		Output(GetUnitTypeName(debug[Unit].arg))
+		Output("\n")
+		Error()
+		return
+	end
+	debug[Unit] = true
+--]]
 	if GetUnitCanBuild(Unit) then
 		if AvailableBuilders[GetUnitType(Unit)] ~= nil then
 			AvailableBuilders[GetUnitType(Unit)][Unit] = nil
@@ -514,8 +529,32 @@ function UnitEvent_BecomeIdle_AI(Unit)
 end
 
 function UnitEvent_CommandCompleted_AI(Unit, action, x, y, goal, arg)
+--[[
+	if debug[Unit] == nil then
+		Output("Command completed without start!\n")
+		Output(action)
+		Output("\n")
+		Output(GetUnitTypeName(arg))
+		Output("\n")
+		Error()
+		return
+	elseif debug[Unit].action ~= action or debug[Unit].arg ~= arg then
+		Output("Invalid command completed!\n")
+		Output(debug[Unit].action)
+		Output("\n")
+		Output(GetUnitTypeName(debug[Unit].arg))
+		Output("\n")
+		Output(action)
+		Output("\n")
+		Output(GetUnitTypeName(arg))
+		Output("\n")
+		Error()
+		return
+	end
+	debug[Unit] = nil
+--]]
 	if action == UnitAction.Build then
-		UnitType = arg;
+		UnitType = arg
 		if GetUnitTypeIncomeAtNoon(UnitType) < 0 then
 			TempNoonIncomeChanges = TempNoonIncomeChanges - GetUnitTypeIncomeAtNoon(UnitType)
 		end
@@ -524,37 +563,52 @@ function UnitEvent_CommandCompleted_AI(Unit, action, x, y, goal, arg)
 		end
 		TempMoneyReserved = TempMoneyReserved - GetUnitTypeBuildCost(UnitType)
 		SetUnitAvailableForBuilding(Unit, GetUnitType(Unit))
+--[[		
+		Output("Build Done ")
+		Output(GetUnitTypeName(UnitType))
+		Output("\n")
+		Output("Reserved: " .. TempMoneyReserved .. " " .. TempNoonIncomeChanges .. " " .. TempNightIncomeChanges .. "\n")
+--]]
 	elseif action == UnitAction.Research then
 		TempMoneyReserved = TempMoneyReserved - GetResearchCost(arg)
 		SetUnitAvailableForBuilding(Unit, GetUnitType(Unit))
+
+--[[
+		Output("Research Done ")
+		Output("\n")
+		Output("Reserved: " .. TempMoneyReserved .. " " .. TempNoonIncomeChanges .. " " .. TempNightIncomeChanges .. "\n")
+--]]
 	end
 end
 
 function UnitEvent_CommandCancelled_AI(Unit, action, x, y, goal, arg)
-	if action == UnitAction.Build then
-		UnitType = arg;
-		if GetUnitTypeIncomeAtNoon(UnitType) < 0 then
-			TempNoonIncomeChanges = TempNoonIncomeChanges - GetUnitTypeIncomeAtNoon(UnitType)
-		end
-		if GetUnitTypeIncomeAtNight(UnitType) < 0 then
-			TempNightIncomeChanges = TempNightIncomeChanges - GetUnitTypeIncomeAtNight(UnitType)
-		end
-		TempMoneyReserved = TempMoneyReserved - GetUnitTypeBuildCost(UnitType)
-		SetUnitAvailableForBuilding(Unit, GetUnitType(Unit))
-	elseif action == UnitAction.Research then
-		TempMoneyReserved = TempMoneyReserved - GetResearchCost(arg)
-		SetUnitAvailableForBuilding(Unit, GetUnitType(Unit))
-	end
+	UnitEvent_CommandCompleted_AI(Unit, action, x, y, goal, arg)
 end
 
 function UnitEvent_NewCommand_AI(Unit, action, x, y, goal, arg)
+--[[
+	if debug[Unit] ~= nil then
+		Output("Command started without end!\n")
+		Output(debug[Unit].action)
+		Output("\n")
+		Output(GetUnitTypeName(debug[Unit].arg))
+		Output("\n")
+		Output(action)
+		Output("\n")
+		Output(GetUnitTypeName(arg))
+		Output("\n")
+		Error()
+		return
+	end
+	debug[Unit] = {action=action, goal=goal, arg=arg}
+--]]
 	if GetUnitIsMobile(Unit) then
 		IdleList[Unit] = nil
 		CheckedIdleList[Unit] = nil
 	end
 	if (action == UnitAction.Build) or (action == UnitAction.Research) then
 		if action == UnitAction.Build then
-			UnitType = GetUnitType(Unit)
+			UnitType = arg
 			if GetUnitTypeIncomeAtNoon(UnitType) < 0 then
 				TempNoonIncomeChanges = TempNoonIncomeChanges + GetUnitTypeIncomeAtNoon(UnitType)
 			end
@@ -562,8 +616,20 @@ function UnitEvent_NewCommand_AI(Unit, action, x, y, goal, arg)
 				TempNightIncomeChanges = TempNightIncomeChanges + GetUnitTypeIncomeAtNight(UnitType)
 			end
 			TempMoneyReserved = TempMoneyReserved + GetUnitTypeBuildCost(UnitType)
+--[[					
+					Output("Build ")
+					Output(GetUnitTypeName(UnitType))
+					Output("\n")
+					Output("Reserved: " .. TempMoneyReserved .. " " .. TempNoonIncomeChanges .. " " .. TempNightIncomeChanges .. "\n")
+					Output("General: " .. GetPowerAtDawnCached(Player) .. " " .. PowerQuote(Player) .. "\n")
+--]]
 		else
 			TempMoneyReserved = TempMoneyReserved + GetResearchCost(arg)
+--[[
+					Output("Research")
+					Output("\n")
+					Output("Reserved: " .. TempMoneyReserved .. " " .. TempNoonIncomeChanges .. " " .. TempNightIncomeChanges .. "\n")
+--]]
 		end
 		SetUnitBuilding(Unit, GetUnitType(Unit))
 	end

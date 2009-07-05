@@ -31,6 +31,7 @@
 #include <iostream>
 #include <cassert>
 #include <string>
+#include <ostream>
 
 //#define GC_PTR_DEBUG
 
@@ -375,7 +376,16 @@ class gc_ptr
 	friend class gc_ptr;
 	
 	friend class gc_ptr_from_this<T>;
+
+	template <typename T2, typename _Counter2, typename _Shader2>
+	friend std::ostream &operator << (std::ostream &os, gc_ptr<T2, _Counter2, _Shader2> p);
 };
+
+template <typename T, typename _Counter, typename _Shader>
+std::ostream &operator << (std::ostream &os, gc_ptr<T, _Counter, _Shader> p)
+{
+	return os << p.ref;
+}
 
 template <typename T>
 class gc_ptr_from_this
