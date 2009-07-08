@@ -15,7 +15,7 @@ start =
     player+,
     unit*,
     element projectile {
-      owner,
+      (owner | (unittype, playerid)),
       element goalUnit { xsd:integer }?,
       pos,
       element direction { x, y, z },
@@ -63,7 +63,7 @@ unit =
         startPos,
         goal,
         element arg {
-          research | element unittype { xsd:NCName }
+          research | unittype
         }?,
         rotation
       },
@@ -74,7 +74,9 @@ unit =
       element _actionData { action, startPos, goal, rotation }?
     }
   }
+unittype = element unittype { xsd:NCName }
 owner = element owner { xsd:integer }
+playerid = element player { xsd:integer }
 pos = element pos { x, y, z? }
 power = element power { xsd:double }
 aiFrame = element aiFrame { xsd:integer }
