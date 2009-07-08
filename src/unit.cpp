@@ -1942,6 +1942,8 @@ namespace Game
 			
 			AI::ResumePathfinding();
 
+			unit->RevokeHandle();
+
 		}
 
 		Unit::~Unit()
