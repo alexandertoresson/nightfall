@@ -1334,6 +1334,12 @@ namespace Game
 				}
 			}
 
+			if (target && target->pMovementData->action.action == ACTION_DIE)
+			{
+				std::cout << "Invalid action detected; target unit is dying" << std::endl;
+				return;
+			}
+
 			if (pUnit->pMovementData->action.action == ACTION_BUILD)
 			{
 				Game::Dimension::CancelBuild(pUnit);
