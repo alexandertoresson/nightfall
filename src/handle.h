@@ -39,6 +39,8 @@ namespace Game
 			enum { base = 0, num = 65536 };
 		};
 
+		// NOTE: The networking code assumes that all unit type and research handles subtracted by HandleTraits<UnitType>::base
+		//       fits in a 16-bit uint.
 		template <>
 		struct HandleTraits<UnitType>
 		{
