@@ -22,7 +22,8 @@
 
 #include "filesystem.h"
 
-#include <stack>
+#include <deque>
+#include <vector>
 
 namespace Utilities
 {
@@ -30,7 +31,7 @@ namespace Utilities
 	{
 		typedef std::pair<std::string, std::string> MountType;
 		typedef std::vector<MountType> MountVector;
-		std::stack<MountVector> stateStack;
+		std::deque<MountVector> stateStack;
 		MountVector mounts;
 
 		enum ResolveType
@@ -45,12 +46,13 @@ namespace Utilities
 			return rType == RESOLVE_READABLE ? Utilities::FileIsReadable(filename) : Utilities::FileIsWritable(filename);
 		}
 
-		std::string Resolve(const std::string& filename, ResolveType rType = RESOLVE_READABLE, int i = -1)
+		std::string Resolve(const std::string& filename, ResolveType rType = RESOLVE_READABLE, VFSLevel level = -1, int i = -1)
 		{
+			MountVector &lmounts = level == -1 ? mounts : stateStack[level];
 			if (i == -1)
-				i = mounts.size()-1;
+				i = lmounts.size()-1;
 			
-			MountType& cur = mounts[i];
+			MountType& cur = lmounts[i];
 			unsigned len = cur.first.length();
 			std::string newfn = filename;
 
@@ -74,41 +76,42 @@ namespace Utilities
 			}
 			else
 			{
-				newfn = Resolve(newfn, rType, i-1);
+				newfn = Resolve(newfn, rType, level, i-1);
 				if (newfn.length())
 				{
 					return newfn;
 				}
 				else
 				{
-					return Resolve(filename, rType, i-1);
+					return Resolve(filename, rType, level, i-1);
 				}
 			}
 		}
 
-		std::string ResolveReadable(const std::string& filename)
+		std::string ResolveReadable(const std::string& filename, VFSLevel level)
 		{
-			return Resolve(filename, RESOLVE_READABLE);
+			return Resolve(filename, RESOLVE_READABLE, level);
 		}
 
-		std::string ResolveWritable(const std::string& filename)
+		std::string ResolveWritable(const std::string& filename, VFSLevel level)
 		{
-			return Resolve(filename, RESOLVE_WRITABLE);
+			return Resolve(filename, RESOLVE_WRITABLE, level);
 		}
 
-		bool FileIsReadable(const std::string& filename)
+		bool FileIsReadable(const std::string& filename, VFSLevel level)
 		{
-			return Resolve(filename, RESOLVE_READABLE).length();
+			return Resolve(filename, RESOLVE_READABLE, level).length();
 		}
 
-		bool FileIsWritable(const std::string& filename)
+		bool FileIsWritable(const std::string& filename, VFSLevel level)
 		{
-			return Resolve(filename, RESOLVE_WRITABLE).length();
+			return Resolve(filename, RESOLVE_WRITABLE, level).length();
 		}
 
-		void PushState()
+		VFSLevel PushState()
 		{
-			stateStack.push(mounts);
+			stateStack.push_back(mounts);
+			return stateStack.size()-1;
 		}
 		
 		void PopState()
@@ -118,8 +121,8 @@ namespace Utilities
 				std::cout << "[VFS] Error: attempted to pop with an empty stack" << std::endl;
 				return;
 			}
-			mounts = stateStack.top();
-			stateStack.pop();
+			mounts = stateStack.back();
+			stateStack.pop_back();
 		}
 
 		void Mount(const std::string& path, const std::string& mountPoint)
