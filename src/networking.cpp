@@ -494,7 +494,7 @@ namespace Game
 				actiondata->goalunit_id = target->GetIndependentHandle();
 			else
 				actiondata->goalunit_id = 0xFFFF;
-			actiondata->arg = args.argHandle - 65535;
+			actiondata->arg = args.argHandle != -1 ? args.argHandle - Dimension::HandleTraits<Dimension::UnitType>::base : 0xFFFF;
 			actiondata->valid_at_frame = AI::currentFrame + netDelay;
 			SDL_LockMutex(prepareActionMutex);
 			if (networkType == SERVER)
@@ -1169,7 +1169,7 @@ namespace Game
 							      actiondata->action == AI::ACTION_MOVE_ATTACK_UNIT)
 							      || target)
 							{
-								Dimension::ActionArguments args = actiondata->arg + 65535;
+								Dimension::ActionArguments args = actiondata->arg != 0xFFFF ? actiondata->arg + Dimension::HandleTraits<Dimension::UnitType>::base : -1;
 								AI::ApplyAction(unit, actiondata->action, actiondata->x, actiondata->y, target, args, ByteToRotation(actiondata->rot));
 #ifdef CHECKSUM_DEBUG_HIGH
 								checksum_output << "ActionData chunk on frame " << AI::currentFrame << "\n";

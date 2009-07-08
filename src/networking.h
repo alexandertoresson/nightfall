@@ -47,7 +47,7 @@ namespace Game
 			Uint16 goalunit_id;
 			AI::UnitAction action;
 			Uint8 rot;
-			int arg;
+			Uint16 arg;
 			Uint32 valid_at_frame;
 		};
 
