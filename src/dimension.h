@@ -36,6 +36,7 @@
 #include "handle.h"
 #include "lockfreequeue.h"
 #include "action.h"
+#include "vfs-pre.h"
 
 #include <vector>
 
@@ -137,6 +138,8 @@ namespace Game
 		
 		extern   gc_root_ptr<World>::type        pWorld;
 		extern   gc_ptr<Unit>**                  pppElements;
+				
+		extern Utilities::VFS::VFSLevel outerGameVFSLevel;
 		
 		void GetApproximateMapPosOfClick(int clickx, int clicky, int &map_x, int &map_y);
 		bool GetTerrainPosClicked(int clickx, int clicky, int map_x, int map_y, int &ter_x, int &ter_y);

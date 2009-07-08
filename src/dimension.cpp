@@ -44,6 +44,8 @@ namespace Game
 		gc_ptr<Unit>**    pppElements       = NULL;
 		gc_ptr<Player> currentPlayerView;
 		gc_ptr<Player> currentPlayer;
+		
+		Utilities::VFS::VFSLevel outerGameVFSLevel;
 
 		InputController::InputController(void)
 		{

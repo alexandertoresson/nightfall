@@ -465,7 +465,7 @@ namespace Game
 
 		int GameWindow::InitGame(bool is_new_game, bool isNetworked, Networking::NETWORKTYPE ntype)
 		{
-			Utilities::VFS::PushState();
+			Dimension::outerGameVFSLevel = Utilities::VFS::PushState();
 			Utilities::VFS::Mount("/data/levels/" + CurrentLevel + "/", "/data/");
 			
 			input = new Dimension::InputController();

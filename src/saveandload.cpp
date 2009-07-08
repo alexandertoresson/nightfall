@@ -31,6 +31,7 @@
 #include "aipathfinding.h"
 #include "camera.h"
 #include "research.h"
+#include "vfs.h"
 #include <string>
 #include <iostream>
 
@@ -338,7 +339,14 @@ namespace Game
 			Utilities::XMLWriter xmlfile;
 			AI::PausePathfinding();
 
-			xmlfile.Open(filename);
+			std::string nfilename = Utilities::VFS::ResolveWritable("/data/saves/" + filename, outerGameVFSLevel);
+			if (!nfilename.size())
+			{
+				std::cout << filename << " not writable!" << std::endl;
+				return; // TODO: return error code
+			}
+
+			xmlfile.Open(nfilename);
 
 			xmlfile.BeginTag("nightfall_save_file");
 
@@ -1023,13 +1031,20 @@ namespace Game
 
 		void LoadGameSaveFile(std::string filename)
 		{
-			std::cout << "Parsing save game file " << filename << "..." << std::endl;
-			xmlreader.Read(filename);
+			std::string nfilename = Utilities::VFS::ResolveReadable("/data/saves/" + filename);
+			if (!nfilename.size())
+			{
+				std::cout << filename << " not found!" << std::endl;
+				return; // TODO: return error code
+			}
+			std::cout << "Parsing save game file " << nfilename << "..." << std::endl;
+			xmlreader.Read(nfilename);
 			xmlreader.root->Iterate("nightfall_save_file", ParseLevel);
 		}
 
 		void LoadGame_PostLoad()
 		{
+			std::cout << "Continuing loading of savegame..." << std::endl;
 			xmlreader.root->Iterate("nightfall_save_file", ParseMain);
 #ifndef WIN32
 			xmlreader.Deallocate();
