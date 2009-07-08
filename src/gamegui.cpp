@@ -37,6 +37,7 @@
 #include "console.h"
 #include "camera.h"
 #include "window.h"
+#include "research.h"
 
 using namespace Window::GUI;
 using namespace std;

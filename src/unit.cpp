@@ -33,6 +33,7 @@
 #include "unitsquares.h"
 #include "unitrender.h"
 #include "utilities.h"
+#include "research.h"
 #include <cstdarg>
 #include <set>
 #include <list>

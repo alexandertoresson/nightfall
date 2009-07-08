@@ -28,8 +28,11 @@
 #include "unit-pre.h"
 #include "unittype-pre.h"
 #include "aibase-pre.h"
-#include "research.h"
+#include "research-pre.h"
 #include "aipathfinding-pre.h"
+#include "dimension-pre.h"
+
+#include "action-pre.h"
 
 namespace Game
 {
@@ -83,13 +86,6 @@ namespace Game
 			
 			void shade();
 			
-		};
-
-		enum UnitEventType
-		{
-			UNITEVENTTYPE_ACTION,
-			UNITEVENTTYPE_SIMPLE,
-			UNITEVENTTYPE_ATTACK
 		};
 
 		struct UnitEvent : public Dimension::BaseActionData

@@ -22,6 +22,7 @@
 #include "unittype.h"
 #include "unit.h"
 #include "aipathfinding.h"
+#include "research.h"
 			
 namespace Game
 {

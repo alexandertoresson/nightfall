@@ -30,6 +30,7 @@
 #include "aibase.h"
 #include "aipathfinding.h"
 #include "camera.h"
+#include "research.h"
 #include <string>
 #include <iostream>
 

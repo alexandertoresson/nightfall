@@ -1173,10 +1173,17 @@ namespace Game
 								AI::ApplyAction(unit, actiondata->action, actiondata->x, actiondata->y, target, args, ByteToRotation(actiondata->rot));
 #ifdef CHECKSUM_DEBUG_HIGH
 								checksum_output << "ActionData chunk on frame " << AI::currentFrame << "\n";
-								checksum_output << actiondata->unit_id << " " << actiondata->goalunit_id << " " << actiondata->action << " " << actiondata->x << " " << actiondata->y << " " << actiondata->arg << "\n";
+								checksum_output << actiondata->unit_id << " " << actiondata->goalunit_id << " " << actiondata->action << " " << actiondata->x << " " << actiondata->y << " " << actiondata->arg << " " << unit << " " << target << " " << (target ? target->pMovementData->action.action : -1) << " " << "\n";
 #endif
+								goto correct_actiondata;
 							}
 						}
+#ifdef CHECKSUM_DEBUG_HIGH
+						checksum_output << "Discarded ActionData chunk on frame " << AI::currentFrame << "\n";
+						checksum_output << actiondata->unit_id << " " << actiondata->goalunit_id << " " << actiondata->action << " " << actiondata->x << " " << actiondata->y << " " << actiondata->arg << " " << unit << " " << target << " " << (target ? target->pMovementData->action.action : -1) << " " << "\n";
+#endif
+						correct_actiondata:
+
 						delete actiondata;
 					}
 				}

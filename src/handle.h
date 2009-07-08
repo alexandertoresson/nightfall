@@ -23,6 +23,7 @@
 
 #include "research-pre.h"
 #include "dimension-pre.h"
+#include "networking.h"
 #include <iostream>
 
 namespace Game
@@ -104,6 +105,9 @@ namespace Game
 						independentHandle = nextIndex;
 						handle = nextIndex + HandleTraits<T>::base;
 					}
+#ifdef CHECKSUM_DEBUG_HIGH
+					Networking::checksum_output << "Assigned handle: " << handle << "\n";
+#endif
 				}
 
 				static void RevokeHandle(int handle)
@@ -115,6 +119,9 @@ namespace Game
 						return;
 					}
 					handles[index] = gc_ptr<T>();
+#ifdef CHECKSUM_DEBUG_HIGH
+					Networking::checksum_output << "Revoked handle: " << handle << "\n";
+#endif
 				}
 
 				static bool IsCorrectHandle(int handle)

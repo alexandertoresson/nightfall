@@ -32,8 +32,8 @@
 #include "aibase-pre.h"
 #include "ainode.h"
 #include "circularbuffer.h"
-#include "action.h"
-#include "unit.h"
+#include "action-pre.h"
+#include "unit-pre.h"
 
 namespace Game
 {

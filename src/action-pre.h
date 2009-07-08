@@ -32,6 +32,14 @@ namespace Game
 		struct UnitGoal;
 		struct ActionArguments;
 		struct BaseActionData;
+		
+		enum UnitEventType
+		{
+			UNITEVENTTYPE_ACTION,
+			UNITEVENTTYPE_SIMPLE,
+			UNITEVENTTYPE_ATTACK
+		};
+
 	}
 }
 

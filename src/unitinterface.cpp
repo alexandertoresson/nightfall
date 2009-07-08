@@ -42,6 +42,7 @@
 #include "selectorxml.h"
 #include "unittype.h"
 #include "handle.h"
+#include "research.h"
 #include <sstream>
 #include <iostream>
 

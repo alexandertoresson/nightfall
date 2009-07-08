@@ -29,6 +29,7 @@
 #include "networking.h"
 #include "game.h"
 #include "utilities.h"
+#include "research.h"
 #include <cmath>
 #include <set>
 #include <iostream>
