@@ -160,7 +160,7 @@ namespace Game
 
 				~HasHandle()
 				{
-					HandleManager<T>::RevokeHandle(handle);
+					RevokeHandle();
 				}
 
 				void AssignHandle(int id = -1)
@@ -186,7 +186,16 @@ namespace Game
 					}
 					return independentHandle;
 				}
-		
+
+				void RevokeHandle()
+				{
+					if (handle != -1)
+					{
+						HandleManager<T>::RevokeHandle(handle);
+						handle = -1;
+						independentHandle = -1;
+					}
+				}		
 		};
 	}
 }
