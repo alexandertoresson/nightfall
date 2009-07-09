@@ -159,14 +159,18 @@ namespace Game
 			private:
 				int handle;
 				int independentHandle;
+				bool revoked;
 
 			public:
-				HasHandle() : handle(-1), independentHandle(-1)
+				HasHandle() : handle(-1), independentHandle(-1), revoked(false)
 				{
 				}
 
 				~HasHandle()
 				{
+#ifdef CHECKSUM_DEBUG_HIGH
+					Networking::checksum_output << "HASHANDLE DESTRUCTOR " << AI::currentFrame << ": " << GetHandle() << "\n";
+#endif
 					RevokeHandle();
 				}
 
@@ -196,11 +200,13 @@ namespace Game
 
 				void RevokeHandle()
 				{
-					if (handle != -1)
+					if (!revoked)
 					{
+#ifdef CHECKSUM_DEBUG_HIGH
+						Networking::checksum_output << "HASHANDLE REVOKEHANDLE " << AI::currentFrame << ": " << GetHandle() << "\n";
+#endif
 						HandleManager<T>::RevokeHandle(handle);
-						handle = -1;
-						independentHandle = -1;
+						revoked = true;
 					}
 				}		
 		};
