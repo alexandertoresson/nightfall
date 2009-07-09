@@ -32,7 +32,8 @@ maxplayers -- Maximum number of players
 freeplayerslots -- Number of additional players that can join the game
 freespectatorslots -- Number of additional spectators that can join the game
 
-Returns a unique string on the second that will identify the game, and will be used to identify the game in subsequent requests.
+Returns a unique string that will identify the game, and will be used to identify the game in subsequent requests.
+The unique string is a sha1 sum.
 NOTE: Is not equal to gameid in the game list.
 
 Update a game
@@ -46,7 +47,7 @@ started -- Whether the game is started or not
 freeplayerslots -- Number of additional players that can join the game
 freespectatorslots -- Number of additional spectators that can join the game
 
-Returns: Nothing except error code.
+Returns: Nothing except status code.
 
 End a game
 ----------
@@ -54,7 +55,7 @@ End a game
 Parameters:
 secretgameid -- The game id returned when registering the game
 
-Returns: Nothing except error code.
+Returns: Nothing except status.
 
 Register a new game tracker
 ---------------------------
@@ -62,4 +63,4 @@ Register a new game tracker
 Parameters:
 url -- The URL to the game tracker
 
-Returns: Nothing except error code.
+Returns: Nothing except status code.
