@@ -405,6 +405,9 @@ namespace Game
 						const gc_ptr<Unit>& unit = pWorld->vUnits[i];
 						if (unit->type == *it && unit->isDisplayed)
 						{
+#ifdef CHECKSUM_DEBUG_HIGH
+							Networking::checksum_output << "EMER " << AI::currentFrame << ": " << unit->GetHandle() << " " << (*it)->name << "\n";
+#endif
 							KillUnit(unit);
 						}
 						else

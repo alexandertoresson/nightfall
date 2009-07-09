@@ -650,6 +650,9 @@ namespace Game
 					PerformVerySimpleAI(pUnit);
 					if (pUnit->pMovementData->action.action == ACTION_DIE && currentFrame - pUnit->lastAttacked > (unsigned) aiFps)
 					{
+#ifdef CHECKSUM_DEBUG_HIGH
+						Networking::checksum_output << "SCHEDULEUNITDELETION " << AI::currentFrame << ": " << pUnit->GetHandle() << "\n";
+#endif
 						ScheduleUnitDeletion(pUnit);
 					}
 				}

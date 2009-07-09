@@ -1773,6 +1773,9 @@ namespace Game
 
 		void KillUnit(gc_ptr<Unit> unit)
 		{
+#ifdef CHECKSUM_DEBUG_HIGH
+			Networking::checksum_output << "KILL " << AI::currentFrame << ": " << unit->GetHandle() << "\n";
+#endif
 //			unsigned int i;
 			
 //			std::cout << "Kill " << unit->GetHandle() << std::endl;
