@@ -1158,7 +1158,7 @@ namespace Game
 						}
 #endif
 						const gc_ptr<Dimension::Unit>& unit = DecodeUnitID(actiondata->unit_id);
-						const gc_ptr<Dimension::Unit>& target = DecodeUnitID(actiondata->goalunit_id);
+						const gc_ptr<Dimension::Unit>& target = actiondata->goalunit_id == 0xFFFF ? gc_ptr<Dimension::Unit>() : DecodeUnitID(actiondata->goalunit_id);
 						waitingActions.erase(waitingActions.begin() + i--);
 						
 						if (unit && (actiondata->goalunit_id == 0xFFFF || target))
