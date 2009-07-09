@@ -544,6 +544,9 @@ namespace Game
 				                                        	// CancelBuild which calls DeleteUnit which calls CancelAction....
 					AI::ResumePathfinding(thread);
 
+#ifdef CHECKSUM_DEBUG_HIGH
+						Networking::checksum_output << "SCHEDULEUNITDELETION BUILD " << AI::currentFrame << ": " << pUnit->GetHandle() << "\n";
+#endif
 					ScheduleUnitDeletion(target);
 				}
 			}
@@ -1804,6 +1807,9 @@ namespace Game
 		{
 			unsigned int i, j;
 			
+#ifdef CHECKSUM_DEBUG_HIGH
+			Networking::checksum_output << "REMOVEUNITFROMLISTS " << AI::currentFrame << ": " << unit->GetHandle() << "\n";
+#endif
 //			std::cout << "remove " << unit->GetHandle() << " (" << unit << ")" << std::endl;
 
 			DeleteAssociatedSquares(unit, unit->curAssociatedSquare.x, unit->curAssociatedSquare.y);
