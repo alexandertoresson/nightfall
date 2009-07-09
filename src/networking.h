@@ -116,14 +116,6 @@ namespace Game
 		int _networkSendThread(void* arg);
 		int _networkRecvThread(void* arg);
 
-		struct NetworkSocket
-		{
-			Uint8 *pBufferIn;
-			Uint8 *pBufferOut;
-			TCPsocket socket; //Client or Server socket
-			SDLNet_SocketSet set;
-		};
-
 		extern NETWORKTYPE networkType;
 
 #ifdef CHECKSUM_DEBUG

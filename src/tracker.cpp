@@ -129,6 +129,11 @@ namespace Utilities
 	void Tracker::SetSecretGameID(std::string gameid)
 	{
 		std::cout << "game id: " << gameid << std::endl;
+		if (gameid.length() != 40)
+		{
+			std::cout << "invalid." << std::endl;
+			return;
+		}
 		secretgameid = gameid;
 		if (needShutdown)
 		{
@@ -142,6 +147,16 @@ namespace Utilities
 				(new GenericRequest)->GET("http://nightfall-rts.org/tracker/", unsentUpdate);
 			}
 		}
+	}
+
+	bool Tracker::IsPrefixOfSecretGameID(std::string prefix)
+	{
+		return prefix.length() <= secretgameid.length() && prefix == secretgameid.substr(0, prefix.length());
+	}
+
+	std::string Tracker::GetLastPartOfSecretGameId()
+	{
+		return secretgameid.length() == 40 ? secretgameid.substr(20, 20) : std::string(' ', 20);
 	}
 	
 	Tracker gameTracker;

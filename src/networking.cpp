@@ -32,6 +32,7 @@
 #include <fstream>
 #include <cmath>
 #include <iostream>
+#include <vector>
 
 //#define NET_DEBUG
 //#define NET_DEBUG_CONNECTION
@@ -102,10 +103,26 @@ namespace Game
 			NETWORKNODETYPE_DISCONNECTED
 		};
 
+		struct NetworkSocket
+		{
+			Uint8 *pBufferIn;
+			Uint8 *pBufferOut;
+			TCPsocket socket; //Client or Server socket
+			SDLNet_SocketSet set;
+		};
+
+		struct PendingConnection
+		{
+			TCPsocket socket;
+			std::string received;
+		};
+
 		string netNickname[NETWORK_MAX_CLIENTS];
-		TCPsocket netDest[NETWORK_MAX_CLIENTS]; //clients connected to server.
+		TCPsocket netDest[NETWORK_MAX_CLIENTS]; //clients connected to server (players, spectators).
 		NetworkNodeType nodeTypes[NETWORK_MAX_CLIENTS];
 		
+		std::vector<PendingConnection> pendingSockets; // sockets which haven't told us what they want to do yet
+
 		Uint8 **netDestBufferIn;
 		int *netDataLeft;
 		int *netDataTotal;
@@ -2052,26 +2069,16 @@ namespace Game
 				}
 				SDL_UnlockMutex(mutNetworkShutdown);
 
-				if(serverListening)
+				acceptSock = SDLNet_TCP_Accept(net->socket);
+				if(acceptSock != NULL)
 				{
-					acceptSock = SDLNet_TCP_Accept(net->socket);
-					if(acceptSock != NULL)
+					if(!SDLNet_TCP_AddSocket(net->set, acceptSock))
 					{
-						netDest[numConnected] = acceptSock;
-						nodeTypes[numConnected] = NETWORKNODETYPE_PLAYER;
-						if(!SDLNet_TCP_AddSocket(net->set, acceptSock))
-						{
-							cout << "Failed to add to Set" << endl;
-						}
-						SDL_LockMutex(mutServerConnected);
-						numConnected++;
-						if(numConnected == netDestCount)
-							serverListening = false;
-
-						Utilities::gameTracker.UpdateGame(playerCounter + 2, netDestCount - numConnected, 0, isReadyToStart);
-
-						SDL_UnlockMutex(mutServerConnected);
+						cout << "Failed to add to Set" << endl;
 					}
+					PendingConnection a;
+					a.socket = acceptSock;
+					pendingSockets.push_back(a);
 				}
 
 				int nb = SDLNet_CheckSockets(net->set, 0);
@@ -2080,6 +2087,60 @@ namespace Game
 #ifdef NET_DEBUG_CONNECTION
 					activty = true;
 #endif
+					for (std::vector<PendingConnection>::iterator it = pendingSockets.begin(); it != pendingSockets.end(); )
+					{
+						if(SDLNet_SocketReady(it->socket))
+						{
+							char buffer[32];
+							(it->received) += std::string(buffer,SDLNet_TCP_Recv(it->socket, buffer, 4 - it->received.length()));
+							if (it->received.length() >= 4)
+							{
+								if (it->received == "PLAY")
+								{
+									netDest[numConnected] = acceptSock;
+									nodeTypes[numConnected] = NETWORKNODETYPE_PLAYER;
+									SDL_LockMutex(mutServerConnected);
+									numConnected++;
+									if(numConnected == netDestCount)
+										serverListening = false;
+
+									Utilities::gameTracker.UpdateGame(playerCounter + 2, netDestCount - numConnected, 0, isReadyToStart);
+
+									SDL_UnlockMutex(mutServerConnected);
+
+									it = pendingSockets.erase(it);
+								}
+								else if (it->received.substr(0, 4) == "PING")
+								{
+									it->received += std::string(buffer, SDLNet_TCP_Recv(it->socket, buffer, 24 - it->received.length()));
+									if (it->received.length() == 24)
+									{
+										if (Utilities::gameTracker.IsPrefixOfSecretGameID(it->received.substr(4, 20)))
+										{
+											std::string lastPart = Utilities::gameTracker.GetLastPartOfSecretGameId();
+											SDLNet_TCP_Send(it->socket, lastPart.c_str(), 20);
+										}
+									}
+									SDLNet_TCP_AddSocket(net->set, it->socket);
+									SDLNet_TCP_Close(it->socket);
+									it = pendingSockets.erase(it);
+								}
+								else
+								{
+									it++;
+								}
+							}
+							else
+							{
+								it++;
+							}
+						}
+						else
+						{
+							it++;
+						}
+					}
+
 					for(int i = 0; i < numConnected; i++)
 					{
 						if(SDLNet_SocketReady(netDest[i]))
@@ -2369,6 +2430,7 @@ namespace Game
 #ifdef NET_DEBUG
 						cout << "Client successfully connected..." << endl;
 #endif
+						SDLNet_TCP_Send(net->socket, "PLAY", 4);
 					}
 					else
 					{

@@ -41,6 +41,8 @@ namespace Utilities
 			void UpdateGame(int maxplayers, int freeplayerslots, int freespectatorslots, bool started);
 			void EndGame();
 			void SetSecretGameID(std::string gameid);
+			bool IsPrefixOfSecretGameID(std::string prefix);
+			std::string GetLastPartOfSecretGameId();
 	};
 
 	extern Tracker gameTracker;
