@@ -1774,7 +1774,10 @@ namespace Game
 			unitsScheduledForDisplay.sort(UnitBinPred);
 			for (list<gc_ptr<Unit> >::iterator it = unitsScheduledForDisplay.begin(); it != unitsScheduledForDisplay.end(); it++)
 			{
-				DisplayUnit(*it);
+				if (!DisplayUnit(*it))
+				{
+					(*it)->RevokeHandle();
+				}
 			}
 			unitsScheduledForDisplay.clear();
 		}
