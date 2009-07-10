@@ -1627,6 +1627,11 @@ namespace Game
 		set<gc_ptr<Unit> > unitsScheduledForDeletion;
 		list<gc_ptr<Unit> > unitsScheduledForDisplay;
 
+		void static_shade()
+		{
+			gc_shade_container(unitsScheduledForDisplay);
+		}
+
 		SDL_mutex* unitCreationMutex = NULL;
 
 		// create a unit, but don't display it
@@ -2035,6 +2040,8 @@ namespace Game
 
 		void InitUnits()
 		{
+
+			gc_marker_base::register_static_shader(static_shade);
 
 			unitCreationMutex = SDL_CreateMutex();
 			unitsScheduledForDisplayMutex = SDL_CreateMutex();
