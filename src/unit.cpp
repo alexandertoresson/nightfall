@@ -1688,7 +1688,7 @@ namespace Game
 
 		bool ScheduleDisplayUnit(const gc_ptr<Unit>& unit, int x, int y)
 		{
-			if (!SquaresAreWalkable(gc_ptr<UnitType>(unit->type), x, y, SIW_ALLKNOWING))
+			if (!SquaresAreWalkable(unit->type, x, y, SIW_ALLKNOWING))
 			{
 				return false;
 			}
