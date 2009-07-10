@@ -1008,6 +1008,9 @@ namespace Game
 				static int lt = 0;
 				if (i % 1000 == 0 || SDL_GetTicks() - lt > 5000)
 				{
+#ifdef CHECKSUM_DEBUG_HIGH
+					Networking::checksum_output << "GCSWEEP\n";
+#endif
 					Uint32 ticks = SDL_GetTicks();
 
 					Game::Rules::GameWindow::Instance()->PauseRendering();
