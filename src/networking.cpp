@@ -3101,11 +3101,7 @@ namespace Game
 							if (!scheduleShutdown)
 							{
 								scheduleShutdown = true;
-#ifdef CHECKSUM_DEBUG_HIGH
 								shutdownFrame = AI::currentFrame + netDelay;
-#else
-								shutdownFrame = AI::currentFrame + netDelay > 20 ? netDelay : 20;
-#endif
 							}
 
 							cout << "Checksum failed on frame " << waitingChecksums.at(j)->frame << "!" << endl;
