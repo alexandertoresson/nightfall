@@ -2121,7 +2121,7 @@ namespace Game
 											SDLNet_TCP_Send(it->socket, lastPart.c_str(), 20);
 										}
 									}
-									SDLNet_TCP_AddSocket(net->set, it->socket);
+									SDLNet_TCP_DelSocket(net->set, it->socket);
 									SDLNet_TCP_Close(it->socket);
 									it = pendingSockets.erase(it);
 								}
