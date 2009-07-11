@@ -164,7 +164,7 @@ namespace Game
 		bool *frameMayAdvance;
 
 #ifdef CHECKSUM_DEBUG
-		CircularBuffer checksum_output(100000, "");
+		CircularBuffer checksum_output(5000000, "");
 #endif
 
 		// CRC32 functions:
