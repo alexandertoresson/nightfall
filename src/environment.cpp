@@ -451,7 +451,7 @@ namespace Game
 			
 			bool FourthDimension::LoadSkyboxes(std::string config_file)
 			{
-				std::string filename = Utilities::VFS::ResolveReadable("/config/" + config_file);
+				std::string filename = Utilities::VFS::ResolveReadable("/data/" + config_file);
 				std::ifstream     file;
 				std::string       buffer;
 				

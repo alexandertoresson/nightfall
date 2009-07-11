@@ -90,3 +90,6 @@ Optimeringar:
 Grafik relaterat
 * lägga till effekter för byggnad, rök, lite slumpmässiga träd (kanske simulera vind senare)
 * lägga på detaljtextur på terrängen
+
+Enhancements:
+* Fix skybox handling
