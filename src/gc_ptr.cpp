@@ -153,11 +153,11 @@ void gc_marker_base::sweep()
 		SDL_LockMutex(mutex);
 		MarkerSet& rwhite = *marked[MARK_WHITE];
 
-		std::cout << "Swept " << amount << " bytes in " << white.size() << " objects out of " << rwhite.size() << ". Gray: " << marked[MARK_GRAY]->size() << std::endl;
+/*		std::cout << "Swept " << amount << " bytes in " << white.size() << " objects out of " << rwhite.size() << ". Gray: " << marked[MARK_GRAY]->size() << std::endl;
 		for (std::map<std::string, int>::iterator it = numPerSize.begin(); it != numPerSize.end(); it++)
 		{
 			std::cout << it->first << ": " << it->second << std::endl;
-		}
+		}*/
 
 		for (MarkerSet::iterator it = white.begin(); it != white.end(); it++)
 		{
