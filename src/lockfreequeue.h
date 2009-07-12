@@ -21,75 +21,133 @@
 #ifndef LOCKFREEQUEUE_H
 #define LOCKFREEQUEUE_H
 
-#include "gc_ptr.h"
+#include <iterator>
 
 template <typename T>
 class lockfreequeue
 {
 		struct entry
 		{
-			gc_ptr<T> a;
-			gc_ptr<entry> next;
+			T a;
+			entry* next;
 
-			entry(gc_ptr<T> a) : a(a)
+			entry(T a = T()) : a(a), next(NULL)
 			{
 				
 			}
-
-			void shade()
-			{
-				a.shade();
-				next.shade();
-			}
 		};
 
-		gc_ptr<entry> tail, head;
+		entry* tail;
+		entry* head;
 
 	public:
 
-		void produce(gc_ptr<T> a)
+		void produce(T a)
 		{
-			gc_ptr<entry> new_entry = new entry(a);
+			entry* new_entry = new entry(a);
 			head->next = new_entry;
 			head = new_entry;
 		}
 
-		gc_ptr<T> consume()
+		T consume()
 		{
 			if (!tail->a)
 			{
 				if (tail->next)
 				{
+					entry* old = tail;
 					tail = tail->next;
+					delete old;
 				}
 				else
 				{
-					return NULL;
+					return T();
 				}
 			}
 
-			gc_ptr<T> ret = tail->a;
+			T ret = tail->a;
 
 			if (tail->next)
 			{
+				entry* old = tail;
 				tail = tail->next;
+				delete old;
 			}
 			else
 			{
-				tail->a = NULL;
+				tail->a = T();
 			}
 			return ret;
 		}
 
 		lockfreequeue()
 		{
-			head = tail = new entry(NULL);
+			head = tail = new entry();
 		}
 
-		void shade()
+		class const_iterator : public std::iterator<std::forward_iterator_tag, T>
 		{
-			tail.shade();
-			head.shade();
+			private:
+				entry* t;
+			public:
+				const_iterator(entry* t) : t(t) {}
+				~const_iterator() {}
+
+				const_iterator& operator = (const const_iterator& other)
+				{
+					t = other.t;
+					return *this;
+				}
+
+				bool operator == (const const_iterator& other)
+				{
+					return t == other.t;
+				}
+
+				bool operator != (const const_iterator& other)
+				{
+					return !(*this == other);
+				}
+
+				const_iterator& operator ++ ()
+				{
+					if (t != NULL)
+					{
+						t = t->next;
+						if (t && !t->a)
+						{
+							t = NULL;
+						}
+					}
+					return *this;
+				}
+				
+				const_iterator operator ++ (int)
+				{
+					const_iterator tmp(*this);
+					++(*this);
+					return tmp;
+				}
+
+				const T& operator * ()
+				{
+					return t->a;
+				}
+
+				const T* operator -> ()
+				{
+					return &t->a;
+				}
+		};
+
+		const_iterator begin() const
+		{
+			return const_iterator(tail->a ? tail :  tail->next);
+		}
+		
+		const_iterator end() const
+		{
+			return const_iterator(NULL);
 		}
 };
 

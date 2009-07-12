@@ -54,7 +54,7 @@ namespace Game
 			std::vector<gc_ptr<UnitType> >   vUnitTypes;
 			std::vector<gc_ptr<Projectile> > vProjectiles;
 			std::vector<gc_ptr<Research> >   vResearchs;
-			lockfreequeue<UnitEvent> scheduledUnitEvents;
+			lockfreequeue<gc_ptr<UnitEvent> > scheduledUnitEvents;
 			SDL_mutex *scheduleUnitEventMutex;
 			Uint16**          NumUnitsSeeingSquare;
 			PlayerState*      states;
@@ -88,11 +88,11 @@ namespace Game
 				gc_shade_container(vUnitTypes);
 				gc_shade_container(vResearchs);
 				gc_shade_container(vProjectiles);
+				gc_shade_container(scheduledUnitEvents);
 				gc_shade_map(unitTypeMap);
 				gc_shade_map(researchMap);
 				raceState.shade();
 				aiState.shade();
-				scheduledUnitEvents.shade();
 			}
 		};
 		

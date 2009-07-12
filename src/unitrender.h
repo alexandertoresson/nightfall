@@ -35,6 +35,7 @@
 #include "render.h"
 #include "dimension.h"
 #include "materialxml-pre.h"
+#include "lockfreequeue.h"
 #include <map>
 #include <vector>
 #include <set>
@@ -61,15 +62,67 @@ namespace Game
 				std::map<gc_ptr<Unit>, gc_ptr<UnitNode> > unitToUnitNode;
 				std::map<gc_ptr<Unit>, gc_ptr<UnitSelectionNode> > unitToSelectNode;
 				std::map<gc_ptr<Projectile>, gc_ptr<ProjectileNode> > projToProjNode;
+				std::set<gc_ptr<Unit> > units;
 
-				std::set<gc_ptr<Unit> > unitScheduledForAddition;
-				std::vector<gc_ptr<Unit> > unitScheduledForDeletion;
+				template <typename T>
+				class AddDelItem
+				{
+					public:
+						enum Type
+						{
+							ADD,
+							DEL
+						};
+					private:
+						Type type;
+						T val;
+						bool valid;
 
-				std::set<gc_ptr<Unit> > unitScheduledForSelection;
-				std::vector<gc_ptr<Unit> > unitScheduledForDeselection;
-				
-				std::set<gc_ptr<Projectile> > projScheduledForAddition;
-				std::vector<gc_ptr<Projectile> > projScheduledForDeletion;
+					public:
+						AddDelItem() : valid(false) {}
+						AddDelItem(Type type, T val) : type(type), val(val), valid(true) {}
+
+						operator bool() const
+						{
+							return valid;
+						}
+
+						bool IsAdd()
+						{
+							return type == ADD;
+						}
+
+						bool IsDel()
+						{
+							return !IsAdd();
+						}
+
+						const T& GetValue()
+						{
+							return val;
+						}
+
+						void shade() const
+						{
+							val.shade();
+						}
+				};
+
+				template <typename T>
+				AddDelItem<T> make_add_item(T val)
+				{
+					return AddDelItem<T>(AddDelItem<T>::ADD, val);
+				}
+
+				template <typename T>
+				AddDelItem<T> make_del_item(T val)
+				{
+					return AddDelItem<T>(AddDelItem<T>::DEL, val);
+				}
+
+				lockfreequeue<AddDelItem<gc_ptr<Unit> > > unitChanges;
+				lockfreequeue<AddDelItem<gc_ptr<Unit> > > unitSelectionChanges;
+				lockfreequeue<AddDelItem<gc_ptr<Projectile> > > projChanges;
 
 				gc_ptr<UnitType> buildOutlineType;
 				IntPosition buildOutlinePosition;
@@ -93,6 +146,8 @@ namespace Game
 
 				const gc_ptr<UnitNode>& GetUnitNode(const gc_ptr<Unit>& unit);
 
+				const std::set<gc_ptr<Unit> >& GetUnits();
+
 				static void Reset();
 				static gc_root_ptr<UnitMainNode>::type& GetInstance();
 
@@ -102,12 +157,9 @@ namespace Game
 					gc_shade_map_key_value(unitToUnitNode);
 					gc_shade_map_key_value(unitToSelectNode);
 					gc_shade_map_key_value(projToProjNode);
-					gc_shade_container(unitScheduledForAddition);
-					gc_shade_container(unitScheduledForDeletion);
-					gc_shade_container(unitScheduledForSelection);
-					gc_shade_container(unitScheduledForDeselection);
-					gc_shade_container(projScheduledForAddition);
-					gc_shade_container(projScheduledForDeletion);
+					gc_shade_container(unitChanges);
+					gc_shade_container(unitSelectionChanges);
+					gc_shade_container(projChanges);
 					buildOutlineType.shade();
 				}
 		};

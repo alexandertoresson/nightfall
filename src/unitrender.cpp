@@ -120,8 +120,8 @@ namespace Game
 		{
 			gc_ptr<Unit> cur_unit;
 			float cur_dist = 1e10, dist;
-			SDL_LockMutex(AI::updateMutex);
-			for (vector<gc_ptr<Unit> >::iterator it = Dimension::pWorld->vUnits.begin(); it != Dimension::pWorld->vUnits.end(); it++)
+			const std::set<gc_ptr<Dimension::Unit> >& units = UnitMainNode::GetInstance()->GetUnits();
+			for (set<gc_ptr<Dimension::Unit> >::iterator it = units.begin(); it != units.end(); it++)
 			{
 				const gc_ptr<Unit>& unit = *it;
 				if (UnitIsRendered(unit, currentPlayerView))
@@ -139,7 +139,6 @@ namespace Game
 					}
 				}
 			}
-			SDL_UnlockMutex(AI::updateMutex);
 			return cur_unit;
 		}
 /*
@@ -185,22 +184,14 @@ namespace Game
 		void UnitMainNode::ScheduleUnitNodeAddition(const gc_ptr<Unit>& unit)
 		{
 			SDL_LockMutex(listsMutex);
-			unitScheduledForAddition.insert(unit);
+			unitChanges.produce(make_add_item(unit));
 			SDL_UnlockMutex(listsMutex);
 		}
 
 		void UnitMainNode::ScheduleUnitNodeDeletion(const gc_ptr<Unit>& unit)
 		{
 			SDL_LockMutex(listsMutex);
-			std::set<gc_ptr<Unit> >::iterator it = unitScheduledForAddition.find(unit);
-			if (it != unitScheduledForAddition.end())
-			{
-				unitScheduledForAddition.erase(it);
-			}
-			else
-			{
-				unitScheduledForDeletion.push_back(unit);
-			}
+			unitChanges.produce(make_del_item(unit));
 			SDL_UnlockMutex(listsMutex);
 		}
 
@@ -208,152 +199,132 @@ namespace Game
 		{
 			SDL_LockMutex(listsMutex);
 			std::cout << "select " << std::endl;
-			unitScheduledForSelection.insert(unit);
+			unitSelectionChanges.produce(make_add_item(unit));
 			SDL_UnlockMutex(listsMutex);
 		}
 
 		void UnitMainNode::ScheduleDeselection(const gc_ptr<Unit>& unit)
 		{
 			SDL_LockMutex(listsMutex);
-			std::set<gc_ptr<Unit> >::iterator it = unitScheduledForSelection.find(unit);
-			if (it != unitScheduledForSelection.end())
-			{
-				std::cout << "unselect " << std::endl;
-				unitScheduledForSelection.erase(it);
-			}
-			else
-			{
-				std::cout << "deselect " << std::endl;
-				unitScheduledForDeselection.push_back(unit);
-			}
+			unitSelectionChanges.produce(make_del_item(unit));
 			SDL_UnlockMutex(listsMutex);
 		}
 
 		void UnitMainNode::ScheduleProjectileAddition(const gc_ptr<Projectile>& proj)
 		{
 			SDL_LockMutex(listsMutex);
-			projScheduledForAddition.insert(proj);
+			projChanges.produce(make_add_item(proj));
 			SDL_UnlockMutex(listsMutex);
 		}
 
 		void UnitMainNode::ScheduleProjectileDeletion(const gc_ptr<Projectile>& proj)
 		{
 			SDL_LockMutex(listsMutex);
-			std::set<gc_ptr<Projectile> >::iterator it = projScheduledForAddition.find(proj);
-			if (it != projScheduledForAddition.end())
-			{
-				projScheduledForAddition.erase(it);
-			}
-			else
-			{
-				projScheduledForDeletion.push_back(proj);
-			}
+			projChanges.produce(make_del_item(proj));
 			SDL_UnlockMutex(listsMutex);
 		}
 
 		void UnitMainNode::ScheduleBuildOutlineAddition(const gc_ptr<UnitType>& type, int x, int y)
 		{
-			SDL_LockMutex(listsMutex);
 			buildOutlineType = type;
 			buildOutlinePosition.x = x;
 			buildOutlinePosition.y = y;
-			SDL_UnlockMutex(listsMutex);
 		}
 
 		void UnitMainNode::ScheduleBuildOutlineDeletion()
 		{
-			SDL_LockMutex(listsMutex);
 			buildOutlineType.reset();
-			SDL_UnlockMutex(listsMutex);
 		}
 
 		void UnitMainNode::PreRender()
 		{
-			SDL_LockMutex(listsMutex);
+//			SDL_LockMutex(listsMutex);
 			
 			// Removals
 			/////////////////////////////////////////////////////////////////////////
 
-			for (std::vector<gc_ptr<Unit> >::iterator it = unitScheduledForDeselection.begin(); it != unitScheduledForDeselection.end(); it++)
-			{
-				const gc_ptr<Unit>& unit = *it;
-				const gc_ptr<UnitSelectionNode>& selectNode = unitToSelectNode[unit];
-				if (selectNode)
-				{
-					selectNode->DeleteTree();
-					unitToSelectNode.erase(unit);
-				}
-			}
-			unitScheduledForDeselection.clear();
 
-			for (std::vector<gc_ptr<Unit> >::iterator it = unitScheduledForDeletion.begin(); it != unitScheduledForDeletion.end(); it++)
+			while (AddDelItem<gc_ptr<Unit> > item = unitChanges.consume())
 			{
-				const gc_ptr<Unit>& unit = *it;
-				const gc_ptr<UnitNode>& unitNode = unitToUnitNode[unit];
-//				std::cout << "delete " << unit->GetHandle() << " (" << unit << ")" << std::endl;
-				if (unitNode)
+				const gc_ptr<Unit>& unit = item.GetValue();
+				if (item.IsAdd())
 				{
-					unitNode->DeleteTree();
-					unitToUnitNode.erase(unit);
+					const gc_root_ptr<UnitNode>::type unitNode = new UnitNode(unit);
+	//				std::cout << "add " << unit->GetHandle() << " (" << unit << ")" << std::endl;
+					AddChild(unitNode);
+					unitToUnitNode[unit] = unitNode;
+					units.insert(unit);
+				}
+				else
+				{
+					const gc_ptr<UnitNode>& unitNode = unitToUnitNode[unit];
+	//				std::cout << "delete " << unit->GetHandle() << " (" << unit << ")" << std::endl;
+					if (unitNode)
+					{
+						unitNode->DeleteTree();
+						unitToUnitNode.erase(unit);
+						units.erase(unit);
+					}
 				}
 			}
-			unitScheduledForDeletion.clear();
+
+			while (AddDelItem<gc_ptr<Unit> > item = unitSelectionChanges.consume())
+			{
+				const gc_ptr<Unit>& unit = item.GetValue();
+				if (item.IsAdd())
+				{
+					gc_ptr<UnitNode>& unitNode = unitToUnitNode[unit];
+					if (unitNode && !unitToSelectNode[unit])
+					{
+						gc_root_ptr<UnitSelectionNode>::type selectNode = new UnitSelectionNode(unit);
+						unitNode->AddChild(selectNode);
+						unitToSelectNode[unit] = selectNode;
+					}
+				}
+				else
+				{
+					const gc_ptr<UnitSelectionNode>& selectNode = unitToSelectNode[unit];
+					if (selectNode)
+					{
+						selectNode->DeleteTree();
+						unitToSelectNode.erase(unit);
+					}
+				}
+			}
 			
-			for (std::vector<gc_ptr<Projectile> >::iterator it = projScheduledForDeletion.begin(); it != projScheduledForDeletion.end(); it++)
+			while (AddDelItem<gc_ptr<Projectile> > item = projChanges.consume())
 			{
-				const gc_ptr<Projectile>& proj = *it;
-				gc_ptr<ProjectileNode>& projNode = projToProjNode[proj];
-				if (projNode)
+				const gc_ptr<Projectile>& proj = item.GetValue();
+				if (item.IsAdd())
 				{
-					projNode->DeleteTree();
-					projToProjNode.erase(proj);
+					gc_root_ptr<ProjectileNode>::type projNode = new ProjectileNode(proj);
+					AddChild(projNode);
+					projToProjNode[proj] = projNode;
+				}
+				else
+				{
+					gc_ptr<ProjectileNode>& projNode = projToProjNode[proj];
+					if (projNode)
+					{
+						projNode->DeleteTree();
+						projToProjNode.erase(proj);
+					}
 				}
 			}
-			projScheduledForDeletion.clear();
-
-			// Additions
-			/////////////////////////////////////////////////////////////////////////
-
-			for (std::set<gc_ptr<Unit> >::iterator it = unitScheduledForAddition.begin(); it != unitScheduledForAddition.end(); it++)
-			{
-				const gc_ptr<Unit>& unit = *it;
-				const gc_root_ptr<UnitNode>::type unitNode = new UnitNode(unit);
-//				std::cout << "add " << unit->GetHandle() << " (" << unit << ")" << std::endl;
-				AddChild(unitNode);
-				unitToUnitNode[unit] = unitNode;
-			}
-			unitScheduledForAddition.clear();
-			
-			for (std::set<gc_ptr<Unit> >::iterator it = unitScheduledForSelection.begin(); it != unitScheduledForSelection.end(); it++)
-			{
-				const gc_ptr<Unit>& unit = *it;
-				gc_ptr<UnitNode>& unitNode = unitToUnitNode[unit];
-				if (!unitToSelectNode[unit])
-				{
-					gc_root_ptr<UnitSelectionNode>::type selectNode = new UnitSelectionNode(unit);
-					unitNode->AddChild(selectNode);
-					unitToSelectNode[unit] = selectNode;
-				}
-			}
-			unitScheduledForSelection.clear();
-
-			for (std::set<gc_ptr<Projectile> >::iterator it = projScheduledForAddition.begin(); it != projScheduledForAddition.end(); it++)
-			{
-				const gc_ptr<Projectile>& proj = *it;
-				gc_root_ptr<ProjectileNode>::type projNode = new ProjectileNode(proj);
-				AddChild(projNode);
-				projToProjNode[proj] = projNode;
-			}
-			projScheduledForAddition.clear();
 			
 			BuildOutlineNode::instance.Set(buildOutlineType, buildOutlinePosition);
 
-			SDL_UnlockMutex(listsMutex);
+//			SDL_UnlockMutex(listsMutex);
 		}
 
 		const gc_ptr<UnitNode>& UnitMainNode::GetUnitNode(const gc_ptr<Unit>& unit)
 		{
 			return unitToUnitNode[unit];
+		}
+
+		const std::set<gc_ptr<Unit> >& UnitMainNode::GetUnits()
+		{
+			return units;
 		}
 
 		void UnitMainNode::Reset()

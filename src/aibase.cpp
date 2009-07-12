@@ -51,7 +51,6 @@ namespace Game
 		int pathnodes = 0;
 		int paths = 0;
 
-		SDL_mutex* updateMutex = NULL;
 //		SDL_mutex* debugMutex = NULL;
 
 	
@@ -730,7 +729,6 @@ namespace Game
 
 		void InitAIMiscMutexes()
 		{
-			updateMutex = SDL_CreateMutex();
 //			debugMutex = SDL_CreateMutex();
 		}
 
@@ -982,14 +980,10 @@ namespace Game
 				postFrameTicks[5] += SDL_GetTicks() - t;
 				t = SDL_GetTicks();
 
-				SDL_LockMutex(updateMutex);
-
 				// Apply deletions last, so it may 'undo' actions that have been applied before,
 				// otherwise if you apply actions after it, you may apply actions with targets
 				// that are deleted units.
 				Dimension::DeleteScheduledUnits(); 
-
-				SDL_UnlockMutex(updateMutex);
 
 				postFrameTicks[5] += SDL_GetTicks() - t;
 				t = SDL_GetTicks();

@@ -555,9 +555,8 @@ namespace Game
 					}
 
 					Utilities::Vector3D win_coord;
-					SDL_LockMutex(AI::updateMutex);
-
-					for (vector<gc_ptr<Dimension::Unit> >::iterator it = Dimension::pWorld->vUnits.begin(); it != Dimension::pWorld->vUnits.end(); it++)
+					const std::set<gc_ptr<Dimension::Unit> >& units = Dimension::UnitMainNode::GetInstance()->GetUnits();
+					for (set<gc_ptr<Dimension::Unit> >::iterator it = units.begin(); it != units.end(); it++)
 					{
 						win_coord = Dimension::GetUnitWindowPos(*it);
 						if (win_coord.x >= pGame->start_drag_x && win_coord.x <= pGame->end_drag_x && win_coord.y >= pGame->start_drag_y && win_coord.y <= pGame->end_drag_y && Dimension::UnitIsVisible(*it, Dimension::currentPlayerView))
@@ -565,8 +564,6 @@ namespace Game
 							AddSelectedUnit(*it);
 						}
 					}
-					SDL_UnlockMutex(AI::updateMutex);
-
 				}
 				else
 				{
@@ -2114,13 +2111,12 @@ namespace Game
 
 			glDisable(GL_TEXTURE_2D);
 
-			SDL_LockMutex(AI::updateMutex);
-
-			for(vector<gc_ptr<Dimension::Unit> >::iterator iter = Dimension::pWorld->vUnits.begin(); iter != Dimension::pWorld->vUnits.end(); iter++)
+			const std::set<gc_ptr<Dimension::Unit> >& units = Dimension::UnitMainNode::GetInstance()->GetUnits();
+			for (set<gc_ptr<Dimension::Unit> >::iterator it = units.begin(); it != units.end(); it++)
 			{
-				if(UnitIsVisible(*iter, Dimension::currentPlayerView))
+				const gc_ptr<Dimension::Unit>& pUnit = *it;
+				if(UnitIsVisible(pUnit, Dimension::currentPlayerView))
 				{
-					const gc_ptr<Dimension::Unit>& pUnit = (*iter);
 					int lx = 0;
 					int ly = 0;
 					GetUnitUpperLeftCorner(pUnit, lx, ly);
@@ -2140,8 +2136,6 @@ namespace Game
 					glPopMatrix();
 				}
 			}
-			
-			SDL_UnlockMutex(AI::updateMutex);
 
 			glPopMatrix();
 			return SUCCESS;
