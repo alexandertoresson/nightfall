@@ -732,7 +732,7 @@ namespace Game
 							}
 							break;
 						}
-						case SDLK_q:
+/*						case SDLK_q:
 						{
 							if (!pGame->input->GetKeyState(SDLK_q))
 							{
@@ -756,7 +756,7 @@ namespace Game
 								pGame->input->SetKeyState(SDLK_q, true);
 							}
 							break;
-						}
+						}*/
 						case SDLK_1:
 						{
 							if (pGame->input->GetKeyState(SDLK_LCTRL))
@@ -945,14 +945,14 @@ namespace Game
 							pGame->pMainGame->SetVisible(pGame->consoleID, false);
 							break;
 						}
-						case SDLK_q:
+/*						case SDLK_q:
 						{
 							if (Game::Dimension::unitsDisplayQueue.size())
 							{
 								Game::Dimension::unitsDisplayQueue.clear();
 							}
 							break;
-						}
+						}*/
 						default:
 							break;
 					}
