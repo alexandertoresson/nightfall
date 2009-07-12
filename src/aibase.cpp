@@ -594,7 +594,7 @@ namespace Game
 			}
 		}
 
-		int numLuaAIThreads = 2;
+		int numLuaAIThreads = 0;
 
 		SDL_cond **fireAIConds;
 		SDL_cond *simpleAIdoneCond;

@@ -89,7 +89,7 @@ namespace Game
 		SDL_mutex* gpmxHConst;
 		set<gc_ptr<Dimension::Unit> > doneUnits;
 
-		int numPathfindingThreads = 2;
+		int numPathfindingThreads = 1;
 
 		ThreadData**         pThreadDatas;
 		volatile Uint16****  areaMaps;
