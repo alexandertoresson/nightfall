@@ -205,10 +205,10 @@ bool cmp_uniq(LockItem* a, LockItem* b)
 	return (a->m == b->m) || (a->name == b->name) || (a->file == b->file && a->line == b->line);
 }
 
-LockHash lockHash(256, cmp_all, hash_all);
-LockHash lockHashByM(256, cmp_m, hash_m);
-LockHash lockHashByPos(256, cmp_pos, hash_pos);
-LockHash lockHashByUniq(1, cmp_uniq, hash_uniq);
+std::vector<LockHash> lockHash;
+std::vector<LockHash> lockHashByM;
+std::vector<LockHash> lockHashByPos;
+std::vector<LockHash> lockHashByUniq;
 
 SDL_mutex *lockCheckMutex = NULL;
 
@@ -237,6 +237,18 @@ struct ThreadInfo
 std::map<Uint32, unsigned> idToIndex;
 std::vector<ThreadInfo> threads;
 
+static void AddThread(const ThreadInfo& tI, Uint32 id)
+{
+	threads.push_back(tI);
+	numThreads = threads.size();
+	idToIndex[id] = numThreads-1;
+
+	lockHash.push_back(LockHash(256, cmp_all, hash_all));
+	lockHashByM.push_back(LockHash(256, cmp_m, hash_m));
+	lockHashByPos.push_back(LockHash(256, cmp_pos, hash_pos));
+	lockHashByUniq.push_back(LockHash(1, cmp_uniq, hash_uniq));
+}
+
 void CheckLock(SDL_mutex* m, std::string name, std::string file, unsigned line)
 {
 	Uint32 locker = SDL_ThreadID();
@@ -259,8 +271,17 @@ void CheckLock(SDL_mutex* m, std::string name, std::string file, unsigned line)
 		ThreadInfo tI;
 		tI.file = "main";
 		tI.line = 0;
-		threads.push_back(tI);
+		AddThread(tI, locker);
 	}
+
+	std::map<Uint32, unsigned>::iterator it2 = idToIndex.find(locker);
+	if (it2 == idToIndex.end())
+	{
+		UnlockMutex(lockCheckMutex);
+		return;
+	}
+	unsigned index = it2->second;
+
 	std::map<SDL_mutex*, LockedItems*>::iterator it = lockedItems.find(m);
 
 	if (it != lockedItems.end() && it->second->locker == locker)
@@ -273,10 +294,10 @@ void CheckLock(SDL_mutex* m, std::string name, std::string file, unsigned line)
 	}
 
 	LockedItems* lI = new LockedItems;
-	lI->all = lockHash.getItem(m, file, line, name);
-	lI->byM = lockHashByM.getItem(m, file, line, name);
-	lI->byPos = lockHashByPos.getItem(m, file, line, name);
-	lI->byUniq = lockHashByUniq.getItem(m, file, line, name);
+	lI->all = lockHash[index].getItem(m, file, line, name);
+	lI->byM = lockHashByM[index].getItem(m, file, line, name);
+	lI->byPos = lockHashByPos[index].getItem(m, file, line, name);
+	lI->byUniq = lockHashByUniq[index].getItem(m, file, line, name);
 	lI->m = m;
 	lI->locker = locker;
 	lI->file = file;
@@ -306,7 +327,7 @@ void CheckLock(SDL_mutex* m, std::string name, std::string file, unsigned line)
 	lI->byUniq->lockTimes++;
 
 	spentLTime += totTime;
-	threads[idToIndex[SDL_ThreadID()]].lockTime += totTime;
+	threads[index].lockTime += totTime;
 	numLocks++;
 
 	lockedItems[m] = lI;
@@ -331,8 +352,16 @@ void RecordLock(SDL_mutex* m, std::string name, std::string file, unsigned line)
 		ThreadInfo tI;
 		tI.file = "main";
 		tI.line = 0;
-		threads.push_back(tI);
+		AddThread(tI, locker);
 	}
+
+	std::map<Uint32, unsigned>::iterator it2 = idToIndex.find(locker);
+	if (it2 == idToIndex.end())
+	{
+		return;
+	}
+	unsigned index = it2->second;
+
 	std::map<SDL_mutex*, LockedItems*>::iterator it = lockedItems.find(m);
 
 	if (it != lockedItems.end() && it->second->locker == locker)
@@ -344,10 +373,10 @@ void RecordLock(SDL_mutex* m, std::string name, std::string file, unsigned line)
 	}
 
 	LockedItems* lI = new LockedItems;
-	lI->all = lockHash.getItem(m, file, line, name);
-	lI->byM = lockHashByM.getItem(m, file, line, name);
-	lI->byPos = lockHashByPos.getItem(m, file, line, name);
-	lI->byUniq = lockHashByUniq.getItem(m, file, line, name);
+	lI->all = lockHash[index].getItem(m, file, line, name);
+	lI->byM = lockHashByM[index].getItem(m, file, line, name);
+	lI->byPos = lockHashByPos[index].getItem(m, file, line, name);
+	lI->byUniq = lockHashByUniq[index].getItem(m, file, line, name);
 	lI->m = m;
 	lI->locker = locker;
 	lI->file = file;
@@ -372,7 +401,7 @@ void RecordLock(SDL_mutex* m, std::string name, std::string file, unsigned line)
 	lI->byUniq->lockTimes++;
 
 	spentLTime += totTime;
-	threads[idToIndex[SDL_ThreadID()]].lockTime += totTime;
+	threads[index].lockTime += totTime;
 	numLocks++;
 
 	lockedItems[m] = lI;
@@ -380,6 +409,7 @@ void RecordLock(SDL_mutex* m, std::string name, std::string file, unsigned line)
 
 void CheckUnlock(SDL_mutex* m, std::string name, std::string file, unsigned line)
 {
+	Uint32 locker = SDL_ThreadID();
 	LockedItems* lI = NULL;
 	if (!m)
 	{
@@ -391,6 +421,15 @@ void CheckUnlock(SDL_mutex* m, std::string name, std::string file, unsigned line
 		lockCheckMutex = SDL_CreateMutex();
 	}
 	LockMutex(lockCheckMutex);
+	
+	std::map<Uint32, unsigned>::iterator it2 = idToIndex.find(locker);
+	if (it2 == idToIndex.end())
+	{
+		UnlockMutex(lockCheckMutex);
+		return;
+	}
+	unsigned index = it2->second;
+
 	std::map<SDL_mutex*, LockedItems*>::iterator it = lockedItems.find(m);
 
 	if (it != lockedItems.end())
@@ -437,7 +476,7 @@ void CheckUnlock(SDL_mutex* m, std::string name, std::string file, unsigned line
 	lI->byUniq->unLockTimes++;
 
 	spentLTime += eTime;
-	threads[idToIndex[SDL_ThreadID()]].lockTime += eTime;
+	threads[index].lockTime += eTime;
 
 	delete lI;
 	
@@ -446,12 +485,21 @@ void CheckUnlock(SDL_mutex* m, std::string name, std::string file, unsigned line
 
 void RecordUnlock(SDL_mutex* m, std::string name, std::string file, unsigned line)
 {
+	Uint32 locker = SDL_ThreadID();
 	LockedItems* lI = NULL;
 	if (!m)
 	{
 		std::cout << "The mutex pointer received was NULL. SDL would let this continue, but rather do nothing as it has no mutex to lock. I'm now gonna crash the program, to prevent you from shooting yourself in the foot." << std::endl;
 		*(int*) 0 = 0;
 	}
+	
+	std::map<Uint32, unsigned>::iterator it2 = idToIndex.find(locker);
+	if (it2 == idToIndex.end())
+	{
+		return;
+	}
+	unsigned index = it2->second;
+
 	std::map<SDL_mutex*, LockedItems*>::iterator it = lockedItems.find(m);
 
 	if (it != lockedItems.end())
@@ -496,13 +544,14 @@ void RecordUnlock(SDL_mutex* m, std::string name, std::string file, unsigned lin
 	lI->byUniq->unLockTimes++;
 
 	spentLTime += eTime;
-	threads[idToIndex[SDL_ThreadID()]].lockTime += eTime;
+	threads[index].lockTime += eTime;
 
 	delete lI;
 }
 
 void RecordDelay(unsigned n)
 {
+	Uint32 locker = SDL_ThreadID();
 	Uint32 sTime = SDL_GetTicks();
 	Delay(n);
 	Uint32 eTime = SDL_GetTicks() - sTime;
@@ -516,15 +565,25 @@ void RecordDelay(unsigned n)
 		ThreadInfo tI;
 		tI.file = "main";
 		tI.line = 0;
-		threads.push_back(tI);
+		AddThread(tI, SDL_ThreadID());
 	}
+	
+	std::map<Uint32, unsigned>::iterator it2 = idToIndex.find(locker);
+	if (it2 == idToIndex.end())
+	{
+		UnlockMutex(lockCheckMutex);
+		return;
+	}
+	unsigned index = it2->second;
+
 	spentDTime += eTime;
-	threads[idToIndex[SDL_ThreadID()]].delay += eTime;
+	threads[index].delay += eTime;
 	UnlockMutex(lockCheckMutex);
 }
 
 void RecordCondWait(SDL_cond* cond, SDL_mutex* mutex, std::string name, std::string file, unsigned line)
 {
+	Uint32 locker = SDL_ThreadID();
 	if (!cond)
 	{
 		std::cout << "The condition pointer received was NULL. SDL would let this continue, but rather do nothing as it has no condition to wait for. I'm now gonna crash the program, to prevent you from shooting yourself in the foot." << std::endl;
@@ -544,6 +603,15 @@ void RecordCondWait(SDL_cond* cond, SDL_mutex* mutex, std::string name, std::str
 		lockCheckMutex = SDL_CreateMutex();
 	}
 	LockMutex(lockCheckMutex);
+	
+	std::map<Uint32, unsigned>::iterator it2 = idToIndex.find(locker);
+	if (it2 == idToIndex.end())
+	{
+		UnlockMutex(lockCheckMutex);
+		return;
+	}
+	unsigned index = it2->second;
+
 	RecordUnlock(mutex, name, file, line);
 	UnlockMutex(lockCheckMutex);
 
@@ -558,39 +626,38 @@ void RecordCondWait(SDL_cond* cond, SDL_mutex* mutex, std::string name, std::str
 		ThreadInfo tI;
 		tI.file = "main";
 		tI.line = 0;
-		threads.push_back(tI);
+		AddThread(tI, SDL_ThreadID());
 	}
 	spentCTime += eTime;
-	threads[idToIndex[SDL_ThreadID()]].condWait += eTime;
+	threads[index].condWait += eTime;
 	UnlockMutex(lockCheckMutex);
 }
 
 SDL_Thread* RecordCreateThread(int (*fn)(void *), void *data, std::string file, unsigned line)
 {
 	SDL_Thread *thread;
-	thread = CreateThread(fn, data);
 	if (!lockCheckMutex)
 	{
 		lockCheckMutex = SDL_CreateMutex();
 	}
 	LockMutex(lockCheckMutex);
+
+	thread = CreateThread(fn, data);
 	
 	if (threads.size() == 0)
 	{
 		ThreadInfo tI;
 		tI.file = "main";
 		tI.line = 0;
-		threads.push_back(tI);
+		AddThread(tI, SDL_ThreadID());
 	}
 
 	ThreadInfo tI;
 	tI.file = file;
 	tI.line = line;
-	tI.delay = 0;
-	threads.push_back(tI);
 
-	numThreads++;
-	idToIndex[SDL_GetThreadID(thread)] = numThreads-1;
+	AddThread(tI, SDL_GetThreadID(thread));
+
 	UnlockMutex(lockCheckMutex);
 	return thread;
 }
@@ -623,21 +690,29 @@ void WriteLockReport(std::string file)
 	
 	ofile << "Format: <name> <file> <line>: <avglocktime> over <locktimes>, <avgexectime> over <exectimes>, <avgunlocktime> over <unlocktimes>, <totlocktime>" << std::endl;
 	
-	ofile << "All:" << std::endl;
-	lockHash.Iterate(OutputLockItem);
-	
-	ofile << std::endl;
-	ofile << "By Mutex:" << std::endl;
-	lockHashByM.Iterate(OutputLockItem);
-	
-	ofile << std::endl;
-	ofile << "By Position:" << std::endl;
-	lockHashByPos.Iterate(OutputLockItem);
-	
-	ofile << std::endl;
-	ofile << "By Unique:" << std::endl;
-	lockHashByUniq.Iterate(OutputLockItem);
-	
+	int index = 0;
+	for (std::vector<ThreadInfo>::iterator it = threads.begin(); it != threads.end(); it++, index++)
+	{
+
+		ofile << std::endl << it->file << " " << it->line << ": " << std::endl << std::endl;
+
+		ofile << "All:" << std::endl;
+		lockHash[index].Iterate(OutputLockItem);
+		
+		ofile << std::endl;
+		ofile << "By Mutex:" << std::endl;
+		lockHashByM[index].Iterate(OutputLockItem);
+		
+		ofile << std::endl;
+		ofile << "By Position:" << std::endl;
+		lockHashByPos[index].Iterate(OutputLockItem);
+		
+		ofile << std::endl;
+		ofile << "By Unique:" << std::endl;
+		lockHashByUniq[index].Iterate(OutputLockItem);
+		
+	}
+		
 	ofile << std::endl;
 	ofile << "Locked mutexes:" << std::endl;
 
