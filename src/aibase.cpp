@@ -1000,7 +1000,7 @@ namespace Game
 
 				static int i = 0;
 				static int lt = 0;
-				if (i % 1000 == 0 || SDL_GetTicks() - lt > 5000)
+				if (i % 1000 == 0 || SDL_GetTicks() - lt > 10000)
 				{
 #ifdef CHECKSUM_DEBUG_HIGH
 					Networking::checksum_output << "GCSWEEP\n";
