@@ -907,7 +907,6 @@ namespace Game
 							// for STRT packet: start game, switch state to NewGame with isNetworked = true
 							// When loaded: sendReadyMessage and wait for REDY from server.
 							isReadyToStart = true;
-							InitIngameNetworking();
 						}
 					}
 				}
@@ -1885,7 +1884,7 @@ namespace Game
 			terminateNetwork = false;
 			CRC32_init();
 
-			netDestCount = Dimension::pWorld->vPlayers.size()-2;
+			netDestCount = type == CLIENT ? 1 : Dimension::pWorld->vPlayers.size()-2;
 
 			NetworkSocket* net = new NetworkSocket();
 			net->socket = NULL;

@@ -208,7 +208,7 @@ namespace Game
 					{
 						Networking::isNetworked = true;
 						mainWindow = GameWindow::Instance();
-						if (mainWindow->NewGame(true, Networking::CLIENT) == SUCCESS)
+						if (Networking::StartNetwork(Networking::CLIENT) == SUCCESS)
 						{
 							nextState = (SwitchState)networkJoin->RunLoop();
 							if(nextState == MENU)
@@ -565,9 +565,12 @@ namespace Game
 			Dimension::InitUnits();
 			pLoading->Increment(increment);
 
-			if (isNetworked)
+			if (isNetworked && ntype == Networking::SERVER)
 			{
-				Networking::StartNetwork(ntype);
+				if (Networking::StartNetwork(ntype) != SUCCESS)
+				{
+					return ERROR_GENERAL;
+				}
 			}
 
 			////////////////////////////////////////////////////////////////////////////////////////////////////////////////

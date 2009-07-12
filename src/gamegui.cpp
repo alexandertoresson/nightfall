@@ -2197,6 +2197,12 @@ namespace Game
 				{
 					this->go = false;
 					this->returnValue = GAME;
+					if (GameWindow::Instance()->NewGame(true, Networking::CLIENT) != SUCCESS)
+					{
+						// TODO: Proper error handling
+						exit(1);
+					}
+					Networking::InitIngameNetworking();
 				}
 			}
 			else if(stat == Networking::JOIN_WAITING)

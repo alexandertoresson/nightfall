@@ -135,6 +135,8 @@ namespace Game
 		Packet *PopReceivedPacket();
 		void PushPacketToSend(Packet *packet);
 		unsigned int QueueSize();
+		
+		void InitIngameNetworking();
 	}
 }
 
