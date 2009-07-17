@@ -13,5 +13,5 @@ nightfall_SOURCES = main.cpp window.cpp game.cpp utilities.cpp ogrexmlmodel.cpp 
                     unitrender.cpp scenegraph.cpp matrix4x4.cpp lockchecker.cpp memdebug.cpp render.cpp \
                     festring.cpp materialxml.cpp configuration.cpp extensions.cpp selectorxml.cpp \
                     gc_ptr.cpp action.cpp tracker.cpp compositor.cpp core.cpp guitest.cpp widgets.cpp \
-                    containers.cpp httprequest.cpp themeengine.cpp vfs.cpp i18n.cpp
+                    containers.cpp httprequest.cpp themeengine.cpp vfs.cpp i18n.cpp archive.cpp
 nightfall_LDFLAGS = $(LIBINTL)

@@ -31,6 +31,12 @@
 /* Define to 1 if you have the `GLU' library (-lGLU). */
 #undef HAVE_LIBGLU
 
+/* Define to 1 if you have the `PocoFoundation' library (-lPocoFoundation). */
+#undef HAVE_LIBPOCOFOUNDATION
+
+/* Define to 1 if you have the `PocoZip' library (-lPocoZip). */
+#undef HAVE_LIBPOCOZIP
+
 /* Define to 1 if you have the `SDL_image' library (-lSDL_image). */
 #undef HAVE_LIBSDL_IMAGE
 
