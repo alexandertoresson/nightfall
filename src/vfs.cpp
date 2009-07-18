@@ -21,6 +21,8 @@
 #include "vfs.h"
 
 #include "filesystem.h"
+#include "utilities.h"
+#include "archive.h"
 
 #include <deque>
 #include <vector>
@@ -40,10 +42,68 @@ namespace Utilities
 			RESOLVE_WRITABLE
 		};
 
-		// TODO: Support archives
-		bool FileExists(const std::string& filename, ResolveType rType)
+		std::string CheckAndResolvePath(const std::string& filename, ResolveType rType)
 		{
-			return rType == RESOLVE_READABLE ? Utilities::FileIsReadable(filename) : Utilities::FileIsWritable(filename);
+			if (rType == RESOLVE_WRITABLE)
+			{
+				return Utilities::FileIsWritable(filename) ? filename : "";
+			}
+			else
+			{
+				std::string zipPath;
+				std::string path;
+				bool first = true;
+				if (filename.find(".zip") != std::string::npos)
+				{
+					std::vector<std::string> elems;
+					split(filename, '/', elems);
+
+					for (std::vector<std::string>::iterator it = elems.begin(); it != elems.end(); ++it)
+					{
+						if (!first)
+						{
+							path.push_back('/');
+						}
+						first = false;
+						path += *it;
+
+						if (it->size() >= 4 && it->substr(it->size()-4) == ".zip")
+						{
+							if (zipPath.length())
+							{
+								try
+								{
+									ArchiveReader ar(zipPath);
+									zipPath = ar.ExtractFile(path);
+								}
+								catch (FileNotFoundException e)
+								{
+									return "";
+								}
+							}
+							zipPath = path;
+							path = "";
+							first = true;
+						}
+					}
+				}
+				if (zipPath.length())
+				{
+					try
+					{
+						ArchiveReader ar(zipPath);
+						return ar.ExtractFile(path);
+					}
+					catch (FileNotFoundException e)
+					{
+						return "";
+					}
+				}
+				else
+				{
+					return Utilities::FileIsReadable(filename) ? filename : "";
+				}
+			}
 		}
 
 		std::string Resolve(const std::string& filename, ResolveType rType = RESOLVE_READABLE, VFSLevel level = -1, int i = -1)
@@ -56,6 +116,7 @@ namespace Utilities
 			unsigned len = cur.first.length();
 			std::string newfn = filename;
 
+			// Is it a directory mount or a file mount?
 			if (cur.first.find_last_of("\\/") == cur.first.size()-1)
 			{
 				if (len <= filename.length() && cur.first == filename.substr(0, len))
@@ -72,7 +133,7 @@ namespace Utilities
 			}
 			if (i == 0)
 			{
-				return FileExists(newfn, rType) ? newfn : "";
+				return CheckAndResolvePath(newfn, rType);
 			}
 			else
 			{
