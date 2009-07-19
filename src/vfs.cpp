@@ -115,6 +115,7 @@ namespace Utilities
 			MountType& cur = lmounts[i];
 			unsigned len = cur.first.length();
 			std::string newfn = filename;
+			bool modified = false;
 
 			// Is it a directory mount or a file mount?
 			if (cur.first.find_last_of("\\/") == cur.first.size()-1)
@@ -122,6 +123,7 @@ namespace Utilities
 				if (len <= filename.length() && cur.first == filename.substr(0, len))
 				{
 					newfn = cur.second + filename.substr(len);
+					modified = true;
 				}
 			}
 			else
@@ -129,6 +131,7 @@ namespace Utilities
 				if (cur.first == filename)
 				{
 					newfn = cur.second;
+					modified = true;
 				}
 			}
 			if (i == 0)
@@ -144,7 +147,7 @@ namespace Utilities
 				}
 				else
 				{
-					return Resolve(filename, rType, level, i-1);
+					return modified ? Resolve(filename, rType, level, i-1) : "";
 				}
 			}
 		}
