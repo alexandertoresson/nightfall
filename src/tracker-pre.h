@@ -30,19 +30,27 @@
 
 namespace Utilities
 {
+	class BeginRequest;
+
 	class Tracker
 	{
 		private:
 			std::string secretgameid;
 			std::map<std::string, std::string> unsentUpdate;
 			bool needShutdown;
+			int lastUpdateID;
+			void SetSecretGameID(std::string gameid);
 		public:
+			Tracker() : lastUpdateID(0) {}
+
 			void BeginGame(int maxplayers, int freeplayerslots, int freespectatorslots);
 			void UpdateGame(int maxplayers, int freeplayerslots, int freespectatorslots, bool started);
+			void KeepAlive();
 			void EndGame();
-			void SetSecretGameID(std::string gameid);
 			bool IsPrefixOfSecretGameID(std::string prefix);
 			std::string GetLastPartOfSecretGameId();
+
+			friend class BeginRequest;
 	};
 
 	extern Tracker gameTracker;

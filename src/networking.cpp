@@ -167,6 +167,8 @@ namespace Game
 		CircularBuffer checksum_output(5000000, "");
 #endif
 
+		Uint32 lastKeepAlive = 0;
+
 		// CRC32 functions:
 
 		/*
@@ -2235,6 +2237,12 @@ namespace Game
 					}
 #endif
 					SDL_Delay(1);
+				}
+
+				if (SDL_GetTicks() - lastKeepAlive > 15000)
+				{
+					Utilities::gameTracker.KeepAlive();
+					lastKeepAlive = SDL_GetTicks();
 				}
 
 			}

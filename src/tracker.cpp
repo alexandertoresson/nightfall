@@ -96,6 +96,24 @@ namespace Utilities
 		params["started"] = Utilities::ToString(int(started));
 		params["freeplayerslots"] = Utilities::ToString(freeplayerslots);
 		params["freespectatorslots"] = Utilities::ToString(freespectatorslots);
+		params["updateid"] = Utilities::ToString(++lastUpdateID);
+
+		if (secretgameid.length())
+		{
+			(new GenericRequest)->GET("http://nightfall-rts.org/tracker/", params);
+		}
+		else
+		{
+			unsentUpdate = params;
+		}
+	}
+	
+	void Tracker::KeepAlive()
+	{
+		std::map<std::string, std::string> params;
+
+		params["cmd"] = "keepalive";
+		params["secretgameid"] = secretgameid;
 
 		if (secretgameid.length())
 		{
