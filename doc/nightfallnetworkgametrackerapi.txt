@@ -5,6 +5,7 @@ Firstly, the type of command that is being sent is defined by the cmd parameter:
 "": List current games
 "begin": Registers a new game
 "update": Updates a registered game
+"keepalive": Signals to the server that the game is still running
 "end": Ends a game
 "registertracker": Register a new game tracker
 
@@ -46,8 +47,19 @@ maxplayers -- Maximum number of players
 started -- Whether the game is started or not
 freeplayerslots -- Number of additional players that can join the game
 freespectatorslots -- Number of additional spectators that can join the game
+updateid -- The integer ID of the update, should be greater than the last one (or else it will be ignored)
 
 Returns: Nothing except status code.
+
+Keep  a game alive
+------------------
+
+Parameters:
+secretgameid -- The game id returned when registering the game
+
+Returns: Nothing except status code.
+
+This command should be run at least every 30th second, otherwise the tracker will drop the game.
 
 End a game
 ----------
