@@ -26,12 +26,13 @@
 #endif
 
 #include "vfs-pre.h"
+#include "filesystem-pre.h"
 
 namespace Utilities
 {
 	namespace VFS
 	{
-		
+		bool GetDirectoryListing(const std::string& path, FSEntryList& list, VFSLevel level = -1);
 	}
 }
 

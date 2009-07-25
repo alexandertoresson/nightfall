@@ -36,25 +36,76 @@ namespace Utilities
 		std::deque<MountVector> stateStack;
 		MountVector mounts;
 
+		class ResolvedFile
+		{
+			private:
+				std::string path;
+				std::string zipPath;
+
+			public:
+				ResolvedFile(std::string path = "", std::string zipPath = "") : path(path), zipPath(zipPath) {}
+
+				// Throws FileNotFoundException if the file is not found inside the archive
+				std::string GetRealFileName()
+				{
+					if (zipPath.length())
+					{
+						ArchiveReader ar(zipPath);
+						return ar.ExtractFile(path);
+					}
+					return path;
+				}
+
+				std::string ToString()
+				{
+					return zipPath.length() ? zipPath + ":" + path : path;
+				}
+
+				bool Exists()
+				{
+					if (zipPath.length())
+					{
+						ArchiveReader ar(zipPath);
+						return ar.Exists(path);
+					}
+					return Utilities::FileExists(path);
+				}
+	
+				bool ListFilesInDirectory(FSEntryList& list)
+				{
+					if (zipPath.length())
+					{
+						ArchiveReader ar(zipPath);
+						return ar.ListFilesInDirectory(path, list);
+					}
+					return Utilities::ListFilesInDirectory(path, list);
+				}
+		};
+
 		enum ResolveType
 		{
 			RESOLVE_READABLE,
-			RESOLVE_WRITABLE
+			RESOLVE_WRITABLE,
+			RESOLVE_DIRECTORY
 		};
 
-		std::string CheckAndResolvePath(const std::string& filename, ResolveType rType)
+		ResolvedFile CheckAndResolvePath(const std::string& filename, ResolveType rType)
 		{
 			if (rType == RESOLVE_WRITABLE)
 			{
-				return Utilities::FileIsWritable(filename) ? filename : "";
+				if (!Utilities::FileIsWritable(filename))
+				{
+					throw FileNotFoundException(filename);
+				}
+				return ResolvedFile(filename);
 			}
 			else
 			{
-				std::string zipPath;
+				ResolvedFile rf;
 				std::string path;
-				bool first = true;
 				if (filename.find(".zip") != std::string::npos)
 				{
+					bool first = true;
 					std::vector<std::string> elems;
 					split(filename, '/', elems);
 
@@ -64,49 +115,47 @@ namespace Utilities
 						{
 							path.push_back('/');
 						}
-						first = false;
 						path += *it;
+						first = false;
 
 						if (it->size() >= 4 && it->substr(it->size()-4) == ".zip")
 						{
-							if (zipPath.length())
-							{
-								try
-								{
-									ArchiveReader ar(zipPath);
-									zipPath = ar.ExtractFile(path);
-								}
-								catch (FileNotFoundException e)
-								{
-									return "";
-								}
-							}
-							zipPath = path;
+							rf = ResolvedFile(path, rf.GetRealFileName());
 							path = "";
-							first = true;
 						}
 					}
-				}
-				if (zipPath.length())
-				{
-					try
+					if (filename[filename.length()-1] == '/')
 					{
-						ArchiveReader ar(zipPath);
-						return ar.ExtractFile(path);
+						path.push_back('/');
 					}
-					catch (FileNotFoundException e)
-					{
-						return "";
-					}
+					rf = ResolvedFile(path, rf.GetRealFileName());
 				}
 				else
 				{
-					return Utilities::FileIsReadable(filename) ? filename : "";
+					rf = ResolvedFile(filename);
+				}
+
+				if (rType == RESOLVE_DIRECTORY)
+				{
+					if (!rf.Exists())
+					{
+						throw FileNotFoundException(rf.ToString());
+					}
+					return rf;
+				}
+				else // if (rType == RESOLVE_READABLE)
+				{
+					path = rf.GetRealFileName();
+					if (!Utilities::FileIsReadable(path))
+					{
+						throw FileNotFoundException(path);
+					}
+					return ResolvedFile(path);
 				}
 			}
 		}
 
-		std::string Resolve(const std::string& filename, ResolveType rType = RESOLVE_READABLE, VFSLevel level = -1, int i = -1)
+		void Resolve(const std::string& filename, std::vector<ResolvedFile>& ls, ResolveType rType = RESOLVE_READABLE, VFSLevel level = -1, int i = -1)
 		{
 			MountVector &lmounts = level == -1 ? mounts : stateStack[level];
 			if (i == -1)
@@ -136,40 +185,70 @@ namespace Utilities
 			}
 			if (i == 0)
 			{
-				return CheckAndResolvePath(newfn, rType);
+				try
+				{
+					ls.push_back(CheckAndResolvePath(newfn, rType));
+				}
+				catch (FileNotFoundException e)
+				{
+					return;
+				}
 			}
 			else
 			{
-				newfn = Resolve(newfn, rType, level, i-1);
-				if (newfn.length())
+				Resolve(newfn, ls, rType, level, i-1);
+				if (ls.size() && rType != RESOLVE_DIRECTORY)
 				{
-					return newfn;
+					return;
 				}
-				else
+				else if (modified)
 				{
-					return modified ? Resolve(filename, rType, level, i-1) : "";
+					Resolve(filename, ls, rType, level, i-1);
 				}
 			}
 		}
 
 		std::string ResolveReadable(const std::string& filename, VFSLevel level)
 		{
-			return Resolve(filename, RESOLVE_READABLE, level);
+			std::vector<ResolvedFile> ls;
+			Resolve(filename, ls, RESOLVE_READABLE, level);
+			if (ls.size())
+				return ls.front().ToString();
+			else
+				return "";
 		}
 
 		std::string ResolveWritable(const std::string& filename, VFSLevel level)
 		{
-			return Resolve(filename, RESOLVE_WRITABLE, level);
+			std::vector<ResolvedFile> ls;
+			Resolve(filename, ls, RESOLVE_WRITABLE, level);
+			if (ls.size())
+				return ls.front().ToString();
+			else
+				return "";
 		}
 
+		bool GetDirectoryListing(const std::string& path, FSEntryList& list, VFSLevel level)
+		{
+			std::vector<ResolvedFile> resolved;
+			Resolve(path, resolved, RESOLVE_DIRECTORY, level);
+			for (std::vector<ResolvedFile>::reverse_iterator it = resolved.rbegin(); it != resolved.rend(); ++it)
+			{
+				it->ListFilesInDirectory(list);
+			}
+			return !resolved.empty();
+		}
+
+		// TODO: Optimize
 		bool FileIsReadable(const std::string& filename, VFSLevel level)
 		{
-			return Resolve(filename, RESOLVE_READABLE, level).length();
+			return ResolveReadable(filename, level).size();
 		}
 
+		// TODO: Optimize
 		bool FileIsWritable(const std::string& filename, VFSLevel level)
 		{
-			return Resolve(filename, RESOLVE_WRITABLE, level).length();
+			return ResolveWritable(filename, level).size();
 		}
 
 		VFSLevel PushState()
