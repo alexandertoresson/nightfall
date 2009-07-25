@@ -26,6 +26,30 @@
 #endif
 
 #include "archive-pre.h"
+#include "filesystem-pre.h"
+
+namespace Utilities
+{
+	class ArchiveReader
+	{
+		private:
+			struct pimpl;
+			pimpl* priv;
+
+			std::string filename;
+
+			// disallow copying
+			ArchiveReader& operator =(const ArchiveReader&);
+			ArchiveReader(const ArchiveReader&);
+		public:
+			ArchiveReader(const std::string&);
+			~ArchiveReader();
+
+			std::string ExtractFile(const std::string&);
+			bool Exists(const std::string&);
+			bool ListFilesInDirectory(const std::string& directory, FSEntryList& list);
+	};
+}
 
 #ifdef DEBUG_DEP
 #warning "archive.h-end"

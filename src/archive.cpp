@@ -70,26 +70,76 @@ namespace Utilities
 
 	bool ArchiveReader::Exists(const std::string& cfile)
 	{
-		Poco::Zip::ZipArchive::FileHeaders::const_iterator it = priv->arch->findHeader(cfile);
-		return it != priv->arch->headerEnd();
+		if (cfile == "/")
+		{
+			return true;
+		}
+		if (cfile.length() && cfile[0] == '/')
+		{
+			Poco::Zip::ZipArchive::FileHeaders::const_iterator it = priv->arch->findHeader(cfile.substr(1));
+			return it != priv->arch->headerEnd();
+		}
+		return false;
 	}
 
 	std::string ArchiveReader::ExtractFile(const std::string& cfile)
 	{
-		Poco::Zip::ZipArchive::FileHeaders::const_iterator it = priv->arch->findHeader(cfile);
-		if (it == priv->arch->headerEnd())
+		if (cfile[0] == '/')
 		{
-			throw FileNotFoundException(cfile + " in " + filename);
+			Poco::Zip::ZipArchive::FileHeaders::const_iterator it = priv->arch->findHeader(cfile.substr(1));
+			if (it == priv->arch->headerEnd())
+			{
+				throw FileNotFoundException(cfile + " in " + filename);
+			}
+
+			Poco::Zip::ZipInputStream zipin(priv->inp, it->second);
+
+			std::string ofile = Poco::TemporaryFile::tempName();
+			std::ofstream out(ofile.c_str(), std::ios::binary);
+			Poco::StreamCopier::copyStream(zipin, out);
+			return ofile;
 		}
-
-		Poco::Zip::ZipInputStream zipin(priv->inp, it->second);
-
-		std::string ofile = Poco::TemporaryFile::tempName();
-		std::ofstream out(ofile.c_str(), std::ios::binary);
-		Poco::StreamCopier::copyStream(zipin, out);
-		return ofile;
+		return "";
 	}
 			
+	bool ArchiveReader::ListFilesInDirectory(const std::string& directory, FSEntryList& list)
+	{
+		bool found = false;
+
+		if (directory.empty() || directory[0] != '/')
+		{
+			return false;
+		}
+
+		std::string dirrel = directory.substr(1);
+
+		for (Poco::Zip::ZipArchive::FileHeaders::const_iterator it = priv->arch->headerBegin(); it != priv->arch->headerEnd(); ++it)
+		{
+			// If there are too few characters the file can't be inside the directory
+			if (it->first.size() > dirrel.size())
+			{
+				// Look up where the first slash after the directory path is
+				size_t firstslash = it->first.find_first_of("\\/", dirrel.size());
+				// Make sure that the directory is a prefix of the file path,
+				// and make sure that the firstslash is at the end of the string or does not exist
+				if (dirrel == it->first.substr(0, dirrel.size()) && firstslash >= it->first.size()-1)
+				{
+					FSEntry entry;
+					// Fetch file/directory name from string
+					std::string name = it->first.substr(dirrel.size(), firstslash - dirrel.size());
+
+					entry.size = it->second.getUncompressedSize();
+					entry.lastModified = it->second.lastModifiedAt().timestamp().epochTime();
+					entry.isDirectory = it->second.isDirectory();
+
+					list[name] = entry;
+					found = true;
+				}
+			}
+		}
+		return found;
+	}
+
 	struct ArchiveWriter::pimpl
 	{
 		pimpl(const std::string& filename) : out(filename.c_str(), std::ios::binary), c(NULL)

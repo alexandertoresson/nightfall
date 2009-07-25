@@ -60,25 +60,6 @@ namespace Utilities
 			FileOpenForWriteException(const std::string& file) : std::runtime_error("File \"" + file + "\" could not be opened for write") { }
 	};
 
-	class ArchiveReader
-	{
-		private:
-			struct pimpl;
-			pimpl* priv;
-
-			std::string filename;
-
-			// disallow copying
-			ArchiveReader& operator =(const ArchiveReader&);
-			ArchiveReader(const ArchiveReader&);
-		public:
-			ArchiveReader(const std::string&);
-			~ArchiveReader();
-
-			std::string ExtractFile(const std::string&);
-			bool Exists(const std::string&);
-	};
-
 	class ArchiveWriter
 	{
 		private:
