@@ -18,37 +18,31 @@
  * You should have received a copy of the GNU General Public License
  * along with Nightfall.  If not, see <http://www.gnu.org/licenses/>.
  */
-#ifndef FILESYSTEM_H
-#define FILESYSTEM_H
+#ifndef FILESYSTEM_H_PRE
+#define FILESYSTEM_H_PRE
 
-#include <vector>
 #include <string>
-#include <cassert>
-#include <fstream>
-#include "sdlheader.h"
-
-#ifdef WIN32
-	#include <windows.h>
-#else
-	#include <sys/types.h>
-	#include <sys/stat.h>
-	#include <dirent.h>
-#endif
+#include <map>
+#include <ctime>
 
 #include "errors.h"
 
-#include "filesystem-pre.h"
-
 namespace Utilities
-{
+{	
+
+	struct FSEntry
+	{
+		long         size;
+		bool         isDirectory;
+		std::time_t  lastModified;
+		
+		FSEntry() : size(0), isDirectory(false)
+		{
+		}
+	};
 	
-	bool ListFilesInDirectory(const std::string& directory, FSEntryList&);
-	bool FileExists(const std::string& file);
-	bool FileIsReadable(const std::string& file);
-	bool FileIsWritable(const std::string& file);
-	std::string GetDirectoryInPath(const std::string& path);
-	void CreateDirectory(const std::string& directory);
+	typedef std::map<std::string, FSEntry> FSEntryList;
+	
 }
 
 #endif
-

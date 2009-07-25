@@ -125,6 +125,7 @@ namespace Game
 			pTag->parent->returnValue = pTag->action;
 		}
 
+/*
 		FileBrowserDialog::FileBrowserDialog(BrowserMode mode)
 		{
 			this->mode = mode;
@@ -190,6 +191,7 @@ namespace Game
 
 			delete [] this->fileList;
 		}
+*/
 
 		GameInGameMenu::GameInGameMenu()
 		{
