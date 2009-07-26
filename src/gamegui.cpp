@@ -22,6 +22,7 @@
 
 #include <cmath>
 #include <sstream>
+#include "gamewindow.h"
 #include "game.h"
 #include "gui.h"
 #include "dimension.h"
@@ -295,7 +296,7 @@ namespace Game
 
 		string GetPower()
 		{
-			gc_ptr<Game::Dimension::Player> player = Game::Dimension::currentPlayerView;
+			gc_ptr<Game::Dimension::Player> player = Dimension::currentPlayerView;
 			std::stringstream sstr, sstr2;
 			string change_str;
 
@@ -373,7 +374,7 @@ namespace Game
 				
 				bool clicked_on_unit   = false, 
 					 clicked_on_ground = false, 
-					 shift_pressed     = pGame->input->GetKeyState(SDLK_LSHIFT);
+					 shift_pressed     = pGame->input.GetKeyState(SDLK_LSHIFT);
 
 				Dimension::ActionArguments args;
 				AI::UnitAction action = AI::ACTION_NONE;
@@ -387,7 +388,7 @@ namespace Game
 					clicked_on_unit = true;
 					if (Dimension::GetCurrentPlayer()->states[unit->owner->index] != Dimension::PLAYER_STATE_ALLY)
 					{
-						if (!pGame->input->GetKeyState(SDLK_LALT))
+						if (!pGame->input.GetKeyState(SDLK_LALT))
 						{
 							action = AI::ACTION_ATTACK;
 						}
@@ -407,7 +408,7 @@ namespace Game
 								break;
 							}
 						}
-						if (!pGame->input->GetKeyState(SDLK_LSHIFT) && unit->health < unit->type->maxHealth && canRepair)
+						if (!pGame->input.GetKeyState(SDLK_LSHIFT) && unit->health < unit->type->maxHealth && canRepair)
 						{
 							action = AI::ACTION_BUILD;
 						}
@@ -434,7 +435,7 @@ namespace Game
 						pGame->goto_x = ter_x;
 						pGame->goto_y = ter_y;
 						pGame->goto_time = SDL_GetTicks();
-						if (!pGame->input->GetKeyState(SDLK_LALT))
+						if (!pGame->input.GetKeyState(SDLK_LALT))
 						{
 							action = AI::ACTION_GOTO;
 						}
@@ -473,7 +474,7 @@ namespace Game
 		void GameInput::MouseDownLeft(SDL_Event* event,Window::GUI::TranslatedMouse* translatedMouse)
 		{
 #ifdef MAC
-			if (pGame->input->GetKeyState(SDLK_LCTRL))
+			if (pGame->input.GetKeyState(SDLK_LCTRL))
 				return;
 #endif
 		
@@ -502,7 +503,7 @@ namespace Game
 		void GameInput::MouseUpLeft(SDL_Event* event,Window::GUI::TranslatedMouse* translatedMouse)
 		{
 #ifdef MAC
-			if (pGame->input->GetKeyState(SDLK_LCTRL))
+			if (pGame->input.GetKeyState(SDLK_LCTRL))
 			{
 				UnitActionEventHandler(event);
 				return;
@@ -551,7 +552,7 @@ namespace Game
 						pGame->end_drag_y = tmp;
 					}
 
-					if (!pGame->input->GetKeyState(SDLK_LSHIFT))
+					if (!pGame->input.GetKeyState(SDLK_LSHIFT))
 					{
 						Dimension::DeselectAllUnits();
 					}
@@ -570,7 +571,7 @@ namespace Game
 				else
 				{
 					Dimension::GetApproximateMapPosOfClick((*event).button.x, (*event).button.y, map_x, map_y);							
-					if (!pGame->input->GetKeyState(SDLK_LSHIFT))
+					if (!pGame->input.GetKeyState(SDLK_LSHIFT))
 					{
 						Dimension::DeselectAllUnits();
 					}
@@ -587,7 +588,7 @@ namespace Game
 							for (vector<gc_ptr<Dimension::Unit> >::iterator it = units.begin(); it != units.end(); it++)
 							{
 								win_coord = Dimension::GetUnitWindowPos(*it);
-								if (((win_coord.x >= 0 && win_coord.x <= Window::windowWidth && win_coord.y >= 0 && win_coord.y <= Window::windowHeight) || pGame->input->GetKeyState(SDLK_LSHIFT)) && (*it)->type == unit->type)
+								if (((win_coord.x >= 0 && win_coord.x <= Window::windowWidth && win_coord.y >= 0 && win_coord.y <= Window::windowHeight) || pGame->input.GetKeyState(SDLK_LSHIFT)) && (*it)->type == unit->type)
 								{
 									AddSelectedUnit(*it);
 								}
@@ -696,7 +697,7 @@ namespace Game
 							int num = Dimension::currentPlayerView->index;
 
 							// switch player view
-							if (!pGame->input->GetKeyState(SDLK_LSHIFT))
+							if (!pGame->input.GetKeyState(SDLK_LSHIFT))
 							{
 								num++;
 								if (num >= (int) Dimension::pWorld->vPlayers.size())
@@ -733,7 +734,7 @@ namespace Game
 						}
 /*						case SDLK_q:
 						{
-							if (!pGame->input->GetKeyState(SDLK_q))
+							if (!pGame->input.GetKeyState(SDLK_q))
 							{
 								gc_ptr<Game::Dimension::Player> current_player = 
 									Game::Dimension::GetCurrentPlayer();
@@ -752,16 +753,16 @@ namespace Game
 								}
 								SDL_UnlockMutex(AI::updateMutex);
 
-								pGame->input->SetKeyState(SDLK_q, true);
+								pGame->input.SetKeyState(SDLK_q, true);
 							}
 							break;
 						}*/
 						case SDLK_1:
 						{
-							if (pGame->input->GetKeyState(SDLK_LCTRL))
+							if (pGame->input.GetKeyState(SDLK_LCTRL))
 								SetGroup(0);
 							else
-								if (pGame->input->GetKeyState(SDLK_LSHIFT))
+								if (pGame->input.GetKeyState(SDLK_LSHIFT))
 									AddGroup(0);
 								else
 									RecallGroup(0);
@@ -769,10 +770,10 @@ namespace Game
 						}
 						case SDLK_2:
 						{
-							if (pGame->input->GetKeyState(SDLK_LCTRL))
+							if (pGame->input.GetKeyState(SDLK_LCTRL))
 								SetGroup(1);
 							else
-								if (pGame->input->GetKeyState(SDLK_LSHIFT))
+								if (pGame->input.GetKeyState(SDLK_LSHIFT))
 									AddGroup(1);
 								else
 									RecallGroup(1);
@@ -780,10 +781,10 @@ namespace Game
 						}
 						case SDLK_3:
 						{
-							if (pGame->input->GetKeyState(SDLK_LCTRL))
+							if (pGame->input.GetKeyState(SDLK_LCTRL))
 								SetGroup(2);
 							else
-								if (pGame->input->GetKeyState(SDLK_LSHIFT))
+								if (pGame->input.GetKeyState(SDLK_LSHIFT))
 									AddGroup(2);
 								else
 									RecallGroup(2);
@@ -791,10 +792,10 @@ namespace Game
 						}
 						case SDLK_4:
 						{
-							if (pGame->input->GetKeyState(SDLK_LCTRL))
+							if (pGame->input.GetKeyState(SDLK_LCTRL))
 								SetGroup(3);
 							else
-								if (pGame->input->GetKeyState(SDLK_LSHIFT))
+								if (pGame->input.GetKeyState(SDLK_LSHIFT))
 									AddGroup(3);
 								else
 									RecallGroup(3);
@@ -802,10 +803,10 @@ namespace Game
 						}
 						case SDLK_5:
 						{
-							if (pGame->input->GetKeyState(SDLK_LCTRL))
+							if (pGame->input.GetKeyState(SDLK_LCTRL))
 								SetGroup(4);
 							else
-								if (pGame->input->GetKeyState(SDLK_LSHIFT))
+								if (pGame->input.GetKeyState(SDLK_LSHIFT))
 									AddGroup(4);
 								else
 									RecallGroup(4);
@@ -813,10 +814,10 @@ namespace Game
 						}
 						case SDLK_6:
 						{
-							if (pGame->input->GetKeyState(SDLK_LCTRL))
+							if (pGame->input.GetKeyState(SDLK_LCTRL))
 								SetGroup(5);
 							else
-								if (pGame->input->GetKeyState(SDLK_LSHIFT))
+								if (pGame->input.GetKeyState(SDLK_LSHIFT))
 									AddGroup(5);
 								else
 									RecallGroup(5);
@@ -824,10 +825,10 @@ namespace Game
 						}
 						case SDLK_7:
 						{
-							if (pGame->input->GetKeyState(SDLK_LCTRL))
+							if (pGame->input.GetKeyState(SDLK_LCTRL))
 								SetGroup(6);
 							else
-								if (pGame->input->GetKeyState(SDLK_LSHIFT))
+								if (pGame->input.GetKeyState(SDLK_LSHIFT))
 									AddGroup(6);
 								else
 									RecallGroup(6);
@@ -835,10 +836,10 @@ namespace Game
 						}
 						case SDLK_8:
 						{
-							if (pGame->input->GetKeyState(SDLK_LCTRL))
+							if (pGame->input.GetKeyState(SDLK_LCTRL))
 								SetGroup(7);
 							else
-								if (pGame->input->GetKeyState(SDLK_LSHIFT))
+								if (pGame->input.GetKeyState(SDLK_LSHIFT))
 									AddGroup(7);
 								else
 									RecallGroup(7);
@@ -846,10 +847,10 @@ namespace Game
 						}
 						case SDLK_9:
 						{
-							if (pGame->input->GetKeyState(SDLK_LCTRL))
+							if (pGame->input.GetKeyState(SDLK_LCTRL))
 								SetGroup(8);
 							else
-								if (pGame->input->GetKeyState(SDLK_LSHIFT))
+								if (pGame->input.GetKeyState(SDLK_LSHIFT))
 									AddGroup(8);
 								else
 									RecallGroup(8);
@@ -857,10 +858,10 @@ namespace Game
 						}
 						case SDLK_0:
 						{
-							if (pGame->input->GetKeyState(SDLK_LCTRL))
+							if (pGame->input.GetKeyState(SDLK_LCTRL))
 								SetGroup(9);
 							else
-								if (pGame->input->GetKeyState(SDLK_LSHIFT))
+								if (pGame->input.GetKeyState(SDLK_LSHIFT))
 									AddGroup(9);
 								else
 									RecallGroup(9);
@@ -884,7 +885,7 @@ namespace Game
 								console << _("This feature has been disabled.") << Console::nl;
 							else
 							{
-								pGame->pause = !pGame->pause;
+//								pGame->pause = !pGame->pause;
 							}
 							break;
 						}
@@ -929,7 +930,7 @@ namespace Game
 						}
 						default:
 						{
-							pGame->input->SetKeyState((*event).key.keysym.sym, true);
+							pGame->input.SetKeyState((*event).key.keysym.sym, true);
 							break;
 						}
 					}
@@ -959,7 +960,7 @@ namespace Game
 					*  Keyboard-event: key up - updates/resets key status through
 					*  (InputController) input
 					*/
-					pGame->input->SetKeyState((*event).key.keysym.sym, false);
+					pGame->input.SetKeyState((*event).key.keysym.sym, false);
 					break;
 				}
 				case MOUSE_MOVE:
@@ -2199,7 +2200,7 @@ namespace Game
 				{
 					this->go = false;
 					this->returnValue = GAME;
-					if (GameWindow::Instance()->NewGame(true, Networking::CLIENT) != SUCCESS)
+					if (CurGame::New()->StartGame("", true, Networking::CLIENT) != SUCCESS)
 					{
 						// TODO: Proper error handling
 						exit(1);

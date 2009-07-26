@@ -957,7 +957,7 @@ namespace Game
 			{
 				if (AI::currentFrame == shutdownFrame)
 				{
-					Game::Rules::GameWindow::Instance()->Stop();
+					Game::Rules::CurGame::Instance()->EndGame();
 				}
 			}
 			

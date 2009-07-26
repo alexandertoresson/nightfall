@@ -34,6 +34,7 @@
 #include "utilities.h"
 #include "unit.h"
 #include "lockfreequeue.h"
+#include "gamewindow.h"
 #include <cmath>
 #include <map>
 
@@ -46,7 +47,6 @@ namespace Game
 		unsigned aiFps = 30;
 		unsigned resetFrame = 0;   // for determining when to reset Dimension::PositionSearch_NumStepsTaken
 		Uint32 currentFrame = 0; // for tracking the number of the current frame
-		int aiFramesPerformedSinceLastRender = 0;
 		int action_changes = 0;
 		int pathnodes = 0;
 		int paths = 0;
@@ -849,7 +849,6 @@ namespace Game
 			static bool may_run_ai = true;
 			if (may_run_ai)
 			{
-				aiFramesPerformedSinceLastRender++;
 				Dimension::Environment::FourthDimension::Instance()->RotateWorld(1.00f / (float) aiFps);
 
 				///////////////////////////////////////////////////////////////////////////
@@ -1050,9 +1049,6 @@ namespace Game
 
 			may_run_ai = NextFrame();
 
-#ifndef USE_MULTITHREADED_CALCULATIONS
-			PerformPathfinding();
-#endif				
 		}
 
 		bool ImmobilityCheck(const gc_ptr<Dimension::Unit>& pUnit, UnitAction action, int x, int y)

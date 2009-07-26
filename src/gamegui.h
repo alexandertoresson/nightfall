@@ -28,6 +28,7 @@
 #include "gamegui-pre.h"
 
 #include "game-pre.h"
+#include "gamewindow-pre.h"
 #include "gui.h"
 #include "unit-pre.h"
 #include <string>

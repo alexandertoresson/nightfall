@@ -31,7 +31,7 @@
 
 #include <iostream>
 #include "window.h"
-#include "game.h"
+#include "gamewindow.h"
 #include "font.h"
 #include "aibase.h"
 #include "configuration.h"
