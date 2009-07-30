@@ -26,6 +26,7 @@
 #endif
 
 #include "vector3d-pre.h"
+#include <iostream>
 
 namespace Utilities
 {
@@ -102,6 +103,9 @@ namespace Utilities
 			void Apply();
 
 	};
+	
+	std::ostream& operator << (std::ostream& os, const Matrix4x4& a);
+
 }
 
 #ifdef DEBUG_DEP
