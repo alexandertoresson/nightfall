@@ -238,4 +238,19 @@ namespace Utilities
 		glLoadMatrixf((GLfloat*)matrix);
 	}
 	
+	std::ostream& operator << (std::ostream& os, const Matrix4x4& a)
+	{
+		for (int i = 0; i < 4; i++)
+		{
+			os << (i ? " {" : "{{");
+			for (int j = 0; j < 4; j++)
+			{
+				std::cout << a.matrix[i][j];
+				os << (j == 3 ? "}" : ", ");
+			}
+			os << (i == 3 ? "}" : ",") << std::endl;
+		}
+		return os;
+	}
+
 }
