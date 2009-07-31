@@ -18,11 +18,11 @@
  * You should have received a copy of the GNU General Public License
  * along with Nightfall.  If not, see <http://www.gnu.org/licenses/>.
  */
-#ifndef GAME_H_PRE
-#define GAME_H_PRE
+#ifndef GAMEWINDOW_H_PRE
+#define GAMEWINDOW_H_PRE
 
 #ifdef DEBUG_DEP
-#warning "game.h-pre"
+#warning "gamewindow.h-pre"
 #endif
 
 #include <string>
@@ -31,21 +31,26 @@ namespace Game
 {
 	namespace Rules
 	{
+                //All game related run loop shall return a switchstate.
+                enum SwitchState
+                {
+                        QUIT = 0,
+                        SETTINGS,
+                        INGAMEMENU,
+                        GAME,
+                        NEWGAME,
+                        LOADGAME,
+                        ENDGAME,
+                        CREDITS,
+                        MENU,
+                        MULTIPLAYER,
+                        NETWORKCREATE,
+                        NETWORKJOIN
+                };
 
-		extern float time_since_last_render_frame;
-		extern std::string CurrentLevel;
-		extern std::string CurrentLevelScript;
+                extern SwitchState startState;
 
-		extern bool noGraphics;
-		extern bool graphicsLoaded;
-		extern bool noSound;
-		extern int numPlayersGoal;
-		extern std::string host;
-		extern std::string checksumLog;
-
-		extern float time_passed_since_last_water_pass;
-
-		class CurGame;
+		class GameWindow;
 	}
 }
 

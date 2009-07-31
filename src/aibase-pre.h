@@ -36,7 +36,6 @@ namespace Game
 		extern int action_changes;
 		extern int pathnodes;
 		extern int paths;
-		extern int aiFramesPerformedSinceLastRender;
 		
 		extern int numLuaAIThreads;
 

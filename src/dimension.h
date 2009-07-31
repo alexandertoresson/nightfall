@@ -124,18 +124,6 @@ namespace Game
 			}
 		};
 		
-		class InputController
-		{
-			private:
-				bool mKeys[SDLK_LAST];
-			
-			public:
-				InputController(void);
-			
-				bool GetKeyState(SDLKey key) const       { return mKeys[key];  }
-				void SetKeyState(SDLKey key, bool value) { mKeys[key] = value; }
-		};
-		
 		extern   gc_root_ptr<World>::type        pWorld;
 		extern   gc_ptr<Unit>**                  pppElements;
 				

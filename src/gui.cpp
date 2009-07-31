@@ -25,7 +25,7 @@
 #include "console.h"
 #include "terrain.h"
 #include "networking.h"
-#include "game.h"
+#include "gamewindow.h"
 #include "utilities.h"
 #include "unit.h"
 #include <cmath>

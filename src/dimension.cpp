@@ -47,13 +47,6 @@ namespace Game
 		
 		Utilities::VFS::VFSLevel outerGameVFSLevel;
 
-		InputController::InputController(void)
-		{
-			int length = sizeof(mKeys) / sizeof(bool);
-			for (int i = 0; i < length; i++)
-				mKeys[i] = false;
-		}
-
 		// Get the approximate position of a click on the map
 		void GetApproximateMapPosOfClick(int clickx, int clicky, int &map_x, int &map_y)
 		{
