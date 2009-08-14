@@ -42,6 +42,7 @@
 #include <queue>
 #include <sstream>
 #include <iomanip>
+#include <string>
 
 namespace Game
 {
@@ -55,6 +56,8 @@ namespace Game
 				float time_passed_since_last_ai_pass;
 				float time_since_last_frame;
 				bool atLeastOneFrameCalculated;
+
+				std::string levelHash;
 
 				volatile bool gameRunning;
 
@@ -82,6 +85,8 @@ namespace Game
 				{
 					return atLeastOneFrameCalculated;
 				}
+
+				const std::string& GetLevelHash();
 
 				static CurGame* Instance();
 				static CurGame* New();

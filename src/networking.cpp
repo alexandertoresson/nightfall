@@ -29,6 +29,7 @@
 #include "handle.h"
 #include "tracker.h"
 #include "utilities.h"
+#include "levelhash.h"
 #include <fstream>
 #include <cmath>
 #include <iostream>
@@ -814,9 +815,14 @@ namespace Game
 			packet->id[1] = 'C';
 			packet->id[2] = 'P';
 			packet->id[3] = 'T';
-			packet->frame = new Uint8[1];
+			packet->frame = new Uint8[41];
 			packet->frame[0] = (Uint8)player_id;
-			packet->frameLength = 1;
+
+			const std::string& levelHash = Rules::CurGame::Instance()->GetLevelHash();
+
+			memcpy(&packet->frame[1], levelHash.c_str(), 40);
+
+			packet->frameLength = 41;
 			packet->numChunks = 0;
 			packet->chunks = NULL;
 			packet->node = node;
@@ -874,10 +880,21 @@ namespace Game
 						if(PACKETTYPE("ACPT"))
 						{
 							joinStatus = JOIN_ACCEPTED;
-							//excpects a clientID.
-							if(packet->frameLength == 1)
+							//expects a clientID and a level hash.
+							if(packet->frameLength == 41)
 							{
 								clientID = (Uint8)packet->frame[0];
+
+								std::string level = Game::GetLevelBySHA1Sum(std::string((char*) &packet->frame[1], 40));
+								if (level.empty())
+								{
+									joinStatus = JOIN_FAILED;
+									ShutdownNetwork();
+								}
+								else
+								{
+									Game::Rules::CurrentLevel = level;
+								}
 							}
 							else
 							{

@@ -132,7 +132,6 @@ namespace Game
 
 		int CurGame::InitGame(bool is_new_game, bool isNetworked, Networking::NETWORKTYPE ntype)
 		{
-			std::cout << GetLevelSHA1Sum(CurrentLevel) << std::endl;
 			Dimension::outerGameVFSLevel = Utilities::VFS::PushState();
 			Utilities::VFS::Mount("/data/levels/" + CurrentLevel + "/", "/data/");
 			
@@ -345,6 +344,15 @@ namespace Game
 			}*/
 		}
 
+		const std::string& CurGame::GetLevelHash()
+		{
+			if (levelHash.empty())
+			{
+				levelHash = GetLevelSHA1Sum(CurrentLevel);
+			}
+
+			return levelHash;
+		}
 		
 		CurGame* CurGame::Instance()
 		{
