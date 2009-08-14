@@ -76,7 +76,7 @@ namespace Utilities
 		params["cmd"] = "begin";
 		params["name"] = "This is a test";
 		params["level"] = Game::Rules::CurrentLevel;
-		params["levelhash"] = "1337133713371337133713371337133713371337";
+		params["levelhash"] = Game::Rules::CurGame::Instance()->GetLevelHash();
 		params["port"] = Utilities::ToString(Game::Networking::netPort);
 		params["maxplayers"] = Utilities::ToString(maxplayers);
 		params["freeplayerslots"] = Utilities::ToString(freeplayerslots);
