@@ -185,7 +185,6 @@ namespace Game
 					case NETWORKJOIN:
 					{
 						Networking::isNetworked = true;
-						mainWindow = GameWindow::Instance();
 						if (Networking::StartNetwork(Networking::CLIENT) == SUCCESS)
 						{
 							nextState = (SwitchState)networkJoin->RunLoop();
@@ -494,6 +493,8 @@ namespace Game
 
 			if (!Game::Rules::noGraphics)
 				glClearColor( 0.2f, 0.2f, 0.2f, 0.7f );
+
+			CurGame::Instance()->StartGameLogicThread();
 
 			while (!CurGame::Instance()->AtLeastOneFrameCalculated())
 			{

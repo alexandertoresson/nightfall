@@ -71,6 +71,8 @@ namespace Game
 			public:
 				int StartGame(std::string saveGame = "", bool isNetworked = false, Networking::NETWORKTYPE ntype = Networking::CLIENT);
 				void EndGame();
+
+				void StartGameLogicThread();
 				
 				bool RunGameLogicFrame();
 

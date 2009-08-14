@@ -86,6 +86,9 @@ namespace Game
 			return false;
 		}
 
+		// TODO: Reorganize StartGame, InitGame and StartGameLogicThread into better pieces, and provide
+		// an interface whereby you can load basic properties of a level, to prevent that the server
+		// needs to load the level when creating a game.
 		int CurGame::StartGame(std::string saveGame, bool isNetworked, Networking::NETWORKTYPE ntype)
 		{
 			gameRunning = true;
@@ -259,10 +262,14 @@ namespace Game
 			glEnable(GL_BLEND);
 			glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-			gameLogicThread = SDL_CreateThread(_GameLogicThread, NULL);
-
 			return SUCCESS;
 			
+		}
+
+		// Temporary solution until the TODO above is fixed.
+		void CurGame::StartGameLogicThread()
+		{
+			gameLogicThread = SDL_CreateThread(_GameLogicThread, NULL);
 		}
 
 		void CurGame::PerformPreFrame()
