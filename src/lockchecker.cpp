@@ -82,11 +82,11 @@ class LockHash
 		LockItem** items;
 		unsigned numItems;
 		bool (*cmp)(LockItem*, LockItem*);
-		unsigned (*hash)(LockItem*);
+		unsigned long (*hash)(LockItem*);
 
 	public:
 
-		LockHash(unsigned numItems, bool (*cmp)(LockItem*, LockItem*), unsigned (*hash)(LockItem*))
+		LockHash(unsigned numItems, bool (*cmp)(LockItem*, LockItem*), unsigned long (*hash)(LockItem*))
 		{
 			this->numItems = numItems;
 			items = new LockItem*[numItems];
@@ -99,7 +99,7 @@ class LockHash
 		{
 			LockItem* lastItem = NULL;
 			LockItem* newItem = new LockItem(m, file, line, name);
-			unsigned k = hash(newItem) % numItems;
+			unsigned long k = hash(newItem) % numItems;
 			LockItem* curItem = items[k];
 
 			while (curItem)
@@ -165,9 +165,9 @@ struct LockedItems
 
 std::map<SDL_mutex*, LockedItems*> lockedItems;
 
-unsigned hash_all(LockItem* a)
+unsigned long hash_all(LockItem* a)
 {
-	return (unsigned) a->m + a->line;
+	return (unsigned long) a->m + a->line;
 }
 
 bool cmp_all(LockItem* a, LockItem* b)
@@ -175,9 +175,9 @@ bool cmp_all(LockItem* a, LockItem* b)
 	return a->m == b->m && a->file == b->file && a->line == b->line;
 }
 
-unsigned hash_m(LockItem* a)
+unsigned long hash_m(LockItem* a)
 {
-	return (unsigned) a->m;
+	return (unsigned long) a->m;
 }
 
 bool cmp_m(LockItem* a, LockItem* b)
@@ -185,7 +185,7 @@ bool cmp_m(LockItem* a, LockItem* b)
 	return a->m == b->m;
 }
 
-unsigned hash_pos(LockItem* a)
+unsigned long hash_pos(LockItem* a)
 {
 	return a->line;
 }
@@ -195,7 +195,7 @@ bool cmp_pos(LockItem* a, LockItem* b)
 	return a->file == b->file && a->line == b->line;
 }
 
-unsigned hash_uniq(LockItem* a)
+unsigned long hash_uniq(LockItem* a)
 {
 	return 0;
 }
