@@ -2189,7 +2189,7 @@ namespace Game
 								{
 									Uint8 buff[2];
 									ExtractDataFromBuffer((Uint8*)&buff, 2, i);
-									netDataLeft[i] = netDataTotal[i] = SDLNet_Read16(&buff);
+									netDataLeft[i] = netDataTotal[i] = SDLNet_Read16((void*)&buff);
 									if(netDataLeft[i] == 0)
 									{
 										netDataLeft[i] = -1;
@@ -2500,7 +2500,7 @@ namespace Game
 								{
 									Uint8 buff[2];
 									ExtractDataFromBuffer((Uint8*)&buff, 2, pCircularBuffer, start, end);
-									dataLeft = dataTotal = SDLNet_Read16(&buff);
+									dataLeft = dataTotal = SDLNet_Read16((void*)&buff);
 									if(dataLeft == 0)
 									{
 										dataLeft = -1;
