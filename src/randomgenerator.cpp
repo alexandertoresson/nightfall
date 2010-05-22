@@ -19,6 +19,7 @@
  * along with Nightfall.  If not, see <http://www.gnu.org/licenses/>.
  */
 #include "randomgenerator.h"
+#include <cstdio>
 
 MTRand::MTRand( const uint32& oneSeed )
 { 
