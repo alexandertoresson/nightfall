@@ -42,7 +42,7 @@ namespace Utilities
 	static unsigned numVertices;
 	static unsigned face_index, vertex_index, texcoord_index;
 
-	static Utilities::FEString x_str = "x", y_str = "y", z_str = "z";
+	static Utilities::FEString x_str, y_str, z_str;
 
 	void ParsePosition(Utilities::XMLElement *elem)
 	{
@@ -68,7 +68,7 @@ namespace Utilities
 		vb->normals->data.floats[vertex_index*3+2] = -y;
 	}
 
-	static Utilities::FEString w_str = "w";
+	static Utilities::FEString w_str;
 
 	void ParseTangent(Utilities::XMLElement *elem)
 	{
@@ -110,7 +110,7 @@ namespace Utilities
 		vb->binormals->data.floats[vertex_index*3+2] = -y;
 	}
 
-	static Utilities::FEString u_str = "u", v_str = "v";
+	static Utilities::FEString u_str, v_str;
 
 	void ParseTexcoord(Utilities::XMLElement *elem)
 	{
@@ -146,7 +146,7 @@ namespace Utilities
 		texcoord_index++;
 	}
 
-	static Utilities::FEString position_str = "position", normal_str = "normal", tangent_str = "tangent", binormal_str = "binormal", texcoord_str = "texcoord";
+	static Utilities::FEString position_str, normal_str, tangent_str, binormal_str, texcoord_str;
 
 	void ParseVertex(Utilities::XMLElement *elem)
 	{
@@ -228,7 +228,7 @@ namespace Utilities
 		elem->Iterate("vertexbuffer", ParseVertexBuffer);
 	}
 
-	static Utilities::FEString v1_str = "v1", v2_str = "v2", v3_str = "v3";
+	static Utilities::FEString v1_str, v2_str, v3_str;
 
 	void ParseFace(Utilities::XMLElement *elem)
 	{
@@ -447,6 +447,11 @@ namespace Utilities
 	{
 		Utilities::XMLReader xmlReader;
 		
+		x_str = "x"; y_str = "y"; z_str = "z";
+		w_str = "w";
+		u_str = "u"; v_str = "v";
+		v1_str = "v1"; v2_str = "v2"; v3_str = "v3";
+		position_str = "position"; normal_str = "normal"; tangent_str = "tangent"; binormal_str = "binormal"; texcoord_str = "texcoord";
 		std::string filename = VFS::ResolveReadable("/data/models/" + name + ".mesh.xml");
 
 		mesh = filenameToMesh[filename];
