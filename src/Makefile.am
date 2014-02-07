@@ -1,5 +1,5 @@
 
-AM_CXXFLAGS = -Wall -Werror -Wextra -Wno-unused-parameter -Wpointer-arith -Wcast-align -Wundef -pedantic -ansi -std=c++98 ${CFLAGS}
+AM_CXXFLAGS = -Wall -Wextra -Wno-unused-parameter -Wpointer-arith -Wcast-align -Wundef -pedantic -ansi -std=c++98 ${CFLAGS}
 
 localedir = $(datadir)/locale
 DEFS = -DLOCALEDIR=\"$(localedir)\" @DEFS@
